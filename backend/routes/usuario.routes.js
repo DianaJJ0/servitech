@@ -1,0 +1,28 @@
+/**
+ * RUTAS DE USUARIO
+ * Define los endpoints para las operaciones relacionadas con usuarios.
+ */
+const express = require("express");
+const router = express.Router();
+
+// Importamos el controlador completo
+const usuarioController = require("../controllers/usuario.controller.js");
+
+// Importamos el middleware de autenticación
+const authMiddleware = require("../middleware/auth.middleware.js");
+
+// --- Definición de Rutas ---
+
+// Rutas públicas (no requieren token)
+router.post("/registro", usuarioController.registrarUsuario);
+router.post("/login", usuarioController.iniciarSesion);
+
+// Rutas protegidas (requieren token)
+router.get(
+  "/perfil",
+  authMiddleware.protect,
+  usuarioController.obtenerPerfilUsuario
+);
+router.get("/", authMiddleware.protect, usuarioController.obtenerUsuarios);
+
+module.exports = router;

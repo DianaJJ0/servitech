@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mi Perfil | Servitech</title>
+  <link rel="stylesheet" href="/assets/css/base.css" />
+  <link rel="stylesheet" href="/assets/css/perfil.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+</head>
+
+<body>
+  <%- include('componentes/header') %>
+
+    <main class="container">
+      <section class="perfil-section">
+        <h1 class="perfil-title">Mi Perfil</h1>
+        <div class="perfil-card">
+          <div class="perfil-avatar">
+            <img src="" alt="Avatar de Usuario" id="profileAvatar">
+            <button class="change-avatar-btn">
+              <i class="fas fa-camera"></i>
+            </button>
+          </div>
+          <div class="perfil-info">
+            <h2 id="userName">Cargando...</h2>
+            <p id="userEmail">Cargando...</p>
+            <div class="perfil-actions">
+              <a href="/editar-perfil.html" class="btn btn-primary">
+                <i class="fas fa-edit"></i> Editar perfil
+              </a>
+              <a href="/mis-asesorias.html" class="btn btn-outline">
+                <i class="fas fa-calendar-alt"></i> Mis asesorías
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="profile-main">
+          <div class="profile-tab" id="personalInfo">
+            <h2>Información personal</h2>
+            <form class="profile-form">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="firstName">Nombre</label>
+                  <input type="text" id="firstName" value="" placeholder="Tu nombre" disabled>
+                </div>
+                <div class="form-group">
+                  <label for="lastName">Apellido</label>
+                  <input type="text" id="lastName" value="" placeholder="Tu apellido" disabled>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="formEmail">Email</label>
+                <input type="email" id="formEmail" value="" placeholder="tucorreo@ejemplo.com" disabled>
+              </div>
+              <!-- Más campos si es necesario -->
+            </form>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <%- include('componentes/footer') %>
+
+      <!-- Carga del script -->
+      <script src="/assets/js/perfil.js"></script>
+</body>
+
+</html>

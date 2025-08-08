@@ -1,0 +1,259 @@
+/* Estructura principal mejorada */
+.container {
+    max-width: var(--content-max-width);
+    margin: 3rem auto;
+    padding: 0 5%;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+}
+
+@media (min-width: 992px) {
+    .container {
+        grid-template-columns: 1.5fr 1fr;
+    }
+}
+
+/* Tarjetas mejoradas */
+.card {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+    padding: 2rem;
+    transition: var(--transition);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--hover-shadow);
+}
+
+/* Títulos más atractivos */
+.card-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+    font-size: 1.75rem;
+    color: var(--text-color);
+    position: relative;
+    padding-bottom: 0.75rem;
+}
+
+.card-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 3rem;
+    height: 3px;
+    background: var(--primary-color);
+    border-radius: 3px;
+}
+
+.card-title i {
+    color: var(--primary-color);
+    font-size: 1.5rem;
+}
+
+/* Texto descriptivo */
+.card p {
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: 1.5rem;
+    font-size: 1.05rem;
+}
+
+/* Formulario mejorado */
+.contact-form {
+    margin-top: 1.5rem;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .form-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.form-group {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    border-radius: var(--input-radius);
+    border: 1px solid var(--border-light);
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    font-size: 1rem;
+    transition: var(--transition);
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: var(--focus-shadow);
+    outline: none;
+    transform: translateY(-2px);
+}
+
+textarea.form-control {
+    min-height: 150px;
+    resize: vertical;
+}
+
+/* Botón de enviar mejorado */
+.send-btn {
+    margin-top: 1rem;
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    border-radius: var(--btn-radius);
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.send-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--btn-shadow);
+    background: var(--primary-hover);
+}
+
+/* Información de contacto mejorada */
+.contact-info-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.75rem;
+}
+
+.contact-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 1.25rem;
+    padding: 1rem;
+    border-radius: var(--input-radius);
+    transition: var(--transition);
+    background: rgba(58, 142, 255, 0.05);
+}
+
+.contact-item:hover {
+    background: rgba(58, 142, 255, 0.1);
+    transform: translateX(5px);
+}
+
+.contact-icon {
+    color: var(--primary-color);
+    font-size: 1.25rem;
+    margin-right: 1rem;
+    margin-top: 0.25rem;
+    flex-shrink: 0;
+}
+
+.contact-text h4 {
+    margin: 0 0 0.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.contact-text p,
+.contact-link {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.contact-link {
+    text-decoration: none;
+    transition: var(--transition);
+    display: inline-block;
+}
+
+.contact-link:hover {
+    color: var(--primary-color);
+    transform: translateX(3px);
+}
+
+/* Feedback y validación */
+.form-feedback {
+    color: var(--accent-color);
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    display: none;
+    font-weight: 500;
+}
+
+.form-control:invalid {
+    border-color: var(--accent-color);
+}
+
+.form-control:invalid + .form-feedback {
+    display: block;
+}
+
+/* Estado de carga */
+.btn-loading {
+    display: none;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.is-loading .btn-text {
+    display: none;
+}
+
+.is-loading .btn-loading {
+    display: flex;
+}
+
+/* Animaciones */
+.animate-fade {
+    animation: fadeInUp 0.6s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .card {
+        padding: 1.5rem;
+    }
+    
+    .card-title {
+        font-size: 1.5rem;
+    }
+    
+    .contact-item {
+        padding: 0.75rem;
+    }
+}

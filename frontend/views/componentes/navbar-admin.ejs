@@ -1,0 +1,79 @@
+<!-- Barra lateral para administración -->
+<aside class="admin-sidebar">
+  <!-- Botón para mostrar/ocultar menú lateral -->
+  <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menú">
+    <i class="fas fa-bars"></i> <!-- Icono menú hamburguesa -->
+  </button>
+  <!-- Encabezado de la barra lateral -->
+  <div class="sidebar-header">
+    <a href="/admin/admin.html" class="logo">
+      <img src="/assets/img/logo.png" alt="Servitech Logo" class="logo-img" /> <!-- Logo admin -->
+      <span class="logo-text">Admin</span> <!-- Texto admin -->
+    </a>
+  </div>
+  <!-- Contenido de la barra lateral -->
+  <div class="sidebar-content">
+    <nav class="sidebar-nav">
+      <ul>
+        <li class="nav-item">
+          <a href="/admin/admin.html">
+            <i class="fas fa-tachometer-alt"></i>
+            <span>Dashboard</span> <!-- Enlace a dashboard -->
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/admin/admin-expertos.html">
+            <i class="fas fa-users"></i>
+            <span>Gestión de Expertos</span> <!-- Enlace a gestión de expertos -->
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/admin/admin-usuarios.html">
+            <i class="fas fa-user-friends"></i>
+            <span>Gestión de Usuarios</span> <!-- Enlace a gestión de usuarios -->
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/admin/admin-categorias.html">
+            <i class="fas fa-tags"></i>
+            <span>Categorías</span> <!-- Enlace a categorías -->
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/admin/admin-publicaciones.html">
+            <i class="fas fa-clipboard-list"></i>
+            <span>Publicaciones</span> <!-- Enlace a publicaciones -->
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/admin/admin-mensajes.html">
+            <i class="fas fa-envelope"></i>
+            <span>Mensajes</span> <!-- Enlace a mensajes -->
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/admin/admin-configuracion.html">
+            <i class="fas fa-cog"></i>
+            <span>Configuración</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+  <div class="sidebar-footer">
+    <a href="/mis-asesorias.html" class="btn-outline">
+      <i class="fas fa-globe"></i>
+      <span>Ver sitio</span>
+    </a>
+    <a href="/login.html" class="btn-logout">
+      <i class="fas fa-sign-out-alt"></i>
+      <span>Cerrar sesión</span>
+    </a>
+  </div>
+</aside>
+<link rel="stylesheet" href="/assets/css/base.css">
+<!-- Estilos base de la aplicación -->
+<link rel="stylesheet" href="/assets/css/componentes.css">
+<!-- Estilos para componentes reutilizables -->
+<link rel="stylesheet" href="/assets/css/admin.css">
+<!-- Estilos específicos para la administración -->

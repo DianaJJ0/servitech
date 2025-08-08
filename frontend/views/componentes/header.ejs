@@ -1,0 +1,81 @@
+<!-- Encabezado principal -->
+<header class="header">
+    <!-- Barra de navegación principal -->
+    <nav class="navbar">
+        <!-- Botón para mostrar/ocultar menú en móvil -->
+        <div class="mobile-menu-toggle" id="mobileMenuToggle">
+            <i class="fas fa-bars"></i> <!-- Icono menú hamburguesa -->
+        </div>
+        <!-- Logo visible solo en escritorio -->
+        <div class="logo hide-on-mobile">
+            <a href="/"><img src="/assets/img/logo.png" alt="logo" class="logo-img"></a> <!-- Logo y enlace a inicio -->
+        </div>
+        <!-- Contenedor de enlaces de navegación -->
+        <div class="nav-container" id="navContainer">
+            <!-- Enlaces principales de navegación -->
+            <div class="nav-links">
+                <a href="/" class="nav-item"><i class="fas fa-home"></i> Inicio</a> <!-- Enlace a inicio -->
+                <a href="/expertos.html" class="nav-item"><i class="fas fa-users"></i> Expertos</a>
+                <!-- Enlace a expertos -->
+                <a href="/contacto.html" class="nav-item"><i class="fas fa-envelope"></i> Contacto</a>
+                <!-- Enlace a contacto -->
+                <!-- Menú de usuario móvil (solo visible cuando el usuario está logueado) -->
+                <div class="mobile-user-menu">
+                    <a href="/perfil.html" class="nav-item user-nav-item">
+                        <i class="fas fa-user"></i> Mi perfil
+                    </a>
+                    <a href="/mis-asesorias.html" class="nav-item user-nav-item">
+                        <i class="fas fa-calendar-alt"></i> Mis asesorías
+                    </a>
+                    <% if (typeof esExperto !=='undefined' && esExperto) { %>
+                        <a href="/perfil-experto" class="nav-item user-nav-item">
+                            <i class="fas fa-user-tie"></i> Perfil de Experto
+                        </a>
+                        <% } %>
+                            <a href="#" class="nav-item user-nav-item" id="mobileLogoutBtn">
+                                <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+                            </a>
+                </div>
+            </div>
+            <!-- Botones de autenticación -->
+            <div class="auth-buttons">
+                <a href="/login.html" class="btn btn-outline">Iniciar sesión</a> <!-- Botón login -->
+                <a href="/registro.html" class="btn btn-primary">Registrarse</a> <!-- Botón registro -->
+            </div>
+        </div>
+        <!-- Menú de usuario (escritorio) -->
+        <div class="user-menu" id="userMenuContainer" style="display: none;">
+            <div class="user-avatar">
+                <img src="" alt="Usuario" id="userAvatar"> <!-- Avatar del usuario -->
+            </div>
+            <span class="d-none d-md-inline" id="userDisplayName">Usuario</span> <!-- Nombre del usuario -->
+            <i class="fas fa-chevron-down"></i> <!-- Icono desplegable -->
+            <div class="user-dropdown" id="userDropdown"> <!-- Menú desplegable usuario -->
+                <a href="/perfil.html" class="dropdown-item">
+                    <i class="fas fa-user"></i> Mi perfil
+                </a>
+
+                <% if (typeof esExperto !=='undefined' && esExperto) { %>
+                    <a href="/perfil-experto" class="dropdown-item">
+                        <i class="fas fa-user-tie"></i> Perfil de Experto
+                    </a>
+                    <% } %>
+                        <a href="#" class="dropdown-item" id="logoutBtn">
+                            <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+                        </a>
+            </div>
+        </div>
+    </nav>
+</header>
+<script>
+    // Inicializa el menú móvil tras el render del header
+    if (typeof setupMobileMenu === 'function') {
+        setupMobileMenu();
+    } else {
+        document.addEventListener('DOMContentLoaded', function () {
+            if (typeof setupMobileMenu === 'function') {
+                setupMobileMenu();
+            }
+        });
+    }
+</script>
