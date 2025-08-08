@@ -1,225 +1,462 @@
-# 🚀 ServiTech Web
+# 🚀 ServiTech - Plataforma de Asesorías Tecnológicas Personalizadas 1:1
 
-ServiTech es una plataforma web para conectar usuarios con expertos en tecnología, permitiendo agendar asesorías, realizar pagos seguros, gestionar mensajería y administrar usuarios y expertos desde un panel de administración. El sistema incluye autenticación, videollamadas, pagos integrados y un flujo completo para clientes y expertos.
+ServiTech es una plataforma web moderna que conecta usuarios que necesitan asistencia tecnológica con expertos especializados en diferentes áreas de la tecnología. El sistema permite agendar asesorías personalizadas uno a uno para realizar videollamadas en tiempo real donde prefieran, procesar pagos seguros y gestionar sus datos personales desde un completo panel de perfil tanto usuarios como expertos.
+
+## 📋 Descripción del Aplicativo
+
+### ¿Qué es ServiTech?
+
+ServiTech es una solución integral para asesorías tecnológicas que facilita:
+
+- **Conexión Directa**: Los usuarios pueden encontrar y conectarse con expertos certificados en áreas específicas como desarrollo web, ciberseguridad, análisis de datos, inteligencia artificial, y más.
+
+- **Asesorías Personalizadas**: Cada sesión es completamente personalizada según las necesidades específicas del usuario, garantizando una atención de calidad y resultados efectivos.
+
+- **Múltiples Canales de Comunicación**:
+
+  - Videollamadas programadas para sesiones intensivas o rápidas donde ustedes prefieran
+  - Sistema de notificaciones para mantener informados a los usuarios
+
+- **Gestión Integral de Pagos**: Sistema de pagos seguro integrado con PSE para transacciones nacionales, permitiendo pagos rápidos y confiables.
+
+- **Panel de Administración**: Herramientas completas para administrar usuarios, expertos, categorías, transacciones y estadísticas del sistema.
+
+### Características Principales
+
+- ✅ **Autenticación Segura**: Sistema de registro e inicio de sesión con JWT
+- ✅ **Calendario Inteligente**: Los expertos pueden configurar su disponibilidad y los usuarios agendar citas
+- ✅ **Sistema de Categorías**: Organización por especialidades tecnológicas
+- ✅ **Pagos Seguros**: Procesamiento de pagos con PSE
+- ✅ **Responsive Design**: Optimizado para dispositivos móviles y escritorio
+- ✅ **Panel de Control**: Administración completa del sistema
 
 ---
 
-## 📦 Estructura del Proyecto
+## 📦 Estructura Real del Proyecto
 
 ```
-SERVITECH1/
+servitech-1/
 ├── backend/
-│   ├── config/           # Configuración de base de datos y entorno
-│   ├── models/          # Modelos Mongoose
-│   ├── routes/          # Rutas API REST
-│   ├── services/        # Servicios (email, etc)
-│   ├── controllers/     # Controladores
-│   ├── app.js          # Servidor Express principal
-│   ├── .env            # Variables de entorno
-│   ├── package.json    # Dependencias
-│   └── inicializar.js  # Script para datos iniciales
+│   ├── config/
+│   │   └── database.js         # Configuración de MongoDB
+│   ├── controllers/
+│   │   ├── categoriaController.js
+│   │   └── usuarioController.js
+│   ├── middleware/
+│   │   └── middleware.js
+│   ├── models/
+│   │   ├── categoria.model.js
+│   │   └── usuario.model.js
+│   ├── node_modules/           # Dependencias instaladas
+│   ├── routes/
+│   │   ├── categoria.routes.js
+│   │   └── usuario.routes.js
+│   ├── services/
+│   │   ├── email.service.js
+│   │   └── test-email.js
+│   ├── .env                    # Variables de entorno (no incluido en repo)
+│   ├── app.js                  # Servidor Express principal
+│   ├── inicializar.js          # Script de inicialización de datos
+│   ├── package-lock.json       # Lock de versiones exactas
+│   └── package.json            # Dependencias del backend
+├── frontend/
+│   ├── assets/
+│   │   ├── css/
+│   │   ├── img/
+│   │   └── js/
+│   ├── node_modules/           # Dependencias del frontend
+│   ├── views/
+│   │   ├── admin/
+│   │   ├── componentes/
+│   │   ├── calendario.ejs
+│   │   ├── confirmacion-asesoria.ejs
+│   │   ├── contacto.ejs
+│   │   ├── expertos.ejs
+│   │   ├── index.ejs
+│   │   ├── login.ejs
+│   │   ├── mis-asesorias.ejs
+│   │   ├── pasarela-pagos.ejs
+│   │   ├── perfiles.ejs
+│   │   ├── recuperar-password.ejs
+│   │   ├── registro.ejs
+│   │   └── terminos.ejs
+│   ├── package-lock.json
+│   ├── package.json            # Dependencias del frontend
+│   ├── server_simple.js        # Servidor simple
+│   └── servidor.js             # Servidor principal del frontend
+├── COPILOT_GUIDE.md           # Guía de Copilot
+└── README.md                  # Este archivo
 ```
 
 ---
 
-## 🖥️ Instalación y Uso en Otro PC
+## 💻 Requisitos Previos
 
-Esta guía te ayudará a configurar y ejecutar el proyecto ServiTech en tu máquina local.
+### Versiones Requeridas
 
-### 1. Requisitos Previos
+- **Node.js**: v18.0.0 o superior
+- **npm**: v9.0.0 o superior
+- **MongoDB**: v6.0.0 o superior
+- **Git**: v2.30.0 o superior
 
-- **Node.js** v18 o superior
-- **MongoDB** v6 o superior (local o en [MongoDB Atlas](https://www.mongodb.com/cloud/atlas))
-- **Git** (para clonar el repositorio)
+### Verificación de Versiones
 
----
-
-### 2. Configuración del Backend
-
-Sigue estos pasos en tu terminal (Git Bash o WSL en Windows, Terminal en Linux/macOS).
-
-1.  **Clona el repositorio:**
-
-    ```bash
-    git clone https://github.com/DianaJJ0/servitechWeb.git
-    ```
-
-2.  **Navega al directorio del backend:**
-
-    ```bash
-    cd servitechWeb/SERVITECH1/backend
-    ```
-
-3.  **Instala las dependencias del proyecto:**
-
-    ```bash
-    npm install
-    ```
-
-4.  **Configura las variables de entorno:**
-    Crea una copia del archivo de ejemplo `.env.example` y renómbrala a `.env`.
-
-    ```bash
-    # En Linux/macOS
-    cp .env.example .env
-    # En Windows (Command Prompt)
-    copy .env.example .env
-    ```
-
-    Luego, edita el archivo `.env` con tus propias credenciales (por ejemplo, con `nano .env`, VS Code o Notepad).
-
-    ```
-    # Ejemplo de configuración:
-    MONGODB_URI=mongodb://localhost:27017/servitech
-    JWT_SECRET=tu_clave_secreta_muy_segura
-    PORT=3001
-    ```
-
-5.  **Inicializa la base de datos (opcional):**
-    Este comando poblará la base de datos con categorías y usuarios de prueba.
-
-    ```bash
-    node inicializar.js
-    ```
-
-6.  **Inicia el servidor:**
-    - Para producción:
-      ```bash
-      node app.js
-      ```
-    - Para desarrollo (con reinicio automático al guardar cambios):
-      ```bash
-      npx nodemon app.js
-      ```
+```bash
+# Verificar versiones instaladas
+node --version
+npm --version
+git --version
+mongod --version
+```
 
 ---
 
-### 3. Configuración del Frontend
+## 🔧 Instalación Paso a Paso
 
-El frontend está construido con **EJS (Embedded JavaScript templates)** y se sirve directamente desde el backend de Express. **No requiere una instalación ni un proceso de inicio por separado.**
+### Para Windows
 
-Una vez que el servidor backend esté en funcionamiento (paso 6 anterior), el frontend estará automáticamente disponible.
+#### 1. Preparar el Entorno
+
+```bash
+
+# Instalar Node.js
+choco install nodejs
+
+# Instalar MongoDB (opcional, puedes usar MongoDB Atlas)
+choco install mongodb
+
+# Instalar Git
+choco install git
+```
+
+#### 2. Clonar el Repositorio
+
+```bash
+# Crear directorio de trabajo
+mkdir C:\Proyectos
+cd C:\Proyectos
+
+# Clonar el repositorio
+git clone https://github.com/DianaJJ0/servitechWeb.git
+cd servitechWeb\servitech-1
+```
+
+#### 3. Configuración del Backend
+
+```bash
+# Navegar al directorio del backend
+cd backend
+
+# Instalar dependencias
+npm install
+
+# Crear archivo de variables de entorno (si no existe)
+copy .env.example .env
+
+# Editar el archivo .env con tus configuraciones
+notepad .env
+```
+
+#### 4. Configuración del Frontend
+
+```bash
+# Desde la raíz del proyecto, ir al frontend
+cd ..\frontend
+
+# Instalar dependencias del frontend
+npm install
+```
+
+### Para Linux (Ubuntu/Debian)
+
+#### 1. Preparar el Entorno
+
+```bash
+# Actualizar el sistema
+sudo apt update && sudo apt upgrade -y
+
+# Instalar Node.js y npm
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# Instalar MongoDB
+wget -qO - https://www.mongodb.org/static/pgp/server-6.0.asc | sudo apt-key add -
+echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
+sudo apt-get update
+sudo apt-get install -y mongodb-org
+
+# Instalar Git
+sudo apt install git -y
+
+# Iniciar MongoDB
+sudo systemctl start mongod
+sudo systemctl enable mongod
+```
+
+#### 2. Clonar el Repositorio
+
+```bash
+# Crear directorio de trabajo
+mkdir ~/Proyectos
+cd ~/Proyectos
+
+# Clonar el repositorio
+git clone https://github.com/DianaJJ0/servitechWeb.git
+cd servitechWeb/servitech
+```
+
+#### 3. Configuración del Backend
+
+```bash
+# Navegar al directorio del backend
+cd backend
+
+# Instalar dependencias
+npm install
+
+# Crear archivo de variables de entorno (si no existe)
+cp .env.example .env
+
+# Editar el archivo .env
+nano .env
+```
+
+#### 4. Configuración del Frontend
+
+```bash
+# Desde la raíz del proyecto, ir al frontend
+cd ../frontend
+
+# Instalar dependencias del frontend
+npm install
+```
 
 ---
 
-### 🗄️ Iniciar la base de datos con MongoDB Atlas y Compass en Linux
+## ⚙️ Configuración del Archivo .env
 
-1. Ingresa a [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) y crea una cuenta (si no tienes una).
-2. Crea un nuevo cluster gratuito y espera a que esté listo.
-3. En "Database Access", crea un usuario con contraseña y permisos de lectura/escritura.
-4. En "Network Access", agrega tu IP pública o permite acceso desde cualquier IP (`0.0.0.0/0`).
-5. Copia la URI de conexión del cluster (formato:
-   `mongodb+srv://dianacjj23:<db_password>@adso2873441.e4hnh5b.mongodb.net/servitech?retryWrites=true&w=majority`)
-6. Abre MongoDB Compass y pega la URI en el campo de conexión.
-7. Haz clic en "Connect" para conectarte y gestionar la base de datos.
-8. Actualiza la variable `MONGODB_URI` en tu archivo `.env` con la URI de Atlas.
+Crea y configura el archivo `.env` en el directorio `backend/` con las siguientes variables:
 
----
+```bash
+# Configuración de la Base de Datos
+MONGODB_URI=mongodb://localhost:27017/servitech
+# Para MongoDB Atlas:
+# MONGODB_URI=mongodb+srv://usuario:password@cluster.mongodb.net/servitech
 
-## ⚙️ Comandos Clave
+# Configuración del Servidor
+PORT=3001
+NODE_ENV=development
 
-- Instalar dependencias:
-  `npm install`
-- Inicializar datos de prueba:
-  `node inicializar.js`
-- Iniciar servidor backend:
-  `node app.js`
-- Iniciar servidor con nodemon (desarrollo):
-  `npx nodemon app.js`
-  o si está instalado globalmente:
-  `nodemon app.js`
+# Configuración de JWT
+JWT_SECRET=tu_clave_secreta_muy_segura_aqui
+JWT_EXPIRE=24h
 
----
+# Configuración de Correo Electrónico
+EMAIL_SERVICE=gmail
+EMAIL_USER=tu_email@gmail.com
+EMAIL_PASS=tu_contraseña_de_aplicación
 
-## 🌐 Acceso a la Aplicación
-
-Con el servidor en marcha, abre tu navegador y visita:
-
-- **Página principal:** [http://localhost:3001/](http://localhost:3001/)
-- **Panel de administración:** [http://localhost:3001/admin/admin.html](http://localhost:3001/admin/admin.html)
+# URLs del Sistema
+FRONTEND_URL=http://localhost:3001
+API_BASE_URL=http://localhost:3001/api
+```
 
 ---
 
-## 🛠️ Backend
+## 🚀 Inicialización y Ejecución
 
-- **Express.js:** Servidor web y API REST.
-- **Mongoose:** Modelos y conexión a MongoDB.
-- **Rutas:** Endpoints para usuarios, expertos, categorías, pagos y mensajería.
-- **Autenticación:** JWT y sesiones.
-- **Inicialización:** Script para poblar categorías y usuarios de prueba.
-- **Configuración:** Variables en `.env` (MongoDB, JWT, puerto, etc.)
+### 1. Inicializar la Base de Datos
 
----
+```bash
+# Desde el directorio backend/
+node inicializar.js
+```
 
-## 🎨 Frontend (views/)
+### 2. Iniciar la Aplicación
 
-- **EJS:** Plantillas dinámicas para las vistas, renderizadas por el servidor.
-- **Archivos estáticos:** CSS, JS de cliente y multimedia se encuentran en la carpeta `public/`.
-- **Flujo usuario:** Registro → Login → Selección de experto → Calendario → Pago → Chat.
-- **Panel admin:** Gestión de usuarios y expertos.
-- **Componentes:** Partes reutilizables de la interfaz (header, footer, etc.) se encuentran en `views/componentes`.
-- **Personalización:** Puedes editar los archivos `.ejs` y los recursos en `public/` para adaptar el diseño.
+```bash
+# Terminal 1: Iniciar backend
+cd backend && node app.js
 
----
+# Terminal 2: Iniciar frontend
+cd frontend && node servidor.js
+```
 
-## 🔗 Endpoints Principales
+### 3. Acceder a la Aplicación
 
-- `POST /api/usuarios/login` — Inicio de sesión
-- `POST /api/usuarios` — Registro de usuario
-- `GET /api/categorias` — Listado de categorías
-- `GET /api/expertos` — Listado de expertos
-- `POST /api/pse/crear-transaccion` — Iniciar pago
-- `GET /api/mensajeria/conversaciones` — Conversaciones usuario
+- **Frontend (Vistas)**: http://localhost:3000 (o el puerto configurado en frontend)
+- **Backend (API)**: http://localhost:3001
+- **Panel de administración**: Incluido en las vistas del frontend
 
 ---
 
-## 🧑‍💻 Autor
+## 🏗️ Arquitectura del Proyecto
 
-**Diana Carolina Jiménez**
-GitHub: [@DianaJJ0](https://github.com/DianaJJ0)
+### Backend (Node.js + Express + MongoDB)
+
+**Estructura MVC:**
+
+- **Models**: categoria.model.js, usuario.model.js
+- **Controllers**: categoriaController.js, usuarioController.js
+- **Routes**: categoria.routes.js, usuario.routes.js
+- **Services**: email.service.js para envío de correos
+- **Config**: database.js para conexión MongoDB
+- **Middleware**: middleware.js para autenticación y validaciones
+
+### Frontend (EJS + Express)
+
+**Arquitectura separada:**
+
+- **Views**: Páginas EJS organizadas por funcionalidad
+- **Assets**: Archivos estáticos (CSS, JS, imágenes)
+- **Servidor**: servidor.js para servir las vistas EJS
+- **Componentes**: Elementos reutilizables en views/componentes/
 
 ---
 
-## 🏆 Estado Actual
+## 🔗 Endpoints Principales de la API
 
-- Backend y frontend operativos
-- Mensajería y pagos integrados
-- Estructura lista para escalar y agregar nuevas funcionalidades
+### Usuarios
+
+- `GET /api/usuarios` - Listar usuarios
+- `POST /api/usuarios` - Crear usuario
+- `PUT /api/usuarios/:id` - Actualizar usuario
+- `DELETE /api/usuarios/:id` - Eliminar usuario
+
+### Categorías
+
+- `GET /api/categorias` - Listar categorías
+- `POST /api/categorias` - Crear categoría
+- `PUT /api/categorias/:id` - Actualizar categoría
+- `DELETE /api/categorias/:id` - Eliminar categoría
+
+---
+
+## 📊 Estado Actual del Proyecto
+
+### ✅ Funcionalidades Base Completadas
+
+- Estructura MVC del backend implementada
+- Modelos de Usuario y Categoría definidos
+- Rutas y controladores básicos
+- Configuración de base de datos MongoDB
+- Servicio de email configurado
+- Frontend con vistas EJS organizadas
+- Sistema de componentes reutilizables
+
+### 🔄 En Desarrollo
+
+- Sistema completo de autenticación
+- Integración completa backend-frontend
+- Sistema de pagos PSE
+- Panel de administración funcional
+- Sistema de calificaciones y reseñas
 
 ---
 
 ## ❓ Preguntas Frecuentes
 
-**¿Por qué me sale error con `npm install`?**
-Asegúrate de estar en la carpeta `backend` y que exista el archivo `package.json`.
+### Instalación y Configuración
 
-**¿Cómo cambio el puerto?**
-Edita la variable `PORT` en el archivo `.env`.
+**Q: ¿Dónde están los archivos del frontend?**
 
-**¿Cómo inicializo datos de prueba?**
-Ejecuta `node inicializar.js` en la carpeta `backend`.
+- El frontend está en la carpeta `/frontend/` como aplicación separada
+- Las vistas EJS están en `/frontend/views/`
+- Los archivos estáticos están en `/frontend/assets/`
 
-**¿Cómo accedo al sistema?**
-Abre tu navegador y visita `http://localhost:3001/`.
+**Q: ¿Cómo ejecuto ambos servidores?**
 
-**¿Cómo uso nodemon para desarrollo?**
-Instala nodemon con `npm install -g nodemon` y ejecuta `nodemon app.js` en la carpeta `backend` para reinicio automático del servidor al hacer cambios.
+```bash
+# Opción 1: Dos terminales
+Terminal 1: cd backend && node app.js
+Terminal 2: cd frontend && node server.js
+
+# Opción 2: Con concurrently (instalar globalmente)
+npm install -g concurrently
+concurrently "cd backend && node app.js" "cd frontend && node server.js"
+```
+
+**Q: Error "Cannot find module"**
+
+```bash
+# Verificar que estás en el directorio correcto
+# Para backend:
+cd backend && npm install
+
+# Para frontend:
+cd frontend && npm install
+```
+
+**Q: ¿Qué puerto usa cada servidor?**
+
+- Backend (API): Puerto 3001 (por defecto)
+- Frontend (Vistas): Configurado en frontend/server.js
+
+### Base de Datos
+
+**Q: ¿Cómo reinicializar los datos?**
+
+```bash
+cd backend
+node inicializar.js
+```
+
+**Q: Error "npm ERR! Cannot read properties of null"**
+
+```bash
+# Limpiar caché de npm
+npm cache clean --force
+# Eliminar node_modules y reinstalar
+rm -rf node_modules package-lock.json
+npm install
+```
+
+**Q: "MongoDB connection failed"**
+
+- Verificar que MongoDB esté ejecutándose: `sudo systemctl status mongod` (Linux) o `net start MongoDB` (Windows)
+- Verificar la URI en el archivo .env
+- Para MongoDB Atlas, verificar credenciales y whitelist de IPs
+
+**Q: "Puerto 3001 ya está en uso"**
+
+```bash
+# Windows
+netstat -ano | findstr :3001
+taskkill /PID <PID_NUMBER> /F
+
+# Linux/Mac
+sudo lsof -ti:3001 | xargs kill -9
+```
+
+### Errores de Desarrollo
+
+**Q: "JWT token invalid"**
+
+- Verificar que JWT_SECRET esté configurado en .env
+- Verificar que el token no haya expirado
+- Limpiar localStorage del navegador
+
+**Q: "CORS policy error"**
+
+- Verificar configuración de CORS en backend/middleware/cors.js
+- Asegurar que FRONTEND_URL esté correctamente configurado
+
+**Q: "Cannot find module"**
+
+```bash
+# Reinstalar dependencias específicas
+npm install <nombre-del-modulo>
+# O reinstalar todas las dependencias
+rm -rf node_modules && npm install
+```
 
 ---
 
-Asegúrate de estar en la carpeta `backend` y que exista el archivo `package.json`.
+## 👨‍💻 Autor
 
-**¿Cómo cambio el puerto?**
-Edita la variable `PORT` en el archivo `.env`.
+**Diana Carolina Jiménez**
 
-**¿Cómo inicializo datos de prueba?**
-Ejecuta `node inicializar.js` en la carpeta `backend`.
-
-**¿Cómo accedo al sistema?**
-Abre tu navegador y visita `http://localhost:3001/`.
-
-**¿Cómo uso nodemon para desarrollo?**
-Instala nodemon con `npm install -g nodemon` y ejecuta `nodemon app.js` en la carpeta `backend` para reinicio automático del servidor al hacer cambios.
+- GitHub: [@DianaJJ0](https://github.com/DianaJJ0)
+- Email: dianacjj23@gmail.com
 
 ---
-# servitech
