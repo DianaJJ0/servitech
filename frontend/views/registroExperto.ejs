@@ -11,6 +11,8 @@
   <!-- Título de la pestaña del navegador -->
   <link rel="stylesheet" href="/assets/css/auth.css" />
   <!-- Estilos específicos para autenticación -->
+  <link rel="stylesheet" href="/assets/css/registroExperto.css" />
+  <!-- Estilos específicos para registro de experto -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <!-- Iconos de Font Awesome -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -39,8 +41,20 @@
             <% } %>
 
               <div class="registro-header">
+                <!-- Logo de ServiTech -->
+                <a href="/" class="logo-link"><img src="/assets/img/logo.png" alt="Logo de ServiTech"
+                    class="logo-img"></a>
+
                 <h1>Registro de Experto</h1>
+
                 <p class="subtitle">Completa tu perfil para ofrecer asesorías</p>
+
+                <!-- Botón volver al inicio centrado -->
+                <div class="back-home-center">
+                  <a href="/" class="back-link">
+                    <i class="fas fa-arrow-left"></i>Volver al inicio
+                  </a>
+                </div>
               </div>
 
               <form id="registroExpertoForm" class="registro-experto-form">
@@ -49,7 +63,7 @@
                   <div class="form-group compact">
                     <label for="email">Email registrado</label>
                     <input type="email" id="email" name="email" required placeholder="tucorreo@ejemplo.com"
-                      value="<%= typeof email !== 'undefined' ? email : '' %>" readonly>
+                      value="<%= typeof email !== 'undefined' %>" readonly>
                     <p class="form-hint">Email de tu cuenta</p>
                   </div>
 
@@ -236,6 +250,15 @@
                   </button>
                 </div>
                 <script>
+                  // Mostrar fecha actual
+                  document.addEventListener('DOMContentLoaded', function () {
+                    document.getElementById('currentDate').textContent = new Date().toLocaleDateString('es-ES', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    });
+                  });
+
                   document.addEventListener('DOMContentLoaded', async function () {
                     // Validaciones en tiempo real para datos bancarios
                     const numeroCuentaInput = document.getElementById('numeroCuenta');

@@ -63,11 +63,25 @@
             </form>
             <footer class="auth-footer">
                 <p>¿Ya tienes una cuenta? <a href="/login.html">Inicia sesión</a></p>
+                <div class="back-home">
+                    <a href="/"><i class="fas fa-arrow-left"></i>Volver a la página principal</a>
+                </div>
             </footer>
         </div>
     </div>
     <!-- RUTA CORRECTA: Se ajusta la ruta del script de JavaScript. -->
     <script src="/assets/js/registro.js"></script>
+</body>
+
+</html>
+<script>
+    // Mostrar fecha actual
+    document.getElementById('currentDate').textContent = new Date().toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+</script>
 </body>
 
 </html>

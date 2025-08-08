@@ -2,122 +2,169 @@
 
 /* Usamos un contenedor más ancho para este formulario */
 .auth-container--wide .auth-card {
-    max-width: 600px;
-    margin: 2rem auto;
+  max-width: 600px;
+  margin: 2rem auto;
 }
 
 .auth-form textarea {
-    width: 100%;
-    padding: 0.875rem 1rem;
-    background-color: var(--input-bg);
-    border: 1px solid var(--border-color);
-    border-radius: var(--input-radius);
-    color: var(--text-color);
-    font-size: 1rem;
-    font-family: inherit;
-    transition: all 0.3s;
-    resize: vertical;
-    min-height: 80px;
+  width: 100%;
+  padding: 0.875rem 1rem;
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--input-radius);
+  color: var(--text-color);
+  font-size: 1rem;
+  font-family: inherit;
+  transition: all 0.3s;
+  resize: vertical;
+  min-height: 80px;
 }
 
 .auth-form textarea:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: var(--focus-shadow);
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: var(--focus-shadow);
 }
 
 .category-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 0.75rem;
-    padding: 0.75rem;
-    background-color: var(--input-bg);
-    border: 1px solid var(--border-color);
-    border-radius: var(--input-radius);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--input-radius);
 }
 
 .category-grid label {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem;
-    background-color: var(--background);
-    border-radius: var(--btn-radius);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background-color: var(--background);
+  border-radius: var(--btn-radius);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
 }
 
 .category-grid label:hover {
-    background-color: #2e2e2e;
+  background-color: #2e2e2e;
 }
 
 .category-grid input[type="checkbox"] {
-    accent-color: var(--primary-color);
+  accent-color: var(--primary-color);
 }
 
 .horario-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    margin-bottom: 1rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 
 .form-group-horario label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-size: 0.875rem;
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
 }
 
 .form-group-horario input[type="time"] {
-    width: 100%;
-    padding: 0.875rem;
-    background-color: var(--input-bg);
-    border: 1px solid var(--border-color);
-    border-radius: var(--input-radius);
-    color: var(--text-color);
-    font-family: inherit;
+  width: 100%;
+  padding: 0.875rem;
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--input-radius);
+  color: var(--text-color);
+  font-family: inherit;
 }
 
 /* Estilos para los checkboxes de días de la semana */
 .dias-semana {
-    margin-top: 1rem;
+  margin-top: 1rem;
 }
 .dias-semana span {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-    display: block;
-    margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  display: block;
+  margin-bottom: 0.5rem;
 }
 
 .dias-checkboxes {
-    display: flex;
-    justify-content: space-between;
-    gap: 0.5rem;
-    background-color: var(--input-bg);
-    padding: 0.5rem;
-    border-radius: var(--input-radius);
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  background-color: var(--input-bg);
+  padding: 0.5rem;
+  border-radius: var(--input-radius);
 }
 
 .dias-checkboxes label {
-    flex-grow: 1;
-    text-align: center;
-    padding: 0.5rem 0;
-    border-radius: var(--btn-radius);
-    cursor: pointer;
-    transition: all 0.2s ease;
+  flex-grow: 1;
+  text-align: center;
+  padding: 0.5rem 0;
+  border-radius: var(--btn-radius);
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .dias-checkboxes input[type="checkbox"] {
-    display: none; /* Ocultamos el checkbox original */
+  display: none; /* Ocultamos el checkbox original */
 }
 
 .dias-checkboxes label:hover {
-    background-color: #333;
+  background-color: #333;
 }
 
 .dias-checkboxes input[type="checkbox"]:checked + label {
-    background-color: var(--primary-color);
-    color: white;
-    font-weight: 600;
+  background-color: var(--primary-color);
+  color: white;
+  font-weight: 600;
+}
+
+/* Estilos específicos para el header de registro de experto */
+.logo-link .logo-img {
+  width: 200px;
+  margin-bottom: 1rem;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.back-home-center {
+  text-align: center;
+  margin: 1rem 0;
+}
+
+.back-home-center .back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  background-color: rgba(255, 255, 255, 0.05);
+  transition: all 0.3s;
+}
+
+.back-home-center .back-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--primary-color);
+  transform: translateX(-0.2rem);
+}
+
+.back-home-center .back-link i {
+  font-size: 0.9rem;
+}
+
+.auth-date {
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+.auth-date small {
+  color: var(--text-light);
+  font-size: 0.75rem;
 }

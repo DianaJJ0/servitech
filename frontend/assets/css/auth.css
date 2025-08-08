@@ -395,9 +395,29 @@
   transform: translateX(-0.3125rem);
 }
 
+/* Estilo específico para el botón en registro de experto */
+.back-home a:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: var(--primary-color) !important;
+  transform: translateX(-0.2rem) !important;
+}
+
 .back-home i {
   margin-right: 0.3125rem;
   font-size: 0.75rem;
+}
+
+.auth-date {
+  text-align: center;
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.auth-date small {
+  color: var(--text-light);
+  font-size: 0.75rem;
+  font-style: italic;
 }
 
 /* Estilos específicos para registro */
