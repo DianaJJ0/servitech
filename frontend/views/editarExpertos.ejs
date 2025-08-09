@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <!-- Metadatos y enlaces a recursos externos -->
+  <meta charset="UTF-8" />
+  <!-- Codificación de caracteres UTF-8 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Diseño responsivo para dispositivos móviles -->
+  <title>Registro | Servitech</title>
+  <!-- Título de la pestaña del navegador -->
+  <link rel="stylesheet" href="/assets/css/auth.css" />
+  <!-- Estilos específicos para autenticación -->
+  <link rel="stylesheet" href="/assets/css/editarExpertos.css" />
+  <!-- Estilos específicos para edición de experto -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <!-- Iconos de Font Awesome -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- Fuente Inter para mejorar la tipografía -->
+</head>
+
+<body>
+  <main class="registro-experto-main">
+    <section class="registro-experto-section">
+      <% if (typeof error !=='undefined' ) { %>
+        <div class="alert alert-danger">
+          <%= error %>
+        </div>
+        <% } %>
+          <% if (typeof success !=='undefined' ) { %>
+            <div class="alert alert-success">
+              <%= success %>
+            </div>
+            <% } %>
+
+              <div class="registro-header">
+                <a href="/" class="logo-link"><img src="/assets/img/logo.png" alt="Logo de ServiTech"
+                    class="logo-img"></a>
+                <h1>Editar Perfil de Experto</h1>
+                <p class="subtitle">Actualiza tu información profesional</p>
+              </div>
+
+              <form id="editarExpertoForm" class="registro-experto-form" method="POST"
+                action="/actualizar-perfil-experto">
+                <!-- Información Básica -->
+                <div class="form-row">
+                  <div class="form-group compact">
+                    <label for="email">Email registrado</label>
+                    <input type="email" id="email" name="email" value="<%= usuario.email %>" readonly>
+                  </div>
+
+                  <div class="form-group compact">
+                    <label for="nombre">Nombre</label>
+                    <input type="text" id="nombre" name="nombre" value="<%= usuario.nombre %>" required>
+                  </div>
+                </div>
+
+                <!-- Información Profesional -->
+                <div class="form-group">
+                  <label for="descripcion">Descripción profesional</label>
+                  <textarea id="descripcion" name="descripcion" required
+                    rows="4"><%= usuario.experto.descripcion %></textarea>
+                </div>
+
+                <!-- Especialidades -->
+                <div class="form-row">
+                  <div class="form-group compact">
+                    <label for="especialidad">Especialidad principal</label>
+                    <input type="text" id="especialidad" name="especialidad" value="<%= usuario.experto.especialidad %>"
+                      required>
+                  </div>
+
+                  <div class="form-group compact">
+                    <label for="precio">Precio por hora (USD)</label>
+                    <div class="price-input">
+                      <span class="currency">$</span>
+                      <input type="number" id="precio" name="precio" min="0" step="0.01"
+                        value="<%= usuario.experto.precio %>" required>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Habilidades -->
+                <div class="form-group">
+                  <label for="skills">Habilidades (separadas por comas)</label>
+                  <input type="text" id="skills" name="skills" value="<%= usuario.experto.skills.join(', ') %>">
+                  <p class="form-hint">Ej: JavaScript, React, Node.js, MongoDB</p>
+                </div>
+
+                <!-- Disponibilidad -->
+                <div class="form-section">
+                  <h3 class="section-title"><i class="fas fa-calendar-alt"></i> Disponibilidad</h3>
+
+                  <div class="form-row">
+                    <div class="form-group compact">
+                      <label for="dias_disponibles">Días disponibles</label>
+                      <input type="text" id="dias_disponibles" name="dias_disponibles"
+                        value="<%= usuario.experto.horario.dias_disponibles.join(', ') %>">
+                      <p class="form-hint">Ej: Lunes, Miércoles, Viernes</p>
+                    </div>
+
+                    <div class="form-group compact">
+                      <label for="hora_inicio">Hora inicio</label>
+                      <input type="time" id="hora_inicio" name="hora_inicio"
+                        value="<%= usuario.experto.horario.hora_inicio %>">
+                    </div>
+
+                    <div class="form-group compact">
+                      <label for="hora_fin">Hora fin</label>
+                      <input type="time" id="hora_fin" name="hora_fin" value="<%= usuario.experto.horario.hora_fin %>">
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Datos Bancarios -->
+                <div class="form-section">
+                  <h3 class="section-title"><i class="fas fa-university"></i> Datos Bancarios</h3>
+
+                  <div class="form-row">
+                    <div class="form-group compact">
+                      <label for="banco">Banco</label>
+                      <select id="banco" name="banco" required>
+                        <option value="">Selecciona tu banco</option>
+                        <% ['Banco de Bogotá', 'Bancolombia' , 'Davivienda' , 'BBVA' , 'Nequi' , 'Daviplata' , 'Otro'
+                          ].forEach(banco=> { %>
+                          <option value="<%= banco %>" <%=usuario.experto.datosBancarios.banco===banco ? 'selected' : ''
+                            %>>
+                            <%= banco %>
+                          </option>
+                          <% }); %>
+                      </select>
+                    </div>
+
+                    <div class="form-group compact">
+                      <label for="tipoCuenta">Tipo de cuenta</label>
+                      <select id="tipoCuenta" name="tipoCuenta" required>
+                        <option value="">Selecciona tipo</option>
+                        <% ['Cuenta de Ahorros', 'Cuenta Corriente' , 'Cuenta Digital' ].forEach(tipo=> { %>
+                          <option value="<%= tipo %>" <%=usuario.experto.datosBancarios.tipoCuenta===tipo ? 'selected'
+                            : '' %>>
+                            <%= tipo %>
+                          </option>
+                          <% }); %>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="form-row">
+                    <div class="form-group compact">
+                      <label for="numeroCuenta">Número de cuenta</label>
+                      <div class="cuenta-container">
+                        <input type="password" id="numeroCuenta" name="numeroCuenta"
+                          value="<%= usuario.experto.datosBancarios.numeroCuenta %>" required>
+                        <button type="button" id="toggleAccountNumber" class="btn-toggle-cuenta">
+                          <i class="fas fa-eye"></i>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div class="form-group compact">
+                      <label for="titular">Titular de la cuenta</label>
+                      <input type="text" id="titular" name="titular"
+                        value="<%= usuario.experto.datosBancarios.titular %>" required>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="form-actions">
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Guardar cambios
+                  </button>
+                  <a href="/perfil-experto" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancelar
+                  </a>
+                </div>
+              </form>
+    </section>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // Toggle para mostrar/ocultar número de cuenta
+      const toggleBtn = document.getElementById('toggleAccountNumber');
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', function () {
+          const input = document.getElementById('numeroCuenta');
+          const icon = this.querySelector('i');
+
+          if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+          } else {
+            input.type = 'password';
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
+          }
+        });
+      }
+
+      // Validación del formulario
+      const form = document.getElementById('editarExpertoForm');
+      if (form) {
+        form.addEventListener('submit', function (e) {
+          let valid = true;
+
+          // Validar campos requeridos
+          const requiredFields = form.querySelectorAll('[required]');
+          requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+              field.style.borderColor = '#ff3b30';
+              valid = false;
+            } else {
+              field.style.borderColor = '';
+            }
+          });
+
+          if (!valid) {
+            e.preventDefault();
+            alert('Por favor completa todos los campos obligatorios');
+          }
+        });
+      }
+    });
+  </script>
+</body>
+
+</html>
+
+</html>

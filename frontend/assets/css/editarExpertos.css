@@ -1,0 +1,301 @@
+/* Estilos base - Manteniendo las variables existentes */
+.registro-experto-main {
+  max-width: var(--content-max-width);
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.registro-experto-section {
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius);
+  padding: 2rem;
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--border-color);
+}
+
+/* Header del formulario */
+.registro-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.logo-img {
+  max-width: 180px;
+  height: auto;
+  margin: 0 auto 1.5rem;
+  display: block;
+  filter: brightness(0) invert(1);
+  opacity: 0.9;
+  transition: var(--transition);
+}
+
+.logo-img:hover {
+  opacity: 1;
+  transform: scale(1.02);
+}
+
+.registro-header h1 {
+  color: var(--primary-color);
+  font-size: 1.8rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  margin-bottom: 1.5rem;
+  display: block;
+}
+
+/* Formulario principal */
+.registro-experto-form {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Grupos de formulario */
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group.compact {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.form-hint {
+  color: var(--text-light);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  line-height: 1.4;
+}
+
+/* Campos de entrada */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="tel"],
+input[type="time"],
+textarea,
+select {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--input-radius);
+  color: var(--text-color);
+  font-size: 0.95rem;
+  transition: var(--transition);
+}
+
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23a0a0a0'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1rem;
+  padding-right: 2.5rem;
+}
+
+textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: var(--focus-shadow);
+}
+
+/* Input de precio */
+.price-input {
+  position: relative;
+}
+
+.price-input .currency {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-light);
+  font-size: 0.95rem;
+}
+
+.price-input input {
+  padding-left: 2.5rem;
+}
+
+/* Secciones */
+.form-section {
+  margin-top: 2.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border-light);
+}
+
+.section-title {
+  color: var(--accent-color);
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Contenedor de número de cuenta */
+.cuenta-container {
+  position: relative;
+}
+
+.input-cuenta {
+  padding-right: 2.5rem;
+}
+
+.btn-toggle-cuenta {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--text-light);
+  cursor: pointer;
+  padding: 0.25rem;
+  transition: var(--transition);
+}
+
+.btn-toggle-cuenta:hover {
+  color: var(--primary-color);
+}
+
+/* Botones de acción */
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2.5rem;
+  flex-wrap: wrap;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.9rem 1.5rem;
+  border-radius: var(--btn-radius);
+  font-weight: 500;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: var(--transition);
+  text-decoration: none;
+  border: none;
+  flex: 1;
+  min-width: 180px;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: var(--text-color);
+  box-shadow: var(--btn-shadow);
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--hover-shadow);
+}
+
+.btn-secondary {
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+  background-color: var(--background);
+  border-color: var(--text-light);
+}
+
+/* Alertas */
+.alert {
+  padding: 1rem;
+  border-radius: var(--input-radius);
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+}
+
+.alert-danger {
+  background-color: rgba(255, 59, 48, 0.15);
+  color: #ff3b30;
+  border-left: 4px solid #ff3b30;
+}
+
+.alert-success {
+  background-color: rgba(52, 199, 89, 0.15);
+  color: #34c759;
+  border-left: 4px solid #34c759;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .registro-experto-section {
+    padding: 1.5rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .registro-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .registro-experto-section {
+    padding: 1.25rem;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="time"],
+  textarea,
+  select {
+    padding: 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  .logo-img {
+    max-width: 150px;
+  }
+}
