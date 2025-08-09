@@ -19,6 +19,39 @@ const categoriaSchema = new Schema(
       maxlength: 500,
       trim: true,
     },
+    especialidades: [
+      {
+        nombre: {
+          type: String,
+          required: true,
+          trim: true,
+        },
+        descripcion: {
+          type: String,
+          maxlength: 300,
+          trim: true,
+        },
+        habilidades: [
+          {
+            nombre: {
+              type: String,
+              required: true,
+              trim: true,
+            },
+            descripcion: {
+              type: String,
+              maxlength: 300,
+              trim: true,
+            },
+            nivel: {
+              type: String,
+              trim: true,
+              maxlength: 50,
+            },
+          },
+        ],
+      },
+    ],
   },
   {
     timestamps: {

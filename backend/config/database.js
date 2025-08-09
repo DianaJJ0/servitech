@@ -16,6 +16,7 @@ const conectarDB = async () => {
     // Si la conexión es exitosa, se muestra un mensaje en la consola
     const url = `${db.connection.host}:${db.connection.port}`;
     console.log(`MongoDB Conectado en: ${url}`);
+    console.log("DEBUG: URI de conexión MongoDB usada por el backend:", url);
   } catch (error) {
     // MANEJO DE ERRORES CRÍTICO
     console.error(`Error al conectar a la base de datos: ${error.message}`);

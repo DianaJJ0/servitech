@@ -63,51 +63,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         categoriasSeleccionadas.push(checkbox.value);
       });
 
-    // Recolectar horario
-    const diasDisponibles = [];
-    document
-      .querySelectorAll('input[name="diasDisponibles"]:checked')
-      .forEach((checkbox) => {
-        diasDisponibles.push(checkbox.value);
-      });
-    const horaInicio = formData.get("horaInicio");
-    const horaFin = formData.get("horaFin");
+// Este archivo ha sido desactivado. Toda la lógica de registro de expertos se gestiona desde la vista EJS.
+    // const diasDisponibles = []; // Eliminado porque no se usa
 
-    const datosExperto = {
-      especialidad,
-      descripcion,
-      precioPorHora: Number(precioPorHora),
-      categorias: categoriasSeleccionadas,
-      skills,
-      horario: {
-        diasDisponibles,
-        horaInicio,
-        horaFin,
-      },
-    };
-
-    // Enviar los datos al backend
-    try {
-      const response = await fetch("/api/usuarios/convertirse-en-experto", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // Enviar el token para la autenticación
-        },
-        body: JSON.stringify(datosExperto),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.mensaje || "Ocurrió un error.");
-      }
-
-      alert("¡Felicidades! Tu perfil de experto ha sido creado exitosamente.");
-      window.location.href = "/perfil.html"; // Redirigir al perfil
-    } catch (error) {
-      formError.textContent = error.message;
-      formError.style.display = "block";
-    }
-  });
-});
+  }); // Cierre del form.addEventListener
+}); // Cierre del DOMContentLoaded

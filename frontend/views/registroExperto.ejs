@@ -46,9 +46,8 @@
                     class="logo-img"></a>
 
                 <h1>Registro de Experto</h1>
-
                 <p class="subtitle">Completa tu perfil para ofrecer asesorías</p>
-
+                <span id="currentDate" style="display:block; margin-bottom:10px; color:#888;"></span>
                 <!-- Botón volver al inicio centrado -->
                 <div class="back-home-center">
                   <a href="/" class="back-link">
@@ -69,7 +68,8 @@
 
                   <div class="form-group compact">
                     <label for="especialidad">Especialidad</label>
-                    <select id="especialidad" name="especialidad" required>
+                    <select id="especialidad" name="especialidad" required
+                      style="display:block; width:100%; min-height:40px; background:#fff; color:#222; border:1px solid #ccc;">
                       <option value="">Selecciona una especialidad</option>
                     </select>
                   </div>
@@ -94,11 +94,13 @@
 
                   <div class="form-group compact">
                     <label for="skills">Habilidades</label>
-                    <select id="skills" name="skills" multiple style="min-height: 80px;">
+                    <select id="skills" name="skills" multiple
+                      style="display:block; width:100%; min-height:80px; background:#fff; color:#222; border:1px solid #ccc;">
                       <!-- Opciones dinámicas -->
                     </select>
                     <input type="text" id="nuevaSkill"
-                      placeholder="Agregar nueva habilidad tecnológica y presiona Enter">
+                      placeholder="Agregar nueva habilidad tecnológica y presiona Enter"
+                      style="display:block; width:100%; margin-top:8px;">
                     <p class="form-hint">Selecciona o agrega habilidades tecnológicas</p>
                   </div>
                 </div>
@@ -252,11 +254,14 @@
                 <script>
                   // Mostrar fecha actual
                   document.addEventListener('DOMContentLoaded', function () {
-                    document.getElementById('currentDate').textContent = new Date().toLocaleDateString('es-ES', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    });
+                    const currentDateSpan = document.getElementById('currentDate');
+                    if (currentDateSpan) {
+                      currentDateSpan.textContent = new Date().toLocaleDateString('es-ES', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      });
+                    }
                   });
 
                   document.addEventListener('DOMContentLoaded', async function () {
@@ -310,44 +315,97 @@
                       });
                     }
 
-                    // Poblar especialidades
-                    const especialidadSelect = document.getElementById('especialidad');
-                    fetch('/api/especialidades')
-                      .then(res => res.json())
-                      .then(data => {
-                        data.forEach(e => {
-                          const opt = document.createElement('option');
-                          opt.value = e.nombre;
-                          opt.textContent = e.nombre;
-                          especialidadSelect.appendChild(opt);
-                        });
-                      });
 
-                    // Poblar categorías
+                    // Nueva lógica para estructura anidada
+                    const especialidadSelect = document.getElementById('especialidad');
                     const categoriasSelect = document.getElementById('categorias');
-                    fetch('/api/categorias')
+                    const skillsSelect = document.getElementById('skills');
+                    let categoriasData = [];
+
+                    fetch('http://localhost:3000/api/categorias')
                       .then(res => res.json())
                       .then(data => {
-                        data.forEach(c => {
+                        console.log('Categorías recibidas:', data);
+                        categoriasData = data;
+                        // Poblar categorías
+                        categoriasSelect.innerHTML = '';
+                        data.forEach(cat => {
                           const opt = document.createElement('option');
-                          opt.value = c.nombre;
-                          opt.textContent = c.nombre;
+                          opt.value = cat.nombre;
+                          opt.textContent = cat.nombre;
                           categoriasSelect.appendChild(opt);
                         });
+                        especialidadSelect.innerHTML = '<option value="">Selecciona una especialidad</option>';
+                        skillsSelect.innerHTML = '';
                       });
 
-                    // Poblar habilidades sugeridas (de expertos existentes)
-                    const skillsSelect = document.getElementById('skills');
-                    fetch('/api/skills')
-                      .then(res => res.json())
-                      .then(data => {
-                        data.forEach(skill => {
-                          const opt = document.createElement('option');
-                          opt.value = skill.nombre;
-                          opt.textContent = skill.nombre;
-                          skillsSelect.appendChild(opt);
-                        });
+                    // Al cambiar categorías, poblar especialidades de todas las seleccionadas
+                    categoriasSelect.addEventListener('change', function () {
+                      const selectedCats = Array.from(categoriasSelect.selectedOptions).map(opt => opt.value);
+                      console.log('Categorías seleccionadas:', selectedCats);
+                      especialidadSelect.innerHTML = '<option value="">Selecciona una especialidad</option>';
+                      skillsSelect.innerHTML = '';
+                      // Juntar todas las especialidades de las categorías seleccionadas
+                      let especialidades = [];
+                      selectedCats.forEach(catNombre => {
+                        const cat = categoriasData.find(c => c.nombre === catNombre);
+                        if (cat && Array.isArray(cat.especialidades)) {
+                          especialidades = especialidades.concat(cat.especialidades);
+                        }
                       });
+                      console.log('Especialidades encontradas:', especialidades);
+                      // Eliminar duplicados por nombre
+                      const nombresUnicos = new Set();
+                      let count = 0;
+                      especialidades.forEach(esp => {
+                        if (!nombresUnicos.has(esp.nombre)) {
+                          nombresUnicos.add(esp.nombre);
+                          const opt = document.createElement('option');
+                          opt.value = esp.nombre;
+                          opt.textContent = esp.nombre;
+                          especialidadSelect.appendChild(opt);
+                          count++;
+                        }
+                      });
+                      if (count === 0) {
+                        especialidadSelect.innerHTML += '<option disabled>No hay especialidades disponibles</option>';
+                      }
+                    });
+
+                    // Al cambiar especialidad, poblar habilidades (de todas las categorías seleccionadas)
+                    especialidadSelect.addEventListener('change', function () {
+                      const selectedCats = Array.from(categoriasSelect.selectedOptions).map(opt => opt.value);
+                      console.log('Especialidad seleccionada:', especialidadSelect.value);
+                      let habilidadesPorEspecialidad = {};
+                      selectedCats.forEach(catNombre => {
+                        const cat = categoriasData.find(c => c.nombre === catNombre);
+                        if (cat && Array.isArray(cat.especialidades)) {
+                          cat.especialidades.forEach(esp => {
+                            if (esp.nombre === especialidadSelect.value && Array.isArray(esp.habilidades)) {
+                              habilidadesPorEspecialidad[esp.nombre] = esp.habilidades;
+                            }
+                          });
+                        }
+                      });
+                      console.log('Habilidades agrupadas:', habilidadesPorEspecialidad);
+                      skillsSelect.innerHTML = '';
+                      let totalHabs = 0;
+                      Object.keys(habilidadesPorEspecialidad).forEach(espNombre => {
+                        const grupo = habilidadesPorEspecialidad[espNombre];
+                        if (grupo.length > 0) {
+                          grupo.forEach(hab => {
+                            const opt = document.createElement('option');
+                            opt.value = hab.nombre;
+                            opt.textContent = `${hab.nombre} (${hab.nivel || ''})`;
+                            skillsSelect.appendChild(opt);
+                            totalHabs++;
+                          });
+                        }
+                      });
+                      if (totalHabs === 0) {
+                        skillsSelect.innerHTML = '<option disabled>No hay habilidades disponibles</option>';
+                      }
+                    });
 
                     // Permitir agregar nuevas habilidades
                     const nuevaSkillInput = document.getElementById('nuevaSkill');
@@ -524,49 +582,51 @@
     document.addEventListener('DOMContentLoaded', function () {
       const container = document.getElementById('horarios-container');
       const addButton = document.getElementById('add-horario');
-      const template = document.getElementById('horario-template').innerHTML;
+      const template = document.getElementById('horario-template') ? document.getElementById('horario-template').innerHTML : '';
       let horarioCount = 1;
 
-      // Añadir nuevo horario
-      addButton.addEventListener('click', function () {
-        const newHorario = template.replace(/\{\{index\}\}/g, horarioCount);
-        const div = document.createElement('div');
-        div.innerHTML = newHorario;
-        container.appendChild(div.firstElementChild);
-        horarioCount++;
-        // Habilitar botones de eliminar en todos menos el primero
-        document.querySelectorAll('.btn-remove-horario').forEach((btn, index) => {
-          btn.disabled = index === 0;
-        });
-      });
-
-      // Eliminar horario
-      container.addEventListener('click', function (e) {
-        if (e.target.closest('.btn-remove-horario')) {
-          const item = e.target.closest('.horario-item');
-          item.remove();
-          // Si solo queda uno, deshabilitar su botón de eliminar
-          const removeButtons = document.querySelectorAll('.btn-remove-horario');
-          if (removeButtons.length === 1) {
-            removeButtons[0].disabled = true;
-          }
-        }
-      });
-
-      // Validación de horas (opcional)
-      container.addEventListener('change', function (e) {
-        if (e.target.name && e.target.name.includes('[inicio]')) {
-          const inicioSelect = e.target;
-          const finSelect = inicioSelect.closest('.form-row').querySelector('select[name$="[fin]"]');
-          const inicioValue = inicioSelect.value;
-          Array.from(finSelect.options).forEach(option => {
-            option.disabled = option.value && option.value <= inicioValue;
+      if (addButton && container && template) {
+        // Añadir nuevo horario
+        addButton.addEventListener('click', function () {
+          const newHorario = template.replace(/\{\{index\}\}/g, horarioCount);
+          const div = document.createElement('div');
+          div.innerHTML = newHorario;
+          container.appendChild(div.firstElementChild);
+          horarioCount++;
+          // Habilitar botones de eliminar en todos menos el primero
+          document.querySelectorAll('.btn-remove-horario').forEach((btn, index) => {
+            btn.disabled = index === 0;
           });
-          if (finSelect.value && finSelect.value <= inicioValue) {
-            finSelect.value = '';
+        });
+
+        // Eliminar horario
+        container.addEventListener('click', function (e) {
+          if (e.target.closest('.btn-remove-horario')) {
+            const item = e.target.closest('.horario-item');
+            item.remove();
+            // Si solo queda uno, deshabilitar su botón de eliminar
+            const removeButtons = document.querySelectorAll('.btn-remove-horario');
+            if (removeButtons.length === 1) {
+              removeButtons[0].disabled = true;
+            }
           }
-        }
-      });
+        });
+
+        // Validación de horas (opcional)
+        container.addEventListener('change', function (e) {
+          if (e.target.name && e.target.name.includes('[inicio]')) {
+            const inicioSelect = e.target;
+            const finSelect = inicioSelect.closest('.form-row').querySelector('select[name$="[fin]"]');
+            const inicioValue = inicioSelect.value;
+            Array.from(finSelect.options).forEach(option => {
+              option.disabled = option.value && option.value <= inicioValue;
+            });
+            if (finSelect.value && finSelect.value <= inicioValue) {
+              finSelect.value = '';
+            }
+          }
+        });
+      }
     });
   </script>
 
