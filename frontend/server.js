@@ -4,29 +4,36 @@
  */
 const express = require("express");
 const path = require("path");
+const { createProxyMiddleware } = require("http-proxy-middleware");
 
 // --- Inicialización de la Aplicación ---
 const app = express();
 const PORT = 3001; // Puerto dedicado exclusivamente para el frontend.
 
-// --- Configuración de Middlewares Esenciales ---
+// Middleware de logging para ver todas las peticiones entrantes
+app.use((req, res, next) => {
+  console.log(`[FRONTEND] Petición recibida: ${req.method} ${req.url}`);
+  next();
+});
 
-// Se establece EJS como el motor de plantillas para renderizar HTML dinámico.
+// Configuración del motor de vistas y archivos estáticos
 app.set("view engine", "ejs");
-
-// Se define la ruta absoluta donde se encuentran todas las vistas (.ejs).
 app.set("views", path.join(__dirname, "views"));
-
-// --- CONFIGURACIÓN CLAVE Y DEFINITIVA DE ARCHIVOS ESTÁTICOS ---
-// Se le indica a Express que cuando reciba una petición a una URL que comience con '/assets',
-// debe buscar y servir los archivos desde la carpeta física 'frontend/assets'.
-// Esta configuración coincide exactamente con la estructura de tu repositorio.
 app.use("/assets", express.static(path.join(__dirname, "assets")));
-
-// Middleware para que Express pueda interpretar cuerpos de solicitud en formato JSON.
 app.use(express.json());
 
-// --- Rutas de Renderizado de Páginas ---
+// --- Proxy y Rutas de Renderizado ---
+
+// Crea una instancia del proxy para ser usada en la ruta específica.
+const apiProxy = createProxyMiddleware({
+  target: "http://localhost:3000",
+  changeOrigin: true,
+  logLevel: "debug",
+});
+
+// Ruta específica para editar el perfil de experto, que usa el proxy.
+app.get("/editar-perfil-experto", apiProxy);
+
 // Se define una ruta para cada página de la aplicación.
 app.get("/", (req, res) => {
   res.render("index", { user: null });
@@ -83,5 +90,5 @@ app.get("/calendario.html", (req, res) => {
 
 // --- Arranque y Escucha del Servidor ---
 app.listen(PORT, () => {
-  console.log(`Servidor Frontend escuchando en http://localhost:${PORT}`);
+  console.log(`Servidor Frontend REINICIADO Y ACTUALIZADO en http://localhost:${PORT}`);
 });

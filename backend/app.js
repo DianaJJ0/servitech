@@ -6,10 +6,12 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors"); // Se importa cors.
 const conectarDB = require("./config/database.js");
+const path = require("path");
 
 // Importación de los enrutadores de la aplicación.
 const usuarioRoutes = require("./routes/usuario.routes.js");
 const categoriaRoutes = require("./routes/categoria.routes.js");
+const expertoRoutes = require("./routes/experto");
 
 // --- Inicialización de la Aplicación ---
 
@@ -33,6 +35,10 @@ app.use(
   })
 );
 
+// Configuración del motor de vistas EJS para servir archivos desde frontend/views
+app.set("views", path.join(__dirname, "../frontend/views"));
+app.set("view engine", "ejs");
+
 // Middleware para que Express pueda interpretar cuerpos de solicitud en formato JSON.
 app.use(express.json());
 
@@ -41,6 +47,7 @@ app.use(express.json());
 // Se asignan las rutas de la API a sus respectivos endpoints base.
 app.use("/api/usuarios", usuarioRoutes);
 app.use("/api/categorias", categoriaRoutes);
+app.use("/", expertoRoutes);
 
 // --- Arranque y Escucha del Servidor ---
 
