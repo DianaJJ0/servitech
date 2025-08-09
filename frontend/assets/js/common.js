@@ -143,6 +143,7 @@ function setupUserInterface() {
     authButtons.style.display = "none";
     if (userMenu) {
       userMenu.style.display = "flex";
+      setupUserDropdown();
     }
     if (navContainer) {
       navContainer.classList.add("logged-in");
@@ -158,6 +159,78 @@ function setupUserInterface() {
   }
 }
 
+// Configura el dropdown del menú de usuario
+function setupUserDropdown() {
+  const userMenu = document.querySelector(".user-menu");
+  const userDropdown = document.getElementById("userDropdown");
+
+  if (!userMenu || !userDropdown) return;
+
+  // Limpiar eventos previos
+  const newUserMenu = userMenu.cloneNode(true);
+  userMenu.parentNode.replaceChild(newUserMenu, userMenu);
+
+  const newUserDropdown = newUserMenu.querySelector("#userDropdown");
+
+  // Función para mostrar/ocultar dropdown
+  function toggleDropdown(e) {
+    e.stopPropagation();
+
+    if (window.innerWidth > 992) {
+      // Solo en pantallas grandes
+      newUserDropdown.classList.toggle("show");
+      newUserMenu.classList.toggle("active");
+    }
+  }
+
+  // Event listener para el menú de usuario
+  newUserMenu.addEventListener("click", toggleDropdown);
+
+  // Cerrar dropdown al hacer click fuera
+  document.addEventListener("click", (e) => {
+    if (
+      window.innerWidth > 992 &&
+      !newUserMenu.contains(e.target) &&
+      newUserDropdown.classList.contains("show")
+    ) {
+      newUserDropdown.classList.remove("show");
+      newUserMenu.classList.remove("active");
+    }
+  });
+
+  // Cerrar dropdown al redimensionar ventana
+  window.addEventListener("resize", () => {
+    if (window.innerWidth <= 992) {
+      newUserDropdown.classList.remove("show");
+      newUserMenu.classList.remove("active");
+    }
+  });
+
+  // Configurar enlaces del dropdown
+  const dropdownItems = newUserDropdown.querySelectorAll(".dropdown-item");
+  dropdownItems.forEach((item) => {
+    item.addEventListener("click", (e) => {
+      if (item.id === "logoutBtn") {
+        e.preventDefault();
+        logout();
+      } else {
+        // Para otros enlaces, cerrar el dropdown
+        newUserDropdown.classList.remove("show");
+        newUserMenu.classList.remove("active");
+      }
+    });
+  });
+}
+/*  para el menú móvil */
+if (typeof setupMobileMenu === "function") {
+  setupMobileMenu();
+} else {
+  document.addEventListener("DOMContentLoaded", function () {
+    if (typeof setupMobileMenu === "function") {
+      setupMobileMenu();
+    }
+  });
+}
 /**
  * Muestra información personalizada del usuario en el header o perfil.
  */
@@ -165,14 +238,30 @@ function mostrarInfoUsuario() {
   const currentUser = JSON.parse(localStorage.getItem("currentUser"));
   if (!currentUser) return;
 
-  const userNameHeader = document.getElementById("userNameHeader");
-  if (userNameHeader) {
-    userNameHeader.textContent = currentUser.nombre || currentUser.email || "";
+  const userDisplayName = document.getElementById("userDisplayName");
+  const userAvatar = document.getElementById("userAvatar");
+
+  if (userDisplayName) {
+    const nombreCompleto = `${currentUser.nombre || ""} ${
+      currentUser.apellido || ""
+    }`.trim();
+    userDisplayName.textContent =
+      nombreCompleto || currentUser.email || "Usuario";
   }
 
-  const userEmailHeader = document.getElementById("userEmailHeader");
-  if (userEmailHeader) {
-    userEmailHeader.textContent = currentUser.email || "";
+  if (userAvatar) {
+    // Si hay una imagen de avatar
+    if (currentUser.avatar) {
+      userAvatar.innerHTML = `<img src="${currentUser.avatar}" alt="Avatar de ${
+        currentUser.nombre || "Usuario"
+      }">`;
+    } else {
+      // Mostrar iniciales
+      const nombre = currentUser.nombre || currentUser.email || "U";
+      const apellido = currentUser.apellido || "";
+      const iniciales = (nombre.charAt(0) + apellido.charAt(0)).toUpperCase();
+      userAvatar.textContent = iniciales;
+    }
   }
 }
 
@@ -180,9 +269,12 @@ function mostrarInfoUsuario() {
  * Cierra la sesión del usuario
  */
 function logout() {
+  // Limpiar datos del localStorage
   localStorage.removeItem("token");
   localStorage.removeItem("currentUser");
-  window.location.href = "/login.html";
+
+  // Redirigir a la página principal
+  window.location.href = "/";
 }
 
 /**

@@ -152,15 +152,30 @@
   padding: 0.5rem 0.75rem;
   border-radius: var(--border-radius);
   transition: var(--transition);
+  user-select: none;
 }
 
 .user-menu:hover {
   background-color: rgba(255, 255, 255, 0.1);
 }
 
-.user-avatar img {
+.user-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 2.25rem;
   height: 2.25rem;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  color: var(--text-color);
+  font-weight: 600;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.user-avatar img {
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid var(--primary-color);
@@ -170,11 +185,17 @@
   color: var(--text-color);
   font-weight: 500;
   font-size: 0.95rem;
+  white-space: nowrap;
 }
 
-.user-menu i {
+.user-menu i.fa-chevron-down {
   transition: var(--transition);
   font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.user-menu.active i.fa-chevron-down {
+  transform: rotate(180deg);
 }
 
 .user-dropdown {
@@ -191,13 +212,15 @@
   opacity: 0;
   visibility: hidden;
   transform: translateY(10px);
-  transition: var(--transition);
+  transition: all 0.3s ease;
+  pointer-events: none;
 }
 
 .user-dropdown.show {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
+  pointer-events: auto;
 }
 
 .dropdown-item {
@@ -208,6 +231,12 @@
   transition: var(--transition);
   gap: 0.75rem;
   text-decoration: none;
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  font-size: 0.95rem;
 }
 
 .dropdown-item:hover {
@@ -218,6 +247,8 @@
 .dropdown-item i {
   width: 1.25rem;
   text-align: center;
+  flex-shrink: 0;
+  color: inherit;
 }
 
 /* Responsive */
@@ -334,6 +365,7 @@
     gap: 1rem;
     width: 100%;
     max-width: 250px;
+    cursor: default;
   }
 
   .user-dropdown {
@@ -365,6 +397,8 @@
     justify-content: center;
     border-radius: var(--border-radius);
     transition: all 0.3s ease;
+    background-color: var(--input-bg);
+    margin-bottom: 0.5rem;
   }
 
   .dropdown-item:hover {
@@ -372,9 +406,11 @@
     transform: translateY(-1px);
   }
 
-  .user-avatar img {
+  .user-avatar {
     width: 2rem;
     height: 2rem;
+    font-size: 0.9rem;
+    margin: 0 auto;
   }
 
   .user-menu span {
