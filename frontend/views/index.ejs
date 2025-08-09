@@ -418,30 +418,12 @@
 
             <!-- RUTAS CORREGIDAS: Se ha eliminado el prefijo '/assets' y se ha añadido la barra inicial '/' a las rutas de los scripts. -->
             <script src="/assets/js/common.js"></script>
-            <!-- Script común para funcionalidades generales (menús, validaciones, etc.) -->
+            <!-- Script común para funcionalidades generales (menú, validaciones, etc.) -->
 
             <!-- Script de prueba para autenticación (remover en producción) -->
             <script src="/assets/js/test-auth.js"></script>
 
-            <script>
-                // FAQ Accordion Functionality
-                // Permite expandir y colapsar las respuestas de las preguntas frecuentes
-                document.querySelectorAll('.faq-question').forEach(button => {
-                    button.addEventListener('click', () => {
-                        const expanded = button.getAttribute('aria-expanded') === 'true';
-                        button.setAttribute('aria-expanded', !expanded);
-
-                        // Cierra otros ítems abiertos para mantener solo uno expandido
-                        if (!expanded) {
-                            document.querySelectorAll('.faq-question').forEach(otherButton => {
-                                if (otherButton !== button) {
-                                    otherButton.setAttribute('aria-expanded', 'false');
-                                }
-                            });
-                        }
-                    });
-                });
-            </script>
+            <script src="/assets/js/index.js"></script>
             <!-- Script para funcionalidad de acordeón FAQ -->
 
             <script src="/assets/js/mobile-menu.js"></script>

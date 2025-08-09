@@ -1,8 +1,6 @@
 /**
  * @fileoverview
  * Funciones y utilidades comunes para todas las páginas del views de Servitech.
- * Incluye animaciones, scroll suave, menú móvil, protección de rutas, gestión de usuario autenticado,
- * carga dinámica de header/footer y helpers para peticiones protegidas.
  */
 
 // Configura animaciones de aparición al hacer scroll para los elementos seleccionados
@@ -51,387 +49,127 @@ function setupMobileMenu() {
   const mobileMenuToggle = document.getElementById("mobileMenuToggle");
   const navContainer = document.getElementById("navContainer");
 
-  if (mobileMenuToggle && navContainer) {
-    // Verificar si el usuario está logueado para aplicar la clase logged-in
-    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-    if (currentUser) {
-      navContainer.classList.add("logged-in");
-    } else {
-      navContainer.classList.remove("logged-in");
-    }
+  if (!mobileMenuToggle || !navContainer) {
+    console.log("Elementos del menú no encontrados");
+    return;
+  }
 
-    // Eliminar event listeners anteriores para evitar duplicados
-    const newMobileMenuToggle = mobileMenuToggle.cloneNode(true);
-    mobileMenuToggle.parentNode.replaceChild(
-      newMobileMenuToggle,
-      mobileMenuToggle
-    );
+  console.log("Configurando menú móvil...");
 
-    newMobileMenuToggle.addEventListener("click", (e) => {
-      e.stopPropagation(); // Prevenir propagación para evitar conflictos
-      navContainer.classList.toggle("active");
-      const icon = newMobileMenuToggle.querySelector("i");
+  // Limpiar eventos previos clonando el elemento
+  const newToggle = mobileMenuToggle.cloneNode(true);
+  mobileMenuToggle.parentNode.replaceChild(newToggle, mobileMenuToggle);
+
+  // Event listener para abrir/cerrar menú
+  newToggle.addEventListener("click", (e) => {
+    e.stopPropagation();
+    navContainer.classList.toggle("active");
+
+    const icon = newToggle.querySelector("i");
+    if (icon) {
       icon.classList.toggle("fa-bars");
       icon.classList.toggle("fa-times");
-    }); // Cerrar menú al hacer clic en un enlace (incluyendo las opciones de usuario)
-    const allNavLinks = navContainer.querySelectorAll(
-      ".nav-item:not(#mobileLogoutBtn)"
-    );
-    allNavLinks.forEach((link) => {
-      link.addEventListener("click", () => {
-        navContainer.classList.remove("active");
-        const icon = document.querySelector("#mobileMenuToggle i");
-        if (icon) {
-          icon.classList.add("fa-bars");
-          icon.classList.remove("fa-times");
-        }
-      });
-    });
-
-    // Manejar específicamente el botón de cerrar sesión móvil
-    const mobileLogoutBtn = document.getElementById("mobileLogoutBtn");
-    if (mobileLogoutBtn) {
-      mobileLogoutBtn.addEventListener("click", function (event) {
-        event.preventDefault();
-        logout();
-      });
     }
 
-    // Cerrar menú al hacer clic fuera del menú
-    document.addEventListener("click", (e) => {
-      const toggle = document.getElementById("mobileMenuToggle");
-      const nav = document.getElementById("navContainer");
+    console.log(
+      "Menu toggled, active:",
+      navContainer.classList.contains("active")
+    );
+  });
 
-      if (
-        nav &&
-        nav.classList.contains("active") &&
-        toggle &&
-        !toggle.contains(e.target) &&
-        !nav.contains(e.target)
-      ) {
-        nav.classList.remove("active");
-        const icon = toggle.querySelector("i");
+  // Cerrar menú al hacer clic en enlaces
+  const allNavLinks = navContainer.querySelectorAll(
+    ".nav-item, .dropdown-item"
+  );
+  allNavLinks.forEach((link) => {
+    if (link.id !== "logoutBtn") {
+      link.addEventListener("click", () => {
+        navContainer.classList.remove("active");
+        const icon = newToggle.querySelector("i");
         if (icon) {
           icon.classList.add("fa-bars");
           icon.classList.remove("fa-times");
         }
-      }
+      });
+    }
+  });
+
+  // Manejar botón de logout
+  const logoutBtn = document.getElementById("logoutBtn");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", function (event) {
+      event.preventDefault();
+      logout();
     });
   }
+
+  // Cerrar menú al hacer clic fuera
+  document.addEventListener("click", (e) => {
+    if (
+      navContainer.classList.contains("active") &&
+      !newToggle.contains(e.target) &&
+      !navContainer.contains(e.target)
+    ) {
+      navContainer.classList.remove("active");
+      const icon = newToggle.querySelector("i");
+      if (icon) {
+        icon.classList.add("fa-bars");
+        icon.classList.remove("fa-times");
+      }
+    }
+  });
+
+  // Cerrar menú al redimensionar ventana
+  window.addEventListener("resize", () => {
+    if (window.innerWidth >= 993) {
+      navContainer.classList.remove("active");
+      const icon = newToggle.querySelector("i");
+      if (icon) {
+        icon.classList.add("fa-bars");
+        icon.classList.remove("fa-times");
+      }
+    }
+  });
 }
 
 // Actualiza la interfaz de usuario según el estado de autenticación
 function setupUserInterface() {
-  // Obtener el usuario actual del localStorage
   const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-
-  // Buscar elementos de autenticación en la página
   const authButtons = document.querySelector(".auth-buttons");
   const userMenu = document.querySelector(".user-menu");
-  const mobileUserMenu = document.querySelector(".mobile-user-menu");
   const navContainer = document.getElementById("navContainer");
 
-  // Páginas que requieren autenticación
-  const restrictedPages = ["calendario.html", "mensajes.html", "perfil.html"];
-  const currentPage = window.location.pathname.split("/").pop();
-
-  // Verificar si estamos en una página de admin
-  const isAdminPage = window.location.pathname.includes("/admin/");
-
-  // Si el usuario no está logueado y estamos en una página restringida
-  if (!currentUser && (restrictedPages.includes(currentPage) || isAdminPage)) {
-    // Redirigir al login
-    window.location.href = isAdminPage ? "../login.html" : "login.html";
-    return;
-  }
-  // Si el usuario está logueado y estamos en una página de admin pero no es admin
-  if (currentUser && isAdminPage && currentUser.role !== "admin") {
-    window.location.href = "../mis-asesorias.html";
-    return;
-  }
-
-  // Aplicar la clase logged-in al nav-container si el usuario está autenticado
-  if (currentUser && navContainer) {
-    navContainer.classList.add("logged-in");
-  } else if (navContainer) {
-    navContainer.classList.remove("logged-in");
-  }
-
-  // Funciones auxiliares para procesar nombres
-  function capitalizeFirstLetter(string) {
-    if (!string) return "";
-    return string.charAt(0).toUpperCase() + string.slice(1);
-  }
-
-  function getUserNameFromEmail(email) {
-    const nameParts = email.split("@")[0].split(".");
-
-    if (nameParts.length > 1) {
-      return {
-        firstName: capitalizeFirstLetter(nameParts[0]),
-        lastName: capitalizeFirstLetter(nameParts[1]),
-        fullName: `${capitalizeFirstLetter(
-          nameParts[0]
-        )} ${capitalizeFirstLetter(nameParts[1])}`,
-      };
-    }
-
-    return {
-      firstName: capitalizeFirstLetter(nameParts[0]),
-      lastName: "",
-      fullName: capitalizeFirstLetter(nameParts[0]),
-    };
-  }
-  if (authButtons && currentUser) {
-    // Usuario logueado
+  if (currentUser && authButtons) {
     authButtons.style.display = "none";
-
-    // Mostrar menú de usuario en desktop
     if (userMenu) {
-      if (window.innerWidth >= 993) {
-        userMenu.style.display = "flex"; // Solo mostrar en desktop
-      } else {
-        userMenu.style.display = "none"; // Ocultar en móvil/tablet
-      }
-
-      // Añadir clase al contenedor de navegación para indicar que el usuario está logueado
-      if (navContainer) {
-        navContainer.classList.add("logged-in");
-      }
+      userMenu.style.display = "flex";
     }
-
-    const userInfo = getUserNameFromEmail(currentUser.email);
-
-    const userDisplayName = document.getElementById("userDisplayName");
-    if (userDisplayName) {
-      userDisplayName.textContent = userInfo.firstName;
-    }
-
-    const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-      userInfo.firstName
-    )}+${encodeURIComponent(userInfo.lastName)}&background=3a8eff&color=fff`;
-
-    const userAvatarImg = document.getElementById("userAvatar");
-    if (userAvatarImg) {
-      userAvatarImg.src = avatarUrl;
-    }
-    const userMenuContainer = document.getElementById("userMenuContainer");
-    const userDropdown = document.getElementById("userDropdown");
-
-    if (userMenuContainer && userDropdown) {
-      const currentPageItems = document.querySelectorAll(
-        `.dropdown-item[href="${currentPage}"]`
-      );
-      currentPageItems.forEach((item) => {
-        if (!item.classList.contains("active")) {
-          item.classList.add("active");
-        }
-      });
-      // Eliminar event listeners anteriores para evitar duplicados
-      const newUserMenuContainer = userMenuContainer.cloneNode(true);
-      userMenuContainer.parentNode.replaceChild(
-        newUserMenuContainer,
-        userMenuContainer
-      );
-
-      // Alternar visibilidad del menú al hacer clic en el contenedor
-      newUserMenuContainer.addEventListener("click", function (event) {
-        const dropdown = document.getElementById("userDropdown");
-        dropdown.classList.toggle("show");
-
-        // Girar el icono cuando el menú está abierto
-        const chevronIcon =
-          newUserMenuContainer.querySelector(".fa-chevron-down");
-        if (chevronIcon) {
-          chevronIcon.style.transform = dropdown.classList.contains("show")
-            ? "rotate(180deg)"
-            : "rotate(0)";
-        }
-
-        event.stopPropagation(); // Evitar que el clic se propague
-      });
-      // Ocultar el menú al hacer clic fuera de él
-      document.addEventListener("click", function (event) {
-        const dropdown = document.getElementById("userDropdown");
-        const container = document.getElementById("userMenuContainer");
-        if (
-          dropdown &&
-          dropdown.classList.contains("show") &&
-          container &&
-          !container.contains(event.target)
-        ) {
-          dropdown.classList.remove("show");
-
-          // Restaurar la rotación del icono
-          const chevronIcon = container.querySelector(".fa-chevron-down");
-          if (chevronIcon) {
-            chevronIcon.style.transform = "rotate(0)";
-          }
-        }
-      }); // Agregar funcionalidad a los botones de cerrar sesión (tanto en desktop como en móvil)
-      setTimeout(() => {
-        // Botón de cerrar sesión en desktop
-        const logoutBtn = document.getElementById("logoutBtn");
-        if (logoutBtn) {
-          logoutBtn.addEventListener("click", function (event) {
-            event.preventDefault();
-            logout();
-          });
-        }
-        // Botón de cerrar sesión en móvil
-        const mobileLogoutBtn = document.getElementById("mobileLogoutBtn");
-        if (mobileLogoutBtn) {
-          console.log("Configurando mobileLogoutBtn");
-          mobileLogoutBtn.addEventListener("click", function (event) {
-            event.preventDefault();
-            console.log("Cerrando sesión desde móvil");
-            logout();
-          });
-        }
-      }, 100); // Pequeño retraso para asegurar que el DOM está listo
-    }
-  } else if (authButtons && !currentUser) {
-    // Usuario no logueado
-    authButtons.style.display = "flex";
-
-    if (userMenu) {
-      userMenu.style.display = "none";
-    }
-
-    // Quitar clase de usuario logueado
-    if (navContainer) {
-      navContainer.classList.remove("logged-in");
-    }
-  }
-}
-
-// Maneja los cambios de tamaño de la ventana para mostrar/ocultar menús según el dispositivo
-function handleWindowResize() {
-  const userMenu = document.querySelector(".user-menu");
-  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-  const navContainer = document.getElementById("navContainer");
-
-  if (currentUser) {
-    // Usuario logueado
     if (navContainer) {
       navContainer.classList.add("logged-in");
     }
-
-    if (userMenu) {
-      if (window.innerWidth >= 993) {
-        userMenu.style.display = "flex"; // Mostrar en desktop
-      } else {
-        userMenu.style.display = "none"; // Ocultar en móvil
-      }
-    }
-  } else {
-    // Usuario no logueado
-    if (navContainer) {
-      navContainer.classList.remove("logged-in");
-    }
-
+  } else if (authButtons) {
+    authButtons.style.display = "flex";
     if (userMenu) {
       userMenu.style.display = "none";
     }
-  }
-}
-
-// Listener para cambios de tamaño de ventana
-window.addEventListener("resize", handleWindowResize);
-
-/**
- * Carga el header y ejecuta las funciones comunes tras su inserción en el DOM.
- * Permite que el header sea reutilizable en todas las páginas.
- */
-document.addEventListener("DOMContentLoaded", () => {
-  const headerContainer = document.getElementById("header-container");
-
-  if (!headerContainer) {
-    // Si no hay header, ejecuta las funciones comunes de inmediato igual
-    setupScrollAnimations();
-    setupSmoothScroll();
-    setupUserInterface();
-    mostrarInfoUsuario();
-    return;
-  }
-
-  fetch("//componentes/header.html")
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error(`Error al cargar el header: ${response.statusText}`);
-      }
-      return response.text();
-    })
-    .then((html) => {
-      headerContainer.innerHTML = html;
-      console.log("Header cargado correctamente.");
-      setupScrollAnimations();
-      setupSmoothScroll();
-      setupMobileMenu();
-      setupUserInterface();
-      mostrarInfoUsuario(); // <-- Mostrar datos personalizados después de cargar el header
-    })
-    .catch((error) => {
-      console.error("Error al cargar el header:", error);
-      setupScrollAnimations();
-      setupSmoothScroll();
-      setupUserInterface();
-      mostrarInfoUsuario();
-    });
-});
-
-/**
- * Carga el footer en todas las páginas de forma dinámica.
- * Permite reutilizar el mismo footer en todo el sitio.
- */
-function loadFooter() {
-  const footerContainer = document.getElementById("footer-container");
-  if (footerContainer) {
-    fetch("//componentes/footer.html")
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`Error al cargar el footer: ${response.statusText}`);
-        }
-        return response.text();
-      })
-      .then((html) => {
-        footerContainer.innerHTML = html;
-        console.log("Footer cargado correctamente.");
-      })
-      .catch((error) => console.error("Error al cargar el footer:", error));
-  }
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  loadFooter();
-});
-
-/**
- * Protege páginas que requieren autenticación.
- * Si no hay token en localStorage, redirige a login.html.
- */
-function requireAuth() {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    window.location.href = "login.html";
+    if (navContainer) {
+      navContainer.classList.remove("logged-in");
+    }
   }
 }
 
 /**
  * Muestra información personalizada del usuario en el header o perfil.
- * Se debe llamar después de cargar el header.
  */
 function mostrarInfoUsuario() {
   const currentUser = JSON.parse(localStorage.getItem("currentUser"));
   if (!currentUser) return;
 
-  // Ejemplo: mostrar el nombre en un span con id="userNameHeader"
   const userNameHeader = document.getElementById("userNameHeader");
   if (userNameHeader) {
     userNameHeader.textContent = currentUser.nombre || currentUser.email || "";
   }
 
-  // Ejemplo: mostrar el email en un span con id="userEmailHeader"
   const userEmailHeader = document.getElementById("userEmailHeader");
   if (userEmailHeader) {
     userEmailHeader.textContent = currentUser.email || "";
@@ -439,20 +177,16 @@ function mostrarInfoUsuario() {
 }
 
 /**
- * Cierra la sesión del usuario, eliminando token y datos del usuario del localStorage.
- * Redirige a login.html.
+ * Cierra la sesión del usuario
  */
 function logout() {
   localStorage.removeItem("token");
   localStorage.removeItem("currentUser");
-  window.location.href = "login.html";
+  window.location.href = "/login.html";
 }
 
 /**
- * Realiza una petición fetch a una ruta protegida enviando el token JWT.
- * @param {string} url - URL de la API protegida
- * @param {object} options - Opciones fetch adicionales (method, body, etc.)
- * @returns {Promise<Response>}
+ * Realiza una petición fetch protegida
  */
 async function fetchProtegido(url, options = {}) {
   const token = localStorage.getItem("token");
@@ -463,8 +197,87 @@ async function fetchProtegido(url, options = {}) {
   return fetch(url, { ...options, headers });
 }
 
-// Ejemplo de uso de fetchProtegido:
-// fetchProtegido('http://localhost:7777/api/usuarios')
-//   .then(res => res.json())
-//   .then(data => console.log(data))
-//   .catch(err => console.error(err));
+/**
+ * Protege páginas que requieren autenticación
+ */
+function requireAuth() {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    window.location.href = "login.html";
+  }
+}
+
+/**
+ * Inicialización principal - Se ejecuta en todas las páginas
+ */
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("DOM loaded, initializing...");
+
+  // Configurar funciones básicas
+  setupScrollAnimations();
+  setupSmoothScroll();
+  setupUserInterface();
+  mostrarInfoUsuario();
+
+  // Configurar menú móvil con un pequeño delay para asegurar que el DOM esté listo
+  setTimeout(() => {
+    setupMobileMenu();
+  }, 100);
+
+  // Si hay un contenedor de header, intentar cargar el header dinámico
+  const headerContainer = document.getElementById("header-container");
+  if (headerContainer) {
+    loadDynamicHeader(headerContainer);
+  }
+
+  // Si hay un contenedor de footer, intentar cargar el footer dinámico
+  const footerContainer = document.getElementById("footer-container");
+  if (footerContainer) {
+    loadDynamicFooter(footerContainer);
+  }
+});
+
+/**
+ * Carga el header dinámicamente
+ */
+function loadDynamicHeader(headerContainer) {
+  fetch("/componentes/header.html")
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`Error al cargar el header: ${response.statusText}`);
+      }
+      return response.text();
+    })
+    .then((html) => {
+      headerContainer.innerHTML = html;
+      console.log("Header cargado correctamente.");
+
+      // Reconfigurar todas las funciones después de cargar el header
+      setTimeout(() => {
+        setupMobileMenu();
+        setupUserInterface();
+        mostrarInfoUsuario();
+      }, 200);
+    })
+    .catch((error) => {
+      console.error("Error al cargar el header:", error);
+    });
+}
+
+/**
+ * Carga el footer dinámicamente
+ */
+function loadDynamicFooter(footerContainer) {
+  fetch("/componentes/footer.html")
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`Error al cargar el footer: ${response.statusText}`);
+      }
+      return response.text();
+    })
+    .then((html) => {
+      footerContainer.innerHTML = html;
+      console.log("Footer cargado correctamente.");
+    })
+    .catch((error) => console.error("Error al cargar el footer:", error));
+}
