@@ -143,7 +143,10 @@ function setupUserInterface() {
     authButtons.style.display = "none";
     if (userMenu) {
       userMenu.style.display = "flex";
-      setupUserDropdown();
+      // Llamar a setupUserDropdown después de mostrar el menú
+      setTimeout(() => {
+        setupUserDropdown();
+      }, 50);
     }
     if (navContainer) {
       navContainer.classList.add("logged-in");
@@ -176,20 +179,21 @@ function setupUserDropdown() {
   function toggleDropdown(e) {
     e.stopPropagation();
 
-    if (window.innerWidth > 992) {
-      // Solo en pantallas grandes
-      newUserDropdown.classList.toggle("show");
-      newUserMenu.classList.toggle("active");
-    }
+    newUserDropdown.classList.toggle("show");
+    newUserMenu.classList.toggle("active");
+
+    console.log(
+      "Dropdown toggled:",
+      newUserDropdown.classList.contains("show")
+    );
   }
 
-  // Event listener para el menú de usuario
+  // Event listener para el menú de usuario (funciona en todas las pantallas)
   newUserMenu.addEventListener("click", toggleDropdown);
 
   // Cerrar dropdown al hacer click fuera
   document.addEventListener("click", (e) => {
     if (
-      window.innerWidth > 992 &&
       !newUserMenu.contains(e.target) &&
       newUserDropdown.classList.contains("show")
     ) {
@@ -200,10 +204,8 @@ function setupUserDropdown() {
 
   // Cerrar dropdown al redimensionar ventana
   window.addEventListener("resize", () => {
-    if (window.innerWidth <= 992) {
-      newUserDropdown.classList.remove("show");
-      newUserMenu.classList.remove("active");
-    }
+    newUserDropdown.classList.remove("show");
+    newUserMenu.classList.remove("active");
   });
 
   // Configurar enlaces del dropdown
@@ -213,14 +215,14 @@ function setupUserDropdown() {
       if (item.id === "logoutBtn") {
         e.preventDefault();
         logout();
-      } else {
-        // Para otros enlaces, cerrar el dropdown
-        newUserDropdown.classList.remove("show");
-        newUserMenu.classList.remove("active");
       }
+      // Cerrar el dropdown después de hacer clic
+      newUserDropdown.classList.remove("show");
+      newUserMenu.classList.remove("active");
     });
   });
 }
+
 /*  para el menú móvil */
 if (typeof setupMobileMenu === "function") {
   setupMobileMenu();
@@ -231,6 +233,7 @@ if (typeof setupMobileMenu === "function") {
     }
   });
 }
+
 /**
  * Muestra información personalizada del usuario en el header o perfil.
  */
