@@ -1,170 +1,382 @@
-/* Estilos específicos para el formulario de registro de experto */
-
-/* Usamos un contenedor más ancho para este formulario */
-.auth-container--wide .auth-card {
-  max-width: 600px;
+/* Estilos base - Manteniendo las variables existentes */
+.registro-experto-main {
+  max-width: var(--content-max-width);
   margin: 2rem auto;
+  padding: 0 1rem;
 }
 
-.auth-form textarea {
+.registro-experto-section {
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius);
+  padding: 2rem;
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--border-color);
+  margin-bottom: 2rem;
+}
+
+/* Header del formulario */
+.registro-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.logo-img {
+  max-width: 180px;
+  height: auto;
+  margin: 0 auto 1.5rem;
+  display: block;
+  filter: brightness(0) invert(1);
+  opacity: 0.9;
+  transition: var(--transition);
+}
+
+.logo-img:hover {
+  opacity: 1;
+  transform: scale(1.02);
+}
+
+.registro-header h1 {
+  color: var(--primary-color);
+  font-size: 1.8rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.registro-fecha {
+  color: var(--text-light);
+  font-size: 0.85rem;
+  margin-bottom: 1.5rem;
+  display: block;
+}
+
+/* Formulario principal */
+.registro-experto-form {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Grupos de formulario */
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group.compact {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.form-hint {
+  color: var(--text-light);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  line-height: 1.4;
+}
+
+/* Campos de entrada */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="tel"],
+input[type="time"],
+textarea,
+select {
   width: 100%;
-  padding: 0.875rem 1rem;
+  padding: 0.85rem 1rem;
   background-color: var(--input-bg);
   border: 1px solid var(--border-color);
   border-radius: var(--input-radius);
   color: var(--text-color);
-  font-size: 1rem;
-  font-family: inherit;
-  transition: all 0.3s;
-  resize: vertical;
-  min-height: 80px;
+  font-size: 0.95rem;
+  transition: var(--transition);
 }
 
-.auth-form textarea:focus {
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23a0a0a0'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1rem;
+  padding-right: 2.5rem;
+}
+
+textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
   outline: none;
   border-color: var(--primary-color);
   box-shadow: var(--focus-shadow);
 }
 
-.category-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 0.75rem;
-  padding: 0.75rem;
-  background-color: var(--input-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--input-radius);
+/* Input de precio */
+.price-input {
+  position: relative;
 }
 
-.category-grid label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  background-color: var(--background);
-  border-radius: var(--btn-radius);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 0.875rem;
-}
-
-.category-grid label:hover {
-  background-color: #2e2e2e;
-}
-
-.category-grid input[type="checkbox"] {
-  accent-color: var(--primary-color);
-}
-
-.horario-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.form-group-horario label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-size: 0.875rem;
-}
-
-.form-group-horario input[type="time"] {
-  width: 100%;
-  padding: 0.875rem;
-  background-color: var(--input-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--input-radius);
-  color: var(--text-color);
-  font-family: inherit;
-}
-
-/* Estilos para los checkboxes de días de la semana */
-.dias-semana {
-  margin-top: 1rem;
-}
-.dias-semana span {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  display: block;
-  margin-bottom: 0.5rem;
-}
-
-.dias-checkboxes {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.5rem;
-  background-color: var(--input-bg);
-  padding: 0.5rem;
-  border-radius: var(--input-radius);
-}
-
-.dias-checkboxes label {
-  flex-grow: 1;
-  text-align: center;
-  padding: 0.5rem 0;
-  border-radius: var(--btn-radius);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.dias-checkboxes input[type="checkbox"] {
-  display: none; /* Ocultamos el checkbox original */
-}
-
-.dias-checkboxes label:hover {
-  background-color: #333;
-}
-
-.dias-checkboxes input[type="checkbox"]:checked + label {
-  background-color: var(--primary-color);
-  color: white;
-  font-weight: 600;
-}
-
-/* Estilos específicos para el header de registro de experto */
-.logo-link .logo-img {
-  width: 200px;
-  margin-bottom: 1rem;
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.back-home-center {
-  text-align: center;
-  margin: 1rem 0;
-}
-
-.back-home-center .back-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
+.price-input .currency {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-light);
   font-size: 0.95rem;
-  color: var(--text-secondary);
-  text-decoration: none;
+}
+
+.price-input input {
+  padding-left: 2.5rem;
+}
+
+/* Select múltiples */
+.select-skills {
+  min-height: 120px;
+  padding: 0.5rem;
+}
+
+.select-skills option {
   padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
+  border-radius: 4px;
+  margin: 0.25rem 0;
   background-color: rgba(255, 255, 255, 0.05);
-  transition: all 0.3s;
 }
 
-.back-home-center .back-link:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+.select-skills option:hover {
+  background-color: var(--primary-color);
+}
+
+/* Sección de datos bancarios */
+.form-section {
+  margin-top: 2.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border-light);
+}
+
+.section-title {
+  color: var(--accent-color);
+  font-size: 1.2rem;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.section-subtitle {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Contenedor de número de cuenta */
+.cuenta-container {
+  position: relative;
+}
+
+.input-cuenta {
+  padding-right: 2.5rem;
+}
+
+.btn-toggle-cuenta {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--text-light);
+  cursor: pointer;
+  padding: 0.25rem;
+  transition: var(--transition);
+}
+
+.btn-toggle-cuenta:hover {
   color: var(--primary-color);
-  transform: translateX(-0.2rem);
 }
 
-.back-home-center .back-link i {
+/* Tarjeta de información */
+.info-card {
+  background-color: var(--input-bg);
+  border-radius: var(--input-radius);
+  padding: 1.25rem;
+  margin-top: 1.5rem;
+  border-left: 3px solid var(--accent-color);
+}
+
+.info-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  color: var(--accent-color);
+  font-weight: 500;
+}
+
+.info-list {
+  list-style: none;
+}
+
+.info-list li {
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  color: var(--text-secondary);
   font-size: 0.9rem;
 }
 
-.auth-date {
-  text-align: center;
-  margin-top: 0.5rem;
+.info-list li:last-child {
+  margin-bottom: 0;
 }
 
-.auth-date small {
-  color: var(--text-light);
-  font-size: 0.75rem;
+.info-list li i {
+  color: var(--accent-color);
+  font-size: 0.8rem;
+  margin-top: 0.15rem;
+}
+
+/* Botones */
+.form-footer {
+  margin-top: 2.5rem;
+  text-align: center;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.9rem 2rem;
+  border-radius: var(--btn-radius);
+  font-weight: 500;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: var(--transition);
+  text-decoration: none;
+  border: none;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: var(--text-color);
+  box-shadow: var(--btn-shadow);
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--hover-shadow);
+}
+
+.btn-primary svg {
+  transition: var(--transition);
+}
+
+.btn-primary:hover svg {
+  transform: translateX(3px);
+}
+
+/* Alertas */
+.alert {
+  padding: 1rem;
+  border-radius: var(--input-radius);
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+}
+
+.alert-danger {
+  background-color: rgba(255, 59, 48, 0.15);
+  color: #ff3b30;
+  border-left: 4px solid #ff3b30;
+}
+
+.alert-success {
+  background-color: rgba(52, 199, 89, 0.15);
+  color: #34c759;
+  border-left: 4px solid #34c759;
+}
+
+/* Botón volver */
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: var(--btn-radius);
+  transition: var(--transition);
+}
+
+.back-link:hover {
+  color: var(--primary-color);
+  background-color: rgba(58, 142, 255, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .registro-experto-section {
+    padding: 1.5rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .registro-header h1 {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .registro-experto-section {
+    padding: 1.25rem;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="time"],
+  textarea,
+  select {
+    padding: 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 0.85rem;
+  }
+
+  .logo-img {
+    max-width: 150px;
+  }
 }
