@@ -47,7 +47,7 @@
 
                 <h1>Registro de Experto</h1>
                 <p class="subtitle">Completa tu perfil para ofrecer asesorías</p>
-                <span id="currentDate" style="display:block; margin-bottom:10px; color:#888;"></span>
+                <span id="currentDate" class="registro-fecha"></span>
                 <!-- Botón volver al inicio centrado -->
                 <div class="back-home-center">
                   <a href="/" class="back-link">
@@ -68,13 +68,12 @@
 
                   <div class="form-group compact">
                     <label for="categorias">Categorías</label>
-                    <select id="categorias" name="categorias" multiple required style="min-height: 80px;">
+                    <select id="categorias" name="categorias" size="1" required class="select-categorias">
+                      <option value="">Selecciona una categoría</option>
                       <!-- Opciones dinámicas -->
                     </select>
                     <p class="form-hint">Selecciona una o varias categorías tecnológicas</p>
                   </div>
-
-
                 </div>
 
                 <!-- Descripción -->
@@ -86,12 +85,10 @@
 
                 <!-- Áreas de Conocimiento -->
                 <div class="form-row">
-
                   <!-- Especialidad -->
                   <div class="form-group compact">
                     <label for="especialidad">Especialidad</label>
-                    <select id="especialidad" name="especialidad" required
-                      style="display:block; width:100%; min-height:40px; background:#fff; color:#222; border:1px solid #ccc;">
+                    <select id="especialidad" name="especialidad" required class="select-especialidad">
                       <option value="">Selecciona una especialidad</option>
                     </select>
                   </div>
@@ -99,18 +96,18 @@
                   <!-- Habilidades -->
                   <div class="form-group compact">
                     <label for="skills">Habilidades</label>
-                    <select id="skills" name="skills" multiple
-                      style="display:block; width:100%; min-height:80px; background:#fff; color:#222; border:1px solid #ccc;">
+                    <select id="skills" name="skills" multiple class="select-skills">
                       <!-- Opciones dinámicas -->
                     </select>
-                    <p class="form-hint">Selecciona o agrega habilidades tecnológicas</p>
+                    <p class="form-hint">Selecciona una o varias habilidades tecnológicas</p>
                   </div>
                 </div>
 
                 <!-- Horarios Múltiples -->
                 <div class="form-group">
-                  <label for="diasDisponibles">Días disponibles</label>
-                  <select id="diasDisponibles" name="diasDisponibles" multiple required style="min-height: 80px;">
+                  <label for="diasDisponibles">Día disponible</label>
+                  <select id="diasDisponibles" name="diasDisponibles" required class="select-dia-disponible">
+                    <option value="">Selecciona un día</option>
                     <option value="Lunes">Lunes</option>
                     <option value="Martes">Martes</option>
                     <option value="Miércoles">Miércoles</option>
@@ -119,7 +116,7 @@
                     <option value="Sábado">Sábado</option>
                     <option value="Domingo">Domingo</option>
                   </select>
-                  <p class="form-hint">Selecciona uno o varios días en los que puedes dar asesorías</p>
+                  <p class="form-hint">Selecciona el día en que puedes dar asesorías</p>
                 </div>
 
                 <!-- Tarifas -->
@@ -181,12 +178,11 @@
                   <div class="form-row">
                     <div class="form-group compact">
                       <label for="numeroCuenta">Número de cuenta *</label>
-                      <div style="position: relative;">
+                      <div class="cuenta-container">
                         <input type="password" id="numeroCuenta" name="numeroCuenta" required
                           placeholder="Número de cuenta bancaria" pattern="[0-9\-]*" title="Solo números y guiones"
-                          style="padding-right: 40px;">
-                        <button type="button" id="toggleAccountNumber"
-                          style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-secondary); cursor: pointer;">
+                          class="input-cuenta">
+                        <button type="button" id="toggleAccountNumber" class="btn-toggle-cuenta">
                           <i class="fas fa-eye"></i>
                         </button>
                       </div>
@@ -332,8 +328,8 @@
                       .then(data => {
                         console.log('Categorías recibidas:', data);
                         categoriasData = data;
-                        // Poblar categorías
-                        categoriasSelect.innerHTML = '';
+                        // Poblar categorías, manteniendo la opción por defecto
+                        categoriasSelect.innerHTML = '<option value="">Selecciona una categoría</option>';
                         data.forEach(cat => {
                           const opt = document.createElement('option');
                           opt.value = cat.nombre;
@@ -342,6 +338,8 @@
                         });
                         especialidadSelect.innerHTML = '<option value="">Selecciona una especialidad</option>';
                         skillsSelect.innerHTML = '';
+                        // Asegurar que no haya ninguna categoría seleccionada por defecto
+                        categoriasSelect.selectedIndex = 0;
                       });
 
                     // Al cambiar categorías, poblar especialidades de todas las seleccionadas
