@@ -30,7 +30,7 @@ ServiTech es una solución integral para asesorías tecnológicas que facilita:
 - ✅ **Responsive Design**: Optimizado para dispositivos móviles y escritorio
 - ✅ **Panel de Control**: Administración completa del sistema
 
----
+----
 
 ## 📦 Estructura Real del Proyecto
 
