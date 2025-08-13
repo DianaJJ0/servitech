@@ -93,33 +93,42 @@ mongod
 
 #### 3. Activa el servidor backend
 
-En la terminal, estando en la carpeta `backend`:
+Abre una terminal nueva y asegúrate de estar en la carpeta `backend`. Puedes navegar con:
+
+```bash
+cd /ruta/a/tu/proyecto/servitech-6/backend
+```
+
+Luego inicia el servidor backend con:
 
 ```bash
 npm start
 ```
 
-o para modo desarrollo (con reinicio automático):
+> **Consejo:**
+> Si ves un error como "command not found" o "Cannot find module", verifica que ejecutaste `npm install` antes y que estás en la carpeta correcta.
+> Mantén esta terminal abierta para ver mensajes y errores del servidor.
 
-```bash
-npm run dev
-```
+
+
 
 #### 4. Activa el servidor frontend
 
-En otra terminal, ve a la carpeta `frontend`:
+Abre una terminal nueva y asegúrate de estar en la carpeta `frontend`. Puedes navegar con:
 
 ```bash
-npm start
+cd /ruta/a/tu/proyecto/servitech-6/frontend
 ```
 
-o para modo desarrollo:
+Luego inicia el servidor frontend con:
 
 ```bash
-npm run dev
+node server.js
 ```
 
----
+> **Consejo:**
+> Si ves un error como "command not found" o "Cannot find module", verifica que ejecutaste `npm install` antes y que estás en la carpeta correcta.
+> Mantén esta terminal abierta para ver mensajes y errores del servidor frontend.
 
 ## 5. ¿Cómo acceder a la aplicación?
 
