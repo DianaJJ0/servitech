@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/assets/css/auth.css">
     <link rel="stylesheet" href="/assets/css/componentes.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 
 <body>
@@ -38,6 +39,10 @@
                                     required>
                                 <i class="fas fa-eye-slash toggle-password"></i>
                             </div>
+                        </div>
+
+                        <div class="input-group">
+                            <div class="g-recaptcha" data-sitekey="6LdghKQrAAAAANaGrKFXoONcZu3Q0R3RBue9_UWT"></div>
                         </div>
                         <div id="loginError" class="error-message"></div>
                         <button type="submit" class="auth-button">Iniciar Sesión</button>
