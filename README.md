@@ -1,103 +1,159 @@
-# 🚀 ServiTech - Plataforma de Asesorías Tecnológicas Personalizadas 1:1
+# Guía Sencilla de ServiTech
 
-ServiTech es una plataforma web moderna que conecta usuarios que necesitan asistencia tecnológica con expertos especializados en diferentes áreas de la tecnología. El sistema permite agendar asesorías personalizadas uno a uno para realizar videollamadas en tiempo real donde prefieran, procesar pagos seguros y gestionar sus datos personales desde un completo panel de perfil tanto usuarios como expertos.
+Esta guía te ayudará a entender la estructura del proyecto y cómo activar los servidores paso a paso, incluso si eres principiante.
 
-## 📋 Descripción del Aplicativo
+---
 
-### ¿Qué es ServiTech?
+## 1. ¿Qué es ServiTech?
 
-ServiTech es una solución integral para asesorías tecnológicas que facilita:
+ServiTech es una plataforma web para conectar usuarios con expertos en tecnología. Permite agendar asesorías, gestionar usuarios y expertos, y realizar pagos seguros.
 
-- **Conexión Directa**: Los usuarios pueden encontrar y conectarse con expertos certificados en áreas específicas como desarrollo web, ciberseguridad, análisis de datos, inteligencia artificial, y más.
+---
 
-- **Asesorías Personalizadas**: Cada sesión es completamente personalizada según las necesidades específicas del usuario, garantizando una atención de calidad y resultados efectivos.
-
-- **Múltiples Canales de Comunicación**:
-
-  - Videollamadas programadas para sesiones intensivas o rápidas donde ustedes prefieran
-  - Sistema de notificaciones para mantener informados a los usuarios
-
-- **Gestión Integral de Pagos**: Sistema de pagos seguro integrado con PSE para transacciones nacionales, permitiendo pagos rápidos y confiables.
-
-- **Panel de Administración**: Herramientas completas para administrar usuarios, expertos, categorías, transacciones y estadísticas del sistema.
-
-### Características Principales
-
-- ✅ **Autenticación Segura**: Sistema de registro e inicio de sesión con JWT
-- ✅ **Calendario Inteligente**: Los expertos pueden configurar su disponibilidad y los usuarios agendar citas
-- ✅ **Sistema de Categorías**: Organización por especialidades tecnológicas
-- ✅ **Pagos Seguros**: Procesamiento de pagos con PSE
-- ✅ **Responsive Design**: Optimizado para dispositivos móviles y escritorio
-- ✅ **Panel de Control**: Administración completa del sistema
-
-----
-
-## 📦 Estructura Real del Proyecto
+## 2. Estructura del Proyecto
 
 ```
-servitech-1/
-├── backend/
-│   ├── config/
-│   │   └── database.js         # Configuración de MongoDB
-│   ├── controllers/
-│   │   ├── categoriaController.js
-│   │   └── usuarioController.js
-│   ├── middleware/
-│   │   └── middleware.js
-│   ├── models/
-│   │   ├── categoria.model.js
-│   │   └── usuario.model.js
-│   ├── node_modules/           # Dependencias instaladas
-│   ├── routes/
-│   │   ├── categoria.routes.js
-│   │   └── usuario.routes.js
-│   ├── services/
-│   │   ├── email.service.js
-│   │   └── test-email.js
-│   ├── .env                    # Variables de entorno (no incluido en repo)
-│   ├── app.js                  # Servidor Express principal
-│   ├── inicializar.js          # Script de inicialización de datos
-│   ├── package-lock.json       # Lock de versiones exactas
-│   └── package.json            # Dependencias del backend
-├── frontend/
-│   ├── assets/
-│   │   ├── css/
-│   │   ├── img/
-│   │   └── js/
-│   ├── node_modules/           # Dependencias del frontend
-│   ├── views/
-│   │   ├── admin/
-│   │   ├── componentes/
-│   │   ├── calendario.ejs
-│   │   ├── confirmacion-asesoria.ejs
-│   │   ├── contacto.ejs
-│   │   ├── expertos.ejs
-│   │   ├── index.ejs
-│   │   ├── login.ejs
-│   │   ├── mis-asesorias.ejs
-│   │   ├── pasarela-pagos.ejs
-│   │   ├── perfiles.ejs
-│   │   ├── recuperar-password.ejs
-│   │   ├── registro.ejs
-│   │   └── terminos.ejs
-│   ├── package-lock.json
-│   ├── package.json            # Dependencias del frontend
-│   ├── server_simple.js        # Servidor simple
-│   └── servidor.js             # Servidor principal del frontend
-├── COPILOT_GUIDE.md           # Guía de Copilot
-└── README.md                  # Este archivo
+servitech-6/
+├── backend/      # Lógica y API del servidor
+│   ├── app.js    # Archivo principal del servidor backend
+│   ├── config/   # Configuración de la base de datos
+│   ├── controllers/ # Lógica de usuarios y categorías
+│   ├── middleware/  # Autenticación y seguridad
+│   ├── models/      # Modelos de datos (usuario, categoría, asesoría)
+│   ├── routes/      # Rutas de la API
+│   ├── services/    # Servicios como envío de emails
+│   ├── inicializar.js # Scripts para inicializar datos
+│   ├── package.json # Dependencias y scripts
+│   └── ...otros archivos
+├── frontend/     # Parte visual y cliente
+│   ├── server.js # Servidor principal del frontend
+│   ├── assets/   # Archivos estáticos (CSS, imágenes, JS)
+│   ├── views/    # Vistas EJS (páginas)
+│   ├── package.json # Dependencias y scripts
+│   └── ...otros archivos
+└── README.md     # Esta guía
 ```
 
 ---
 
-## 💻 Requisitos Previos
+## 3. ¿Qué hace cada carpeta?
 
-### Versiones Requeridas
+### backend/
 
-- **Node.js**: v18.0.0 o superior
-- **npm**: v9.0.0 o superior
-- **MongoDB**: v6.0.0 o superior
-- **Git**: v2.30.0 o superior
+- **app.js**: Inicia el servidor Express y conecta la base de datos.
+- **config/**: Configuración de la base de datos MongoDB.
+- **controllers/**: Funciones para manejar usuarios y categorías.
+- **middleware/**: Verifica autenticación y permisos.
+- **models/**: Estructura de los datos (usuario, categoría, asesoría).
+- **routes/**: Define las rutas de la API (usuarios, categorías, expertos).
+- **services/**: Funciones extra como envío de correos.
+- **inicializar.js**: Script para cargar datos de ejemplo.
+
+### frontend/
+
+- **server.js**: Inicia el servidor Express para mostrar las páginas.
+- **assets/**: Archivos estáticos (CSS, imágenes, JS).
+- **views/**: Páginas EJS que ve el usuario.
+
+---
+
+## 4. ¿Cómo activar los servidores?
+
+### Requisitos previos
+
+- Tener instalado Node.js y npm
+- Tener MongoDB instalado y corriendo
+
+### Paso a paso
+
+#### 1. Instala las dependencias
+
+Abre la terminal y ejecuta estos comandos en la carpeta principal del proyecto:
+
+```bash
+cd backend
+npm install
+cd ../frontend
+npm install
+```
+
+#### 2. Inicia MongoDB
+
+Asegúrate de que el servicio de MongoDB esté activo. Puedes iniciar MongoDB con:
+
+```bash
+sudo systemctl start mongod
+```
+
+o
+
+```bash
+mongod
+```
+
+#### 3. Activa el servidor backend
+
+En la terminal, estando en la carpeta `backend`:
+
+```bash
+npm start
+```
+
+o para modo desarrollo (con reinicio automático):
+
+```bash
+npm run dev
+```
+
+#### 4. Activa el servidor frontend
+
+En otra terminal, ve a la carpeta `frontend`:
+
+```bash
+npm start
+```
+
+o para modo desarrollo:
+
+```bash
+npm run dev
+```
+
+---
+
+## 5. ¿Cómo acceder a la aplicación?
+
+- El backend estará en: `http://localhost:3000`
+- El frontend estará en: `http://localhost:3001`
+
+Abre tu navegador y visita `http://localhost:3001` para ver la página principal.
+
+---
+
+## 6. Consejos y ayuda
+
+- Si tienes errores, revisa que MongoDB esté corriendo y que las dependencias estén instaladas.
+- Puedes modificar las vistas en `frontend/views` para cambiar el diseño.
+- Los archivos JS y CSS están en `frontend/assets`.
+- Para agregar datos de ejemplo, puedes usar los scripts en `backend` como `inicializar.js`.
+
+---
+
+## 7. ¿Dónde modificar o agregar funciones?
+
+- Para cambiar la lógica de usuarios, ve a `backend/controllers/usuario.controller.js`.
+- Para agregar nuevas rutas, usa `backend/routes/`.
+- Para cambiar el diseño, edita los archivos en `frontend/views/` y `frontend/assets/css/`.
+
+---
+
+## 8. Contacto y soporte
+
+Si tienes dudas, busca ayuda en la documentación de Node.js, Express, MongoDB o pregunta a tu equipo.
+
+---
+
+¡Listo! Ahora puedes activar y modificar ServiTech fácilmente.
 
 ### Verificación de Versiones
 
