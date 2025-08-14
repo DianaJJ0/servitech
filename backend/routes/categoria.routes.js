@@ -10,6 +10,7 @@ const categoriaController = require("../controllers/categoria.controller.js");
 
 // Se importa el objeto completo del middleware.
 const authMiddleware = require("../middleware/auth.middleware.js");
+const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
 
 // --- Definición de Rutas ---
 
@@ -34,6 +35,7 @@ router.put(
 
 router.delete(
   "/:id",
+  apiKeyMiddleware, // Protege con API Key
   authMiddleware.protegerRuta,
   authMiddleware.esAdmin,
   categoriaController.eliminarCategoria
