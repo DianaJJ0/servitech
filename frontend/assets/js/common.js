@@ -54,27 +54,30 @@ function setupMobileMenu() {
     return;
   }
 
-  console.log("Configurando menú móvil...");
-
   // Limpiar eventos previos clonando el elemento
   const newToggle = mobileMenuToggle.cloneNode(true);
   mobileMenuToggle.parentNode.replaceChild(newToggle, mobileMenuToggle);
 
+  // Función para alternar el menú móvil
+  function toggleMobileMenu() {
+    navContainer.classList.toggle("active");
+    newToggle.classList.toggle("active");
+
+    // Cambiar el ícono del botón
+    const icon = newToggle.querySelector("i");
+    if (icon) {
+      if (navContainer.classList.contains("active")) {
+        icon.className = "fas fa-times"; // Ícono de cerrar (X)
+      } else {
+        icon.className = "fas fa-bars"; // Ícono de menú hamburguesa
+      }
+    }
+  }
+
   // Event listener para abrir/cerrar menú
   newToggle.addEventListener("click", (e) => {
     e.stopPropagation();
-    navContainer.classList.toggle("active");
-
-    const icon = newToggle.querySelector("i");
-    if (icon) {
-      icon.classList.toggle("fa-bars");
-      icon.classList.toggle("fa-times");
-    }
-
-    console.log(
-      "Menu toggled, active:",
-      navContainer.classList.contains("active")
-    );
+    toggleMobileMenu();
   });
 
   // Cerrar menú al hacer clic en enlaces
@@ -84,11 +87,8 @@ function setupMobileMenu() {
   allNavLinks.forEach((link) => {
     if (link.id !== "logoutBtn") {
       link.addEventListener("click", () => {
-        navContainer.classList.remove("active");
-        const icon = newToggle.querySelector("i");
-        if (icon) {
-          icon.classList.add("fa-bars");
-          icon.classList.remove("fa-times");
+        if (navContainer.classList.contains("active")) {
+          toggleMobileMenu();
         }
       });
     }
@@ -110,24 +110,20 @@ function setupMobileMenu() {
       !newToggle.contains(e.target) &&
       !navContainer.contains(e.target)
     ) {
-      navContainer.classList.remove("active");
-      const icon = newToggle.querySelector("i");
-      if (icon) {
-        icon.classList.add("fa-bars");
-        icon.classList.remove("fa-times");
-      }
+      toggleMobileMenu();
     }
   });
 
   // Cerrar menú al redimensionar ventana
   window.addEventListener("resize", () => {
-    if (window.innerWidth >= 993) {
-      navContainer.classList.remove("active");
-      const icon = newToggle.querySelector("i");
-      if (icon) {
-        icon.classList.add("fa-bars");
-        icon.classList.remove("fa-times");
-      }
+    // Si cambiamos a una pantalla más grande, cerrar el menú móvil
+    if (window.innerWidth > 768 && navContainer.classList.contains("active")) {
+      toggleMobileMenu();
+    }
+    // También restaurar icono si es necesario
+    const icon = newToggle.querySelector("i");
+    if (icon && !navContainer.classList.contains("active")) {
+      icon.className = "fas fa-bars";
     }
   });
 }
