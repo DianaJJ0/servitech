@@ -65,14 +65,14 @@ app.get("/perfil.html", (req, res) => {
   res.render("perfil", { user: mockUser });
 });
 
-app.get("/mis-asesorias.html", (req, res) => {
+app.get("/misAsesorias.html", (req, res) => {
   // Se pasan variables simuladas para que la plantilla no falle.
   const mockUser = {
     nombre: "Diana",
     usuarioId: "mockId",
     rolUsuario: "cliente",
   };
-  res.render("mis-asesorias", {
+  res.render("misAsesorias", {
     user: mockUser,
     usuarioId: "mockId",
     rolUsuario: "cliente",

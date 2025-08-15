@@ -339,39 +339,39 @@
   .container {
     padding: 1rem;
   }
-  
+
   .confirmation-header {
     padding: 2rem 1.5rem;
   }
-  
+
   .confirmation-body {
     padding: 1.5rem;
   }
-  
+
   .confirmation-actions {
     grid-template-columns: 1fr;
     padding: 0 1.5rem 1.5rem;
   }
-  
+
   .detail-item {
     flex-direction: column;
   }
-  
+
   .detail-item .label {
     width: 100%;
     margin-bottom: 0.35rem;
   }
-  
+
   .expert-info {
     flex-direction: column;
     text-align: center;
   }
-  
+
   .expert-avatar {
     margin-right: 0;
     margin-bottom: 1rem;
   }
-  
+
   .support-contact {
     flex-direction: column;
     gap: 0.5rem;
@@ -385,7 +385,7 @@
     align-items: center;
     text-align: center;
   }
-  
+
   .instruction-icon {
     margin-right: 0;
     margin-bottom: 1rem;

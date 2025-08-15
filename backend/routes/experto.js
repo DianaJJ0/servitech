@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-// ...otras rutas...
+
 
 router.get("/editar-perfil-experto", (req, res) => {
   // Obtén el usuario desde la sesión, base de datos, etc.
@@ -30,6 +30,6 @@ router.get("/editar-perfil-experto", (req, res) => {
   res.render("editarExpertos", { usuario });
 });
 
-// ...otras rutas...
+
 
 module.exports = router;

@@ -1,4 +1,4 @@
-/* Funcionalidad específica para mis-asesorias.html (página de inicio/mis-asesorias)*/
+/* Funcionalidad específica para misAsesorias.html (página de inicio/misAsesorias)*/
 document.addEventListener("DOMContentLoaded", function () {
   const filterOptions = document.querySelectorAll(".filter-option");
   filterOptions.forEach((option) => {

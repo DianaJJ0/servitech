@@ -63,29 +63,8 @@
         window.usuarioId = "<%= usuarioId %>";
         window.rolUsuario = "<%= rolUsuario %>";
       </script>
-      <script src="/assets/js/mis-asesorias.js"></script>
-      <script>
-        function cerrarMensajes() {
-          document.getElementById('mensajeModal').style.display = 'none';
-        }
-        document.getElementById('formMensaje')?.addEventListener('submit', function (e) {
-          e.preventDefault();
-          // Aquí puedes enviar el mensaje al backend con fetch/AJAX
-          const texto = document.getElementById('mensajeTexto').value;
-          if (texto.trim() !== "") {
-            const historial = document.getElementById('mensajesHistorial');
-            const div = document.createElement('div');
-            div.className = "mensaje mensaje-usuario";
-            div.innerHTML = '<div class="mensaje-avatar"><img src="https://ui-avatars.com/api/?name=Usuario&background=ffd700&color=222" alt="Usuario"></div><div class="mensaje-texto">' + texto + '</div>';
-            historial.appendChild(div);
-            document.getElementById('mensajeTexto').value = '';
-            historial.scrollTop = historial.scrollHeight;
-          }
-        });
-        function cerrarDetalles() {
-          document.getElementById('detalleModal').style.display = 'none';
-        }
-      </script>
+      <script src="/assets/js/misAsesorias.js"></script>
+
 </body>
 
 </html>
