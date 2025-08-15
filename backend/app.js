@@ -4,52 +4,49 @@
  */
 require("dotenv").config();
 const express = require("express");
-const cors = require("cors"); // Se importa cors.
+const cors = require("cors");
 const conectarDB = require("./config/database.js");
 const path = require("path");
 
 // Importación de los enrutadores de la aplicación.
 const usuarioRoutes = require("./routes/usuario.routes.js");
 const categoriaRoutes = require("./routes/categoria.routes.js");
+const pagoRoutes = require("./routes/pago.routes.js");
+const notificacionRoutes = require("./routes/notificacion.routes.js");
+const logRoutes = require("./routes/log.routes.js");
+const configuracionRoutes = require("./routes/configuracion.routes.js");
 const expertoRoutes = require("./routes/experto");
 
-// --- Inicialización de la Aplicación ---
-
+// Inicialización de la Aplicación
 conectarDB();
 const app = express();
 
-// --- Middlewares Esenciales ---
-
-// Middleware de logging para debug
+// Middlewares Esenciales
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.url} - ${new Date().toISOString()}`);
   next();
 });
 
-// Se configura CORS para permitir peticiones desde el servidor de frontend.
 app.use(
   cors({
-    origin: ["http://localhost:3001", "http://127.0.0.1:3001"], // Permite peticiones de estos orígenes.
+    origin: ["http://localhost:3001", "http://127.0.0.1:3001"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-// Configuración del motor de vistas EJS para servir archivos desde frontend/views
 app.set("views", path.join(__dirname, "../frontend/views"));
 app.set("view engine", "ejs");
-
-// Middleware para que Express pueda interpretar cuerpos de solicitud en formato JSON.
 app.use(express.json());
 
-// --- Enrutamiento Principal de la API ---
-
-// Se asignan las rutas de la API a sus respectivos endpoints base.
+// Enrutamiento Principal de la API
 app.use("/api/usuarios", usuarioRoutes);
 app.use("/api/categorias", categoriaRoutes);
+app.use("/api/pagos", pagoRoutes);
+app.use("/api/notificaciones", notificacionRoutes);
+app.use("/api/logs", logRoutes);
+app.use("/api/configuraciones", configuracionRoutes);
 app.use("/", expertoRoutes);
-
-// --- Arranque y Escucha del Servidor ---
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
