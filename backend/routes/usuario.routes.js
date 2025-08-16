@@ -7,8 +7,6 @@ const router = express.Router();
 
 // Importamos el controlador completo
 const usuarioController = require("../controllers/usuario.controller.js");
-
-// Importamos el middleware de autenticación
 const authMiddleware = require("../middleware/auth.middleware.js");
 
 // --- Definición de Rutas ---
@@ -16,6 +14,13 @@ const authMiddleware = require("../middleware/auth.middleware.js");
 // Rutas públicas (no requieren token)
 router.post("/registro", usuarioController.registrarUsuario);
 router.post("/login", usuarioController.iniciarSesion);
+
+// Recuperación de contraseña
+router.post(
+  "/recuperar-password",
+  usuarioController.solicitarRecuperacionPassword
+);
+router.post("/reset-password", usuarioController.resetearPassword);
 
 // Rutas protegidas (requieren token)
 router.get(

@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     try {
       const datosCompletos = JSON.parse(pagoCompleto);
-      console.log("✅ Datos de confirmación recuperados:", datosCompletos);
+      console.log(" Datos de confirmación recuperados:", datosCompletos);
       // Actualizar toda la información en la página
       actualizarInformacionCita(datosCompletos);
       actualizarInformacionExperto(datosCompletos);
@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(res => res.json())
         .then(data => {
           if (data.success) {
-            console.log("✅ Cita guardada en la base de datos después del pago");
+            console.log(" Cita guardada en la base de datos después del pago");
           } else {
             console.warn("⚠️ No se pudo guardar la cita después del pago:", data.message);
           }
@@ -309,7 +309,7 @@ document.addEventListener("DOMContentLoaded", function () {
    * Usar datos de fallback si hay error
    */
   function usarDatosFallback() {
-    console.log("🔄 Usando datos de fallback para confirmación");
+    console.log(" Usando datos de fallback para confirmación");
     // Datos de ejemplo personalizados y realistas
     const nombresExpertos = [
       {

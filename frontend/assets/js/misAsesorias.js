@@ -23,8 +23,24 @@ const rol = window.rolUsuario || "cliente";
 const asesoriasList = document.querySelector(".asesorias-list");
 
 // ===============================
-// Renderizado de tarjetas de asesoría (HTML en JS)
+// Renderizado de tarjetas de asesoría (HTML en JS) - modularizado
 // ===============================
+function getAvatarUrl(experto) {
+  return (
+    // Si el experto tiene una URL de avatar, la usamos; de lo contrario, generamos una por defecto
+    experto.avatar_url ||
+    "https://ui-avatars.com/api/?name=" +
+      encodeURIComponent(experto.nombre || "Experto") +
+      "&background=3a8eff&color=fff"
+  );
+}
+
+// Función para obtener la especialidad del experto
+function getEspecialidad(experto) {
+  return (experto.especialidades && experto.especialidades[0]) || "";
+}
+
+// Función para renderizar la tarjeta de asesoría
 function renderAsesoriaCard(asesoria) {
   const experto = asesoria.experto || {};
   const fechaObj = new Date(asesoria.fechaHora);
@@ -33,56 +49,47 @@ function renderAsesoriaCard(asesoria) {
     hour: "2-digit",
     minute: "2-digit",
   });
+  // Obtener la hora de fin
   const horaFin = asesoria.duracionMinutos
     ? new Date(
         fechaObj.getTime() + asesoria.duracionMinutos * 60000
       ).toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" })
     : "";
   const estado = asesoria.estado || "Agendada";
+  const nombreCompleto =
+    (experto.nombre || "") + " " + (experto.apellido || "");
 
-  // HTML dinámico para la tarjeta
+  // Renderizar la tarjeta de asesoría
+  // Alt text accesible para el avatar del experto
+  const expertoAltText = `Retrato de ${nombreCompleto}. Especialidad: ${getEspecialidad(experto)}. Estado de la asesoría: ${estado}. Fecha: ${fecha}. Hora: ${hora}${horaFin ? " - " + horaFin : ""}. Botones disponibles: Mensaje y Ver detalles. El entorno es una tarjeta de asesoría en una lista de asesorías agendadas.`;
+
   return `
     <div class="asesoria-card">
       <div class="asesoria-info">
         <div>
           <span class="asesoria-fecha">${fecha}</span>
-          <span class="asesoria-hora">${hora}${
-    horaFin ? " - " + horaFin : ""
-  }</span>
+          <span class="asesoria-hora">${hora}${horaFin ? " - " + horaFin : ""}</span>
         </div>
-        <div class="asesoria-experto">
-          <img src="${
-            experto.avatar_url ||
-            "https://ui-avatars.com/api/?name=" +
-              encodeURIComponent(experto.nombre || "Experto") +
-              "&background=3a8eff&color=fff"
-          }" alt="${experto.nombre || ""}" class="experto-avatar">
+        <div class="asesoria-experto"></div>
+          <img src="${getAvatarUrl(experto)}" alt="${expertoAltText}" class="experto-avatar">
           <div>
-            <span class="experto-nombre" style="display:block; margin-bottom:0.2em;">${
-              experto.nombre || ""
-            } ${experto.apellido || ""}</span>
-            <span class="experto-rol" style="display:block; margin-top:0.2em;">${
-              (experto.especialidades && experto.especialidades[0]) || ""
-            }</span>
+            <span class="experto-nombre" style="display:block; margin-bottom:0.2em;">${nombreCompleto}</span>
+            <span class="experto-rol" style="display:block; margin-top:0.2em;">${getEspecialidad(experto)}</span>
           </div>
         </div>
         <div class="asesoria-estado ${estado.toLowerCase()}">${estado}</div>
       </div>
       <div class="asesoria-acciones">
-        <button class="btn btn-primary btn-sm" onclick="abrirMensajesAsesoria('${
-          asesoria._id
-        }', '${experto.nombre || ""} ${experto.apellido || ""}')">
+        <button class="btn btn-primary btn-sm" onclick="abrirMensajesAsesoria('${asesoria._id}', '${nombreCompleto}')">
           <i class="fas fa-comment-dots"></i> Mensaje
         </button>
-        <button class="btn btn-outline btn-sm" onclick='abrirDetallesAsesoria(${JSON.stringify(
-          {
-            fecha,
-            hora: hora + (horaFin ? " - " + horaFin : ""),
-            experto: (experto.nombre || "") + " " + (experto.apellido || ""),
-            rol: (experto.especialidades && experto.especialidades[0]) || "",
-            estado,
-          }
-        )})'>
+        <button class="btn btn-outline btn-sm" onclick='abrirDetallesAsesoria(${JSON.stringify({
+          fecha,
+          hora: hora + (horaFin ? " - " + horaFin : ""),
+          experto: nombreCompleto,
+          rol: getEspecialidad(experto),
+          estado,
+        })})'>
           <i class="fas fa-calendar-alt"></i> Ver detalles
         </button>
       </div>

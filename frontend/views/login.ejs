@@ -7,14 +7,13 @@
     <title>Iniciar Sesión - ServiTech</title>
     <link rel="stylesheet" href="/assets/css/auth.css">
     <link rel="stylesheet" href="/assets/css/componentes.css">
+    <link rel="stylesheet" href="/assets/css/recuperar-password.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 
 <body>
-    <!-- Include del header -->
     <%- include('componentes/header') %>
-
         <main>
             <div class="auth-container">
                 <div class="auth-card">
@@ -39,8 +38,10 @@
                                     required>
                                 <i class="fas fa-eye-slash toggle-password"></i>
                             </div>
+                            <div class="forgot-pass-link">
+                                <a href="/recuperarPassword.html" id="forgotPassLink">¿Olvidaste tu contraseña?</a>
+                            </div>
                         </div>
-
                         <div class="input-group">
                             <div class="g-recaptcha" data-sitekey="6LdghKQrAAAAANaGrKFXoONcZu3Q0R3RBue9_UWT"></div>
                         </div>
@@ -56,15 +57,10 @@
                 </div>
             </div>
         </main>
-
-        <!-- Include del footer -->
         <%- include('componentes/footer') %>
-
             <script src="/assets/js/common.js"></script>
             <script src="/assets/js/login.js"></script>
-</body>
-
-</html>
+            <script src="/assets/js/recuperarPassword.js"></script>
 </body>
 
 </html>
