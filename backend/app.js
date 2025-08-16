@@ -15,6 +15,9 @@ const pagoRoutes = require("./routes/pago.routes.js");
 const notificacionRoutes = require("./routes/notificacion.routes.js");
 const logRoutes = require("./routes/log.routes.js");
 const expertoRoutes = require("./routes/experto");
+// Rutas para entidades tecnológicas (registro de expertos)
+const especialidadRoutes = require("./routes/especialidad.routes.js");
+const habilidadRoutes = require("./routes/habilidad.routes.js");
 
 // Inicialización de la Aplicación
 conectarDB();
@@ -42,11 +45,16 @@ app.use(express.json());
 
 // Enrutamiento Principal de la API
 app.use("/api/usuarios", usuarioRoutes);
-app.use("/api/categorias", categoriaRoutes);
+app.use("/categorias", categoriaRoutes);
 app.use("/api/pagos", pagoRoutes);
 app.use("/api/notificaciones", notificacionRoutes);
 app.use("/api/logs", logRoutes);
 app.use("/", expertoRoutes);
+
+// Endpoints para especialidades y habilidades tecnológicas
+// Usados en el registro de expertos y gestión de perfiles
+app.use("/api/especialidades", especialidadRoutes);
+app.use("/api/habilidades", habilidadRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

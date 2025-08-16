@@ -20,15 +20,23 @@ app.set("views", path.join(__dirname, "views"));
 app.use("/assets", express.static(path.join(__dirname, "assets")));
 app.use(express.json());
 
-// --- Proxy y Rutas de Renderizado ---
-
-const apiProxy = createProxyMiddleware({
-  target: "http://localhost:3000",
-  changeOrigin: true,
-  logLevel: "debug",
-});
-
-app.get("/editar-perfil-experto", apiProxy);
+// Proxy para redirigir /api/* al backend en el puerto 3000
+app.use(
+  "/api",
+  createProxyMiddleware({
+    target: "http://localhost:3000",
+    changeOrigin: true,
+    logLevel: "debug",
+    pathRewrite: {
+      "^/api": "", // Elimina el prefijo /api
+    },
+    onProxyReq: (proxyReq, req, res) => {
+      console.log(
+        `[PROXY] Redirigiendo: ${req.originalUrl} -> ${proxyReq.path}`
+      );
+    },
+  })
+);
 
 app.get("/", (req, res) => {
   res.render("index", { user: null });

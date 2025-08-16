@@ -69,12 +69,11 @@ document.addEventListener("DOMContentLoaded", async function () {
   const skillsSelect = document.getElementById("skills");
   let categoriasData = [];
 
-  fetch("http://localhost:3000/api/categorias")
+  // --- Poblar select de categorías desde /api/categorias ---
+  fetch("/api/categorias")
     .then((res) => res.json())
     .then((data) => {
-      console.log("Categorías recibidas:", data);
       categoriasData = data;
-      // Poblar categorías, manteniendo la opción por defecto
       categoriasSelect.innerHTML =
         '<option value="">Selecciona una categoría</option>';
       data.forEach((cat) => {
@@ -83,10 +82,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         opt.textContent = cat.nombre;
         categoriasSelect.appendChild(opt);
       });
-      especialidadSelect.innerHTML =
-        '<option value="">Selecciona una especialidad</option>';
-      skillsSelect.innerHTML = "";
-      // Asegurar que no haya ninguna categoría seleccionada por defecto
       categoriasSelect.selectedIndex = 0;
     });
 
@@ -95,7 +90,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     const selectedCats = Array.from(categoriasSelect.selectedOptions).map(
       (opt) => opt.value
     );
-    console.log("Categorías seleccionadas:", selectedCats);
     especialidadSelect.innerHTML =
       '<option value="">Selecciona una especialidad</option>';
     skillsSelect.innerHTML = "";
@@ -107,7 +101,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         especialidades = especialidades.concat(cat.especialidades);
       }
     });
-    console.log("Especialidades encontradas:", especialidades);
     // Eliminar duplicados por nombre
     const nombresUnicos = new Set();
     let count = 0;
@@ -132,7 +125,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     const selectedCats = Array.from(categoriasSelect.selectedOptions).map(
       (opt) => opt.value
     );
-    console.log("Especialidad seleccionada:", especialidadSelect.value);
     let habilidadesPorEspecialidad = {};
     selectedCats.forEach((catNombre) => {
       const cat = categoriasData.find((c) => c.nombre === catNombre);
@@ -147,8 +139,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         });
       }
     });
-    // Agrupar habilidades por especialidad
-    console.log("Habilidades agrupadas:", habilidadesPorEspecialidad);
     skillsSelect.innerHTML = "";
     let totalHabs = 0;
     Object.keys(habilidadesPorEspecialidad).forEach((espNombre) => {
@@ -157,7 +147,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         grupo.forEach((hab) => {
           const opt = document.createElement("option");
           opt.value = hab.nombre;
-          opt.textContent = `${hab.nombre} (${hab.nivel || ""})`;
+          opt.textContent = hab.nombre;
           skillsSelect.appendChild(opt);
           totalHabs++;
         });
