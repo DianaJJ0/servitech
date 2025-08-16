@@ -28,7 +28,9 @@ const asesoriaSchema = new Schema(
       type: String,
       unique: true,
       required: true,
+      // Generador de código único
       default: () =>
+        // Genera un código único basado en la fecha y un número aleatorio
         `ASE-${Date.now()}-${Math.random()
           .toString(36)
           .substring(2, 8)
@@ -49,6 +51,7 @@ const asesoriaSchema = new Schema(
       type: infoParticipanteSchema,
       required: true,
     },
+    // Categoría de la asesoría, referenciando una categoría existente.
     categoria: {
       type: String,
       required: true,
@@ -69,6 +72,7 @@ const asesoriaSchema = new Schema(
       type: Date,
       required: true,
     },
+    // Duración de la asesoría en minutos
     duracionMinutos: {
       type: Number,
       required: true,

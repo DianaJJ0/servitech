@@ -15,6 +15,7 @@ const notificacionSchema = new Schema(
       tipo: String, // Ej: "Asesoria", "Pago"
       referenciaId: Schema.Types.ObjectId, // Relación opcional
     },
+    // Estado de la notificación 
     estado: {
       type: String,
       enum: ["pendiente", "enviado", "fallido"],
