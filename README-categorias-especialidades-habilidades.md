@@ -89,6 +89,32 @@ Permitir que el frontend obtenga dinámicamente las opciones de categorías, esp
 
 ---
 
+## Análisis y sentido del diseño
+
+La estructura de controladores, rutas y script de inicialización responde a las mejores prácticas de desarrollo backend moderno:
+
+- **Modularidad:** Cada entidad (categoría, especialidad, habilidad) tiene su propio controlador y ruta, lo que facilita la extensión y el mantenimiento del sistema. Si se requiere agregar nuevas funcionalidades, solo se crean nuevos módulos siguiendo el mismo patrón.
+- **Escalabilidad:** El sistema puede crecer fácilmente, permitiendo agregar más entidades o lógica sin afectar el resto del proyecto.
+- **Reutilización:** Los controladores pueden ser usados por diferentes rutas o servicios, evitando duplicación de código y facilitando pruebas unitarias.
+- **Seguridad:** Las rutas públicas solo permiten consulta, mientras que las protegidas requieren autenticación y roles, siguiendo buenas prácticas REST.
+- **Facilidad para el frontend:** El frontend puede consumir los datos de manera sencilla y dinámica, mostrando siempre información actualizada.
+- **Inicialización controlada:** El script `/backend/inicializar.js` permite poblar la base de datos con datos base, útil para desarrollo, pruebas y despliegue, asegurando que el sistema funcione correctamente desde el inicio.
+
+### ¿Por qué se ubica cada parte en su archivo?
+
+- **Controladores:** Centralizan la lógica de negocio y la interacción con la base de datos. Esto permite que la lógica sea reutilizable y fácil de testear.
+- **Rutas:** Definen los endpoints y la seguridad de acceso. Separar rutas y lógica permite que el código sea más claro y fácil de modificar.
+- **Inicialización:** Un script aparte permite poblar la base de datos sin mezclar lógica de negocio con lógica de despliegue o pruebas.
+
+### Ejemplo de flujo completo
+
+1. El frontend solicita los datos con una petición GET a `/api/categorias`, `/api/especialidades` y `/api/habilidades`.
+2. El backend consulta la base de datos usando los controladores y responde en formato JSON.
+3. El frontend muestra las opciones en los selectores del formulario de registro de experto.
+4. Si se requiere modificar las opciones base, se ejecuta el script de inicialización.
+
+---
+
 ## Resumen del flujo
 
 1. El frontend realiza una petición GET a `/api/categorias`, `/api/especialidades` y `/api/habilidades`.
@@ -106,5 +132,9 @@ Permitir que el frontend obtenga dinámicamente las opciones de categorías, esp
 - Script de inicialización para facilitar el desarrollo y pruebas.
 
 ---
+
+**Conclusión:**
+
+Esta arquitectura permite que el sistema sea robusto, fácil de mantener y que el frontend siempre tenga acceso a datos actualizados y confiables para el registro de expertos. Si necesitas ampliar la funcionalidad, sigue este patrón para mantener la calidad y coherencia del proyecto.
 
 ¿Dudas sobre algún archivo o flujo? Puedes consultar este README para entender cómo se conecta cada parte y cómo se puede extender la funcionalidad.
