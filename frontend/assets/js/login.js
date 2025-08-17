@@ -33,14 +33,22 @@ document.addEventListener("DOMContentLoaded", () => {
         body: JSON.stringify(datosLogin),
         credentials: "include",
       });
+
+      const result = await response.json();
+
       if (!response.ok) {
-        formError.textContent = "Credenciales incorrectas.";
+        formError.textContent = result.mensaje || "Credenciales incorrectas.";
         formError.style.display = "block";
         formError.style.color = "#dc3545";
         return;
       }
-      // El backend renderiza la vista directamente, así que solo redirigimos
-      window.location.href = "/registroExperto.html";
+
+      // Guardar el token y usuario en localStorage
+      localStorage.setItem("token", result.token);
+      localStorage.setItem("usuario", JSON.stringify(result.usuario));
+
+      // Redirige al inicio (puedes cambiar por / o /perfil.html si prefieres)
+      window.location.href = "/";
     } catch (error) {
       formError.textContent = error.message;
       formError.style.color = "#dc3545";
@@ -62,8 +70,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Enlace "¿Olvidaste tu contraseña?" (redirección)
-  // Debe tener id="forgotPassLink"
+  // Enlace "¿Olvidaste tu contraseña?"
   const forgotLink = document.getElementById("forgotPassLink");
   if (forgotLink) {
     forgotLink.addEventListener("click", function (e) {

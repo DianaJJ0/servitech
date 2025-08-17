@@ -9,7 +9,9 @@ const crearLog = async (req, res) => { // Define la función asincrónica crearL
   try { // Intenta ejecutar el bloque de código
     const datos = req.body; // Obtiene los datos enviados en el cuerpo de la petición
     const log = new Log(datos); // Crea una nueva instancia del modelo Log con los datos recibidos
+
     await log.save(); // Guarda el nuevo log en la base de datos
+
     res.status(201).json({ mensaje: "Log registrado.", log }); // Devuelve una respuesta exitosa con el log creado
   } catch (error) { // Si ocurre un error en el bloque try
     res.status(500).json({ mensaje: "Error al registrar log." }); // Devuelve una respuesta de error al cliente
@@ -18,6 +20,7 @@ const crearLog = async (req, res) => { // Define la función asincrónica crearL
 
 // Función para obtener todos los logs registrados
 const obtenerLogs = async (req, res) => { // Define la función asincrónica obtenerLogs que recibe la petición y respuesta
+  
   try { // Intenta ejecutar el bloque de código
     const logs = await Log.find().sort({ createdAt: -1 }); // Busca todos los logs y los ordena por fecha de creación descendente
     res.status(200).json(logs); // Devuelve una respuesta exitosa con la lista de logs

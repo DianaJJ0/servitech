@@ -9,7 +9,7 @@ const Usuario = require("../models/usuario.model.js"); // Importa el modelo de u
  * Middleware principal para proteger rutas. Verifica el token y añade el usuario a 'req'.
  * Usado por las rutas de usuario.
  */
-const protect = async (req, res, next) => { // Define el middleware 'protect' como función asíncrona
+const protect = async (req, res, next) => { // Define el middleware 'protect' como función asíncrona, next es una función de callback para continuar con el siguiente middleware
   let token; // Inicializa la variable 'token' para almacenar el JWT
 
   if (

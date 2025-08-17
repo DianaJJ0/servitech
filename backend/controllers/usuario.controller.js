@@ -9,12 +9,14 @@ const { enviarCorreo } = require("../services/email.service.js");
 
 // --- Funciones Auxiliares ---
 
+// Genera un JWT para el usuario
 const generarToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "7d" });
 };
 
 // --- Lógica de Rutas ---
 
+// Registro de usuario nuevo
 const registrarUsuario = async (req, res) => {
   const { nombre, apellido, email, password } = req.body;
   try {
@@ -51,6 +53,7 @@ const registrarUsuario = async (req, res) => {
   }
 };
 
+// Login de usuario. Devuelve token JWT y datos básicos.
 const iniciarSesion = async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -66,17 +69,20 @@ const iniciarSesion = async (req, res) => {
       });
     }
     if (await usuario.matchPassword(password)) {
-      // Guardar usuario en la sesión
-      req.session.user = {
-        _id: usuario._id,
-        nombre: usuario.nombre,
-        apellido: usuario.apellido,
-        email: usuario.email,
-      };
-      // Renderizar la vista registroExperto.ejs directamente tras login
-      return res.render("registroExperto", {
-        user: req.session.user,
-        email: req.session.user.email,
+      // Genera el token JWT
+      const token = generarToken(usuario._id);
+
+      // Devuelve token y datos del usuario
+      return res.status(200).json({
+        mensaje: "Login exitoso.",
+        token,
+        usuario: {
+          _id: usuario._id,
+          nombre: usuario.nombre,
+          apellido: usuario.apellido,
+          email: usuario.email,
+          roles: usuario.roles,
+        },
       });
     } else {
       return res.status(401).json({
@@ -90,7 +96,7 @@ const iniciarSesion = async (req, res) => {
     });
   }
 };
-
+// Obtiene datos del perfil del usuario autenticado
 const obtenerPerfilUsuario = async (req, res) => {
   try {
     const usuario = await Usuario.findById(req.usuario.id).select(
@@ -106,6 +112,7 @@ const obtenerPerfilUsuario = async (req, res) => {
   }
 };
 
+// Devuelve la lista de todos los usuarios (protegida)
 const obtenerUsuarios = async (req, res) => {
   try {
     const usuarios = await Usuario.find({}).select("-passwordHash");
@@ -181,7 +188,7 @@ const resetearPassword = async (req, res) => {
   }
 };
 
-// Exportamos todas las funciones
+// Exportamos todas las funciones del controlador
 module.exports = {
   registrarUsuario,
   iniciarSesion,
