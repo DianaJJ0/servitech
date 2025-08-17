@@ -1,3 +1,4 @@
+
 :root {
   --primary-color: #3a8eff;
   --primary-hover: #2a7af0;
@@ -14,7 +15,7 @@
   --card-shadow: 0 1.25rem 2.5rem #0000004d;
   --hover-shadow: 0 0.625rem 1.5625rem #0000004d;
   --btn-shadow: 0 0.3125rem 0.9375rem #2a7af04d;
-  --border-radius: 1rem;
+  --border-radius: 0.75rem;
   --btn-radius: 0.5rem;
   --input-radius: 0.5rem;
   --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -33,22 +34,23 @@ body {
   font-family: "Inter", sans-serif;
   background-color: var(--background);
   color: var(--text-color);
-  line-height: 1.6;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  font-size: 15px;
 }
 
-/* Estructura principal - Mobile First */
+/* Estructura principal */
 .registro-experto-main {
   width: 100%;
-  margin: 1rem auto;
-  padding: 0 1rem;
-  min-height: calc(100vh - 2rem);
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: 1rem;
 }
 
 .registro-experto-section {
   background-color: var(--card-bg);
   border-radius: var(--border-radius);
-  padding: 1.5rem;
+  padding: 1.25rem;
   box-shadow: var(--card-shadow);
   border: 1px solid var(--border-color);
   margin-bottom: 1rem;
@@ -56,7 +58,22 @@ body {
   overflow: hidden;
 }
 
-/* Header del formulario - Mobile */
+.registro-experto-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    var(--primary-color),
+    var(--accent-color)
+  );
+  z-index: 0;
+}
+
+/* Header del formulario */
 .registro-header {
   text-align: center;
   margin-bottom: 1.5rem;
@@ -65,31 +82,37 @@ body {
 }
 
 .logo-img {
-  max-width: 140px;
+  max-width: 120px;
   height: auto;
-  margin-bottom: 1rem;
+  margin: 0 auto 0.75rem;
+  display: block;
   filter: brightness(0) invert(1);
   opacity: 0.9;
 }
 
 .registro-header h1 {
   color: var(--primary-color);
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   margin-bottom: 0.5rem;
   font-weight: 700;
 }
 
 .subtitle {
   color: var(--text-secondary);
-  font-size: 0.9rem;
-  margin-bottom: 0.5rem;
-  padding: 0.5rem;
+  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
+  display: inline-block;
+  padding: 0.4rem 0.8rem;
+  background: rgba(58, 142, 255, 0.05);
+  border-radius: 1rem;
+  border: 1px solid var(--border-light);
 }
 
 .registro-fecha {
   color: var(--text-light);
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   margin-bottom: 1rem;
+  display: inline-block;
 }
 
 .back-link {
@@ -97,65 +120,86 @@ body {
   align-items: center;
   gap: 0.5rem;
   color: var(--text-secondary);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   text-decoration: none;
-  padding: 0.5rem 1rem;
-  margin-top: 1rem;
+  padding: 0.5rem 0.8rem;
+  border-radius: var(--btn-radius);
+  transition: var(--transition);
+  margin-top: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-light);
 }
 
-/* Formulario principal - Mobile */
+/* Alertas */
+.alert {
+  padding: 0.8rem;
+  border-radius: var(--input-radius);
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+  position: relative;
+  overflow: hidden;
+  border-left: 4px solid transparent;
+}
+
+/* Formulario principal */
 .registro-experto-form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
   position: relative;
   z-index: 1;
   width: 100%;
-  margin: 0 auto;
-  padding: 0;
 }
 
-/* Filas del formulario - Mobile */
+/* Filas del formulario */
 .form-row {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
   background: rgba(58, 142, 255, 0.05);
   border-radius: var(--border-radius);
   padding: 1rem;
   margin-bottom: 1rem;
+  border: 1px solid var(--border-light);
 }
 
-.form-row.triple {
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.form-row.double {
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-/* Grupos de campos - Mobile */
+/* Grupos de campos */
 .form-group {
   margin-bottom: 1rem;
+  position: relative;
   width: 100%;
 }
 
 .form-group.compact {
-  padding: 1rem;
+  padding: 0.9rem;
+  background: var(--card-bg);
+  border-radius: calc(var(--border-radius) - 0.2rem);
+  border: 1px solid transparent;
 }
 
 .form-group.full-width {
   padding: 1rem;
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-light);
 }
 
 .form-group label {
+  display: block;
+  color: var(--text-secondary);
   font-size: 0.85rem;
   margin-bottom: 0.5rem;
+  font-weight: 500;
 }
 
-/* Campos de entrada - Mobile */
+.form-hint {
+  color: var(--text-light);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  line-height: 1.3;
+}
+
+/* Campos de entrada */
 input[type="text"],
 input[type="email"],
 input[type="password"],
@@ -164,97 +208,218 @@ input[type="tel"],
 select,
 textarea {
   width: 100%;
-  padding: 0.8rem;
+  padding: 0.75rem;
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--input-radius);
+  color: var(--text-color);
   font-size: 0.9rem;
+  transition: var(--transition);
+  min-height: 44px;
 }
 
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23a0a0a0'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem;
+  padding-right: 2rem;
+}
+
+/* Textarea */
 textarea {
+  resize: vertical;
   min-height: 100px;
+  line-height: 1.5;
 }
 
-/* Selectores múltiples - Mobile */
+/* Selectores múltiples */
 .select-multiple {
   min-height: 100px;
-  font-size: 0.9rem;
+  padding: 0.5rem !important;
+  overflow-y: auto;
 }
 
-/* Input de precio - Mobile */
+.select-multiple option {
+  padding: 0.5rem;
+  margin: 0.1rem 0;
+  white-space: normal;
+  word-break: break-word;
+}
+
+/* Input de precio */
+.price-group {
+  position: relative;
+}
+
 .price-input {
-  width: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.price-input .currency {
+  position: absolute;
+  left: 0.75rem;
+  color: var(--primary-color);
+  font-weight: 700;
+  pointer-events: none;
 }
 
 .price-input input {
-  padding-left: 2.2rem;
+  padding-left: 1.75rem;
 }
 
-/* Días disponibles - Mobile */
+/* Días disponibles */
 .days-selector {
+  display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 0.3rem;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
 }
 
 .day-option {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--input-bg);
+  border-radius: 50%;
+  cursor: pointer;
+  font-weight: 600;
   font-size: 0.8rem;
+  border: 1px solid transparent;
 }
 
-/* Sección de datos bancarios - Mobile */
+.day-option.selected {
+  background: var(--primary-color);
+  color: white;
+}
+
+/* Sección de datos bancarios */
 .form-section {
   margin-top: 1.5rem;
   padding: 1rem;
+  background: rgba(18, 216, 250, 0.03);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-light);
 }
 
 .section-title {
+  color: var(--accent-color);
   font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-/* Botón de envío - Mobile */
+.section-subtitle {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+/* Contenedor de número de cuenta */
+.cuenta-container {
+  position: relative;
+}
+
+.btn-toggle-cuenta {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--text-light);
+  cursor: pointer;
+}
+
+/* Tarjeta de información */
+.info-card {
+  border-left: 3px solid var(--accent-color);
+  background: rgba(18, 216, 250, 0.05);
+  padding: 0.8rem;
+  border-radius: var(--input-radius);
+  margin-top: 1rem;
+}
+
+.info-list li {
+  position: relative;
+  padding-left: 1.25rem;
+  margin-bottom: 0.3rem;
+  font-size: 0.8rem;
+}
+
+/* Botón de envío */
 .form-footer {
   margin-top: 1.5rem;
+  text-align: center;
 }
 
 .btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.9rem 1.5rem;
+  background-color: var(--primary-color);
+  color: var(--text-color);
+  border-radius: var(--btn-radius);
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
   width: 100%;
-  padding: 1rem;
-  font-size: 1rem;
+  max-width: 300px;
 }
 
 /* Media Queries para tablets */
 @media (min-width: 768px) {
+  body {
+    font-size: 16px;
+  }
+
   .registro-experto-main {
-    padding: 0 1.5rem;
+    padding: 1.5rem;
   }
 
   .registro-experto-section {
-    padding: 2rem;
+    padding: 1.75rem;
+  }
+
+  .registro-header h1 {
+    font-size: 1.6rem;
+  }
+
+  .form-row {
+    flex-direction: row;
+    gap: 1.5rem;
   }
 
   .form-row.double {
-    flex-direction: row;
     grid-template-columns: repeat(2, 1fr);
   }
 
   .form-row.triple {
-    flex-direction: row;
     grid-template-columns: repeat(3, 1fr);
   }
 
-  .days-selector {
-    gap: 0.5rem;
+  .form-group.compact {
+    padding: 1rem;
+  }
+
+  textarea {
+    min-height: 120px;
   }
 }
 
 /* Media Queries para desktop */
 @media (min-width: 992px) {
-  .registro-experto-main {
-    max-width: var(--content-max-width);
-    margin: 2rem auto;
-    padding: 0 2.5rem;
-  }
-
   .registro-experto-section {
-    padding: 2.5rem;
+    padding: 2rem;
   }
 
   .registro-header h1 {
@@ -262,84 +427,79 @@ textarea {
   }
 
   .form-row {
-    display: grid;
     padding: 1.5rem;
   }
 
-  .form-group.compact {
-    padding: 1.2rem;
-  }
-
-  textarea {
-    min-height: 120px;
-  }
-
-  .select-multiple {
-    min-height: 120px;
+  .btn-primary {
+    max-width: none;
+    padding: 1rem 2rem;
   }
 }
 
-/* Correcciones específicas para problemas visibles en la imagen */
-/* 1. Selectores desbordados */
+/* Correcciones específicas */
+/* 1. Evitar desbordamiento en selects */
 .select-multiple {
   max-width: 100%;
-  overflow: hidden;
 }
 
-/* 2. Campos de texto muy pequeños */
-input, select, textarea {
-  min-height: 44px; /* Tamaño táctil mínimo */
+/* 2. Ajuste para tooltips */
+.price-tooltip:hover::after {
+  content: "Precio sugerido: $15 - $150 USD";
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  padding: 0.5rem;
+  border-radius: var(--input-radius);
+  font-size: 0.8rem;
+  width: 180px;
+  z-index: 10;
 }
 
-/* 3. Espaciado en secciones */
-.form-section {
-  margin-top: 2rem;
-  padding: 1.5rem;
-}
+/* 3. Mejor espaciado en móviles */
+@media (max-width: 767px) {
+  .form-group {
+    margin-bottom: 0.75rem;
+  }
 
-/* 4. Alineación de iconos en móviles */
-.info-card-header {
-  align-items: flex-start;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-/* 5. Tamaño de fuente mínimo */
-body {
-  font-size: 14px;
-}
-
-@media (min-width: 768px) {
-  body {
-    font-size: 16px;
+  .form-row {
+    margin-bottom: 0.75rem;
   }
 }
 
-/* 6. Ajuste para campos bancarios */
-.cuenta-container {
-  width: 100%;
+/* 4. Ajuste para campos bancarios en móviles */
+@media (max-width: 767px) {
+  .form-section .form-row.double {
+    display: flex;
+    flex-direction: column;
+  }
 }
 
-/* 7. Ajuste para días seleccionados */
+/* 5. Corrección para días seleccionados */
 .days-selected-display {
+  font-size: 0.75rem;
   word-break: break-word;
+  margin-top: 0.5rem;
 }
 
-/* 8. Mejora para tooltips en móviles */
-.price-tooltip:hover::after {
-  width: 150px;
-  font-size: 0.7rem;
-  right: -50px;
+
+/* Header principal limpio */
+.registro-header-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5em;
 }
 
-/* 9. Ajuste para botón de volver */
-.back-link {
-  width: auto;
-  margin: 1rem auto 0;
+.registro-header-content .logo-img {
+  max-width: 120px;
 }
 
-/* 10. Corrección para selects múltiples */
-.select-multiple option {
-  white-space: normal;
-  word-wrap: break-word;
+.registro-header-title {
+  margin: 0.3em 0 0.1em 0;
+}
+
+.registro-header-subtitle {
+  margin: 0;
 }

@@ -29,10 +29,13 @@
             <% } %>
 
               <div class="registro-header">
-                <a href="/" class="logo-link"><img src="/assets/img/logo.png" alt="Logo de ServiTech"
-                    class="logo-img"></a>
-                <h1>Registro de Experto</h1>
-                <p class="subtitle">Completa tu perfil para ofrecer asesorías</p>
+                <div class="registro-header-content">
+                  <a href="/" class="logo-link">
+                    <img src="/assets/img/logo.png" alt="Logo de ServiTech" class="logo-img">
+                  </a>
+                  <h1 class="registro-header-title">Registro de Experto</h1>
+                  <p class="subtitle registro-header-subtitle">Completa tu perfil para ofrecer asesorías</p>
+                </div>
                 <span id="currentDate" class="registro-fecha"></span>
                 <div class="back-home-center">
                   <a href="/" class="back-link">
@@ -94,29 +97,29 @@
                 <div class="form-row double">
                   <!-- Bloque de Categorías y Especialidad -->
                   <div class="form-group compact full-width">
-                  <label for="categorias">Categorías</label>
-                  <select id="categorias" name="categorias" multiple class="select-multiple">
-                    <option value="">Selecciona categorías</option>
-                    <!-- Opciones dinámicas -->
-                  </select>
-                  <p class="form-hint">Selecciona categorías tecnológicas</p>
+                    <label for="categorias">Categorías</label>
+                    <select id="categorias" name="categorias" multiple class="select-multiple">
+                      <option value="">Selecciona categorías</option>
+                      <!-- Opciones dinámicas -->
+                    </select>
+                    <p class="form-hint">Selecciona categorías tecnológicas</p>
 
-                  <label for="especialidad" style="margin-top: 1em;">Especialidad</label>
-                  <select id="especialidad" name="especialidad" required>
-                    <option value="">Selecciona especialidad</option>
-                    <!-- Opciones dinámicas -->
-                  </select>
+                    <label for="especialidad" style="margin-top: 1em;">Especialidad</label>
+                    <select id="especialidad" name="especialidad" required>
+                      <option value="">Selecciona especialidad</option>
+                      <!-- Opciones dinámicas -->
+                    </select>
                   </div>
                 </div>
 
                 <!-- Habilidades en una fila horizontal debajo -->
                 <div class="form-row single">
                   <div class="form-group compact full-width">
-                  <label for="skills">Habilidades</label>
-                  <select id="skills" name="skills" multiple class="select-multiple">
-                    <!-- Opciones dinámicas -->
-                  </select>
-                  <p class="form-hint">Selecciona habilidades tecnológicas</p>
+                    <label for="skills">Habilidades</label>
+                    <select id="skills" name="skills" multiple class="select-multiple">
+                      <!-- Opciones dinámicas -->
+                    </select>
+                    <p class="form-hint">Selecciona habilidades tecnológicas</p>
                   </div>
                 </div>
 
