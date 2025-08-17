@@ -2,21 +2,13 @@
 <html lang="es">
 
 <head>
-  <!-- Metadatos y enlaces a recursos externos -->
   <meta charset="UTF-8" />
-  <!-- Codificación de caracteres UTF-8 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Diseño responsivo para dispositivos móviles -->
   <title>Registro | Servitech</title>
-  <!-- Título de la pestaña del navegador -->
   <link rel="stylesheet" href="/assets/css/auth.css" />
-  <!-- Estilos específicos para autenticación -->
   <link rel="stylesheet" href="/assets/css/registroExperto.css" />
-  <!-- Estilos específicos para registro de experto -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <!-- Iconos de Font Awesome -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <!-- Fuente Inter para mejorar la tipografía -->
   <script src="/assets/js/registroExperto.js"></script>
 </head>
 
@@ -37,14 +29,11 @@
             <% } %>
 
               <div class="registro-header">
-                <!-- Logo de ServiTech -->
                 <a href="/" class="logo-link"><img src="/assets/img/logo.png" alt="Logo de ServiTech"
                     class="logo-img"></a>
-
                 <h1>Registro de Experto</h1>
                 <p class="subtitle">Completa tu perfil para ofrecer asesorías</p>
                 <span id="currentDate" class="registro-fecha"></span>
-                <!-- Botón volver al inicio centrado -->
                 <div class="back-home-center">
                   <a href="/" class="back-link">
                     <i class="fas fa-arrow-left"></i>Volver al inicio
@@ -53,78 +42,82 @@
               </div>
 
               <form id="registroExpertoForm" class="registro-experto-form">
-                <!-- Información Básica -->
-                <div class="form-row">
-                  <div class="form-group compact">
+                <!-- Primera fila horizontal -->
+                <div class="form-row triple">
+                  <!-- Email -->
+                  <div class="form-group compact email-group">
                     <label for="email">Email registrado</label>
-                    <input type="email" id="email" name="email" required placeholder="tucorreo@ejemplo.com"
-                      value="<%= typeof email !== 'undefined' %>" readonly>
+                    <div class="email-field">
+                      <%= typeof email !=='undefined' ? email : '' %>
+                    </div>
                     <p class="form-hint">Email de tu cuenta</p>
                   </div>
 
-                  <!-- Descripción -->
-                  <div class="form-group">
-                    <label for="descripcion">Descripción profesional</label>
-                    <textarea id="descripcion" name="descripcion" required rows="3"
-                      placeholder="Tu experiencia y enfoque profesional"></textarea>
+                  <div class="form-group compact price-group">
+                    <label for="precio">
+                      Precio por hora (USD)
+                      <span class="price-tooltip" title="Precio sugerido">
+                        <i class="fas fa-info-circle"></i>
+                      </span>
+                    </label>
+                    <div class="price-input">
+                      <span class="currency">$</span>
+                      <input type="number" id="precio" name="precio" min="0" step="0.01" required placeholder="0.00">
+                    </div>
+                    <p class="form-hint">Tarifa por hora de asesoría</p>
+                  </div>
+
+                  <div class="form-group compact days-group">
+                    <label>Días disponibles</label>
+                    <div class="days-selector">
+                      <div class="day-option" data-day="Lunes">L</div>
+                      <div class="day-option" data-day="Martes">M</div>
+                      <div class="day-option" data-day="Miércoles">X</div>
+                      <div class="day-option" data-day="Jueves">J</div>
+                      <div class="day-option" data-day="Viernes">V</div>
+                      <div class="day-option" data-day="Sábado">S</div>
+                      <div class="day-option" data-day="Domingo">D</div>
+                    </div>
+                    <div class="days-selected-display"></div>
+                    <input type="hidden" id="diasDisponibles" name="diasDisponibles">
                   </div>
                 </div>
 
-
-                <!-- Categorías -->
-                <div class="form-group compact">
-                  <label for="categorias">Categorías</label>
-                  <select id="categorias" name="categorias" size="1" required class="select-categorias">
-                    <option value="">Selecciona una categoría</option>
-                    <!-- Opciones dinámicas -->
-                  </select>
-                  <p class="form-hint">Selecciona una o varias categorías tecnológicas</p>
+                <!-- Descripción -->
+                <div class="form-group full-width">
+                  <label for="descripcion">Descripción profesional</label>
+                  <textarea id="descripcion" name="descripcion" required rows="3"
+                    placeholder="Tu experiencia y enfoque profesional"></textarea>
                 </div>
 
+                <!-- Segunda fila horizontal -->
+                <div class="form-row triple">
+                  <!-- Categorías -->
+                  <div class="form-group compact">
+                    <label for="categorias">Categorías</label>
+                    <select id="categorias" name="categorias" multiple class="select-multiple">
+                      <option value="">Selecciona categorías</option>
+                      <!-- Opciones dinámicas -->
+                    </select>
+                    <p class="form-hint">Selecciona categorías tecnológicas</p>
+                  </div>
 
-
-                <!-- Áreas de Conocimiento -->
-                <div class="form-row">
                   <!-- Especialidad -->
                   <div class="form-group compact">
                     <label for="especialidad">Especialidad</label>
-                    <select id="especialidad" name="especialidad" required class="select-especialidad">
-                      <option value="">Selecciona una especialidad</option>
+                    <select id="especialidad" name="especialidad" required>
+                      <option value="">Selecciona especialidad</option>
+                      <!-- Opciones dinámicas -->
                     </select>
                   </div>
 
                   <!-- Habilidades -->
                   <div class="form-group compact">
                     <label for="skills">Habilidades</label>
-                    <select id="skills" name="skills" multiple class="select-skills">
+                    <select id="skills" name="skills" multiple class="select-multiple">
                       <!-- Opciones dinámicas -->
                     </select>
-                    <p class="form-hint">Selecciona una o varias habilidades tecnológicas</p>
-                  </div>
-                </div>
-
-                <!-- Horarios Múltiples -->
-                <div class="form-group">
-                  <label for="diasDisponibles">Día disponible</label>
-                  <select id="diasDisponibles" name="diasDisponibles" required class="select-dia-disponible">
-                    <option value="">Selecciona un día</option>
-                    <option value="Lunes">Lunes</option>
-                    <option value="Martes">Martes</option>
-                    <option value="Miércoles">Miércoles</option>
-                    <option value="Jueves">Jueves</option>
-                    <option value="Viernes">Viernes</option>
-                    <option value="Sábado">Sábado</option>
-                    <option value="Domingo">Domingo</option>
-                  </select>
-                  <p class="form-hint">Selecciona el día en que puedes dar asesorías</p>
-                </div>
-
-                <!-- Tarifas -->
-                <div class="form-group">
-                  <label for="precio">Precio por hora (USD)</label>
-                  <div class="price-input">
-                    <span class="currency">$</span>
-                    <input type="number" id="precio" name="precio" min="0" step="0.01" required placeholder="0.00">
+                    <p class="form-hint">Selecciona habilidades tecnológicas</p>
                   </div>
                 </div>
 
@@ -136,30 +129,15 @@
                   </h3>
                   <p class="section-subtitle">Información necesaria para recibir pagos por tus asesorías</p>
 
-                  <div class="form-row">
+                  <!-- Primera fila bancos -->
+                  <div class="form-row double">
                     <div class="form-group compact">
                       <label for="banco">Banco *</label>
                       <select id="banco" name="banco" required>
                         <option value="">Selecciona tu banco</option>
                         <option value="Banco de Bogotá">Banco de Bogotá</option>
                         <option value="Bancolombia">Bancolombia</option>
-                        <option value="Banco de Occidente">Banco de Occidente</option>
-                        <option value="BBVA Colombia">BBVA Colombia</option>
-                        <option value="Banco Popular">Banco Popular</option>
-                        <option value="Banco Caja Social">Banco Caja Social</option>
-                        <option value="Banco AV Villas">Banco AV Villas</option>
-                        <option value="Banco Agrario">Banco Agrario</option>
-                        <option value="Davivienda">Davivienda</option>
-                        <option value="Banco Falabella">Banco Falabella</option>
-                        <option value="Scotiabank Colpatria">Scotiabank Colpatria</option>
-                        <option value="Banco Santander">Banco Santander</option>
-                        <option value="Banco GNB Sudameris">Banco GNB Sudameris</option>
-                        <option value="Banco Itaú">Banco Itaú</option>
-                        <option value="Banco Pichincha">Banco Pichincha</option>
-                        <option value="Banco Cooperativo Coopcentral">Banco Cooperativo Coopcentral</option>
-                        <option value="Nequi">Nequi</option>
-                        <option value="Daviplata">Daviplata</option>
-                        <option value="Otro">Otro</option>
+                        <!-- Resto de opciones bancarias -->
                       </select>
                     </div>
 
@@ -175,29 +153,30 @@
                     </div>
                   </div>
 
-                  <div class="form-row">
+                  <!-- Segunda fila bancos -->
+                  <div class="form-row double">
                     <div class="form-group compact">
                       <label for="numeroCuenta">Número de cuenta *</label>
                       <div class="cuenta-container">
                         <input type="password" id="numeroCuenta" name="numeroCuenta" required
-                          placeholder="Número de cuenta bancaria" pattern="[0-9\-]*" title="Solo números y guiones"
+                          placeholder="Número de cuenta" pattern="[0-9\-]*" title="Solo números y guiones"
                           class="input-cuenta">
                         <button type="button" id="toggleAccountNumber" class="btn-toggle-cuenta">
                           <i class="fas fa-eye"></i>
                         </button>
                       </div>
-                      <p class="form-hint">Número completo de tu cuenta bancaria</p>
+                      <p class="form-hint">Número completo de tu cuenta</p>
                     </div>
 
                     <div class="form-group compact">
                       <label for="titular">Titular de la cuenta *</label>
-                      <input type="text" id="titular" name="titular" required placeholder="Nombre completo del titular"
-                        title="Nombre tal como aparece en la cuenta bancaria">
-                      <p class="form-hint">Debe coincidir exactamente con el nombre en la cuenta</p>
+                      <input type="text" id="titular" name="titular" required placeholder="Nombre completo del titular">
+                      <p class="form-hint">Debe coincidir con el nombre en la cuenta</p>
                     </div>
                   </div>
 
-                  <div class="form-row">
+                  <!-- Tercera fila bancos -->
+                  <div class="form-row double">
                     <div class="form-group compact">
                       <label for="tipoDocumento">Tipo de documento *</label>
                       <select id="tipoDocumento" name="tipoDocumento" required>
@@ -212,29 +191,29 @@
                     <div class="form-group compact">
                       <label for="numeroDocumento">Número de documento *</label>
                       <input type="text" id="numeroDocumento" name="numeroDocumento" required
-                        placeholder="Número de identificación" pattern="[0-9\-]*"
-                        title="Número del documento de identidad">
-                      <p class="form-hint">Documento de identidad del titular</p>
+                        placeholder="Número de identificación" pattern="[0-9\-]*">
+                      <p class="form-hint">Documento del titular</p>
                     </div>
                   </div>
 
+                  <!-- Contacto -->
                   <div class="form-group">
                     <label for="telefonoContacto">Teléfono de contacto</label>
-                    <input type="tel" id="telefonoContacto" name="telefonoContacto" placeholder="+57 300 123 4567"
-                      title="Teléfono de contacto para verificación de pagos">
+                    <input type="tel" id="telefonoContacto" name="telefonoContacto" placeholder="+57 300 123 4567">
                     <p class="form-hint">Opcional: Teléfono para contacto sobre pagos</p>
                   </div>
 
-                  <div class="info-card">
+                  <!-- Info card -->
+                  <div class="info-card compact">
                     <div class="info-card-header">
                       <i class="fas fa-info-circle"></i>
                       <strong>Información importante sobre pagos</strong>
                     </div>
                     <ul class="info-list">
                       <li><i class="fas fa-check"></i> Los pagos se procesan cada 15 días</li>
-                      <li><i class="fas fa-check"></i> Se requiere verificación de cuenta antes del primer pago</li>
-                      <li><i class="fas fa-check"></i> Los datos bancarios pueden editarse desde tu perfil</li>
-                      <li><i class="fas fa-check"></i> Mantenemos seguros tus datos financieros</li>
+                      <li><i class="fas fa-check"></i> Se requiere verificación de cuenta</li>
+                      <li><i class="fas fa-check"></i> Datos editables desde tu perfil</li>
+                      <li><i class="fas fa-check"></i> Seguridad garantizada</li>
                     </ul>
                   </div>
                 </div>
@@ -253,67 +232,7 @@
     </section>
   </main>
 
-  <!-- Template para nuevos horarios (hidden) -->
-  <template id="horario-template">
-    <div class="horario-item">
-      <div class="form-row">
-        <div class="form-group compact">
-          <label>Día</label>
-          <select name="horarios[{{index}}][dia]" required>
-            <option value="Lunes">Lunes</option>
-            <option value="Martes">Martes</option>
-            <option value="Miércoles">Miércoles</option>
-            <option value="Jueves">Jueves</option>
-            <option value="Viernes">Viernes</option>
-            <option value="Sábado">Sábado</option>
-            <option value="Domingo">Domingo</option>
-          </select>
-        </div>
-
-        <div class="form-group compact">
-          <label>Hora inicio</label>
-          <select name="horarios[{{index}}][inicio]" required>
-            <% for(let h=8; h <=20; h++) { %>
-              <option value="<%= h %>:00">
-                <%= h %>:00 <%= h < 12 ? 'AM' : 'PM' %>
-              </option>
-              <% if(h < 20) { %>
-                <option value="<%= h %>:30">
-                  <%= h %>:30 <%= h < 12 ? 'AM' : 'PM' %>
-                </option>
-                <% } %>
-                  <% } %>
-          </select>
-        </div>
-
-        <div class="form-group compact">
-          <label>Hora fin</label>
-          <select name="horarios[{{index}}][fin]" required>
-            <% for(let h=9; h <=21; h++) { %>
-              <option value="<%= h %>:00">
-                <%= h %>:00 <%= h < 12 ? 'AM' : 'PM' %>
-              </option>
-              <% if(h < 21) { %>
-                <option value="<%= h %>:30">
-                  <%= h %>:30 <%= h < 12 ? 'AM' : 'PM' %>
-                </option>
-                <% } %>
-                  <% } %>
-          </select>
-        </div>
-
-        <div class="form-group compact">
-          <label>&nbsp;</label>
-          <button type="button" class="btn-remove-horario">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M6 18L18 6M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                stroke-linejoin="round" />
-            </svg>
-          </button>
-        </div>
-      </div>
-    </div>
-  </template>
   <script src="/assets/js/registroExperto.js"></script>
 </body>
+
 </html>
