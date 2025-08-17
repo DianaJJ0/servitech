@@ -1,12 +1,9 @@
 const express = require("express");
 const router = express.Router();
 
-
-
 router.get("/editar-perfil-experto", (req, res) => {
-  // Obtén el usuario desde la sesión, base de datos, etc.
-  // Aquí se usa un objeto vacío si no existe, ajusta según tu lógica.
-  const usuario = req.session?.usuario || {
+  // Unificar variable de sesión: usar siempre req.session.user
+  const usuario = req.session?.user || {
     email: "",
     nombre: "",
     experto: {
@@ -29,7 +26,5 @@ router.get("/editar-perfil-experto", (req, res) => {
   };
   res.render("editarExpertos", { usuario });
 });
-
-
 
 module.exports = router;

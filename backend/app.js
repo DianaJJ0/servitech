@@ -22,6 +22,20 @@ const habilidadRoutes = require("./routes/habilidad.routes.js");
 // Inicialización de la Aplicación
 conectarDB();
 const app = express();
+// Configuración de sesiones
+const session = require("express-session");
+app.use(
+  session({
+    secret: "servitech-secret", // Cambia por una clave segura en producción
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: false, // true solo si usas HTTPS
+      sameSite: "lax", // Permite compartir entre localhost:3000 y 3001
+      domain: "localhost",
+    },
+  })
+);
 
 // Middlewares Esenciales
 app.use((req, res, next) => {
@@ -34,8 +48,8 @@ app.use(
   cors({
     origin: ["http://localhost:3001", "http://127.0.0.1:3001"],
     methods: ["GET", "POST", "PUT", "DELETE"],
-    // Agregar otros métodos HTTP si es necesario
     allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
   })
 );
 // para establecer la carpeta de vistas

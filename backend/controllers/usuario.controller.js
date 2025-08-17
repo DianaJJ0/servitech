@@ -66,15 +66,17 @@ const iniciarSesion = async (req, res) => {
       });
     }
     if (await usuario.matchPassword(password)) {
-      res.json({
-        mensaje: "Inicio de sesión exitoso.",
-        token: generarToken(usuario._id),
-        usuario: {
-          _id: usuario._id,
-          nombre: usuario.nombre,
-          apellido: usuario.apellido,
-          email: usuario.email,
-        },
+      // Guardar usuario en la sesión
+      req.session.user = {
+        _id: usuario._id,
+        nombre: usuario.nombre,
+        apellido: usuario.apellido,
+        email: usuario.email,
+      };
+      // Renderizar la vista registroExperto.ejs directamente tras login
+      return res.render("registroExperto", {
+        user: req.session.user,
+        email: req.session.user.email,
       });
     } else {
       return res.status(401).json({

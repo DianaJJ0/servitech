@@ -5,10 +5,25 @@
 const express = require("express");
 const path = require("path");
 const { createProxyMiddleware } = require("http-proxy-middleware");
+const session = require("express-session");
 
 // --- Inicialización de la Aplicación ---
 const app = express();
 const PORT = 3001; // Puerto dedicado para el frontend.
+
+// Middleware de sesión (igual que en backend)
+app.use(
+  session({
+    secret: "servitech-secret", // Usa la misma clave que en backend
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: false, // true solo si usas HTTPS
+      sameSite: "lax", // Permite compartir entre localhost:3000 y 3001
+      domain: "localhost",
+    },
+  })
+);
 
 app.use((req, res, next) => {
   console.log(`[FRONTEND] Petición recibida: ${req.method} ${req.url}`);
@@ -51,7 +66,12 @@ app.get("/registro.html", (req, res) => {
 });
 
 app.get("/registroExperto.html", (req, res) => {
-  res.render("registroExperto", { user: null });
+  // Si tienes autenticación, reemplaza 'null' por el usuario real
+  // Simulación de usuario autenticado para pruebas
+  // Usar usuario autenticado desde la sesión
+  const user = req.session && req.session.user ? req.session.user : null;
+  const email = user && user.email ? user.email : "";
+  res.render("registroExperto", { user, email });
 });
 
 app.get("/expertos.html", (req, res) => {

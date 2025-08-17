@@ -48,7 +48,7 @@
                   <div class="form-group compact email-group">
                     <label for="email">Email registrado</label>
                     <div class="email-field">
-                      <%= typeof email !=='undefined' ? email : '' %>
+                      <%= email ? email : '' %>
                     </div>
                     <p class="form-hint">Email de tu cuenta</p>
                   </div>
@@ -90,34 +90,33 @@
                     placeholder="Tu experiencia y enfoque profesional"></textarea>
                 </div>
 
-                <!-- Segunda fila horizontal -->
-                <div class="form-row triple">
-                  <!-- Categorías -->
-                  <div class="form-group compact">
-                    <label for="categorias">Categorías</label>
-                    <select id="categorias" name="categorias" multiple class="select-multiple">
-                      <option value="">Selecciona categorías</option>
-                      <!-- Opciones dinámicas -->
-                    </select>
-                    <p class="form-hint">Selecciona categorías tecnológicas</p>
-                  </div>
+                <!-- Segunda fila horizontal: Categorías y Especialidad en un bloque -->
+                <div class="form-row double">
+                  <!-- Bloque de Categorías y Especialidad -->
+                  <div class="form-group compact full-width">
+                  <label for="categorias">Categorías</label>
+                  <select id="categorias" name="categorias" multiple class="select-multiple">
+                    <option value="">Selecciona categorías</option>
+                    <!-- Opciones dinámicas -->
+                  </select>
+                  <p class="form-hint">Selecciona categorías tecnológicas</p>
 
-                  <!-- Especialidad -->
-                  <div class="form-group compact">
-                    <label for="especialidad">Especialidad</label>
-                    <select id="especialidad" name="especialidad" required>
-                      <option value="">Selecciona especialidad</option>
-                      <!-- Opciones dinámicas -->
-                    </select>
+                  <label for="especialidad" style="margin-top: 1em;">Especialidad</label>
+                  <select id="especialidad" name="especialidad" required>
+                    <option value="">Selecciona especialidad</option>
+                    <!-- Opciones dinámicas -->
+                  </select>
                   </div>
+                </div>
 
-                  <!-- Habilidades -->
-                  <div class="form-group compact">
-                    <label for="skills">Habilidades</label>
-                    <select id="skills" name="skills" multiple class="select-multiple">
-                      <!-- Opciones dinámicas -->
-                    </select>
-                    <p class="form-hint">Selecciona habilidades tecnológicas</p>
+                <!-- Habilidades en una fila horizontal debajo -->
+                <div class="form-row single">
+                  <div class="form-group compact full-width">
+                  <label for="skills">Habilidades</label>
+                  <select id="skills" name="skills" multiple class="select-multiple">
+                    <!-- Opciones dinámicas -->
+                  </select>
+                  <p class="form-hint">Selecciona habilidades tecnológicas</p>
                   </div>
                 </div>
 

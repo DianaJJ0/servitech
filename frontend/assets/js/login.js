@@ -31,19 +31,16 @@ document.addEventListener("DOMContentLoaded", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(datosLogin),
+        credentials: "include",
       });
-      const result = await response.json();
-      if (!response.ok)
-        throw new Error(result.mensaje || "Credenciales incorrectas.");
-      localStorage.setItem("token", result.token);
-      if (result.usuario)
-        localStorage.setItem("currentUser", JSON.stringify(result.usuario));
-      formError.textContent = "Inicio de sesión exitoso. Redirigiendo...";
-      formError.style.display = "block";
-      formError.style.color = "#28a745";
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 1500);
+      if (!response.ok) {
+        formError.textContent = "Credenciales incorrectas.";
+        formError.style.display = "block";
+        formError.style.color = "#dc3545";
+        return;
+      }
+      // El backend renderiza la vista directamente, así que solo redirigimos
+      window.location.href = "/registroExperto.html";
     } catch (error) {
       formError.textContent = error.message;
       formError.style.color = "#dc3545";
