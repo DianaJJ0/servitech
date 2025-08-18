@@ -4,32 +4,46 @@ const express = require("express");
 const router = express.Router();
 
 // Define una ruta GET para "/editar-perfil-experto"
-router.get("/editar-perfil-experto", (req, res) => {
-  // Obtiene el usuario de la sesión actual. Si no existe, crea un objeto usuario con valores por defecto.
-  // Se recomienda unificar el uso de la variable de sesión usando siempre req.session.user
-  const usuario = req.session?.user || {
-    email: "", // Correo electrónico del usuario
-    nombre: "", // Nombre del usuario
-    experto: { // Información específica si el usuario es experto
-      descripcion: "", // Descripción del experto
-      especialidad: "", // Especialidad del experto
-      precio: "", // Precio por servicio del experto
-      skills: [], // Lista de habilidades del experto
-      horario: { // Horario de disponibilidad del experto
-        dias_disponibles: [], // Días en los que está disponible
-        hora_inicio: "", // Hora de inicio de disponibilidad
-        hora_fin: "", // Hora de fin de disponibilidad
-      },
-      datosBancarios: { // Información bancaria del experto
-        banco: "", // Nombre del banco
-        tipoCuenta: "", // Tipo de cuenta bancaria
-        numeroCuenta: "", // Número de cuenta bancaria
-        titular: "", // Titular de la cuenta
-      },
-    },
-  };
-  // Renderiza la vista "editarExpertos" y le pasa el objeto usuario para mostrar los datos en el formulario
-  res.render("editarExpertos", { usuario });
+// Modelos necesarios
+const Categoria = require("../models/categoria.model.js");
+const Especialidad = require("../models/especialidad.model.js");
+const Habilidad = require("../models/habilidad.model.js");
+const Usuario = require("../models/usuario.model.js");
+
+router.get("/editar-perfil-experto", async (req, res) => {
+  try {
+    // Obtén el usuario actual (ajusta según tu lógica de sesión)
+    let usuario = req.session?.user;
+    let experto = {};
+    if (usuario && usuario._id) {
+      const usuarioDB = await Usuario.findById(usuario._id).populate(
+        "experto.categorias"
+      );
+      experto = usuarioDB?.experto || {};
+    }
+    // Consulta todas las categorías, especialidades y habilidades
+    const categorias = await Categoria.find({});
+    const especialidades = await Especialidad.find({});
+    const habilidades = await Habilidad.find({});
+    // Envía los datos con los nombres esperados por la vista
+    res.render("editarExpertos", {
+      experto,
+      categorias,
+      especialidades,
+      habilidades,
+      error: undefined,
+      success: undefined,
+    });
+  } catch (err) {
+    res.render("editarExpertos", {
+      experto: {},
+      categorias: [],
+      especialidades: [],
+      habilidades: [],
+      error: "Error al cargar los datos",
+      success: undefined,
+    });
+  }
 });
 
 // Exporta el enrutador para que pueda ser utilizado en otros archivos del proyecto

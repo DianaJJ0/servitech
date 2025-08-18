@@ -1,79 +1,192 @@
-/* Estilos base - Manteniendo las variables existentes */
+:root {
+  --primary-color: #3a8eff;
+  --primary-hover: #2a7af0;
+  --accent-color: #12d8fa;
+  --text-color: #fff;
+  --text-secondary: #d0d0d0;
+  --text-light: #a0a0a0;
+  --background: #0f0f0f;
+  --card-bg: #1a1a1a;
+  --input-bg: #2a2a2a;
+  --border-color: #3a3a3a;
+  --border-light: #ffffff14;
+  --focus-shadow: 0 0 0 0.1875rem #3a8eff33;
+  --card-shadow: 0 1.25rem 2.5rem #0000004d;
+  --hover-shadow: 0 0.625rem 1.5625rem #0000004d;
+  --btn-shadow: 0 0.3125rem 0.9375rem #2a7af04d;
+  --border-radius: 0.75rem;
+  --btn-radius: 0.5rem;
+  --input-radius: 0.5rem;
+  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  --header-height: 4.5rem;
+  --content-max-width: 100rem;
+}
+
+/* Reset y estilos base */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Inter", sans-serif;
+  background-color: var(--background);
+  color: var(--text-color);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  font-size: 15px;
+}
+
+/* Estructura principal */
 .registro-experto-main {
+  width: 100%;
   max-width: var(--content-max-width);
-  margin: 2rem auto;
-  padding: 0 1rem;
+  margin: 0 auto;
+  padding: 1rem;
 }
 
 .registro-experto-section {
   background-color: var(--card-bg);
   border-radius: var(--border-radius);
-  padding: 2rem;
+  padding: 1.25rem;
   box-shadow: var(--card-shadow);
   border: 1px solid var(--border-color);
+  margin-bottom: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.registro-experto-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    var(--primary-color),
+    var(--accent-color)
+  );
+  z-index: 0;
 }
 
 /* Header del formulario */
 .registro-header {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+  z-index: 1;
 }
 
 .logo-img {
-  max-width: 180px;
+  max-width: 120px;
   height: auto;
-  margin: 0 auto 1.5rem;
+  margin: 0 auto 0.75rem;
   display: block;
   filter: brightness(0) invert(1);
   opacity: 0.9;
-  transition: var(--transition);
-}
-
-.logo-img:hover {
-  opacity: 1;
-  transform: scale(1.02);
 }
 
 .registro-header h1 {
   color: var(--primary-color);
-  font-size: 1.8rem;
+  font-size: 1.4rem;
   margin-bottom: 0.5rem;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .subtitle {
   color: var(--text-secondary);
-  font-size: 1rem;
-  margin-bottom: 1.5rem;
-  display: block;
+  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
+  display: inline-block;
+  padding: 0.4rem 0.8rem;
+  background: rgba(58, 142, 255, 0.05);
+  border-radius: 1rem;
+  border: 1px solid var(--border-light);
+}
+
+.registro-fecha {
+  color: var(--text-light);
+  font-size: 0.75rem;
+  margin-bottom: 1rem;
+  display: inline-block;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  text-decoration: none;
+  padding: 0.5rem 0.8rem;
+  border-radius: var(--btn-radius);
+  transition: var(--transition);
+  margin-top: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-light);
+}
+
+/* Alertas */
+.alert {
+  padding: 0.8rem;
+  border-radius: var(--input-radius);
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+  position: relative;
+  overflow: hidden;
+  border-left: 4px solid transparent;
 }
 
 /* Formulario principal */
 .registro-experto-form {
-  max-width: 800px;
-  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  position: relative;
+  z-index: 1;
+  width: 100%;
 }
 
-/* Grupos de formulario */
+/* Filas del formulario */
 .form-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: rgba(58, 142, 255, 0.05);
+  border-radius: var(--border-radius);
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--border-light);
 }
 
+/* Grupos de campos */
 .form-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
+  position: relative;
+  width: 100%;
 }
 
 .form-group.compact {
-  margin-bottom: 1rem;
+  padding: 0.9rem;
+  background: var(--card-bg);
+  border-radius: calc(var(--border-radius) - 0.2rem);
+  border: 1px solid transparent;
+}
+
+.form-group.full-width {
+  padding: 1rem;
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-light);
 }
 
 .form-group label {
   display: block;
   color: var(--text-secondary);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   margin-bottom: 0.5rem;
   font-weight: 500;
 }
@@ -82,7 +195,7 @@
   color: var(--text-light);
   font-size: 0.75rem;
   margin-top: 0.25rem;
-  line-height: 1.4;
+  line-height: 1.3;
 }
 
 /* Campos de entrada */
@@ -91,73 +204,121 @@ input[type="email"],
 input[type="password"],
 input[type="number"],
 input[type="tel"],
-input[type="time"],
-textarea,
-select {
+select,
+textarea {
   width: 100%;
-  padding: 0.85rem 1rem;
+  padding: 0.75rem;
   background-color: var(--input-bg);
   border: 1px solid var(--border-color);
   border-radius: var(--input-radius);
   color: var(--text-color);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   transition: var(--transition);
+  min-height: 44px;
 }
 
 select {
   appearance: none;
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23a0a0a0'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
   background-repeat: no-repeat;
-  background-position: right 1rem center;
+  background-position: right 0.75rem center;
   background-size: 1rem;
-  padding-right: 2.5rem;
+  padding-right: 2rem;
 }
 
+/* Textarea */
 textarea {
-  min-height: 120px;
   resize: vertical;
+  min-height: 100px;
+  line-height: 1.5;
 }
 
-input:focus,
-textarea:focus,
-select:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: var(--focus-shadow);
+/* Selectores múltiples */
+.select-multiple {
+  min-height: 100px;
+  padding: 0.5rem !important;
+  overflow-y: auto;
+}
+
+.select-multiple option {
+  padding: 0.5rem;
+  margin: 0.1rem 0;
+  white-space: normal;
+  word-break: break-word;
 }
 
 /* Input de precio */
+.price-group {
+  position: relative;
+}
+
 .price-input {
   position: relative;
+  display: flex;
+  align-items: center;
 }
 
 .price-input .currency {
   position: absolute;
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-light);
-  font-size: 0.95rem;
+  left: 0.75rem;
+  color: var(--primary-color);
+  font-weight: 700;
+  pointer-events: none;
 }
 
 .price-input input {
-  padding-left: 2.5rem;
+  padding-left: 1.75rem;
 }
 
-/* Secciones */
+/* Días disponibles */
+.days-selector {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.day-option {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--input-bg);
+  border-radius: 50%;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.8rem;
+  border: 1px solid transparent;
+}
+
+.day-option.selected {
+  background: var(--primary-color);
+  color: white;
+}
+
+/* Sección de datos bancarios */
 .form-section {
-  margin-top: 2.5rem;
-  padding-top: 2rem;
-  border-top: 1px solid var(--border-light);
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: rgba(18, 216, 250, 0.03);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-light);
 }
 
 .section-title {
   color: var(--accent-color);
-  font-size: 1.2rem;
-  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
+}
+
+.section-subtitle {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  margin-bottom: 1rem;
 }
 
 /* Contenedor de número de cuenta */
@@ -165,137 +326,179 @@ select:focus {
   position: relative;
 }
 
-.input-cuenta {
-  padding-right: 2.5rem;
-}
-
 .btn-toggle-cuenta {
   position: absolute;
-  right: 0.75rem;
+  right: 0.5rem;
   top: 50%;
   transform: translateY(-50%);
   background: transparent;
   border: none;
   color: var(--text-light);
   cursor: pointer;
-  padding: 0.25rem;
-  transition: var(--transition);
 }
 
-.btn-toggle-cuenta:hover {
-  color: var(--primary-color);
+/* Tarjeta de información */
+.info-card {
+  border-left: 3px solid var(--accent-color);
+  background: rgba(18, 216, 250, 0.05);
+  padding: 0.8rem;
+  border-radius: var(--input-radius);
+  margin-top: 1rem;
 }
 
-/* Botones de acción */
-.form-actions {
-  display: flex;
-  gap: 1rem;
-  margin-top: 2.5rem;
-  flex-wrap: wrap;
+.info-list li {
+  position: relative;
+  padding-left: 1.25rem;
+  margin-bottom: 0.3rem;
+  font-size: 0.8rem;
 }
 
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  padding: 0.9rem 1.5rem;
-  border-radius: var(--btn-radius);
-  font-weight: 500;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: var(--transition);
-  text-decoration: none;
-  border: none;
-  flex: 1;
-  min-width: 180px;
+/* Botón de envío */
+.form-footer {
+  margin-top: 1.5rem;
+  text-align: center;
 }
 
 .btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.9rem 1.5rem;
   background-color: var(--primary-color);
   color: var(--text-color);
-  box-shadow: var(--btn-shadow);
+  border-radius: var(--btn-radius);
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  width: 100%;
+  max-width: 300px;
 }
 
-.btn-primary:hover {
-  background-color: var(--primary-hover);
-  transform: translateY(-2px);
-  box-shadow: var(--hover-shadow);
-}
+/* Media Queries para tablets */
+@media (min-width: 768px) {
+  body {
+    font-size: 16px;
+  }
 
-.btn-secondary {
-  background-color: var(--input-bg);
-  color: var(--text-color);
-  border: 1px solid var(--border-color);
-}
-
-.btn-secondary:hover {
-  background-color: var(--background);
-  border-color: var(--text-light);
-}
-
-/* Alertas */
-.alert {
-  padding: 1rem;
-  border-radius: var(--input-radius);
-  margin-bottom: 1.5rem;
-  font-size: 0.95rem;
-}
-
-.alert-danger {
-  background-color: rgba(255, 59, 48, 0.15);
-  color: #ff3b30;
-  border-left: 4px solid #ff3b30;
-}
-
-.alert-success {
-  background-color: rgba(52, 199, 89, 0.15);
-  color: #34c759;
-  border-left: 4px solid #34c759;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .registro-experto-section {
+  .registro-experto-main {
     padding: 1.5rem;
   }
 
-  .form-row {
-    grid-template-columns: 1fr;
-    gap: 1rem;
+  .registro-experto-section {
+    padding: 1.75rem;
   }
 
   .registro-header h1 {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
   }
 
-  .form-actions {
-    flex-direction: column;
+  .form-row {
+    flex-direction: row;
+    gap: 1.5rem;
   }
 
-  .btn {
-    width: 100%;
+  .form-row.double {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .form-row.triple {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .form-group.compact {
+    padding: 1rem;
+  }
+
+  textarea {
+    min-height: 120px;
   }
 }
 
-@media (max-width: 480px) {
+/* Media Queries para desktop */
+@media (min-width: 992px) {
   .registro-experto-section {
-    padding: 1.25rem;
+    padding: 2rem;
   }
 
-  input[type="text"],
-  input[type="email"],
-  input[type="password"],
-  input[type="number"],
-  input[type="tel"],
-  input[type="time"],
-  textarea,
-  select {
-    padding: 0.75rem;
-    font-size: 0.9rem;
+  .registro-header h1 {
+    font-size: 1.8rem;
   }
 
-  .logo-img {
-    max-width: 150px;
+  .form-row {
+    padding: 1.5rem;
   }
+
+  .btn-primary {
+    max-width: none;
+    padding: 1rem 2rem;
+  }
+}
+
+/* Correcciones específicas */
+/* 1. Evitar desbordamiento en selects */
+.select-multiple {
+  max-width: 100%;
+}
+
+/* 2. Ajuste para tooltips */
+.price-tooltip:hover::after {
+  content: "Precio sugerido: $15 - $150 USD";
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  padding: 0.5rem;
+  border-radius: var(--input-radius);
+  font-size: 0.8rem;
+  width: 180px;
+  z-index: 10;
+}
+
+/* 3. Mejor espaciado en móviles */
+@media (max-width: 767px) {
+  .form-group {
+    margin-bottom: 0.75rem;
+  }
+
+  .form-row {
+    margin-bottom: 0.75rem;
+  }
+}
+
+/* 4. Ajuste para campos bancarios en móviles */
+@media (max-width: 767px) {
+  .form-section .form-row.double {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+/* 5. Corrección para días seleccionados */
+.days-selected-display {
+  font-size: 0.75rem;
+  word-break: break-word;
+  margin-top: 0.5rem;
+}
+
+
+/* Header principal limpio */
+.registro-header-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.registro-header-content .logo-img {
+  max-width: 120px;
+}
+
+.registro-header-title {
+  margin: 0.3em 0 0.1em 0;
+}
+
+.registro-header-subtitle {
+  margin: 0;
 }

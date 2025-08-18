@@ -121,6 +121,43 @@ app.get("/recuperarPassword.html", (req, res) => {
   res.render("recuperarPassword", { user: null });
 });
 
+// Modelos backend
+const Categoria = require("../backend/models/categoria.model");
+const Especialidad = require("../backend/models/especialidad.model");
+const Habilidad = require("../backend/models/habilidad.model");
+
+// Ruta para editar perfil de experto
+app.get("/editar-perfil-experto", async (req, res) => {
+  try {
+    // Obtener usuario experto desde la base de datos (por email en sesión)
+    const Usuario = require("../backend/models/usuario.model");
+    let experto = null;
+    if (req.session && req.session.user && req.session.user.email) {
+      experto = await Usuario.findOne({ email: req.session.user.email }).lean();
+    }
+    const categorias = await Categoria.find().lean();
+    const especialidades = await Especialidad.find().lean();
+    const habilidades = await Habilidad.find().lean();
+    res.render("editarExpertos", {
+      experto,
+      categorias,
+      especialidades,
+      habilidades,
+      error: null,
+      success: null,
+    });
+  } catch (err) {
+    res.render("editarExpertos", {
+      experto: null,
+      categorias: [],
+      especialidades: [],
+      habilidades: [],
+      error: "Error al cargar datos",
+      success: null,
+    });
+  }
+});
+
 // --- Arranque y Escucha del Servidor ---
 app.listen(PORT, () => {
   console.log(
