@@ -1,4 +1,3 @@
-
 :root {
   --primary-color: #3a8eff;
   --primary-hover: #2a7af0;
@@ -22,7 +21,6 @@
   --header-height: 4.5rem;
   --content-max-width: 100rem;
 }
-
 
 /* Reset y estilos base */
 * {
