@@ -1,7 +1,10 @@
-// Importa el módulo Express, que facilita la creación de servidores y rutas en Node.js
 const express = require("express");
-// Crea un nuevo enrutador de Express para definir rutas específicas de este módulo
 const router = express.Router();
+
+// Controlador de edición de perfil
+const {
+  actualizarPerfilExperto,
+} = require("../controllers/experto.controller.js");
 
 // Define una ruta GET para "/editar-perfil-experto"
 // Modelos necesarios
@@ -16,10 +19,8 @@ router.get("/editar-perfil-experto", async (req, res) => {
     let usuario = req.session?.user;
     let experto = {};
     if (usuario && usuario._id) {
-      const usuarioDB = await Usuario.findById(usuario._id).populate(
-        "experto.categorias"
-      );
-      experto = usuarioDB?.experto || {};
+      const usuarioDB = await Usuario.findById(usuario._id);
+      experto = usuarioDB?.infoExperto || {};
     }
     // Consulta todas las categorías, especialidades y habilidades
     const categorias = await Categoria.find({});

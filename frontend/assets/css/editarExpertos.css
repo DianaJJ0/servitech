@@ -1,3 +1,4 @@
+
 :root {
   --primary-color: #3a8eff;
   --primary-hover: #2a7af0;
@@ -21,6 +22,7 @@
   --header-height: 4.5rem;
   --content-max-width: 100rem;
 }
+
 
 /* Reset y estilos base */
 * {
@@ -78,6 +80,11 @@ body {
   margin-bottom: 1.5rem;
   position: relative;
   z-index: 1;
+}
+
+.day-option {
+  pointer-events: auto !important;
+  z-index: 10 !important;
 }
 
 .logo-img {
@@ -481,7 +488,6 @@ textarea {
   word-break: break-word;
   margin-top: 0.5rem;
 }
-
 
 /* Header principal limpio */
 .registro-header-content {

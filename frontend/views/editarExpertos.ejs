@@ -6,13 +6,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Editar Perfil | Servitech</title>
   <link rel="stylesheet" href="/assets/css/auth.css" />
-  <link rel="stylesheet" href="/assets/css/registroExperto.css" />
+  <link rel="stylesheet" href="/assets/css/editarExpertos.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <script src="/assets/js/editarExperto.js"></script>
 </head>
 
 <body>
+
 
   <main class="registro-experto-main">
     <section class="registro-experto-section">
@@ -44,7 +44,7 @@
                 </div>
               </div>
 
-              <form id="editarExpertoForm" class="registro-experto-form">
+              <form id="editarExpertoForm" class="registro-experto-form" method="POST" action="/editar-perfil-experto">
                 <!-- Primera fila horizontal -->
                 <div class="form-row triple">
                   <!-- Email -->
@@ -75,33 +75,32 @@
                     <label>Días disponibles</label>
                     <div class="days-selector">
                       <div
-                        class="day-option <%= (experto && experto.diasDisponibles && experto.diasDisponibles.includes('Lunes')) ? 'selected' : '' %>"
+                        class="day-option <%= (experto && experto.horario && experto.horario.includes('Lunes')) ? 'selected' : '' %>"
                         data-day="Lunes">L</div>
                       <div
-                        class="day-option <%= (experto && experto.infoExperto && experto.infoExperto.horario && experto.infoExperto.horario.includes('Martes')) ? 'selected' : '' %>"
+                        class="day-option <%= (experto && experto.horario && experto.horario.includes('Martes')) ? 'selected' : '' %>"
                         data-day="Martes">M</div>
                       <div
-                        class="day-option <%= (experto && experto.infoExperto && experto.infoExperto.horario && experto.infoExperto.horario.includes('Miércoles')) ? 'selected' : '' %>"
+                        class="day-option <%= (experto && experto.horario && experto.horario.includes('Miércoles')) ? 'selected' : '' %>"
                         data-day="Miércoles">X</div>
                       <div
-                        class="day-option <%= (experto && experto.infoExperto && experto.infoExperto.horario && experto.infoExperto.horario.includes('Jueves')) ? 'selected' : '' %>"
+                        class="day-option <%= (experto && experto.horario && experto.horario.includes('Jueves')) ? 'selected' : '' %>"
                         data-day="Jueves">J</div>
                       <div
-                        class="day-option <%= (experto && experto.infoExperto && experto.infoExperto.horario && experto.infoExperto.horario.includes('Viernes')) ? 'selected' : '' %>"
+                        class="day-option <%= (experto && experto.horario && experto.horario.includes('Viernes')) ? 'selected' : '' %>"
                         data-day="Viernes">V</div>
                       <div
-                        class="day-option <%= (experto && experto.infoExperto && experto.infoExperto.horario && experto.infoExperto.horario.includes('Sábado')) ? 'selected' : '' %>"
+                        class="day-option <%= (experto && experto.horario && experto.horario.includes('Sábado')) ? 'selected' : '' %>"
                         data-day="Sábado">S</div>
                       <div
-                        class="day-option <%= (experto && experto.infoExperto && experto.infoExperto.horario && experto.infoExperto.horario.includes('Domingo')) ? 'selected' : '' %>"
+                        class="day-option <%= (experto && experto.horario && experto.horario.includes('Domingo')) ? 'selected' : '' %>"
                         data-day="Domingo">D</div>
                     </div>
                     <div class="days-selected-display">
-                      <%- experto && experto.infoExperto && experto.infoExperto.horario ?
-                        experto.infoExperto.horario.join(', ') : ' Ningún día seleccionado' %>
+                      <%- experto && experto.horario ? experto.horario.join(', ') : ' Ningún día seleccionado' %>
                     </div>
                     <input type="hidden" id="diasDisponibles" name="diasDisponibles"
-                      value="<%- experto && experto.infoExperto && experto.infoExperto.horario ? experto.infoExperto.horario.join(',') : '' %>">
+                      value="<%- experto && experto.horario ? experto.horario.join(',') : '' %>">
                   </div>
                 </div>
 
@@ -277,7 +276,7 @@
 
                 <!-- Botones de acción -->
                 <div class="form-footer">
-                  <button type="button" id="guardarCambios" class="btn btn-primary">
+                  <button type="submit" id="guardarCambios" class="btn btn-primary">
                     <span>Guardar cambios</span>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2"
