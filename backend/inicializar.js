@@ -18,29 +18,178 @@ const Categoria = require("./models/categoria.model.js");
 
 // Define un arreglo con las categorías predeterminadas, cada una con especialidades y habilidades anidadas
 const categoriasPredeterminadas = [
-  // Cada objeto representa una categoría principal
   {
-    nombre: "Transformación Digital", // Nombre de la categoría
-    descripcion: "Procesos de cambio y digitalización empresarial.", // Descripción de la categoría
+    nombre: "Desarrollo de Software",
+    descripcion: "Programación, desarrollo web y aplicaciones.",
     especialidades: [
-      // Lista de especialidades dentro de la categoría
       {
-        nombre: "Diagnóstico de madurez digital", // Nombre de la especialidad
+        nombre: "Frontend",
         habilidades: [
-          // Habilidades asociadas a la especialidad
-          { nombre: "Liderazgo de cambio" },
-          { nombre: "Gestión de proyectos de transformación" },
-          { nombre: "Comunicación efectiva" },
-          { nombre: "Análisis de procesos" },
-          { nombre: "Evaluación de tecnologías emergentes" },
-          { nombre: "Capacidad de adaptación" },
-          { nombre: "Negociación estratégica" },
+          { nombre: "HTML" },
+          { nombre: "CSS" },
+          { nombre: "JavaScript" },
+          { nombre: "React" },
+          { nombre: "Angular" },
+          { nombre: "Vue.js" },
         ],
       },
-      // ... (más especialidades y habilidades, estructura repetida)
+      {
+        nombre: "Backend",
+        habilidades: [
+          { nombre: "Node.js" },
+          { nombre: "Express" },
+          { nombre: "Python" },
+          { nombre: "Java" },
+          { nombre: "PHP" },
+          { nombre: "API REST" },
+        ],
+      },
+      {
+        nombre: "Fullstack",
+        habilidades: [
+          { nombre: "Integración frontend-backend" },
+          { nombre: "DevOps básico" },
+        ],
+      },
     ],
   },
-  // ... (más categorías, cada una con su estructura)
+  {
+    nombre: "Bases de Datos",
+    descripcion: "Gestión y diseño de bases de datos.",
+    especialidades: [
+      {
+        nombre: "Relacionales",
+        habilidades: [
+          { nombre: "MySQL" },
+          { nombre: "PostgreSQL" },
+          { nombre: "SQL Server" },
+        ],
+      },
+      {
+        nombre: "NoSQL",
+        habilidades: [
+          { nombre: "MongoDB" },
+          { nombre: "Redis" },
+          { nombre: "Cassandra" },
+        ],
+      },
+    ],
+  },
+  {
+    nombre: "Inteligencia Artificial y Machine Learning",
+    descripcion: "Modelado, entrenamiento y despliegue de modelos IA.",
+    especialidades: [
+      {
+        nombre: "Modelado de datos",
+        habilidades: [
+          { nombre: "Python" },
+          { nombre: "Scikit-learn" },
+          { nombre: "TensorFlow" },
+          { nombre: "PyTorch" },
+        ],
+      },
+      {
+        nombre: "Procesamiento de lenguaje natural",
+        habilidades: [
+          { nombre: "NLP" },
+          { nombre: "spaCy" },
+          { nombre: "transformers" },
+        ],
+      },
+    ],
+  },
+  {
+    nombre: "Ciberseguridad",
+    descripcion: "Seguridad informática y protección de datos.",
+    especialidades: [
+      {
+        nombre: "Seguridad en aplicaciones web",
+        habilidades: [
+          { nombre: "OWASP" },
+          { nombre: "Auditoría" },
+          { nombre: "Pentesting básico" },
+        ],
+      },
+      {
+        nombre: "Seguridad de redes",
+        habilidades: [
+          { nombre: "Firewalls" },
+          { nombre: "VPN" },
+          { nombre: "Protocolos seguros" },
+        ],
+      },
+    ],
+  },
+  {
+    nombre: "Cloud Computing",
+    descripcion: "Servicios y arquitectura en la nube.",
+    especialidades: [
+      {
+        nombre: "AWS",
+        habilidades: [
+          { nombre: "EC2" },
+          { nombre: "S3" },
+          { nombre: "Lambda" },
+          { nombre: "IAM" },
+        ],
+      },
+      {
+        nombre: "Azure",
+        habilidades: [
+          { nombre: "App Services" },
+          { nombre: "Azure SQL" },
+          { nombre: "DevOps" },
+        ],
+      },
+      {
+        nombre: "Google Cloud",
+        habilidades: [
+          { nombre: "Compute Engine" },
+          { nombre: "Cloud Functions" },
+        ],
+      },
+    ],
+  },
+  {
+    nombre: "DevOps y Automatización",
+    descripcion: "Automatización de procesos y despliegue continuo.",
+    especialidades: [
+      {
+        nombre: "CI/CD",
+        habilidades: [
+          { nombre: "Jenkins" },
+          { nombre: "GitHub Actions" },
+          { nombre: "Docker" },
+        ],
+      },
+      {
+        nombre: "Infraestructura como código",
+        habilidades: [{ nombre: "Terraform" }, { nombre: "Ansible" }],
+      },
+    ],
+  },
+  {
+    nombre: "Diseño UX/UI",
+    descripcion: "Diseño de interfaces y experiencia de usuario.",
+    especialidades: [
+      {
+        nombre: "Prototipado",
+        habilidades: [
+          { nombre: "Figma" },
+          { nombre: "Adobe XD" },
+          { nombre: "Wireframes" },
+        ],
+      },
+      {
+        nombre: "Diseño visual",
+        habilidades: [
+          { nombre: "Photoshop" },
+          { nombre: "Illustrator" },
+          { nombre: "Diseño responsivo" },
+        ],
+      },
+    ],
+  },
 ];
 
 // Define un arreglo con usuarios de prueba para poblar la base de datos
@@ -110,20 +259,19 @@ const inicializar = async () => {
           "Más de 10 años creando aplicaciones web robustas y escalables.", // Descripción profesional
         precioPorHora: 75000, // Precio por hora en moneda local
         categorias: [
-          // Asocia categorías por su _id obtenido de las categorías creadas
-          categoriasCreadas.find((c) => c.nombre === "Transformación Digital")
-            ._id,
           categoriasCreadas.find((c) => c.nombre === "Desarrollo de Software")
-            ._id,
-        ],
+            ?._id,
+          categoriasCreadas.find((c) => c.nombre === "Bases de Datos")?._id,
+          categoriasCreadas.find(
+            (c) => c.nombre === "Inteligencia Artificial y Machine Learning"
+          )?._id,
+        ].filter(Boolean),
         skills: [
-          // Lista de habilidades principales del experto
           "Programación en varios lenguajes (Python, Java, etc.)",
           "Gestión de versiones (Git)",
           "Metodologías ágiles",
         ],
         horario: {
-          // Horario de disponibilidad del experto
           diasDisponibles: ["lunes", "miércoles", "viernes"],
           horaInicio: "09:00",
           horaFin: "17:00",
@@ -160,4 +308,3 @@ if (require.main === module) {
 
 // Exporta la función inicializar por si se requiere desde otro archivo (opcional)
 module.exports = { inicializar };
-
