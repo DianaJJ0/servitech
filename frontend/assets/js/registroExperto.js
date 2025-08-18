@@ -79,94 +79,6 @@ document.addEventListener("DOMContentLoaded", async function () {
   let categoriasData = [];
 
   // --- Poblar select de categorías desde /api/categorias ---
-  fetch("/api/categorias")
-    .then((res) => res.json())
-    .then((data) => {
-      categoriasData = data;
-      categoriasSelect.innerHTML =
-        '<option value="">Selecciona una categoría</option>';
-      data.forEach((cat) => {
-        const opt = document.createElement("option");
-        opt.value = cat.nombre;
-        opt.textContent = cat.nombre;
-        categoriasSelect.appendChild(opt);
-      });
-      categoriasSelect.selectedIndex = 0;
-    });
-
-  // Al cambiar categorías, poblar especialidades de todas las seleccionadas
-  categoriasSelect.addEventListener("change", function () {
-    const selectedCats = Array.from(categoriasSelect.selectedOptions).map(
-      (opt) => opt.value
-    );
-    especialidadSelect.innerHTML =
-      '<option value="">Selecciona una especialidad</option>';
-    skillsSelect.innerHTML = "";
-    // Juntar todas las especialidades de las categorías seleccionadas
-    let especialidades = [];
-    selectedCats.forEach((catNombre) => {
-      const cat = categoriasData.find((c) => c.nombre === catNombre);
-      if (cat && Array.isArray(cat.especialidades)) {
-        especialidades = especialidades.concat(cat.especialidades);
-      }
-    });
-    // Eliminar duplicados por nombre
-    const nombresUnicos = new Set();
-    let count = 0;
-    especialidades.forEach((esp) => {
-      if (!nombresUnicos.has(esp.nombre)) {
-        nombresUnicos.add(esp.nombre);
-        const opt = document.createElement("option");
-        opt.value = esp.nombre;
-        opt.textContent = esp.nombre;
-        especialidadSelect.appendChild(opt);
-        count++;
-      }
-    });
-    if (count === 0) {
-      especialidadSelect.innerHTML +=
-        "<option disabled>No hay especialidades disponibles</option>";
-    }
-  });
-
-  // Al cambiar especialidad, poblar habilidades (de todas las categorías seleccionadas)
-  especialidadSelect.addEventListener("change", function () {
-    const selectedCats = Array.from(categoriasSelect.selectedOptions).map(
-      (opt) => opt.value
-    );
-    let habilidadesPorEspecialidad = {};
-    selectedCats.forEach((catNombre) => {
-      const cat = categoriasData.find((c) => c.nombre === catNombre);
-      if (cat && Array.isArray(cat.especialidades)) {
-        cat.especialidades.forEach((esp) => {
-          if (
-            esp.nombre === especialidadSelect.value &&
-            Array.isArray(esp.habilidades)
-          ) {
-            habilidadesPorEspecialidad[esp.nombre] = esp.habilidades;
-          }
-        });
-      }
-    });
-    skillsSelect.innerHTML = "";
-    let totalHabs = 0;
-    Object.keys(habilidadesPorEspecialidad).forEach((espNombre) => {
-      const grupo = habilidadesPorEspecialidad[espNombre];
-      if (grupo.length > 0) {
-        grupo.forEach((hab) => {
-          const opt = document.createElement("option");
-          opt.value = hab.nombre;
-          opt.textContent = hab.nombre;
-          skillsSelect.appendChild(opt);
-          totalHabs++;
-        });
-      }
-    });
-    if (totalHabs === 0) {
-      skillsSelect.innerHTML =
-        "<option disabled>No hay habilidades disponibles</option>";
-    }
-  });
 
   // Permitir agregar nuevas habilidades
   const nuevaSkillInput = document.getElementById("nuevaSkill");
@@ -409,7 +321,6 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
-
 document.querySelectorAll(".day-option").forEach((day) => {
   day.addEventListener("click", function () {
     this.classList.toggle("selected");
@@ -434,36 +345,43 @@ function updateSelectedDays() {
   }
 }
 
-
-document.addEventListener("DOMContentLoaded", function () { // Espera a que el DOM esté listo
+document.addEventListener("DOMContentLoaded", function () {
+  // Espera a que el DOM esté listo
   const dayOptions = document.querySelectorAll(".day-option"); // Selecciona todos los elementos de días
   const clearBtn = document.querySelector(".clear-days"); // Selecciona el botón para limpiar días
   const daysDisplay = document.querySelector(".days-selected-display"); // Elemento para mostrar los días seleccionados
   const hiddenInput = document.getElementById("diasDisponibles"); // Input oculto para almacenar los días seleccionados
 
-  dayOptions.forEach((day) => { // Itera sobre cada opción de día
-    day.addEventListener("click", function () { // Agrega evento click a cada día
+  dayOptions.forEach((day) => {
+    // Itera sobre cada opción de día
+    day.addEventListener("click", function () {
+      // Agrega evento click a cada día
       this.classList.toggle("selected"); // Alterna la clase 'selected' al hacer click
       updateSelection(); // Actualiza la selección de días
     });
   });
 
-  clearBtn.addEventListener("click", function () { // Evento click para limpiar selección
+  clearBtn.addEventListener("click", function () {
+    // Evento click para limpiar selección
     dayOptions.forEach((day) => day.classList.remove("selected")); // Quita la clase 'selected' de todos los días
     updateSelection(); // Actualiza la selección después de limpiar
   });
 
-  function updateSelection() { // Función para actualizar la selección de días
-    const selectedDays = Array.from( // Crea un array con los días seleccionados
+  function updateSelection() {
+    // Función para actualizar la selección de días
+    const selectedDays = Array.from(
+      // Crea un array con los días seleccionados
       document.querySelectorAll(".day-option.selected") // Selecciona los elementos con la clase 'selected'
     ).map((day) => day.getAttribute("data-day")); // Obtiene el atributo 'data-day' de cada día seleccionado
 
     hiddenInput.value = selectedDays.join(","); // Actualiza el input oculto con los días seleccionados separados por coma
 
-    if (selectedDays.length > 0) { // Si hay días seleccionados
+    if (selectedDays.length > 0) {
+      // Si hay días seleccionados
       daysDisplay.textContent = `Seleccionados: ${selectedDays.join(", ")}`; // Muestra los días seleccionados en pantalla
       clearBtn.classList.add("visible"); // Hace visible el botón de limpiar
-    } else { // Si no hay días seleccionados
+    } else {
+      // Si no hay días seleccionados
       daysDisplay.textContent = "Selecciona tus días disponibles"; // Muestra el mensaje por defecto
       clearBtn.classList.remove("visible"); // Oculta el botón de limpiar
     }

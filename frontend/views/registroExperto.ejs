@@ -45,6 +45,7 @@
               </div>
 
               <form id="registroExpertoForm" class="registro-experto-form">
+                <div style="background:#ffe; color:#333; font-size:12px; padding:8px; margin-bottom:8px;"></div>
                 <!-- Primera fila horizontal -->
                 <div class="form-row triple">
                   <!-- Email -->
@@ -100,14 +101,20 @@
                     <label for="categorias">Categorías</label>
                     <select id="categorias" name="categorias" multiple class="select-multiple">
                       <option value="">Selecciona categorías</option>
-                      <!-- Opciones dinámicas -->
+                      <% if (categorias && categorias.length) { categorias.forEach(function(categoria) { %>
+                        <option value="<%= categoria.id || categoria._id %>"><%- categoria.nombre %></option>
+                        <% }); } %>
                     </select>
                     <p class="form-hint">Selecciona categorías tecnológicas</p>
 
                     <label for="especialidad" style="margin-top: 1em;">Especialidad</label>
                     <select id="especialidad" name="especialidad" required>
                       <option value="">Selecciona especialidad</option>
-                      <!-- Opciones dinámicas -->
+                      <% especialidades.forEach(function(especialidad) { %>
+                        <option value="<%= especialidad._id %>">
+                          <%= especialidad.nombre %>
+                        </option>
+                        <% }); %>
                     </select>
                   </div>
                 </div>
@@ -117,7 +124,11 @@
                   <div class="form-group compact full-width">
                     <label for="skills">Habilidades</label>
                     <select id="skills" name="skills" multiple class="select-multiple">
-                      <!-- Opciones dinámicas -->
+                      <% habilidades.forEach(function(habilidad) { %>
+                        <option value="<%= habilidad._id %>">
+                          <%= habilidad.nombre %>
+                        </option>
+                        <% }); %>
                     </select>
                     <p class="form-hint">Selecciona habilidades tecnológicas</p>
                   </div>
