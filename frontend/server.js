@@ -109,6 +109,14 @@ app.get("/calendario.html", (req, res) => {
 });
 
 // --- RUTA QUE DEBES AGREGAR ---
+// Ruta para establecer el usuario en la sesión del frontend tras login
+app.post("/set-session", (req, res) => {
+  if (req.body && req.body.usuario) {
+    req.session.user = req.body.usuario;
+    return res.json({ ok: true });
+  }
+  res.status(400).json({ ok: false, mensaje: "Usuario no recibido" });
+});
 app.get("/recuperarPassword.html", (req, res) => {
   res.render("recuperarPassword", { user: null });
 });

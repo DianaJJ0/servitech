@@ -47,8 +47,14 @@ document.addEventListener("DOMContentLoaded", () => {
       localStorage.setItem("token", result.token);
       localStorage.setItem("usuario", JSON.stringify(result.usuario));
 
-      // Redirige al inicio (puedes cambiar por / o /perfil.html si prefieres)
-      window.location.href = "/";
+      // Establece el usuario en la sesión del frontend y redirige a registroExperto
+      await fetch("/set-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ usuario: result.usuario }),
+        credentials: "include",
+      });
+      window.location.href = "/registroExperto.html";
     } catch (error) {
       formError.textContent = error.message;
       formError.style.color = "#dc3545";

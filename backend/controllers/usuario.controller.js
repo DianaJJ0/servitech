@@ -72,6 +72,17 @@ const iniciarSesion = async (req, res) => {
       // Genera el token JWT
       const token = generarToken(usuario._id);
 
+      // Guarda el usuario en la sesión para el frontend
+      if (req.session) {
+        req.session.user = {
+          _id: usuario._id,
+          nombre: usuario.nombre,
+          apellido: usuario.apellido,
+          email: usuario.email,
+          roles: usuario.roles,
+        };
+      }
+
       // Devuelve token y datos del usuario
       return res.status(200).json({
         mensaje: "Login exitoso.",
