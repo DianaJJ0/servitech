@@ -23,8 +23,15 @@ router.get("/editar-perfil-experto", async (req, res) => {
     }
     // Consulta todas las categorías, especialidades y habilidades
     const categorias = await Categoria.find({});
-    const especialidades = await Especialidad.find({});
-    const habilidades = await Habilidad.find({});
+    // Extraer especialidades y habilidades de todas las categorías
+    const especialidades = categorias.flatMap((cat) =>
+      cat.especialidades.map((e) => ({ nombre: e.nombre }))
+    );
+    const habilidades = categorias.flatMap((cat) =>
+      cat.especialidades.flatMap((e) =>
+        e.habilidades.map((h) => ({ nombre: h.nombre }))
+      )
+    );
     // Envía los datos con los nombres esperados por la vista
     res.render("editarExpertos", {
       experto,
