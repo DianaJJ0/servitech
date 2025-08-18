@@ -54,7 +54,10 @@ document.addEventListener("DOMContentLoaded", () => {
         body: JSON.stringify({ usuario: result.usuario }),
         credentials: "include",
       });
-      window.location.href = "/registroExperto.html";
+      // Redirección inteligente según parámetro next
+      const nextInput = document.getElementById("next");
+      const nextUrl = nextInput && nextInput.value ? nextInput.value : "/";
+      window.location.href = nextUrl;
     } catch (error) {
       formError.textContent = error.message;
       formError.style.color = "#dc3545";

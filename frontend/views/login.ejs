@@ -30,6 +30,8 @@
                                 <input type="email" id="email" name="email" placeholder="ejemplo@correo.com" required>
                             </div>
                         </div>
+                        <input type="hidden" id="next" name="next"
+                            value="<%= typeof next !== 'undefined' ? next : '/' %>">
                         <div class="input-group">
                             <label for="password">Contraseña</label>
                             <div class="input-wrapper">

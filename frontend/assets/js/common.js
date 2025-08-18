@@ -79,7 +79,9 @@ function setupMobileMenu() {
   });
 
   // Cerrar menú al hacer clic en enlaces
-  const allNavLinks = navContainer.querySelectorAll(".nav-item, .dropdown-item");
+  const allNavLinks = navContainer.querySelectorAll(
+    ".nav-item, .dropdown-item"
+  );
   allNavLinks.forEach((link) => {
     if (link.id !== "logoutBtn") {
       link.addEventListener("click", () => {
@@ -224,13 +226,17 @@ function mostrarInfoUsuario() {
   const userAvatar = document.getElementById("userAvatar");
 
   if (userDisplayName) {
-    const nombreCompleto = `${usuario.nombre || ""} ${usuario.apellido || ""}`.trim();
+    const nombreCompleto = `${usuario.nombre || ""} ${
+      usuario.apellido || ""
+    }`.trim();
     userDisplayName.textContent = nombreCompleto || usuario.email || "Usuario";
   }
 
   if (userAvatar) {
     if (usuario.avatarUrl) {
-      userAvatar.innerHTML = `<img src="${usuario.avatarUrl}" alt="Avatar de ${usuario.nombre || "Usuario"}" class="avatar-img">`;
+      userAvatar.innerHTML = `<img src="${usuario.avatarUrl}" alt="Avatar de ${
+        usuario.nombre || "Usuario"
+      }" class="avatar-img">`;
     } else {
       const nombre = usuario.nombre || usuario.email || "U";
       const apellido = usuario.apellido || "";
@@ -244,7 +250,10 @@ function mostrarInfoUsuario() {
 function logout() {
   localStorage.removeItem("token");
   localStorage.removeItem("usuario");
-  window.location.href = "/";
+  // Llama al backend para destruir la sesión
+  fetch("/logout", { method: "POST", credentials: "include" }).finally(() => {
+    window.location.href = "/";
+  });
 }
 
 // Fetch protegido con token
