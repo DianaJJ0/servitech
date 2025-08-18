@@ -91,7 +91,9 @@ app.get("/registro-experto", (req, res) => {
     // Redirige a login si no está autenticado
     return res.redirect("/login.html?next=/registro-experto");
   }
-  res.render("registroExperto", { user: req.session.user });
+  const email =
+    req.session.user && req.session.user.email ? req.session.user.email : "";
+  res.render("registroExperto", { user: req.session.user, email });
 });
 
 // Modelos backend
@@ -99,17 +101,46 @@ const Categoria = require("../backend/models/categoria.model");
 const Especialidad = require("../backend/models/especialidad.model");
 const Habilidad = require("../backend/models/habilidad.model");
 
+// Caché simple para categorías, especialidades y habilidades
+let cacheCategorias = null;
+let cacheEspecialidades = null;
+let cacheHabilidades = null;
+const cacheTTL = 10 * 60 * 1000; // 10 minutos
+let lastCacheTime = 0;
+
 // Ruta para editar perfil de experto
 app.get("/editar-perfil-experto", async (req, res) => {
   try {
-    const Usuario = require("../backend/models/usuario.model");
-    let experto = null;
-    if (req.session && req.session.user && req.session.user.email) {
-      experto = await Usuario.findOne({ email: req.session.user.email }).lean();
+    if (!req.session?.user?.email) {
+      return res.redirect("/login.html?next=/editar-perfil-experto");
     }
-    const categorias = await Categoria.find().lean();
-    const especialidades = await Especialidad.find().lean();
-    const habilidades = await Habilidad.find().lean();
+    const fetch = (...args) =>
+      import("node-fetch").then(({ default: fetch }) => fetch(...args));
+    // Obtener experto (usuario actual)
+    let experto = null;
+    if (req.session.user && req.session.user.token) {
+      const perfilRes = await fetch(
+        `http://localhost:3000/api/usuarios/perfil`,
+        {
+          headers: {
+            Authorization: `Bearer ${req.session.user.token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if (perfilRes.ok) {
+        experto = await perfilRes.json();
+      }
+    }
+    // Obtener categorías
+    const catRes = await fetch("http://localhost:3000/api/categorias");
+    const categorias = catRes.ok ? await catRes.json() : [];
+    // Obtener especialidades
+    const espRes = await fetch("http://localhost:3000/api/especialidades");
+    const especialidades = espRes.ok ? await espRes.json() : [];
+    // Obtener habilidades
+    const habRes = await fetch("http://localhost:3000/api/habilidades");
+    const habilidades = habRes.ok ? await habRes.json() : [];
     res.render("editarExpertos", {
       experto,
       categorias,
@@ -119,12 +150,13 @@ app.get("/editar-perfil-experto", async (req, res) => {
       success: null,
     });
   } catch (err) {
+    console.error("[ERROR editar-perfil-experto]", err);
     res.render("editarExpertos", {
       experto: null,
       categorias: [],
       especialidades: [],
       habilidades: [],
-      error: "Error al cargar datos",
+      error: `Error al cargar datos: ${err.message}`,
       success: null,
     });
   }

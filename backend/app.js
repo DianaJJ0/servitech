@@ -59,7 +59,7 @@ app.use(express.json());
 
 // Enrutamiento Principal de la API
 app.use("/api/usuarios", usuarioRoutes);
-app.use("/categorias", categoriaRoutes);
+app.use("/api/categorias", categoriaRoutes);
 app.use("/api/pagos", pagoRoutes);
 app.use("/api/notificaciones", notificacionRoutes);
 app.use("/api/logs", logRoutes);
