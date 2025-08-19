@@ -199,6 +199,23 @@ const resetearPassword = async (req, res) => {
   }
 };
 
+// Actualiza el perfil del usuario autenticado
+const actualizarPerfilUsuario = async (req, res) => {
+  try {
+    const usuario = await Usuario.findByIdAndUpdate(req.usuario.id, req.body, {
+      new: true,
+      runValidators: true,
+    }).select("-passwordHash");
+    if (!usuario) {
+      return res.status(404).json({ mensaje: "Usuario no encontrado." });
+    }
+    res.json(usuario);
+  } catch (error) {
+    console.error("Error al actualizar perfil:", error);
+    res.status(500).json({ mensaje: "Error interno del servidor." });
+  }
+};
+
 // Exportamos todas las funciones del controlador
 module.exports = {
   registrarUsuario,
@@ -207,4 +224,5 @@ module.exports = {
   obtenerUsuarios,
   solicitarRecuperacionPassword,
   resetearPassword,
+  actualizarPerfilUsuario,
 };

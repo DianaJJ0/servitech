@@ -1,39 +1,92 @@
+const express = require("express");
+const session = require("express-session");
+const { createProxyMiddleware } = require("http-proxy-middleware");
+const path = require("path");
+const app = express();
+const PORT = process.env.PORT || 3001;
+
+// Configuración básica de middlewares
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(
+  session({
+    secret: "servitech-secret",
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false },
+  })
+);
+
+app.use("/assets", express.static(path.join(__dirname, "assets")));
+
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
+
+// Ruta POST para editar perfil de experto
+app.post("/editar-perfil-experto", async (req, res) => {
+  try {
+    // Validar sesión
+    if (!req.session?.user?.token) {
+      return res.status(401).render("editarExpertos", {
+        experto: null,
+        categorias: [],
+        especialidades: [],
+        habilidades: [],
+        error: "No autenticado. Inicia sesión para editar tu perfil.",
+        success: null,
+      });
+    }
+
+    // Enviar datos al backend (API)
+    const fetch = (...args) =>
+      import("node-fetch").then(({ default: fetch }) => fetch(...args));
+    const response = await fetch("http://localhost:3000/api/usuarios/perfil", {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${req.session.user.token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(req.body),
+    });
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || "Error al actualizar perfil");
+    }
+    // Obtener datos actualizados para mostrar en la vista
+    const perfilActualizado = await response.json();
+
+    // Opcional: recargar categorías, especialidades, habilidades si se usan en la vista
+    const catRes = await fetch("http://localhost:3000/api/categorias");
+    const categorias = catRes.ok ? await catRes.json() : [];
+    const espRes = await fetch("http://localhost:3000/api/especialidades");
+    const especialidades = espRes.ok ? await espRes.json() : [];
+    const habRes = await fetch("http://localhost:3000/api/habilidades");
+    const habilidades = habRes.ok ? await habRes.json() : [];
+
+    res.render("editarExpertos", {
+      experto: perfilActualizado,
+      categorias,
+      especialidades,
+      habilidades,
+      error: null,
+      success: "Perfil actualizado correctamente.",
+    });
+  } catch (err) {
+    console.error("[ERROR POST editar-perfil-experto]", err);
+    res.status(500).render("editarExpertos", {
+      experto: null,
+      categorias: [],
+      especialidades: [],
+      habilidades: [],
+      error: err.message || "Error al actualizar perfil.",
+      success: null,
+    });
+  }
+});
 /**
  * SERVIDOR FRONTEND - SERVITECH
  * Configura y arranca el servidor Express para la parte visible de la aplicación.
  */
-const express = require("express");
-const path = require("path");
-const { createProxyMiddleware } = require("http-proxy-middleware");
-const session = require("express-session");
-
-const app = express();
-const PORT = 3001; // Puerto dedicado para el frontend.
-
-// Configuración de vistas y rutas estáticas
-app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
-app.use("/assets", express.static(path.join(__dirname, "assets")));
-app.use(express.json());
-
-// Middleware de sesión (igual que en backend)
-app.use(
-  session({
-    secret: "servitech-secret", // Usa la misma clave que en backend
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: false, // true solo si usas HTTPS
-      sameSite: "lax", // Permite compartir entre localhost:3000 y 3001
-      // Eliminado domain para evitar problemas de envío de cookie entre puertos
-    },
-  })
-);
-
-app.use((req, res, next) => {
-  console.log(`[FRONTEND] Petición recibida: ${req.method} ${req.url}`);
-  next();
-});
 
 // Proxy para redirigir /api/* al backend en el puerto 3000
 app.use(
@@ -126,6 +179,67 @@ app.get("/registro-experto", async (req, res) => {
   }
 });
 
+// Ruta POST para editar perfil de experto
+app.post("/editar-perfil-experto", async (req, res) => {
+  try {
+    // Validar sesión
+    if (!req.session?.user?.token) {
+      return res.status(401).render("editarExpertos", {
+        experto: null,
+        categorias: [],
+        especialidades: [],
+        habilidades: [],
+        error: "No autenticado. Inicia sesión para editar tu perfil.",
+        success: null,
+      });
+    }
+
+    // Enviar datos al backend (API)
+    const fetch = (...args) =>
+      import("node-fetch").then(({ default: fetch }) => fetch(...args));
+    const response = await fetch("http://localhost:3000/api/usuarios/perfil", {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${req.session.user.token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(req.body),
+    });
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || "Error al actualizar perfil");
+    }
+    // Obtener datos actualizados para mostrar en la vista
+    const perfilActualizado = await response.json();
+
+    // Opcional: recargar categorías, especialidades, habilidades si se usan en la vista
+    const catRes = await fetch("http://localhost:3000/api/categorias");
+    const categorias = catRes.ok ? await catRes.json() : [];
+    const espRes = await fetch("http://localhost:3000/api/especialidades");
+    const especialidades = espRes.ok ? await espRes.json() : [];
+    const habRes = await fetch("http://localhost:3000/api/habilidades");
+    const habilidades = habRes.ok ? await habRes.json() : [];
+
+    res.render("editarExpertos", {
+      experto: perfilActualizado,
+      categorias,
+      especialidades,
+      habilidades,
+      error: null,
+      success: "Perfil actualizado correctamente.",
+    });
+  } catch (err) {
+    console.error("[ERROR POST editar-perfil-experto]", err);
+    res.status(500).render("editarExpertos", {
+      experto: null,
+      categorias: [],
+      especialidades: [],
+      habilidades: [],
+      error: err.message || "Error al actualizar perfil.",
+      success: null,
+    });
+  }
+});
 // Modelos backend
 const Categoria = require("../backend/models/categoria.model");
 const Especialidad = require("../backend/models/especialidad.model");

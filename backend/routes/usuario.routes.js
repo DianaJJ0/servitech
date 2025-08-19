@@ -23,11 +23,15 @@ router.post(
 router.post("/reset-password", usuarioController.resetearPassword);
 
 // Rutas protegidas (requieren token)
-// hace falta el middleware de autenticación
 router.get(
   "/perfil",
   authMiddleware.protect,
   usuarioController.obtenerPerfilUsuario
+);
+router.put(
+  "/perfil",
+  authMiddleware.protect,
+  usuarioController.actualizarPerfilUsuario
 );
 router.get("/", authMiddleware.protect, usuarioController.obtenerUsuarios);
 
