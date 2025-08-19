@@ -18,6 +18,15 @@ const expertoSubSchema = new Schema({
     type: Schema.Types.Mixed, // Horario flexible
     default: null,
   },
+  // Campos bancarios y de contacto
+  banco: { type: String, required: true, trim: true },
+  tipoCuenta: { type: String, required: true, trim: true },
+  numeroCuenta: { type: String, required: true, trim: true },
+  titular: { type: String, required: true, trim: true },
+  tipoDocumento: { type: String, required: true, trim: true },
+  numeroDocumento: { type: String, required: true, trim: true },
+  telefonoContacto: { type: String, trim: true },
+  diasDisponibles: [{ type: String, trim: true }],
 });
 
 // Esquema principal del usuario.

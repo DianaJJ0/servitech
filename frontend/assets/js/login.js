@@ -47,11 +47,13 @@ document.addEventListener("DOMContentLoaded", () => {
       localStorage.setItem("token", result.token);
       localStorage.setItem("usuario", JSON.stringify(result.usuario));
 
-      // Establece el usuario en la sesión del frontend y redirige a registroExperto
+      // Establece el usuario en la sesión del frontend incluyendo el token
       await fetch("/set-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ usuario: result.usuario }),
+        body: JSON.stringify({
+          usuario: { ...result.usuario, token: result.token },
+        }),
         credentials: "include",
       });
       // Redirección inteligente según parámetro next

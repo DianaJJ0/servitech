@@ -4,14 +4,14 @@
  */
 document.addEventListener("DOMContentLoaded", async () => {
   const token = localStorage.getItem("token");
-
-  // 1. VERIFICACIÓN INMEDIATA: Si no hay token, no continúes. Redirige al login.
+  const mensajeError = document.getElementById("perfilError");
   if (!token) {
-    window.location.href = "/login.html";
-    return; // Detiene la ejecución del script por completo.
+    if (mensajeError) {
+      mensajeError.textContent = "Debes iniciar sesión para ver tu perfil.";
+      mensajeError.style.display = "block";
+    }
+    return;
   }
-
-  // Si hay un token, intentamos obtener los datos del perfil
   try {
     const response = await fetch("/api/usuarios/perfil", {
       method: "GET",
@@ -19,42 +19,45 @@ document.addEventListener("DOMContentLoaded", async () => {
         Authorization: `Bearer ${token}`,
       },
     });
-
     if (!response.ok) {
-      // Si el token es inválido o expiró, el backend devolverá un error.
-      localStorage.removeItem("token"); // Limpiar token inválido
-      window.location.href = "/login.html";
+      localStorage.removeItem("token");
+      if (mensajeError) {
+        mensajeError.textContent =
+          "Tu sesión ha expirado o el token es inválido. Por favor, inicia sesión nuevamente.";
+        mensajeError.style.display = "block";
+      }
       return;
     }
-
     const usuario = await response.json();
-
-    // 2. POBLAR LA PÁGINA CON LOS DATOS: Solo si la autenticación fue exitosa.
-    document.body.style.display = "block"; // Mostrar el cuerpo de la página
-
+    document.body.style.display = "block";
     const userName = document.getElementById("userName");
     const userEmail = document.getElementById("userEmail");
     const profileAvatar = document.getElementById("profileAvatar");
-
     if (userName)
       userName.textContent = `${usuario.nombre} ${usuario.apellido}`;
     if (userEmail) userEmail.textContent = usuario.email;
     if (profileAvatar) {
-      // Usamos una API para generar un avatar con las iniciales
       profileAvatar.src = `https://ui-avatars.com/api/?name=${usuario.nombre}+${usuario.apellido}&background=3a8eff&color=fff&size=128`;
     }
-
-    // Poblar el formulario de información personal
     const firstNameInput = document.getElementById("firstName");
     const lastNameInput = document.getElementById("lastName");
     const formEmailInput = document.getElementById("formEmail");
-
     if (firstNameInput) firstNameInput.value = usuario.nombre;
     if (lastNameInput) lastNameInput.value = usuario.apellido;
     if (formEmailInput) formEmailInput.value = usuario.email;
+    if (usuario.roles && usuario.roles.includes("experto")) {
+      if (usuario.infoExperto) {
+        // Poblar campos de experto si existen
+      } else {
+        // Mostrar alerta si el perfil está incompleto
+      }
+    }
   } catch (error) {
-    console.error("Error al cargar el perfil:", error);
     localStorage.removeItem("token");
-    window.location.href = "/login.html";
+    if (mensajeError) {
+      mensajeError.textContent =
+        "Error al cargar el perfil. Intenta iniciar sesión nuevamente.";
+      mensajeError.style.display = "block";
+    }
   }
 });

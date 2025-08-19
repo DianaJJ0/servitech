@@ -32,7 +32,6 @@ app.use(
     cookie: {
       secure: false, // true solo si usas HTTPS
       sameSite: "lax", // Permite compartir entre localhost:3000 y 3001
-      domain: "localhost",
     },
   })
 );

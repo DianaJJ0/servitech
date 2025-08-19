@@ -9,7 +9,19 @@ const Usuario = require("../models/usuario.model.js"); // Importa el modelo de u
  * Middleware principal para proteger rutas. Verifica el token y añade el usuario a 'req'.
  * Usado por las rutas de usuario.
  */
-const protect = async (req, res, next) => { // Define el middleware 'protect' como función asíncrona, next es una función de callback para continuar con el siguiente middleware
+const protect = async (req, res, next) => {
+  console.log(
+    "[AUTH] Middleware protect ejecutado. Header:",
+    req.headers.authorization
+  );
+  // Log antes de verificar el token
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
+    console.log("[AUTH] Intentando verificar token...");
+  }
+  // Define el middleware 'protect' como función asíncrona, next es una función de callback para continuar con el siguiente middleware
   let token; // Inicializa la variable 'token' para almacenar el JWT
 
   if (
@@ -18,9 +30,17 @@ const protect = async (req, res, next) => { // Define el middleware 'protect' co
   ) {
     try {
       token = req.headers.authorization.split(" ")[1]; // Extrae el token JWT del header
+      console.log("[AUTH] Token extraído:", token);
       const decoded = jwt.verify(token, process.env.JWT_SECRET); // Verifica y decodifica el token usando la clave secreta
+      console.log("[AUTH] Token verificado. Decoded:", decoded);
       req.usuario = await Usuario.findById(decoded.id).select("-password"); // Busca el usuario por ID y excluye el campo 'password'
-      if (!req.usuario) { // Si no se encuentra el usuario
+      console.log("[AUTH] Resultado búsqueda usuario:", req.usuario);
+      if (!req.usuario) {
+        // Si no se encuentra el usuario
+        console.error(
+          "[AUTH] Usuario no encontrado para el token:",
+          decoded.id
+        );
         return res
           .status(401) // Devuelve estado 401 (no autorizado)
           .json({
@@ -28,14 +48,23 @@ const protect = async (req, res, next) => { // Define el middleware 'protect' co
           });
       }
       next(); // Si todo es correcto, llama al siguiente middleware
-    } catch (error) { // Si ocurre algún error en la verificación del token
+    } catch (error) {
+      // Si ocurre algún error en la verificación del token
+      console.error(
+        "[AUTH] Error al verificar token:",
+        error.message,
+        "Token recibido:",
+        token
+      );
       return res
         .status(401) // Devuelve estado 401 (no autorizado)
         .json({ mensaje: "No autorizado, token inválido o expirado." }); // Mensaje de error si el token es inválido o expiró
     }
   }
 
-  if (!token) { // Si no se proporcionó un token
+  if (!token) {
+    // Si no se proporcionó un token
+    console.error("[AUTH] No se proporcionó token en la petición.");
     return res
       .status(401) // Devuelve estado 401 (no autorizado)
       .json({ mensaje: "No autorizado, no se proporcionó un token." }); // Mensaje de error si falta el token
@@ -46,8 +75,10 @@ const protect = async (req, res, next) => { // Define el middleware 'protect' co
  * Middleware para verificar si el usuario tiene rol de 'admin'.
  * Debe usarse DESPUÉS de 'protect' o 'protegerRuta'.
  */
-const esAdmin = (req, res, next) => { // Define el middleware 'esAdmin'
-  if (req.usuario && req.usuario.roles.includes("admin")) { // Verifica si el usuario existe y tiene el rol 'admin'
+const esAdmin = (req, res, next) => {
+  // Define el middleware 'esAdmin'
+  if (req.usuario && req.usuario.roles.includes("admin")) {
+    // Verifica si el usuario existe y tiene el rol 'admin'
     next(); // Si es admin, llama al siguiente middleware
   } else {
     res

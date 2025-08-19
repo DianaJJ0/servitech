@@ -6,6 +6,9 @@ const {
   actualizarPerfilExperto,
 } = require("../controllers/experto.controller.js");
 
+// Ruta POST para registro de experto
+router.post("/registro-experto", actualizarPerfilExperto);
+
 // Define una ruta GET para "/editar-perfil-experto"
 // Modelos necesarios
 const Categoria = require("../models/categoria.model.js");

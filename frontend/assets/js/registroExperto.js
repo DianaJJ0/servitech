@@ -1,76 +1,21 @@
-// Mostrar fecha actual
+  // Mostrar/ocultar número de cuenta bancaria (ejemplo de bloque correcto)
+  document.addEventListener("DOMContentLoaded", function () {
+    const toggleBtn = document.getElementById("toggleNumeroCuenta");
+    if (toggleBtn) {
+      toggleBtn.addEventListener("click", function () {
+        const input = document.getElementById("numeroCuenta");
+        const icon = this.querySelector("i");
 
-document.addEventListener("DOMContentLoaded", function () {
-  // Mostrar fecha actual
-  const currentDateSpan = document.getElementById("currentDate"); // Obtiene el elemento donde se mostrará la fecha actual
-  if (currentDateSpan) {
-    currentDateSpan.textContent = new Date().toLocaleDateString("es-ES", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    }); // Asigna la fecha actual en formato español al elemento
-  }
-
-  // Rellenar email registrado si existe en localStorage
-  const emailInput = document.getElementById("email"); // Obtiene el input del email
-  const currentUser = JSON.parse(localStorage.getItem("currentUser")); // Obtiene el usuario actual guardado en localStorage
-  if (emailInput && currentUser && currentUser.email) {
-    emailInput.value = currentUser.email; // Si existe el email, lo coloca en el input
-  }
-});
-
-document.addEventListener("DOMContentLoaded", async function () {
-  // Validaciones en tiempo real para datos bancarios
-  const numeroCuentaInput = document.getElementById("numeroCuenta");
-  const numeroDocumentoInput = document.getElementById("numeroDocumento");
-  const telefonoInput = document.getElementById("telefonoContacto");
-  const titularInput = document.getElementById("titular");
-
-  // Validar solo números en número de cuenta
-  numeroCuentaInput.addEventListener("input", function (e) {
-    this.value = this.value.replace(/[^0-9\-]/g, "");
-    if (this.value.length < 10) {
-      this.style.borderColor = "#ffc107";
-    } else {
-      this.style.borderColor = "var(--primary-color)";
+        if (input.type === "password") {
+          input.type = "text";
+          icon.className = "fas fa-eye-slash";
+        } else {
+          input.type = "password";
+          icon.className = "fas fa-eye";
+        }
+      });
     }
   });
-
-  // Validar solo números en documento
-  numeroDocumentoInput.addEventListener("input", function (e) {
-    this.value = this.value.replace(/[^0-9\-]/g, "");
-  });
-
-  // Validar formato de teléfono
-  telefonoInput.addEventListener("input", function (e) {
-    this.value = this.value.replace(/[^0-9+\-\s]/g, "");
-  });
-
-  // Capitalizar nombre del titular
-  titularInput.addEventListener("input", function (e) {
-    this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "");
-    // Capitalizar primera letra de cada palabra
-    this.value = this.value
-      .toLowerCase()
-      .replace(/\b\w/g, (l) => l.toUpperCase());
-  });
-
-  // Funcionalidad para mostrar/ocultar número de cuenta
-  const toggleBtn = document.getElementById("toggleAccountNumber");
-  if (toggleBtn) {
-    toggleBtn.addEventListener("click", function () {
-      const input = document.getElementById("numeroCuenta");
-      const icon = this.querySelector("i");
-
-      if (input.type === "password") {
-        input.type = "text";
-        icon.className = "fas fa-eye-slash";
-      } else {
-        input.type = "password";
-        icon.className = "fas fa-eye";
-      }
-    });
-  }
 
   // Nueva lógica para estructura anidada
   const especialidadSelect = document.getElementById("especialidad");
@@ -78,35 +23,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   const skillsSelect = document.getElementById("skills");
   let categoriasData = [];
 
-  // --- Poblar select de categorías desde /api/categorias ---
 
-  // Permitir agregar nuevas habilidades
-  const nuevaSkillInput = document.getElementById("nuevaSkill");
-  nuevaSkillInput.addEventListener("keydown", function (e) {
-    if (e.key === "Enter" && this.value.trim()) {
-      e.preventDefault();
-      const val = this.value.trim();
-      let exists = false;
-      Array.from(skillsSelect.options).forEach((opt) => {
-        if (opt.value.toLowerCase() === val.toLowerCase()) exists = true;
-      });
-      // Si no existe, agregar nueva opción
-      if (!exists) {
-        const opt = document.createElement("option");
-        opt.value = val;
-        opt.textContent = val;
-        opt.selected = true;
-        skillsSelect.appendChild(opt);
-      } else {
-        // Si ya existe, solo selecciona
-        Array.from(skillsSelect.options).forEach((opt) => {
-          if (opt.value.toLowerCase() === val.toLowerCase())
-            opt.selected = true;
-        });
-      }
-      this.value = "";
-    }
-  });
 
   // Envío del formulario
   const form = document.getElementById("registroExpertoForm");
@@ -114,6 +31,11 @@ document.addEventListener("DOMContentLoaded", async function () {
   const diasDisponiblesSelect = document.getElementById("diasDisponibles");
   if (form && submitBtn) {
     submitBtn.addEventListener("click", async function () {
+      console.log("Botón de envío clickeado");
+      const testMsg = document.createElement("div");
+      testMsg.className = "alert alert-info";
+      testMsg.textContent = "Evento de envío detectado. JS activo.";
+      document.body.appendChild(testMsg);
       // Validar campos requeridos de datos bancarios
       const requiredBankFields = [
         "banco",
@@ -226,18 +148,23 @@ document.addEventListener("DOMContentLoaded", async function () {
       try {
         // Enviar solicitud POST al endpoint "/registro-experto" con los datos del formulario.
         // Incluye credenciales (cookies) en la petición.
-        const response = await fetch("/registro-experto", {
+        const response = await fetch("/api/registro-experto", {
           method: "POST",
           body: formData,
           credentials: "include",
         });
-        if (response.redirected) {
-          window.location.href = response.url;
+        const alertContainer = document.createElement("div");
+        alertContainer.className = "alert-container";
+        document.body.appendChild(alertContainer);
+        if (response.ok) {
+          const result = await response.json().catch(() => null);
+          alertContainer.innerHTML = `<div class='alert alert-success'>Registro exitoso. Serás redirigido a tu perfil de experto.</div>`;
+          setTimeout(() => {
+            window.location.href = "/perfil";
+          }, 2000);
         } else {
-          const result = await response.text();
-          document.open();
-          document.write(result);
-          document.close();
+          const errorText = await response.text();
+          alertContainer.innerHTML = `<div class='alert alert-danger'>Error al registrar: ${errorText}</div>`;
         }
       } catch (error) {
         alert("Error al enviar el formulario: " + error.message);

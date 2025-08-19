@@ -20,27 +20,38 @@ const actualizarPerfilExperto = async (req, res) => {
       titular,
       tipoDocumento,
       numeroDocumento,
-      diasDisponibles, // <-- aquí llegan los días seleccionados
+      diasDisponibles,
     } = req.body;
 
-    // Actualiza los campos relevantes en infoExperto
-    const update = {
-      "infoExperto.precioPorHora": precio,
-      "infoExperto.descripcion": descripcion,
-      "infoExperto.categorias": categorias ? categorias.split(",") : [],
-      "infoExperto.especialidad": especialidad,
-      "infoExperto.skills": skills ? skills.split(",") : [],
-      "infoExperto.horario": diasDisponibles ? diasDisponibles.split(",") : [],
-      "infoExperto.banco": banco,
-      "infoExperto.tipoCuenta": tipoCuenta,
-      "infoExperto.numeroCuenta": numeroCuenta,
-      "infoExperto.titular": titular,
-      "infoExperto.tipoDocumento": tipoDocumento,
-      "infoExperto.numeroDocumento": numeroDocumento,
-    };
+    // Buscar usuario actual
+    const usuario = await Usuario.findById(userId);
+    if (!usuario)
+      return res.status(404).json({ mensaje: "Usuario no encontrado." });
 
-    await Usuario.findByIdAndUpdate(userId, { $set: update }, { new: true });
-    res.json({ mensaje: "Perfil actualizado correctamente." });
+    // Si no tiene el rol experto, asignarlo
+    if (!usuario.roles.includes("experto")) {
+      usuario.roles.push("experto");
+    }
+
+    // Actualizar infoExperto
+    usuario.infoExperto = {
+      precioPorHora: precio,
+      descripcion,
+      categorias: categorias ? categorias.split(",") : [],
+      especialidad,
+      skills: skills ? skills.split(",") : [],
+      horario: diasDisponibles ? diasDisponibles.split(",") : [],
+      banco,
+      tipoCuenta,
+      numeroCuenta,
+      titular,
+      tipoDocumento,
+      numeroDocumento,
+      telefonoContacto: req.body.telefonoContacto || "",
+      diasDisponibles: diasDisponibles ? diasDisponibles.split(",") : [],
+    };
+    await usuario.save();
+    res.json({ mensaje: "Perfil de experto actualizado correctamente." });
   } catch (error) {
     console.error("Error al actualizar perfil de experto:", error);
     res.status(500).json({ mensaje: "Error al actualizar perfil." });
