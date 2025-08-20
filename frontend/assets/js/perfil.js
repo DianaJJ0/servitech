@@ -3,6 +3,20 @@
  * Protege la ruta y carga los datos del usuario autenticado.
  */
 document.addEventListener("DOMContentLoaded", async () => {
+  // Sincroniza la sesión del backend si hay token y usuario en localStorage
+  const token = localStorage.getItem("token");
+  const usuario = localStorage.getItem("usuario");
+  if (token && usuario) {
+    try {
+      await fetch("/set-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ usuario: { ...JSON.parse(usuario), token } }),
+      });
+    } catch (err) {
+      // Si falla, no bloquea la carga
+    }
+  }
   const token = localStorage.getItem("token");
   const mensajeError = document.getElementById("perfilError");
   if (!token) {
