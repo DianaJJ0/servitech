@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // Si no hay token, redirige al login
   const token = localStorage.getItem("token");
   if (!token || token === "null") {
-    window.location.href = "/login?next=/editar-perfil-experto";
+    window.location.href = "/login.html?next=/editar-perfil-experto";
     return;
   }
   const dayOptions = document.querySelectorAll(".days-selector .day-option");
