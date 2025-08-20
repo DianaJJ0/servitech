@@ -188,14 +188,14 @@
                 <div class="profile-tab" id="expertInfo">
                   <div class="alert alert-warning">
                     <strong>¡Atención!</strong> Tu perfil de experto está incompleto.
-                    <a href="/editar-perfil-experto">Completa tu información aquí</a>.
+                    <a href="/registro-experto">Completa tu información aquí</a>.
                   </div>
                 </div>
                 <% } else if (user && user.roles && !user.roles.includes('experto')) { %>
                   <div class="profile-tab" id="expertInfo">
                     <div class="alert alert-info">
                       ¿Quieres convertirte en experto?
-                      <a href="/editar-perfil-experto">Regístrate como experto aquí</a>.
+                      <a href="/registro-experto">Regístrate como experto aquí</a>.
                     </div>
                   </div>
                   <% } %>

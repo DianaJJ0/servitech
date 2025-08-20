@@ -346,12 +346,29 @@ app.get("/editar-perfil-experto", async (req, res) => {
 
 // Ruta para mostrar el perfil del usuario autenticado
 app.get("/perfil", async (req, res) => {
-  // Si el usuario está en sesión, pásalo a la vista
-  if (req.session && req.session.user) {
-    res.render("perfil", { user: req.session.user });
-  } else {
-    res.render("perfil", { user: null });
+  if (req.session && req.session.user && req.session.user.token) {
+    const fetch = (...args) =>
+      import("node-fetch").then(({ default: fetch }) => fetch(...args));
+    try {
+      const perfilRes = await fetch(
+        "http://localhost:3000/api/usuarios/perfil",
+        {
+          headers: {
+            Authorization: `Bearer ${req.session.user.token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if (perfilRes.ok) {
+        const user = await perfilRes.json();
+        req.session.user = user;
+        return res.render("perfil", { user });
+      }
+    } catch (err) {
+      return res.render("perfil", { user: req.session.user });
+    }
   }
+  res.render("perfil", { user: null });
 });
 
 app.listen(PORT, () => {
