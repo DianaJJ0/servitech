@@ -1,4 +1,14 @@
 document.addEventListener("DOMContentLoaded", function () {
+  // Sincroniza el token entre la sesión y localStorage si está disponible en window.user
+  if (window.user && window.user.token) {
+    localStorage.setItem("token", window.user.token);
+  }
+  // Si no hay token, redirige al login
+  const token = localStorage.getItem("token");
+  if (!token || token === "null") {
+    window.location.href = "/login?next=/editar-perfil-experto";
+    return;
+  }
   const dayOptions = document.querySelectorAll(".days-selector .day-option");
   const diasInput = document.getElementById("diasDisponibles");
   const daysDisplay = document.querySelector(".days-selected-display");

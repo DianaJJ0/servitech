@@ -5,6 +5,12 @@ document.addEventListener("DOMContentLoaded", function () {
   if (window.user && window.user.token) {
     localStorage.setItem("token", window.user.token);
   }
+  // Si no hay token, redirige al login
+  const token = localStorage.getItem("token");
+  if (!token || token === "null") {
+    window.location.href = "/login?next=/registro-experto";
+    return;
+  }
   // Mostrar/ocultar número de cuenta bancaria (id corregido)
   const toggleBtn = document.getElementById("toggleAccountNumber");
   if (toggleBtn) {
