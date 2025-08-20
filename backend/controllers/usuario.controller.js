@@ -202,13 +202,54 @@ const resetearPassword = async (req, res) => {
 // Actualiza el perfil del usuario autenticado
 const actualizarPerfilUsuario = async (req, res) => {
   try {
-    const usuario = await Usuario.findByIdAndUpdate(req.usuario.id, req.body, {
-      new: true,
-      runValidators: true,
-    }).select("-passwordHash");
+    const datos = req.body;
+    const usuario = await Usuario.findById(req.usuario.id);
+
     if (!usuario) {
       return res.status(404).json({ mensaje: "Usuario no encontrado." });
     }
+
+    // Construir el objeto infoExperto si se están enviando datos de experto
+    if (
+      datos.descripcion ||
+      datos.precio ||
+      datos.diasDisponibles ||
+      datos.categorias ||
+      datos.especialidad ||
+      datos.skills ||
+      datos.banco
+    ) {
+      usuario.infoExperto = {
+        descripcion: datos.descripcion,
+        precioPorHora: datos.precio,
+        diasDisponibles: datos.diasDisponibles
+          ? datos.diasDisponibles.split(",")
+          : [],
+        categorias: Array.isArray(datos.categorias)
+          ? datos.categorias
+          : [datos.categorias],
+        especialidad: datos.especialidad,
+        skills: Array.isArray(datos.skills) ? datos.skills : [datos.skills],
+        banco: datos.banco,
+        tipoCuenta: datos.tipoCuenta,
+        numeroCuenta: datos.numeroCuenta,
+        titular: datos.titular,
+        tipoDocumento: datos.tipoDocumento,
+        numeroDocumento: datos.numeroDocumento,
+        telefonoContacto: datos.telefonoContacto,
+      };
+      // Asegurar el rol experto
+      if (!usuario.roles.includes("experto")) {
+        usuario.roles.push("experto");
+      }
+    }
+
+    // Actualizar otros datos personales si se envían
+    if (datos.nombre) usuario.nombre = datos.nombre;
+    if (datos.apellido) usuario.apellido = datos.apellido;
+    // ...otros campos personales...
+
+    await usuario.save();
     res.json(usuario);
   } catch (error) {
     console.error("Error al actualizar perfil:", error);

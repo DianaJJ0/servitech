@@ -55,6 +55,13 @@ app.post("/editar-perfil-experto", async (req, res) => {
     // Obtener datos actualizados para mostrar en la vista
     const perfilActualizado = await response.json();
 
+    // Actualizar la sesión con los datos nuevos
+    await fetch("http://localhost:3001/set-session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ usuario: perfilActualizado }),
+    });
+
     // Opcional: recargar categorías, especialidades, habilidades si se usan en la vista
     const catRes = await fetch("http://localhost:3000/api/categorias");
     const categorias = catRes.ok ? await catRes.json() : [];
@@ -127,8 +134,32 @@ app.post("/set-session", (req, res) => {
 });
 
 // Rutas principales y vistas
+app.get("/expertos.html", async (req, res) => {
+  const fetch = (...args) =>
+    import("node-fetch").then(({ default: fetch }) => fetch(...args));
+  let categorias = [];
+  let expertos = [];
+  try {
+    const catRes = await fetch("http://localhost:3000/api/categorias");
+    categorias = catRes.ok ? await catRes.json() : [];
+    const expRes = await fetch("http://localhost:3000/api/expertos");
+    expertos = expRes.ok ? await expRes.json() : [];
+  } catch (err) {
+    categorias = [];
+    expertos = [];
+  }
+  res.render("expertos", {
+    user: req.session.user || null,
+    categorias,
+    expertos,
+  });
+});
+app.get("/contacto.html", (req, res) => {
+  res.render("contacto", { user: req.session.user || null });
+});
+
 app.get("/", (req, res) => {
-  res.render("index", { user: null });
+  res.render("index", { user: req.session.user || null });
 });
 
 app.get("/login.html", (req, res) => {
@@ -137,6 +168,11 @@ app.get("/login.html", (req, res) => {
 
 app.get("/recuperarPassword.html", (req, res) => {
   res.render("recuperarPassword", { user: null });
+});
+
+// Nueva ruta para registro
+app.get("/registro.html", (req, res) => {
+  res.render("registro", { user: req.session.user || null });
 });
 
 // Ruta protegida para registro de experto
