@@ -1,5 +1,5 @@
 /**
- * JS de login. Incluye lógica para login y para redirigir a recuperación de contraseña.
+ * JS de login con validación visual de criterios de contraseña.
  */
 document.addEventListener("DOMContentLoaded", () => {
   const loginForm = document.getElementById("loginForm");
@@ -8,6 +8,36 @@ document.addEventListener("DOMContentLoaded", () => {
   const formError = document.getElementById("loginError");
   const emailInput = document.getElementById("email");
   const passwordInput = document.getElementById("password");
+
+  // Elementos criterios
+  const minLengthItem = document.getElementById("minLengthCriteria");
+  const uppercaseItem = document.getElementById("uppercaseCriteria");
+  const lowercaseItem = document.getElementById("lowercaseCriteria");
+  const numberItem = document.getElementById("numberCriteria");
+
+  // Mostrar criterios visualmente desde el inicio
+  const criteriaList = document.getElementById("passwordCriteria");
+  criteriaList.style.maxHeight = "500px";
+
+  // Validar criterios y actualizar clases visuales
+  function validatePasswordCriteria(pw) {
+    const minLength = pw.length >= 8;
+    const hasUppercase = /[A-Z]/.test(pw);
+    const hasLowercase = /[a-z]/.test(pw);
+    const hasNumber = /[0-9]/.test(pw);
+
+    minLengthItem.classList.toggle("valid", minLength);
+    uppercaseItem.classList.toggle("valid", hasUppercase);
+    lowercaseItem.classList.toggle("valid", hasLowercase);
+    numberItem.classList.toggle("valid", hasNumber);
+
+    return minLength && hasUppercase && hasLowercase && hasNumber;
+  }
+
+  // Actualiza los criterios en tiempo real
+  passwordInput.addEventListener("input", (e) => {
+    validatePasswordCriteria(e.target.value);
+  });
 
   // Login principal
   loginForm.addEventListener("submit", async (e) => {
@@ -19,6 +49,11 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     if (!datosLogin.email || !datosLogin.password) {
       formError.textContent = "Por favor, complete todos los campos.";
+      formError.style.display = "block";
+      return;
+    }
+    if (!validatePasswordCriteria(datosLogin.password)) {
+      formError.textContent = "La contraseña no cumple los requisitos.";
       formError.style.display = "block";
       return;
     }

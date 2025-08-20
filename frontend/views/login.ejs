@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/assets/css/auth.css">
     <link rel="stylesheet" href="/assets/css/componentes.css">
     <link rel="stylesheet" href="/assets/css/recuperar-password.css">
+    <link rel="stylesheet" href="/assets/css/registro.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
@@ -40,6 +41,12 @@
                                     required>
                                 <i class="fas fa-eye-slash toggle-password"></i>
                             </div>
+                            <ul class="password-requirements" id="passwordCriteria">
+                                <li id="minLengthCriteria">Mínimo 8 caracteres</li>
+                                <li id="uppercaseCriteria">Al menos una mayúscula</li>
+                                <li id="lowercaseCriteria">Al menos una minúscula</li>
+                                <li id="numberCriteria">Al menos un número</li>
+                            </ul>
                             <div class="forgot-pass-link">
                                 <a href="/recuperarPassword.html" id="forgotPassLink">¿Olvidaste tu contraseña?</a>
                             </div>

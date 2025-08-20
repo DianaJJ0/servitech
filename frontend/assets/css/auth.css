@@ -811,3 +811,125 @@
     padding: 0.75rem;
   }
 }
+
+/* VALIDACIONES VISUALES DE CONTRASEÑA */
+:root {
+  --success-color: #1da53c;
+  --error-color: #a91826;
+  --criteria-color: #bababa;
+  --criteria-bg: transparent;
+}
+
+.password-requirements {
+  margin: 0.5em 0 0.2em 0;
+  padding: 0;
+  font-size: 0.98rem;
+  background: var(--criteria-bg);
+}
+
+.requirement {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--criteria-color);
+  margin-bottom: 2px;
+  font-weight: 400;
+  transition: color 0.2s, font-weight 0.2s;
+}
+
+.requirement i {
+  font-size: 1rem;
+  width: 18px;
+  min-width: 18px;
+  text-align: center;
+  transition: color 0.2s;
+}
+
+/* Estado válido */
+.requirement.valid {
+  color: var(--success-color);
+  font-weight: 600;
+}
+.requirement.valid i {
+  color: var(--success-color);
+}
+/* Estado inválido */
+.requirement.invalid {
+  color: var(--error-color);
+  font-weight: 500;
+}
+.requirement.invalid i {
+  color: var(--error-color);
+}
+
+/* CHECKBOXES pequeños y alineados */
+.checkbox-group {
+  margin-bottom: 0.65rem;
+}
+.checkbox-container.small {
+  display: flex;
+  align-items: center;
+  position: relative;
+  padding-left: 1.55em;
+  margin-bottom: 0.1em;
+  cursor: pointer;
+  font-size: 0.97rem;
+}
+.checkbox-container.small input[type="checkbox"] {
+  position: absolute;
+  left: 0.1em;
+  top: 0.1em;
+  width: 1em;
+  height: 1em;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.checkbox-container.small .checkmark {
+  position: absolute;
+  left: 0;
+  top: 0.1em;
+  height: 1em;
+  width: 1em;
+  background-color: var(--input-bg, #222);
+  border: 1.5px solid var(--border-color, #595959);
+  border-radius: 0.18em;
+  transition: border-color 0.2s;
+}
+.checkbox-container.small input:checked ~ .checkmark {
+  background-color: var(--success-color);
+  border-color: var(--success-color);
+}
+.checkbox-container.small .checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+.checkbox-container.small input:checked ~ .checkmark:after {
+  display: block;
+}
+.checkbox-container.small .checkmark:after {
+  left: 0.27em;
+  top: 0.04em;
+  width: 0.22em;
+  height: 0.50em;
+  border: solid white;
+  border-width: 0 0.13em 0.13em 0;
+  transform: rotate(45deg);
+}
+.checkbox-text {
+  margin-left: 0.6em;
+  color: var(--text-secondary, #bbb);
+  font-size: 0.97em;
+}
+.accent-link {
+  color: var(--primary-color, #3a8eff);
+  text-decoration: underline;
+}
+.error-message {
+  color: var(--error-color);
+  font-size: 0.85rem;
+  margin: 0.2em 0 0.3em 0;
+  display: none;
+  font-weight: 500;
+}

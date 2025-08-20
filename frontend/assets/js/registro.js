@@ -1,62 +1,116 @@
 /**
- * LÓGICA DEL FRONTEND PARA LA PÁGINA DE REGISTRO
- * Maneja la validación en tiempo real de la contraseña y el envío del formulario.
+ * JS de registro con validación visual de criterios de contraseña.
  */
 document.addEventListener("DOMContentLoaded", () => {
-  // Se busca el formulario de registro en el DOM. Si no existe, no se hace nada.
   const registroForm = document.getElementById("registroForm");
   if (!registroForm) return;
 
-  // Se obtienen los elementos del DOM para mostrar errores y validar la contraseña.
   const formError = document.getElementById("formError");
+  const emailInput = document.getElementById("email");
   const passwordInput = document.getElementById("password");
   const confirmPasswordInput = document.getElementById("confirmPassword");
 
-  // Listener para el evento 'submit' del formulario.
+  // Elementos criterios
+  const minLengthItem = document.getElementById("minLengthCriteria");
+  const uppercaseItem = document.getElementById("uppercaseCriteria");
+  const lowercaseItem = document.getElementById("lowercaseCriteria");
+  const numberItem = document.getElementById("numberCriteria");
+
+  // Mostrar criterios visualmente desde el inicio
+  const criteriaList = document.getElementById("passwordCriteria");
+  criteriaList.style.maxHeight = "500px";
+
+  // Validar criterios y actualizar clases visuales
+  function validatePasswordCriteria(pw) {
+    const minLength = pw.length >= 8;
+    const hasUppercase = /[A-Z]/.test(pw);
+    const hasLowercase = /[a-z]/.test(pw);
+    const hasNumber = /[0-9]/.test(pw);
+
+    minLengthItem.classList.toggle("valid", minLength);
+    minLengthItem.classList.toggle("invalid", !minLength);
+    uppercaseItem.classList.toggle("valid", hasUppercase);
+    uppercaseItem.classList.toggle("invalid", !hasUppercase);
+    lowercaseItem.classList.toggle("valid", hasLowercase);
+    lowercaseItem.classList.toggle("invalid", !hasLowercase);
+    numberItem.classList.toggle("valid", hasNumber);
+    numberItem.classList.toggle("invalid", !hasNumber);
+
+    return minLength && hasUppercase && hasLowercase && hasNumber;
+  }
+
+  // Actualiza los criterios en tiempo real
+  passwordInput.addEventListener("input", (e) => {
+    validatePasswordCriteria(e.target.value);
+  });
+
+  // Mostrar/ocultar contraseña
+  const togglePassword = document.querySelector(".toggle-password");
+  if (togglePassword) {
+    togglePassword.addEventListener("click", () => {
+      const isPassword = passwordInput.type === "password";
+      passwordInput.type = isPassword ? "text" : "password";
+      togglePassword.classList.toggle("fa-eye");
+      togglePassword.classList.toggle("fa-eye-slash");
+    });
+  }
+
+  // Validación y envío del registro
   registroForm.addEventListener("submit", async (e) => {
-    // Prevenimos el comportamiento por defecto del formulario (recargar la página).
     e.preventDefault();
-
-    // Ocultamos mensajes de error previos y quitamos clases de éxito.
     formError.style.display = "none";
-    formError.classList.remove("success-message");
+    const termsCheckbox = document.getElementById("terms");
+    const privacyCheckbox = document.getElementById("privacy");
+    const termsError = document.getElementById("termsError");
+    const privacyError = document.getElementById("privacyError");
+    termsError.style.display = "none";
+    privacyError.style.display = "none";
 
-    // Validación: las contraseñas deben coincidir.
-    if (passwordInput.value !== confirmPasswordInput.value) {
-      formError.textContent = "Las contraseñas no coinciden.";
-      formError.style.display = "block";
-      return;
+    let valid = true;
+    if (!termsCheckbox.checked) {
+      termsError.style.display = "block";
+      valid = false;
+    }
+    if (!privacyCheckbox.checked) {
+      privacyError.style.display = "block";
+      valid = false;
     }
 
-    // Se obtienen los datos del formulario.
-    const formData = new FormData(registroForm);
-    const datosRegistro = {
-      nombre: formData.get("nombre").trim(),
-      apellido: formData.get("apellido").trim(),
-      email: formData.get("email").trim(),
-      password: formData.get("password").trim(),
-    };
-
-    // Validación básica en frontend
+    // Validación básica
     if (
-      !datosRegistro.nombre ||
-      !datosRegistro.apellido ||
-      !datosRegistro.email ||
-      !datosRegistro.password
+      !emailInput.value.trim() ||
+      !passwordInput.value.trim() ||
+      !confirmPasswordInput.value.trim()
     ) {
       formError.textContent = "Por favor, complete todos los campos.";
       formError.style.display = "block";
-      return;
+      valid = false;
     }
+    if (passwordInput.value !== confirmPasswordInput.value) {
+      formError.textContent = "Las contraseñas no coinciden.";
+      formError.style.display = "block";
+      valid = false;
+    }
+    if (!validatePasswordCriteria(passwordInput.value)) {
+      formError.textContent = "La contraseña no cumple los requisitos.";
+      formError.style.display = "block";
+      valid = false;
+    }
+    if (!valid) return;
 
-    // Se deshabilita el botón de envío para evitar clics múltiples.
+    const datosRegistro = {
+      nombre: document.getElementById("nombre").value.trim(),
+      apellido: document.getElementById("apellido").value.trim(),
+      email: emailInput.value.trim(),
+      password: passwordInput.value.trim(),
+    };
+
     const submitButton = registroForm.querySelector('button[type="submit"]');
     submitButton.disabled = true;
     submitButton.innerHTML =
       '<i class="fas fa-spinner fa-spin"></i> Registrando...';
 
     try {
-      // Se envía la petición directamente al backend
       const response = await fetch(
         "http://localhost:3000/api/usuarios/registro",
         {
@@ -65,50 +119,30 @@ document.addEventListener("DOMContentLoaded", () => {
           body: JSON.stringify(datosRegistro),
         }
       );
-
-      // Se lee la respuesta
       const result = await response.json();
 
-      // Si la respuesta HTTP no fue exitosa (ej. status 409, 500), se lanza un error.
       if (!response.ok) {
-        throw new Error(result.mensaje || "Ocurrió un error desconocido.");
+        formError.textContent =
+          result.mensaje || "Ocurrió un error desconocido.";
+        formError.style.display = "block";
+        return;
       }
 
-      // Éxito en el registro: se muestra un mensaje de éxito.
       formError.textContent =
         "¡Registro exitoso! Redirigiendo al inicio de sesión...";
       formError.classList.add("success-message");
       formError.style.color = "#28a745";
       formError.style.display = "block";
-
-      // Se redirige al usuario al login después de 2 segundos.
       setTimeout(() => {
         window.location.href = "/login.html";
       }, 2000);
     } catch (error) {
-      // Si ocurre cualquier error, se muestra en el elemento 'formError'.
-      console.error("Error en registro:", error);
       formError.textContent = error.message;
       formError.style.color = "#dc3545";
       formError.style.display = "block";
     } finally {
-      // Este bloque se ejecuta siempre, haya habido éxito o error.
-      // Se reactiva el botón de envío.
       submitButton.disabled = false;
       submitButton.innerHTML = "Crear Cuenta";
     }
-  });
-
-  // Lógica para mostrar/ocultar la contraseña.
-  const togglePasswordElements = document.querySelectorAll(".toggle-password");
-  togglePasswordElements.forEach((toggle) => {
-    toggle.addEventListener("click", () => {
-      const wrapper = toggle.closest(".input-wrapper");
-      const input = wrapper.querySelector("input");
-      const isPassword = input.type === "password";
-      input.type = isPassword ? "text" : "password";
-      toggle.classList.toggle("fa-eye");
-      toggle.classList.toggle("fa-eye-slash");
-    });
   });
 });
