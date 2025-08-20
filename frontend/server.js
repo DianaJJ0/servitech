@@ -12,8 +12,12 @@ app.use(
   session({
     secret: "servitech-secret",
     resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false },
+    saveUninitialized: false,
+    cookie: {
+      secure: false, // true solo si usas HTTPS
+      sameSite: "lax", // Permite compartir entre puertos distintos en localhost
+      domain: "localhost",
+    },
   })
 );
 

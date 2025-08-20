@@ -4,7 +4,8 @@ const Usuario = require("../models/usuario.model.js");
 // Actualiza el perfil de experto (incluye días disponibles)
 const actualizarPerfilExperto = async (req, res) => {
   try {
-    const userId = req.session?.user?._id;
+    // El middleware protect añade el usuario autenticado en req.usuario
+    const userId = req.usuario.id;
     if (!userId) return res.status(401).json({ mensaje: "No autenticado." });
 
     // Recoge los datos del formulario
@@ -34,10 +35,13 @@ const actualizarPerfilExperto = async (req, res) => {
     }
 
     // Actualizar infoExperto
+    const mongoose = require("mongoose");
     usuario.infoExperto = {
       precioPorHora: precio,
       descripcion,
-      categorias: categorias ? categorias.split(",") : [],
+      categorias: categorias
+        ? categorias.split(",").map((id) => new mongoose.Types.ObjectId(id))
+        : [],
       especialidad,
       skills: skills ? skills.split(",") : [],
       horario: diasDisponibles ? diasDisponibles.split(",") : [],

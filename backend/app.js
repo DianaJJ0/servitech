@@ -6,6 +6,8 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const conectarDB = require("./config/database.js");
+const multer = require("multer");
+const upload = multer();
 const path = require("path");
 
 // Importación de los enrutadores de la aplicación.
@@ -31,7 +33,8 @@ app.use(
     saveUninitialized: false,
     cookie: {
       secure: false, // true solo si usas HTTPS
-      sameSite: "lax", // Permite compartir entre localhost:3000 y 3001
+      sameSite: "lax", // Permite compartir entre puertos distintos en localhost
+      domain: "localhost",
     },
   })
 );
@@ -55,6 +58,7 @@ app.use(
 app.set("views", path.join(__dirname, "../frontend/views"));
 app.set("view engine", "ejs");
 app.use(express.json());
+app.use(upload.none());
 
 // Enrutamiento Principal de la API
 app.use("/api/usuarios", usuarioRoutes);

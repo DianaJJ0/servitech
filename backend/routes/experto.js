@@ -5,9 +5,10 @@ const router = express.Router();
 const {
   actualizarPerfilExperto,
 } = require("../controllers/experto.controller.js");
+const { protect } = require("../middleware/auth.middleware.js");
 
-// Ruta POST para registro de experto
-router.post("/registro-experto", actualizarPerfilExperto);
+// Ruta POST para registro de experto protegida
+router.post("/registro-experto", protect, actualizarPerfilExperto);
 
 // Define una ruta GET para "/editar-perfil-experto"
 // Modelos necesarios

@@ -1,7 +1,8 @@
+console.log("registroExperto.js cargado correctamente");
 // Mostrar/ocultar número de cuenta bancaria (ejemplo de bloque correcto)
 document.addEventListener("DOMContentLoaded", function () {
-  // Mostrar/ocultar número de cuenta bancaria
-  const toggleBtn = document.getElementById("toggleNumeroCuenta");
+  // Mostrar/ocultar número de cuenta bancaria (id corregido)
+  const toggleBtn = document.getElementById("toggleAccountNumber");
   if (toggleBtn) {
     toggleBtn.addEventListener("click", function () {
       const input = document.getElementById("numeroCuenta");
@@ -52,15 +53,10 @@ let categoriasData = [];
 
 // Envío del formulario
 const form = document.getElementById("registroExpertoForm");
-const submitBtn = document.getElementById("submitExperto");
 const diasDisponiblesSelect = document.getElementById("diasDisponibles");
-if (form && submitBtn) {
-  submitBtn.addEventListener("click", async function () {
-    console.log("Botón de envío clickeado");
-    const testMsg = document.createElement("div");
-    testMsg.className = "alert alert-info";
-    testMsg.textContent = "Evento de envío detectado. JS activo.";
-    document.body.appendChild(testMsg);
+if (form) {
+  form.addEventListener("submit", async function (e) {
+    e.preventDefault();
     // Validar campos requeridos de datos bancarios
     const requiredBankFields = [
       "banco",
@@ -72,7 +68,6 @@ if (form && submitBtn) {
     ];
     let missingFields = [];
 
-    // Validar campos requeridos como el banco y el número de cuenta
     requiredBankFields.forEach((fieldName) => {
       const field = document.getElementById(fieldName);
       if (!field.value.trim()) {
@@ -82,7 +77,6 @@ if (form && submitBtn) {
       }
     });
 
-    // Mostrar alerta si faltan campos
     if (missingFields.length > 0) {
       alert(
         "Por favor completa los siguientes campos obligatorios:\n\n• " +
@@ -91,64 +85,31 @@ if (form && submitBtn) {
       return;
     }
 
-    // Convertir selects múltiples a string separados por coma
     Array.from(categoriasSelect.options).forEach((opt) => {
       if (opt.selected) opt.setAttribute("selected", "selected");
       else opt.removeAttribute("selected");
     });
-    // Habilidades
     Array.from(skillsSelect.options).forEach((opt) => {
       if (opt.selected) opt.setAttribute("selected", "selected");
       else opt.removeAttribute("selected");
     });
-    // Días disponibles: tomar el valor del input oculto actualizado
     const diasDisponiblesValue =
       document.getElementById("diasDisponibles").value;
-
-    // Crear objeto FormData que es una representación de los datos del formulario
     const formData = new FormData(form);
-
-    // Unir seleccionados en string para backend legacy que es sensible a comas
     formData.set(
       "categorias",
       Array.from(categoriasSelect.selectedOptions)
         .map((o) => o.value)
         .join(",")
     );
-    // Habilidades
     formData.set(
       "skills",
       Array.from(skillsSelect.selectedOptions)
         .map((o) => o.value)
         .join(",")
     );
-    // Habilidades
     formData.set("diasDisponibles", diasDisponiblesValue);
 
-    // Estructurar datos bancarios como JSON
-    /**
-     * Objeto que contiene los datos bancarios ingresados por el usuario.
-     * @typedef {Object} DatosBancarios
-     * @property {string} banco - Nombre del banco seleccionado por el usuario.
-     * @property {string} tipoCuenta - Tipo de cuenta bancaria (ejemplo: ahorro, corriente).
-     * @property {string} numeroCuenta - Número de cuenta bancaria.
-     * @property {string} titular - Nombre del titular de la cuenta.
-     * @property {string} tipoDocumento - Tipo de documento de identificación del titular.
-     * @property {string} numeroDocumento - Número de documento de identificación del titular.
-     * @property {string} [telefonoContacto] - Teléfono de contacto del titular (opcional).
-     * @property {boolean} verificado - Indica si los datos bancarios han sido verificados.
-     */
-    /**
-     * Objeto que contiene los datos bancarios ingresados por el usuario desde el formulario.
-     * @property {string} banco - Nombre del banco seleccionado.
-     * @property {string} tipoCuenta - Tipo de cuenta bancaria (ejemplo: ahorro, corriente).
-     * @property {string} numeroCuenta - Número de cuenta bancaria.
-     * @property {string} titular - Nombre del titular de la cuenta.
-     * @property {string} tipoDocumento - Tipo de documento de identificación del titular.
-     * @property {string} numeroDocumento - Número de documento de identificación del titular.
-     * @property {string} telefonoContacto - Teléfono de contacto del titular (opcional).
-     * @property {boolean} verificado - Indica si los datos bancarios han sido verificados.
-     */
     const datosBancarios = {
       banco: formData.get("banco"),
       tipoCuenta: formData.get("tipoCuenta"),
@@ -159,51 +120,48 @@ if (form && submitBtn) {
       telefonoContacto: formData.get("telefonoContacto") || "",
       verificado: false,
     };
-
     formData.set("datosBancarios", JSON.stringify(datosBancarios));
 
-    // Enviar formulario
     try {
-      // Unificar lógica de días disponibles y envío de formulario
-      const diasDisponiblesInput = document.getElementById("diasDisponibles");
-      const dayOptions = document.querySelectorAll(".day-option");
-      const daysDisplay = document.querySelector(".days-selected-display");
-
-      function updateSelectedDays() {
-        const selectedDays = Array.from(
-          document.querySelectorAll(".day-option.selected")
-        ).map((day) => day.getAttribute("data-day"));
-        diasDisponiblesInput.value = selectedDays.join(",");
-        daysDisplay.textContent =
-          selectedDays.length > 0
-            ? `Días seleccionados: ${selectedDays.join(", ")}`
-            : "Selecciona tus días disponibles";
+      const token = localStorage.getItem("token");
+      if (!token || token === "null") {
+        alert("Debes iniciar sesión para registrar como experto.");
+        window.location.href = "/login.html?next=/registro-experto";
+        return;
       }
-
-      dayOptions.forEach((day) => {
-        day.addEventListener("click", function () {
-          this.classList.toggle("selected");
-          updateSelectedDays();
-        });
-      });
-
-      updateSelectedDays();
-
-      // Enviar solicitud POST al endpoint "/registro-experto" con los datos del formulario.
       const response = await fetch("/api/registro-experto", {
         method: "POST",
         body: formData,
         credentials: "include",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
       const alertContainer = document.createElement("div");
       alertContainer.className = "alert-container";
       document.body.appendChild(alertContainer);
       if (response.ok) {
         const result = await response.json().catch(() => null);
-        alertContainer.innerHTML = `<div class='alert alert-success'>Registro exitoso. Serás redirigido a tu perfil de experto.</div>`;
+        alertContainer.innerHTML = `<div class='alert alert-success'>Registro exitoso. Actualizando perfil...`;
+        // Obtiene el perfil actualizado del backend
+        const perfilRes = await fetch("/api/usuarios/perfil", {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token}` },
+          credentials: "include",
+        });
+        if (perfilRes.ok) {
+          const usuarioActualizado = await perfilRes.json();
+          // Actualiza la sesión en el servidor frontend
+          await fetch("/set-session", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ usuario: usuarioActualizado }),
+            credentials: "include",
+          });
+        }
         setTimeout(() => {
           window.location.href = "/perfil";
-        }, 2000);
+        }, 1200);
       } else {
         const errorText = await response.text();
         alertContainer.innerHTML = `<div class='alert alert-danger'>Error al registrar: ${errorText}</div>`;
