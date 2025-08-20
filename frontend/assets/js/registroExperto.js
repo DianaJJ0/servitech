@@ -1,6 +1,10 @@
 console.log("registroExperto.js cargado correctamente");
 // Mostrar/ocultar número de cuenta bancaria (ejemplo de bloque correcto)
 document.addEventListener("DOMContentLoaded", function () {
+  // Sincroniza el token entre la sesión y localStorage si está disponible en window.user
+  if (window.user && window.user.token) {
+    localStorage.setItem("token", window.user.token);
+  }
   // Mostrar/ocultar número de cuenta bancaria (id corregido)
   const toggleBtn = document.getElementById("toggleAccountNumber");
   if (toggleBtn) {

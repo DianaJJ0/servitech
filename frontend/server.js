@@ -350,6 +350,7 @@ app.get("/editar-perfil-experto", async (req, res) => {
 
 // Ruta para mostrar el perfil del usuario autenticado
 app.get("/perfil", async (req, res) => {
+  // Si existe token en sesión, siempre consulta el backend y actualiza la sesión
   if (req.session && req.session.user && req.session.user.token) {
     const fetch = (...args) =>
       import("node-fetch").then(({ default: fetch }) => fetch(...args));
@@ -365,14 +366,23 @@ app.get("/perfil", async (req, res) => {
       );
       if (perfilRes.ok) {
         const user = await perfilRes.json();
+        // Actualiza la sesión con el usuario más reciente
         req.session.user = user;
         return res.render("perfil", { user });
+      } else {
+        // Si el token es inválido, borra la sesión y muestra perfil vacío
+        req.session.user = null;
+        return res.render("perfil", { user: null });
       }
     } catch (err) {
-      return res.render("perfil", { user: req.session.user });
+      // Si hay error, muestra perfil vacío
+      req.session.user = null;
+      return res.render("perfil", { user: null });
     }
+  } else {
+    // Si no hay token, muestra perfil vacío
+    return res.render("perfil", { user: null });
   }
-  res.render("perfil", { user: null });
 });
 
 app.listen(PORT, () => {
