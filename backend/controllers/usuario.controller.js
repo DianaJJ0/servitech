@@ -6,9 +6,9 @@ const Usuario = require("../models/usuario.model.js");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const { enviarCorreo } = require("../services/email.service.js");
+const mongoose = require("mongoose");
 
 // --- Funciones Auxiliares ---
-
 // Genera un JWT para el usuario
 const generarToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "7d" });
@@ -16,27 +16,33 @@ const generarToken = (id) => {
 
 // --- Lógica de Rutas ---
 
-// Registro de usuario nuevo
+// Registro de usuario nuevo (ahora permite roles personalizados)
 const registrarUsuario = async (req, res) => {
-  const { nombre, apellido, email, password } = req.body;
+  // Extrae todos los campos relevantes del body (incluyendo roles)
+  const { nombre, apellido, email, password, roles } = req.body;
   try {
+    // Validación básica de campos obligatorios
     if (!nombre || !apellido || !email || !password) {
       return res.status(400).json({
         mensaje: "Por favor, complete todos los campos obligatorios.",
       });
     }
+    // Verifica si el correo ya está registrado
     const usuarioExistente = await Usuario.findOne({ email });
     if (usuarioExistente) {
       return res.status(409).json({
         mensaje: "El correo electrónico ya está registrado.",
       });
     }
+    // Si roles viene en el body y es un array válido, se usa. Si no, se usa el valor por defecto.
     const nuevoUsuario = new Usuario({
       nombre,
       apellido,
       email,
-      password,
+      password, // Se procesa por el campo virtual del modelo
+      roles: Array.isArray(roles) && roles.length > 0 ? roles : undefined,
     });
+
     await nuevoUsuario.save();
     res.status(201).json({
       mensaje: "Usuario registrado exitosamente.",
@@ -107,6 +113,7 @@ const iniciarSesion = async (req, res) => {
     });
   }
 };
+
 // Obtiene datos del perfil del usuario autenticado
 const obtenerPerfilUsuario = async (req, res) => {
   try {
@@ -209,27 +216,54 @@ const actualizarPerfilUsuario = async (req, res) => {
       return res.status(404).json({ mensaje: "Usuario no encontrado." });
     }
 
+    // Procesar categorías correctamente (array de ObjectId)
+    let categoriasArray = [];
+    if (datos.categorias) {
+      if (Array.isArray(datos.categorias)) {
+        // Si ya es array, convierte cada id a ObjectId
+        categoriasArray = datos.categorias.map((id) => new mongoose.Types.ObjectId(id));
+      } else if (typeof datos.categorias === "string") {
+        // Si es string separado por comas, lo convierte
+        categoriasArray = datos.categorias.split(",").map((id) => new mongoose.Types.ObjectId(id.trim()));
+      }
+    }
+
+    // Procesar skills como array de strings
+    let skillsArray = [];
+    if (datos.skills) {
+      if (Array.isArray(datos.skills)) {
+        skillsArray = datos.skills;
+      } else if (typeof datos.skills === "string") {
+        skillsArray = datos.skills.split(",").map((skill) => skill.trim());
+      }
+    }
+
+    // Procesar diasDisponibles como array de strings
+    let diasArray = [];
+    if (datos.diasDisponibles) {
+      if (Array.isArray(datos.diasDisponibles)) {
+        diasArray = datos.diasDisponibles;
+      } else if (typeof datos.diasDisponibles === "string") {
+        diasArray = datos.diasDisponibles.split(",").map((dia) => dia.trim());
+      }
+    }
+
     // Construir el objeto infoExperto si se están enviando datos de experto
     if (
       datos.descripcion ||
       datos.precio ||
-      datos.diasDisponibles ||
-      datos.categorias ||
+      categoriasArray.length > 0 ||
       datos.especialidad ||
-      datos.skills ||
+      skillsArray.length > 0 ||
       datos.banco
     ) {
       usuario.infoExperto = {
         descripcion: datos.descripcion,
         precioPorHora: datos.precio,
-        diasDisponibles: datos.diasDisponibles
-          ? datos.diasDisponibles.split(",")
-          : [],
-        categorias: Array.isArray(datos.categorias)
-          ? datos.categorias
-          : [datos.categorias],
+        diasDisponibles: diasArray,
+        categorias: categoriasArray,
         especialidad: datos.especialidad,
-        skills: Array.isArray(datos.skills) ? datos.skills : [datos.skills],
+        skills: skillsArray,
         banco: datos.banco,
         tipoCuenta: datos.tipoCuenta,
         numeroCuenta: datos.numeroCuenta,
@@ -247,7 +281,10 @@ const actualizarPerfilUsuario = async (req, res) => {
     // Actualizar otros datos personales si se envían
     if (datos.nombre) usuario.nombre = datos.nombre;
     if (datos.apellido) usuario.apellido = datos.apellido;
-    // ...otros campos personales...
+    if (datos.email) usuario.email = datos.email;
+    if (datos.avatarUrl) {
+      usuario.avatarUrl = datos.avatarUrl;
+    }
 
     await usuario.save();
     res.json(usuario);
