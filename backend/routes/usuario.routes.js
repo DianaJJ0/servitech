@@ -23,18 +23,28 @@ router.post(
 );
 router.post("/reset-password", usuarioController.resetearPassword);
 
+
 // Rutas protegidas (requieren token)
+
+// Obtener perfil de usuario
 router.get(
   "/perfil",
   authMiddleware.protect,
   usuarioController.obtenerPerfilUsuario
 );
+// Actualizar perfil de usuario
 router.put(
   "/perfil",
   authMiddleware.protect,
   usuarioController.actualizarPerfilUsuario
 );
-router.get("/", authMiddleware.protect, usuarioController.obtenerUsuarios);
+// GET usuarios: solo admin, sin API Key
+router.get(
+  "/",
+  authMiddleware.protect,
+  authMiddleware.esAdmin,
+  usuarioController.obtenerUsuarios
+);
 
 // Eliminar usuario propio (requiere token)
 router.delete(
@@ -43,6 +53,7 @@ router.delete(
   usuarioController.eliminarUsuarioPropio
 );
 
+// Eliminar usuario por admin (requiere token admin + API Key)
 router.delete(
   "/:id",
   apiKeyMiddleware,

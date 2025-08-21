@@ -9,37 +9,30 @@ const { enviarCorreo } = require("../services/email.service.js");
 const mongoose = require("mongoose");
 
 // --- Funciones Auxiliares ---
-// Genera un JWT para el usuario
 const generarToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "2d" });
 };
-
-// --- Lógica de Rutas ---
 
 // Registro de usuario nuevo (ahora permite roles personalizados)
 const registrarUsuario = async (req, res) => {
-  // Extrae todos los campos relevantes del body (incluyendo roles)
   const { nombre, apellido, email, password, roles } = req.body;
   try {
-    // Validación básica de campos obligatorios
     if (!nombre || !apellido || !email || !password) {
       return res.status(400).json({
         mensaje: "Por favor, complete todos los campos obligatorios.",
       });
     }
-    // Verifica si el correo ya está registrado
     const usuarioExistente = await Usuario.findOne({ email });
     if (usuarioExistente) {
       return res.status(409).json({
         mensaje: "El correo electrónico ya está registrado.",
       });
     }
-    // Si roles viene en el body y es un array válido, se usa. Si no, se usa el valor por defecto.
     const nuevoUsuario = new Usuario({
       nombre,
       apellido,
       email,
-      password, // Se procesa por el campo virtual del modelo
+      password,
       roles: Array.isArray(roles) && roles.length > 0 ? roles : undefined,
     });
 
@@ -75,10 +68,7 @@ const iniciarSesion = async (req, res) => {
       });
     }
     if (await usuario.matchPassword(password)) {
-      // Genera el token JWT
       const token = generarToken(usuario._id);
-
-      // Guarda el usuario en la sesión para el frontend
       if (req.session) {
         req.session.user = {
           _id: usuario._id,
@@ -88,8 +78,6 @@ const iniciarSesion = async (req, res) => {
           roles: usuario.roles,
         };
       }
-
-      // Devuelve token y datos del usuario
       return res.status(200).json({
         mensaje: "Login exitoso.",
         token,
@@ -130,11 +118,38 @@ const obtenerPerfilUsuario = async (req, res) => {
   }
 };
 
-// Devuelve la lista de todos los usuarios (protegida)
+// Devuelve la lista de usuarios con paginación, filtro por email, estado y roles (por defecto: solo activos)
 const obtenerUsuarios = async (req, res) => {
   try {
-    const usuarios = await Usuario.find({}).select("-passwordHash");
-    res.json(usuarios);
+    const { page = 1, limit = 10, email, estado, roles } = req.query;
+    const filtro = {};
+
+    if (email) {
+      filtro.email = { $regex: email, $options: "i" };
+    }
+
+    if (typeof estado !== "undefined" && estado !== "") {
+      filtro.estado = estado;
+    } else {
+      filtro.estado = "activo";
+    }
+
+    if (roles) {
+      const rolesArray = Array.isArray(roles)
+        ? roles
+        : roles.split(",").map((r) => r.trim());
+      filtro.roles = { $in: rolesArray };
+    }
+
+    // Paginación y selección de campos
+    // Se omiten el hash de la contraseña y otros campos sensibles
+    const usuarios = await Usuario.find(filtro)
+      .select("-passwordHash")
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit));
+    const total = await Usuario.countDocuments(filtro);
+
+    res.json({ usuarios, total });
   } catch (error) {
     console.error("Error al obtener usuarios:", error);
     res.status(500).json({ mensaje: "Error interno del servidor." });
@@ -143,7 +158,6 @@ const obtenerUsuarios = async (req, res) => {
 
 /**
  * Solicita recuperación de contraseña (envía email con token)
- * @route POST /api/usuarios/recuperar-password
  */
 const solicitarRecuperacionPassword = async (req, res) => {
   const { email } = req.body;
@@ -153,12 +167,12 @@ const solicitarRecuperacionPassword = async (req, res) => {
       return res
         .status(200)
         .json({ mensaje: "Si el email existe, se enviaron instrucciones." });
-    // Generar token seguro
+    // Generar token de recuperación con crypto
     const token = crypto.randomBytes(32).toString("hex");
     usuario.passwordResetToken = token;
-    usuario.passwordResetExpires = Date.now() + 60 * 60 * 1000; // 1 hora
+    usuario.passwordResetExpires = Date.now() + 60 * 60 * 1000;
     await usuario.save();
-    // Enviar email
+    // Construir enlace de recuperación y enviar email de notificación
     const enlace = `${process.env.FRONTEND_URL}/recuperarPassword.html?token=${token}`;
     const asunto = "Recupera tu contraseña - ServiTech";
     const mensaje = `
@@ -170,6 +184,7 @@ const solicitarRecuperacionPassword = async (req, res) => {
       <br>
       <p>Saludos,<br>Equipo ServiTech</p>
     `;
+    // Enviar correo electrónico
     await enviarCorreo(usuario.email, asunto, mensaje, mensaje);
     res
       .status(200)
@@ -182,7 +197,6 @@ const solicitarRecuperacionPassword = async (req, res) => {
 
 /**
  * Restablece contraseña usando el token
- * @route POST /api/usuarios/reset-password
  */
 const resetearPassword = async (req, res) => {
   const { token, newPassword } = req.body;
@@ -193,7 +207,7 @@ const resetearPassword = async (req, res) => {
     });
     if (!usuario)
       return res.status(400).json({ mensaje: "Token inválido o expirado." });
-    usuario.password = newPassword; // Campo virtual
+    usuario.password = newPassword;
     usuario.passwordResetToken = undefined;
     usuario.passwordResetExpires = undefined;
     await usuario.save();
@@ -216,19 +230,19 @@ const actualizarPerfilUsuario = async (req, res) => {
       return res.status(404).json({ mensaje: "Usuario no encontrado." });
     }
 
-    // Procesar categorías correctamente (array de ObjectId)
     let categoriasArray = [];
     if (datos.categorias) {
       if (Array.isArray(datos.categorias)) {
-        // Si ya es array, convierte cada id a ObjectId
-        categoriasArray = datos.categorias.map((id) => new mongoose.Types.ObjectId(id));
+        categoriasArray = datos.categorias.map(
+          (id) => new mongoose.Types.ObjectId(id)
+        );
       } else if (typeof datos.categorias === "string") {
-        // Si es string separado por comas, lo convierte
-        categoriasArray = datos.categorias.split(",").map((id) => new mongoose.Types.ObjectId(id.trim()));
+        categoriasArray = datos.categorias
+          .split(",")
+          .map((id) => new mongoose.Types.ObjectId(id.trim()));
       }
     }
 
-    // Procesar skills como array de strings
     let skillsArray = [];
     if (datos.skills) {
       if (Array.isArray(datos.skills)) {
@@ -238,7 +252,6 @@ const actualizarPerfilUsuario = async (req, res) => {
       }
     }
 
-    // Procesar diasDisponibles como array de strings
     let diasArray = [];
     if (datos.diasDisponibles) {
       if (Array.isArray(datos.diasDisponibles)) {
@@ -248,7 +261,6 @@ const actualizarPerfilUsuario = async (req, res) => {
       }
     }
 
-    // Construir el objeto infoExperto si se están enviando datos de experto
     if (
       datos.descripcion ||
       datos.precio ||
@@ -272,13 +284,11 @@ const actualizarPerfilUsuario = async (req, res) => {
         numeroDocumento: datos.numeroDocumento,
         telefonoContacto: datos.telefonoContacto,
       };
-      // Asegurar el rol experto
       if (!usuario.roles.includes("experto")) {
         usuario.roles.push("experto");
       }
     }
 
-    // Actualizar otros datos personales si se envían
     if (datos.nombre) usuario.nombre = datos.nombre;
     if (datos.apellido) usuario.apellido = datos.apellido;
     if (datos.email) usuario.email = datos.email;
@@ -294,41 +304,48 @@ const actualizarPerfilUsuario = async (req, res) => {
   }
 };
 
-// Elimina el usuario autenticado
+// Desactiva el usuario autenticado (no lo elimina de la base de datos)
 const eliminarUsuarioPropio = async (req, res) => {
   try {
     const usuarioId = req.usuario.id;
-    const usuario = await Usuario.findByIdAndDelete(usuarioId);
+    // Busca el usuario
+    const usuario = await Usuario.findById(usuarioId);
     if (!usuario) {
       return res.status(404).json({ mensaje: "Usuario no encontrado." });
     }
-    res.json({ mensaje: "Cuenta eliminada correctamente." });
+    // Cambia el estado a inactivo
+    usuario.estado = "inactivo";
+    await usuario.save();
+    res.json({ mensaje: "Cuenta desactivada correctamente." });
   } catch (error) {
-    console.error("Error al eliminar usuario propio:", error);
+    console.error("Error al desactivar usuario propio:", error);
     res
       .status(500)
-      .json({ mensaje: "Error interno del servidor al eliminar la cuenta." });
+      .json({ mensaje: "Error interno del servidor al desactivar la cuenta." });
   }
 };
 
-// Elimina un usuario por su ID (admin + API Key)
+// Elimina (desactiva) un usuario por admin + API Key
 const eliminarUsuarioPorAdmin = async (req, res) => {
   try {
     const usuarioId = req.params.id;
-    const usuario = await Usuario.findByIdAndDelete(usuarioId);
+    const usuario = await Usuario.findById(usuarioId);
     if (!usuario) {
       return res.status(404).json({ mensaje: "Usuario no encontrado." });
     }
-    res.json({ mensaje: "Usuario eliminado correctamente por el admin." });
+    usuario.estado = "inactivo";
+    await usuario.save();
+    res.json({ mensaje: "Usuario desactivado correctamente por el admin." });
   } catch (error) {
-    console.error("Error al eliminar usuario por admin:", error);
+    console.error("Error al desactivar usuario por admin:", error);
     res
       .status(500)
-      .json({ mensaje: "Error interno del servidor al eliminar el usuario." });
+      .json({
+        mensaje: "Error interno del servidor al desactivar el usuario.",
+      });
   }
 };
 
-// Exportamos todas las funciones del controlador
 module.exports = {
   registrarUsuario,
   iniciarSesion,
