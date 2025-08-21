@@ -2,30 +2,17 @@
  * ESTILOS ESPECÍFICOS PARA LA PÁGINA DE REGISTRO (registro.ejs)
  */
 
-/* Contenedor para los requisitos de la contraseña */
-.password-requirements {
-  list-style-type: none; /* Quitamos los puntos de la lista */
-  padding-left: 0;
-  margin-top: 10px;
-  font-size: 0.9rem;
-  /* La animación de despliegue se controla con JS cambiando max-height */
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.3s ease-out;
-}
-
-/* Estilo para cada requisito de la lista */
+/* los estilos de los ítems y los iconos */
 .password-requirements li {
-  color: var(--error-color); /* Color rojo para estado inválido (por defecto) */
+  color: var(--error-color);
   margin-bottom: 8px;
   display: flex;
   align-items: center;
   transition: color 0.3s ease;
 }
 
-/* Icono antes del texto del requisito */
 .password-requirements li::before {
-  content: "✖"; /* Icono de 'X' */
+  content: "✖";
   font-family: "Arial", sans-serif;
   display: inline-block;
   margin-right: 10px;
@@ -35,18 +22,16 @@
   line-height: 16px;
   text-align: center;
   border-radius: 50%;
-  background-color: var(--error-color); /* Fondo rojo */
+  background-color: var(--error-color);
   color: white;
   transition: background-color 0.3s ease, content 0.3s ease;
 }
 
-/* --- ESTADO VÁLIDO --- */
-/* Cuando un 'li' tiene la clase 'valid', cambiamos su color y el de su icono */
 .password-requirements li.valid {
-  color: var(--success-color); /* Color verde para estado válido */
+  color: var(--success-color);
 }
 
 .password-requirements li.valid::before {
-  content: "✔"; /* Icono de 'check' */
+
   background-color: var(--success-color); /* Fondo verde */
 }

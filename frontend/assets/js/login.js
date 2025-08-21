@@ -15,9 +15,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const lowercaseItem = document.getElementById("lowercaseCriteria");
   const numberItem = document.getElementById("numberCriteria");
 
-  // Mostrar criterios visualmente desde el inicio
+  // Mostrar criterios solo con focus (igual que registro)
   const criteriaList = document.getElementById("passwordCriteria");
-  criteriaList.style.maxHeight = "500px";
+  criteriaList.style.display = "none"; // oculto al cargar
+
+  passwordInput.addEventListener("focus", () => {
+    criteriaList.style.display = "block";
+    validatePasswordCriteria(passwordInput.value);
+  });
+  passwordInput.addEventListener("blur", () => {
+    criteriaList.style.display = "none";
+  });
 
   // Validar criterios y actualizar clases visuales
   function validatePasswordCriteria(pw) {
@@ -47,8 +55,15 @@ document.addEventListener("DOMContentLoaded", () => {
       email: emailInput.value.trim(),
       password: passwordInput.value.trim(),
     };
+    // Validación de campos vacíos
     if (!datosLogin.email || !datosLogin.password) {
       formError.textContent = "Por favor, complete todos los campos.";
+      formError.style.display = "block";
+      return;
+    }
+    // Validación de formato de correo
+    if (!datosLogin.email.includes("@")) {
+      formError.textContent = "El correo debe contener un '@' válido.";
       formError.style.display = "block";
       return;
     }
