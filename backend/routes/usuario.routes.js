@@ -8,6 +8,7 @@ const router = express.Router();
 // Importamos el controlador completo
 const usuarioController = require("../controllers/usuario.controller.js");
 const authMiddleware = require("../middleware/auth.middleware.js");
+const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
 
 // --- Definición de Rutas ---
 
@@ -34,5 +35,20 @@ router.put(
   usuarioController.actualizarPerfilUsuario
 );
 router.get("/", authMiddleware.protect, usuarioController.obtenerUsuarios);
+
+// Eliminar usuario propio (requiere token)
+router.delete(
+  "/perfil",
+  authMiddleware.protect,
+  usuarioController.eliminarUsuarioPropio
+);
+
+router.delete(
+  "/:id",
+  apiKeyMiddleware,
+  authMiddleware.protect,
+  authMiddleware.esAdmin,
+  usuarioController.eliminarUsuarioPorAdmin
+);
 
 module.exports = router;

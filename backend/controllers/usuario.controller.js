@@ -294,6 +294,40 @@ const actualizarPerfilUsuario = async (req, res) => {
   }
 };
 
+// Elimina el usuario autenticado
+const eliminarUsuarioPropio = async (req, res) => {
+  try {
+    const usuarioId = req.usuario.id;
+    const usuario = await Usuario.findByIdAndDelete(usuarioId);
+    if (!usuario) {
+      return res.status(404).json({ mensaje: "Usuario no encontrado." });
+    }
+    res.json({ mensaje: "Cuenta eliminada correctamente." });
+  } catch (error) {
+    console.error("Error al eliminar usuario propio:", error);
+    res
+      .status(500)
+      .json({ mensaje: "Error interno del servidor al eliminar la cuenta." });
+  }
+};
+
+// Elimina un usuario por su ID (admin + API Key)
+const eliminarUsuarioPorAdmin = async (req, res) => {
+  try {
+    const usuarioId = req.params.id;
+    const usuario = await Usuario.findByIdAndDelete(usuarioId);
+    if (!usuario) {
+      return res.status(404).json({ mensaje: "Usuario no encontrado." });
+    }
+    res.json({ mensaje: "Usuario eliminado correctamente por el admin." });
+  } catch (error) {
+    console.error("Error al eliminar usuario por admin:", error);
+    res
+      .status(500)
+      .json({ mensaje: "Error interno del servidor al eliminar el usuario." });
+  }
+};
+
 // Exportamos todas las funciones del controlador
 module.exports = {
   registrarUsuario,
@@ -303,4 +337,6 @@ module.exports = {
   solicitarRecuperacionPassword,
   resetearPassword,
   actualizarPerfilUsuario,
+  eliminarUsuarioPropio,
+  eliminarUsuarioPorAdmin,
 };
