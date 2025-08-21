@@ -17,7 +17,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       // Si falla, no bloquea la carga
     }
   }
-  const token = localStorage.getItem("token");
   const mensajeError = document.getElementById("perfilError");
   if (!token) {
     if (mensajeError) {

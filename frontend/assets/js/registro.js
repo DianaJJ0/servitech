@@ -132,9 +132,11 @@ document.addEventListener("DOMContentLoaded", () => {
     formError.style.display = "none";
 
     // Oculta todos los errores al iniciar
-    [nombreError, apellidoError, emailError, confirmPasswordError].forEach(el => {
-      if (el) el.style.display = "none";
-    });
+    [nombreError, apellidoError, emailError, confirmPasswordError].forEach(
+      (el) => {
+        if (el) el.style.display = "none";
+      }
+    );
 
     const termsCheckbox = document.getElementById("terms");
     const privacyCheckbox = document.getElementById("privacy");

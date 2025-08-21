@@ -6,19 +6,16 @@ const Usuario = require("../models/usuario.model.js");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const { enviarCorreo } = require("../services/email.service.js");
+const mongoose = require("mongoose");
 
 // --- Funciones Auxiliares ---
-
-// Genera un JWT para el usuario
 const generarToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "2d" });
 };
 
-// --- Lógica de Rutas ---
-
-// Registro de usuario nuevo
+// Registro de usuario nuevo (ahora permite roles personalizados)
 const registrarUsuario = async (req, res) => {
-  const { nombre, apellido, email, password } = req.body;
+  const { nombre, apellido, email, password, roles } = req.body;
   try {
     if (!nombre || !apellido || !email || !password) {
       return res.status(400).json({
@@ -36,7 +33,9 @@ const registrarUsuario = async (req, res) => {
       apellido,
       email,
       password,
+      roles: Array.isArray(roles) && roles.length > 0 ? roles : undefined,
     });
+
     await nuevoUsuario.save();
     res.status(201).json({
       mensaje: "Usuario registrado exitosamente.",
@@ -69,10 +68,7 @@ const iniciarSesion = async (req, res) => {
       });
     }
     if (await usuario.matchPassword(password)) {
-      // Genera el token JWT
       const token = generarToken(usuario._id);
-
-      // Guarda el usuario en la sesión para el frontend
       if (req.session) {
         req.session.user = {
           _id: usuario._id,
@@ -82,8 +78,6 @@ const iniciarSesion = async (req, res) => {
           roles: usuario.roles,
         };
       }
-
-      // Devuelve token y datos del usuario
       return res.status(200).json({
         mensaje: "Login exitoso.",
         token,
@@ -107,6 +101,7 @@ const iniciarSesion = async (req, res) => {
     });
   }
 };
+
 // Obtiene datos del perfil del usuario autenticado
 const obtenerPerfilUsuario = async (req, res) => {
   try {
@@ -123,11 +118,38 @@ const obtenerPerfilUsuario = async (req, res) => {
   }
 };
 
-// Devuelve la lista de todos los usuarios (protegida)
+// Devuelve la lista de usuarios con paginación, filtro por email, estado y roles (por defecto: solo activos)
 const obtenerUsuarios = async (req, res) => {
   try {
-    const usuarios = await Usuario.find({}).select("-passwordHash");
-    res.json(usuarios);
+    const { page = 1, limit = 10, email, estado, roles } = req.query;
+    const filtro = {};
+
+    if (email) {
+      filtro.email = { $regex: email, $options: "i" };
+    }
+
+    if (typeof estado !== "undefined" && estado !== "") {
+      filtro.estado = estado;
+    } else {
+      filtro.estado = "activo";
+    }
+
+    if (roles) {
+      const rolesArray = Array.isArray(roles)
+        ? roles
+        : roles.split(",").map((r) => r.trim());
+      filtro.roles = { $in: rolesArray };
+    }
+
+    // Paginación y selección de campos
+    // Se omiten el hash de la contraseña y otros campos sensibles
+    const usuarios = await Usuario.find(filtro)
+      .select("-passwordHash")
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit));
+    const total = await Usuario.countDocuments(filtro);
+
+    res.json({ usuarios, total });
   } catch (error) {
     console.error("Error al obtener usuarios:", error);
     res.status(500).json({ mensaje: "Error interno del servidor." });
@@ -136,7 +158,6 @@ const obtenerUsuarios = async (req, res) => {
 
 /**
  * Solicita recuperación de contraseña (envía email con token)
- * @route POST /api/usuarios/recuperar-password
  */
 const solicitarRecuperacionPassword = async (req, res) => {
   const { email } = req.body;
@@ -146,12 +167,12 @@ const solicitarRecuperacionPassword = async (req, res) => {
       return res
         .status(200)
         .json({ mensaje: "Si el email existe, se enviaron instrucciones." });
-    // Generar token seguro
+    // Generar token de recuperación con crypto
     const token = crypto.randomBytes(32).toString("hex");
     usuario.passwordResetToken = token;
-    usuario.passwordResetExpires = Date.now() + 60 * 60 * 1000; // 1 hora
+    usuario.passwordResetExpires = Date.now() + 60 * 60 * 1000;
     await usuario.save();
-    // Enviar email
+    // Construir enlace de recuperación y enviar email de notificación
     const enlace = `${process.env.FRONTEND_URL}/recuperarPassword.html?token=${token}`;
     const asunto = "Recupera tu contraseña - ServiTech";
     const mensaje = `
@@ -163,6 +184,7 @@ const solicitarRecuperacionPassword = async (req, res) => {
       <br>
       <p>Saludos,<br>Equipo ServiTech</p>
     `;
+    // Enviar correo electrónico
     await enviarCorreo(usuario.email, asunto, mensaje, mensaje);
     res
       .status(200)
@@ -175,7 +197,6 @@ const solicitarRecuperacionPassword = async (req, res) => {
 
 /**
  * Restablece contraseña usando el token
- * @route POST /api/usuarios/reset-password
  */
 const resetearPassword = async (req, res) => {
   const { token, newPassword } = req.body;
@@ -186,7 +207,7 @@ const resetearPassword = async (req, res) => {
     });
     if (!usuario)
       return res.status(400).json({ mensaje: "Token inválido o expirado." });
-    usuario.password = newPassword; // Campo virtual
+    usuario.password = newPassword;
     usuario.passwordResetToken = undefined;
     usuario.passwordResetExpires = undefined;
     await usuario.save();
@@ -209,27 +230,52 @@ const actualizarPerfilUsuario = async (req, res) => {
       return res.status(404).json({ mensaje: "Usuario no encontrado." });
     }
 
-    // Construir el objeto infoExperto si se están enviando datos de experto
+    let categoriasArray = [];
+    if (datos.categorias) {
+      if (Array.isArray(datos.categorias)) {
+        categoriasArray = datos.categorias.map(
+          (id) => new mongoose.Types.ObjectId(id)
+        );
+      } else if (typeof datos.categorias === "string") {
+        categoriasArray = datos.categorias
+          .split(",")
+          .map((id) => new mongoose.Types.ObjectId(id.trim()));
+      }
+    }
+
+    let skillsArray = [];
+    if (datos.skills) {
+      if (Array.isArray(datos.skills)) {
+        skillsArray = datos.skills;
+      } else if (typeof datos.skills === "string") {
+        skillsArray = datos.skills.split(",").map((skill) => skill.trim());
+      }
+    }
+
+    let diasArray = [];
+    if (datos.diasDisponibles) {
+      if (Array.isArray(datos.diasDisponibles)) {
+        diasArray = datos.diasDisponibles;
+      } else if (typeof datos.diasDisponibles === "string") {
+        diasArray = datos.diasDisponibles.split(",").map((dia) => dia.trim());
+      }
+    }
+
     if (
       datos.descripcion ||
       datos.precio ||
-      datos.diasDisponibles ||
-      datos.categorias ||
+      categoriasArray.length > 0 ||
       datos.especialidad ||
-      datos.skills ||
+      skillsArray.length > 0 ||
       datos.banco
     ) {
       usuario.infoExperto = {
         descripcion: datos.descripcion,
         precioPorHora: datos.precio,
-        diasDisponibles: datos.diasDisponibles
-          ? datos.diasDisponibles.split(",")
-          : [],
-        categorias: Array.isArray(datos.categorias)
-          ? datos.categorias
-          : [datos.categorias],
+        diasDisponibles: diasArray,
+        categorias: categoriasArray,
         especialidad: datos.especialidad,
-        skills: Array.isArray(datos.skills) ? datos.skills : [datos.skills],
+        skills: skillsArray,
         banco: datos.banco,
         tipoCuenta: datos.tipoCuenta,
         numeroCuenta: datos.numeroCuenta,
@@ -238,16 +284,17 @@ const actualizarPerfilUsuario = async (req, res) => {
         numeroDocumento: datos.numeroDocumento,
         telefonoContacto: datos.telefonoContacto,
       };
-      // Asegurar el rol experto
       if (!usuario.roles.includes("experto")) {
         usuario.roles.push("experto");
       }
     }
 
-    // Actualizar otros datos personales si se envían
     if (datos.nombre) usuario.nombre = datos.nombre;
     if (datos.apellido) usuario.apellido = datos.apellido;
-    // ...otros campos personales...
+    if (datos.email) usuario.email = datos.email;
+    if (datos.avatarUrl) {
+      usuario.avatarUrl = datos.avatarUrl;
+    }
 
     await usuario.save();
     res.json(usuario);
@@ -257,7 +304,48 @@ const actualizarPerfilUsuario = async (req, res) => {
   }
 };
 
-// Exportamos todas las funciones del controlador
+// Desactiva el usuario autenticado (no lo elimina de la base de datos)
+const eliminarUsuarioPropio = async (req, res) => {
+  try {
+    const usuarioId = req.usuario.id;
+    // Busca el usuario
+    const usuario = await Usuario.findById(usuarioId);
+    if (!usuario) {
+      return res.status(404).json({ mensaje: "Usuario no encontrado." });
+    }
+    // Cambia el estado a inactivo
+    usuario.estado = "inactivo";
+    await usuario.save();
+    res.json({ mensaje: "Cuenta desactivada correctamente." });
+  } catch (error) {
+    console.error("Error al desactivar usuario propio:", error);
+    res
+      .status(500)
+      .json({ mensaje: "Error interno del servidor al desactivar la cuenta." });
+  }
+};
+
+// Elimina (desactiva) un usuario por admin + API Key
+const eliminarUsuarioPorAdmin = async (req, res) => {
+  try {
+    const usuarioId = req.params.id;
+    const usuario = await Usuario.findById(usuarioId);
+    if (!usuario) {
+      return res.status(404).json({ mensaje: "Usuario no encontrado." });
+    }
+    usuario.estado = "inactivo";
+    await usuario.save();
+    res.json({ mensaje: "Usuario desactivado correctamente por el admin." });
+  } catch (error) {
+    console.error("Error al desactivar usuario por admin:", error);
+    res
+      .status(500)
+      .json({
+        mensaje: "Error interno del servidor al desactivar el usuario.",
+      });
+  }
+};
+
 module.exports = {
   registrarUsuario,
   iniciarSesion,
@@ -266,4 +354,6 @@ module.exports = {
   solicitarRecuperacionPassword,
   resetearPassword,
   actualizarPerfilUsuario,
+  eliminarUsuarioPropio,
+  eliminarUsuarioPorAdmin,
 };

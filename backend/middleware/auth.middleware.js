@@ -32,6 +32,8 @@ const protect = async (req, res, next) => {
       token = req.headers.authorization.split(" ")[1]; // Extrae el token JWT del header
       console.log("[AUTH] Token extraído:", token);
       const decoded = jwt.verify(token, process.env.JWT_SECRET); // Verifica y decodifica el token usando la clave secreta
+
+      // Decodifica el token y obtiene el ID del usuario
       console.log("[AUTH] Token verificado. Decoded:", decoded);
       req.usuario = await Usuario.findById(decoded.id).select("-password"); // Busca el usuario por ID y excluye el campo 'password'
       console.log("[AUTH] Resultado búsqueda usuario:", req.usuario);

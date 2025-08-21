@@ -1,20 +1,42 @@
 /**
  * Rutas de Habilidad Tecnológica
- * Expone el endpoint /api/habilidades para el frontend (registro de expertos).
+ * Endpoints para gestión de habilidades tecnológicas.
  */
-
-// Importa el módulo Express, que permite crear servidores y manejar rutas HTTP
 const express = require("express");
-
-// Crea un nuevo router de Express para definir rutas específicas de habilidades
 const router = express.Router();
 
-// Importa el controlador de habilidades, donde está la lógica para manejar las peticiones
 const habilidadController = require("../controllers/habilidad.controller");
+const authMiddleware = require("../middleware/auth.middleware.js");
+const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
 
-// Define la ruta GET en la raíz ("/") de /api/habilidades
-// Cuando se recibe una petición GET, se ejecuta la función getAll del controlador
+// GET público (listar habilidades)
 router.get("/", habilidadController.getAll);
 
-// Exporta el router para que pueda ser usado en la configuración principal del servidor
+// POST - crear habilidad (admin, API Key)
+router.post(
+  "/",
+  apiKeyMiddleware,
+  authMiddleware.protect,
+  authMiddleware.esAdmin,
+  habilidadController.create
+);
+
+// PUT - editar habilidad (admin, API Key)
+router.put(
+  "/:id",
+  apiKeyMiddleware,
+  authMiddleware.protect,
+  authMiddleware.esAdmin,
+  habilidadController.update
+);
+
+// DELETE - eliminar habilidad (admin, API Key)
+router.delete(
+  "/:id",
+  apiKeyMiddleware,
+  authMiddleware.protect,
+  authMiddleware.esAdmin,
+  habilidadController.remove
+);
+
 module.exports = router;

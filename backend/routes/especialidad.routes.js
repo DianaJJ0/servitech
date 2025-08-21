@@ -1,20 +1,42 @@
 /**
  * Rutas de Especialidad Tecnológica
- * Expone el endpoint /api/especialidades para el frontend (registro de expertos).
+ * Endpoints para gestión de especialidades tecnológicas.
  */
-
-// Importa el módulo Express, que permite crear aplicaciones web y APIs en Node.js
 const express = require("express");
-
-// Crea un nuevo enrutador de Express para definir rutas específicas de este módulo
 const router = express.Router();
 
-// Importa el controlador de especialidad, donde está la lógica para manejar las solicitudes relacionadas
 const especialidadController = require("../controllers/especialidad.controller");
+const authMiddleware = require("../middleware/auth.middleware.js");
+const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
 
-// Define la ruta GET en la raíz ("/") de este enrutador.
-// Cuando se recibe una solicitud GET en /api/especialidades, se ejecuta especialidadController.getAll
+// GET público (listar especialidades)
 router.get("/", especialidadController.getAll);
 
-// Exporta el enrutador para que pueda ser usado en la configuración principal de la aplicación (app.js)
+// POST - crear especialidad (admin, API Key)
+router.post(
+  "/",
+  apiKeyMiddleware,
+  authMiddleware.protect,
+  authMiddleware.esAdmin,
+  especialidadController.create
+);
+
+// PUT - editar especialidad (admin, API Key)
+router.put(
+  "/:id",
+  apiKeyMiddleware,
+  authMiddleware.protect,
+  authMiddleware.esAdmin,
+  especialidadController.update
+);
+
+// DELETE - eliminar especialidad (admin, API Key)
+router.delete(
+  "/:id",
+  apiKeyMiddleware,
+  authMiddleware.protect,
+  authMiddleware.esAdmin,
+  especialidadController.remove
+);
+
 module.exports = router;

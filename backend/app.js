@@ -16,7 +16,7 @@ const categoriaRoutes = require("./routes/categoria.routes.js");
 const pagoRoutes = require("./routes/pago.routes.js");
 const notificacionRoutes = require("./routes/notificacion.routes.js");
 const logRoutes = require("./routes/log.routes.js");
-const expertoRoutes = require("./routes/experto");
+const expertoRoutes = require("./routes/experto.routes.js");
 // Rutas para entidades tecnológicas (registro de expertos)
 const especialidadRoutes = require("./routes/especialidad.routes.js");
 const habilidadRoutes = require("./routes/habilidad.routes.js");
@@ -28,7 +28,7 @@ const app = express();
 const session = require("express-session");
 app.use(
   session({
-    secret: "servitech-secret", // Cambia por una clave segura en producción
+    secret: "servitech-secret", // Cambiar por una clave segura en producción
     resave: false,
     saveUninitialized: false,
     cookie: {
