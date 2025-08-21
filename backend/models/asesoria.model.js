@@ -61,10 +61,8 @@ const asesoriaSchema = new Schema(
       enum: [
         "pendiente-pago",
         "confirmada",
-        "en-curso",
         "completada",
         "cancelada",
-        "reembolsada",
       ],
       default: "pendiente-pago",
     },
