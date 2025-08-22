@@ -1,44 +1,40 @@
 /**
- * RUTAS DE USUARIO
- * Define los endpoints para las operaciones relacionadas con usuarios.
+ * RUTAS DE USUARIO - Identificación por email
  */
 const express = require("express");
 const router = express.Router();
 
-// Importamos el controlador completo
 const usuarioController = require("../controllers/usuario.controller.js");
 const authMiddleware = require("../middleware/auth.middleware.js");
 const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
 
-// --- Definición de Rutas ---
-
-// Rutas públicas (no requieren token)
+// Rutas públicas
 router.post("/registro", usuarioController.registrarUsuario);
 router.post("/login", usuarioController.iniciarSesion);
-
-// Recuperación de contraseña
 router.post(
   "/recuperar-password",
   usuarioController.solicitarRecuperacionPassword
 );
 router.post("/reset-password", usuarioController.resetearPassword);
 
-
 // Rutas protegidas (requieren token)
-
-// Obtener perfil de usuario
 router.get(
   "/perfil",
   authMiddleware.protect,
   usuarioController.obtenerPerfilUsuario
 );
-// Actualizar perfil de usuario
 router.put(
   "/perfil",
   authMiddleware.protect,
   usuarioController.actualizarPerfilUsuario
 );
-// GET usuarios: solo admin, sin API Key
+router.delete(
+  "/perfil",
+  authMiddleware.protect,
+  usuarioController.eliminarUsuarioPropio
+);
+
+// Listar usuarios (admin - filtro por email, estado, roles)
 router.get(
   "/",
   authMiddleware.protect,
@@ -46,16 +42,23 @@ router.get(
   usuarioController.obtenerUsuarios
 );
 
-// Eliminar usuario propio (requiere token)
-router.delete(
-  "/perfil",
+// CRUD individual de usuario por email (admin + API Key)
+router.get(
+  "/:email",
+  apiKeyMiddleware,
   authMiddleware.protect,
-  usuarioController.eliminarUsuarioPropio
+  authMiddleware.esAdmin,
+  usuarioController.obtenerUsuarioPorEmailAdmin
 );
-
-// Eliminar usuario por admin (requiere token admin + API Key)
+router.put(
+  "/:email",
+  apiKeyMiddleware,
+  authMiddleware.protect,
+  authMiddleware.esAdmin,
+  usuarioController.actualizarUsuarioPorEmailAdmin
+);
 router.delete(
-  "/:id",
+  "/:email",
   apiKeyMiddleware,
   authMiddleware.protect,
   authMiddleware.esAdmin,

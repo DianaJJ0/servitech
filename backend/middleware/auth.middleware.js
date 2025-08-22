@@ -1,97 +1,57 @@
 /**
- * MIDDLEWARE DE AUTENTICACIÓN
- * Protege las rutas verificando el token JWT y los roles del usuario.
+ * MIDDLEWARE DE AUTENTICACIÓN - Identificación por email
  */
-const jwt = require("jsonwebtoken"); // Importa la librería jsonwebtoken para manejar JWT
-const Usuario = require("../models/usuario.model.js"); // Importa el modelo de usuario de la base de datos
+const jwt = require("jsonwebtoken");
+const Usuario = require("../models/usuario.model.js");
 
-/**
- * Middleware principal para proteger rutas. Verifica el token y añade el usuario a 'req'.
- * Usado por las rutas de usuario.
- */
+// Middleware para proteger rutas
 const protect = async (req, res, next) => {
-  console.log(
-    "[AUTH] Middleware protect ejecutado. Header:",
-    req.headers.authorization
-  );
-  // Log antes de verificar el token
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith("Bearer")
   ) {
-    console.log("[AUTH] Intentando verificar token...");
-  }
-  // Define el middleware 'protect' como función asíncrona, next es una función de callback para continuar con el siguiente middleware
-  let token; // Inicializa la variable 'token' para almacenar el JWT
+    let token = req.headers.authorization.split(" ")[1];
 
-  if (
-    req.headers.authorization && // Verifica si existe el header 'authorization'
-    req.headers.authorization.startsWith("Bearer") // Verifica si el header comienza con 'Bearer'
-  ) {
     try {
-      token = req.headers.authorization.split(" ")[1]; // Extrae el token JWT del header
-      console.log("[AUTH] Token extraído:", token);
-      const decoded = jwt.verify(token, process.env.JWT_SECRET); // Verifica y decodifica el token usando la clave secreta
-
-      // Decodifica el token y obtiene el ID del usuario
-      console.log("[AUTH] Token verificado. Decoded:", decoded);
-      req.usuario = await Usuario.findById(decoded.id).select("-password"); // Busca el usuario por ID y excluye el campo 'password'
-      console.log("[AUTH] Resultado búsqueda usuario:", req.usuario);
-      if (!req.usuario) {
-        // Si no se encuentra el usuario
-        console.error(
-          "[AUTH] Usuario no encontrado para el token:",
-          decoded.id
-        );
-        return res
-          .status(401) // Devuelve estado 401 (no autorizado)
-          .json({
-            mensaje: "No autorizado, el usuario del token ya no existe.", // Mensaje de error si el usuario no existe
-          });
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const usuario = await Usuario.findById(decoded.id).select("-password");
+      if (!usuario) {
+        return res.status(401).json({
+          mensaje: "No autorizado, el usuario del token ya no existe.",
+        });
       }
-      next(); // Si todo es correcto, llama al siguiente middleware
+      // Guardar _id, email y roles para los controladores
+      req.usuario = {
+        _id: usuario._id,
+        email: usuario.email,
+        roles: usuario.roles,
+      };
+      next();
     } catch (error) {
-      // Si ocurre algún error en la verificación del token
-      console.error(
-        "[AUTH] Error al verificar token:",
-        error.message,
-        "Token recibido:",
-        token
-      );
       return res
-        .status(401) // Devuelve estado 401 (no autorizado)
-        .json({ mensaje: "No autorizado, token inválido o expirado." }); // Mensaje de error si el token es inválido o expiró
+        .status(401)
+        .json({ mensaje: "No autorizado, token inválido o expirado." });
     }
-  }
-
-  if (!token) {
-    // Si no se proporcionó un token
-    console.error("[AUTH] No se proporcionó token en la petición.");
+  } else {
     return res
-      .status(401) // Devuelve estado 401 (no autorizado)
-      .json({ mensaje: "No autorizado, no se proporcionó un token." }); // Mensaje de error si falta el token
+      .status(401)
+      .json({ mensaje: "No autorizado, no se proporcionó un token." });
   }
 };
 
-/**
- * Middleware para verificar si el usuario tiene rol de 'admin'.
- * Debe usarse DESPUÉS de 'protect' o 'protegerRuta'.
- */
+// Middleware para verificar si el usuario es administrador
 const esAdmin = (req, res, next) => {
-  // Define el middleware 'esAdmin'
   if (req.usuario && req.usuario.roles.includes("admin")) {
-    // Verifica si el usuario existe y tiene el rol 'admin'
-    next(); // Si es admin, llama al siguiente middleware
+    next();
   } else {
     res
-      .status(403) // Devuelve estado 403 (acceso denegado)
-      .json({ mensaje: "Acceso denegado. Se requiere rol de administrador." }); // Mensaje de error si no es admin
+      .status(403)
+      .json({ mensaje: "Acceso denegado. Se requiere rol de administrador." });
   }
 };
 
-// 'protegerRuta' será un alias de 'protect' para mantener la compatibilidad con archivos.
 module.exports = {
-  protect, // Exporta el middleware 'protect'
-  protegerRuta: protect, // Exporta 'protect' bajo el alias 'protegerRuta'
-  esAdmin, // Exporta el middleware 'esAdmin'
+  protect,
+  protegerRuta: protect,
+  esAdmin,
 };

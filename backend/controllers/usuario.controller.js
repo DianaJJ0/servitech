@@ -1,6 +1,7 @@
 /**
  * CONTROLADOR DE USUARIOS
  * Lógica de negocio para registro, inicio de sesión, recuperación y gestión de perfiles.
+ * Valida que el admin no pueda asignar el rol "experto" sin infoExperto completa (solo en edición por admin).
  */
 const Usuario = require("../models/usuario.model.js");
 const jwt = require("jsonwebtoken");
@@ -13,7 +14,7 @@ const generarToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "2d" });
 };
 
-// Registro de usuario nuevo (ahora permite roles personalizados)
+// Registro de usuario nuevo (sin validación extra)
 const registrarUsuario = async (req, res) => {
   const { nombre, apellido, email, password, roles } = req.body;
   try {
@@ -105,7 +106,7 @@ const iniciarSesion = async (req, res) => {
 // Obtiene datos del perfil del usuario autenticado
 const obtenerPerfilUsuario = async (req, res) => {
   try {
-    const usuario = await Usuario.findById(req.usuario.id).select(
+    const usuario = await Usuario.findById(req.usuario._id).select(
       "-passwordHash"
     );
     if (!usuario) {
@@ -224,46 +225,52 @@ const resetearPassword = async (req, res) => {
 const actualizarPerfilUsuario = async (req, res) => {
   try {
     const datos = req.body;
-    const usuario = await Usuario.findById(req.usuario.id);
+    const usuario = await Usuario.findById(req.usuario._id);
 
     if (!usuario) {
       return res.status(404).json({ mensaje: "Usuario no encontrado." });
     }
 
+    // --- VALIDACIÓN SEGURA DE CATEGORÍAS ---
     let categoriasArray = [];
     if (datos.categorias) {
       if (Array.isArray(datos.categorias)) {
-        categoriasArray = datos.categorias.map(
-          (id) => new mongoose.Types.ObjectId(id)
-        );
+        categoriasArray = datos.categorias
+          .map((id) => typeof id === "string" && id.match(/^[0-9a-fA-F]{24}$/) ? new mongoose.Types.ObjectId(id) : null)
+          .filter((id) => id !== null);
       } else if (typeof datos.categorias === "string") {
         categoriasArray = datos.categorias
           .split(",")
-          .map((id) => new mongoose.Types.ObjectId(id.trim()));
+          .map((id) => id.trim())
+          .filter((id) => id.length === 24 && id.match(/^[0-9a-fA-F]{24}$/))
+          .map((id) => new mongoose.Types.ObjectId(id));
       }
     }
 
+    // --- VALIDACIÓN DE SKILLS ---
     let skillsArray = [];
     if (datos.skills) {
       if (Array.isArray(datos.skills)) {
-        skillsArray = datos.skills;
+        skillsArray = datos.skills.map((skill) => String(skill));
       } else if (typeof datos.skills === "string") {
         skillsArray = datos.skills.split(",").map((skill) => skill.trim());
       }
     }
 
+    // --- VALIDACIÓN DE DÍAS DISPONIBLES ---
     let diasArray = [];
     if (datos.diasDisponibles) {
       if (Array.isArray(datos.diasDisponibles)) {
-        diasArray = datos.diasDisponibles;
+        diasArray = datos.diasDisponibles.map((dia) => String(dia));
       } else if (typeof datos.diasDisponibles === "string") {
         diasArray = datos.diasDisponibles.split(",").map((dia) => dia.trim());
       }
     }
 
+    // --- Actualiza infoExperto solo si hay datos relevantes ---
     if (
       datos.descripcion ||
-      datos.precio ||
+      datos.precioPorHora ||
       categoriasArray.length > 0 ||
       datos.especialidad ||
       skillsArray.length > 0 ||
@@ -271,7 +278,7 @@ const actualizarPerfilUsuario = async (req, res) => {
     ) {
       usuario.infoExperto = {
         descripcion: datos.descripcion,
-        precioPorHora: datos.precio,
+        precioPorHora: datos.precioPorHora,
         diasDisponibles: diasArray,
         categorias: categoriasArray,
         especialidad: datos.especialidad,
@@ -292,9 +299,7 @@ const actualizarPerfilUsuario = async (req, res) => {
     if (datos.nombre) usuario.nombre = datos.nombre;
     if (datos.apellido) usuario.apellido = datos.apellido;
     if (datos.email) usuario.email = datos.email;
-    if (datos.avatarUrl) {
-      usuario.avatarUrl = datos.avatarUrl;
-    }
+    if (datos.avatarUrl) usuario.avatarUrl = datos.avatarUrl;
 
     await usuario.save();
     res.json(usuario);
@@ -307,7 +312,7 @@ const actualizarPerfilUsuario = async (req, res) => {
 // Desactiva el usuario autenticado (no lo elimina de la base de datos)
 const eliminarUsuarioPropio = async (req, res) => {
   try {
-    const usuarioId = req.usuario.id;
+    const usuarioId = req.usuario._id;
     // Busca el usuario
     const usuario = await Usuario.findById(usuarioId);
     if (!usuario) {
@@ -338,11 +343,75 @@ const eliminarUsuarioPorAdmin = async (req, res) => {
     res.json({ mensaje: "Usuario desactivado correctamente por el admin." });
   } catch (error) {
     console.error("Error al desactivar usuario por admin:", error);
-    res
-      .status(500)
-      .json({
-        mensaje: "Error interno del servidor al desactivar el usuario.",
-      });
+    res.status(500).json({
+      mensaje: "Error interno del servidor al desactivar el usuario.",
+    });
+  }
+};
+
+// --- EDITAR USUARIO POR EMAIL (ADMIN) ---
+// Solo valida que si se asigna el rol experto, infoExperto debe estar presente y completo
+const actualizarUsuarioPorEmailAdmin = async (req, res) => {
+  try {
+    const email = req.params.email;
+    const datos = req.body;
+    const usuario = await Usuario.findOne({ email });
+    if (!usuario) {
+      return res.status(404).json({ mensaje: "Usuario no encontrado." });
+    }
+
+    // Si se le asigna el rol experto, infoExperto debe estar completo
+    if (datos.roles && datos.roles.includes("experto")) {
+      if (
+        !datos.infoExperto ||
+        !datos.infoExperto.descripcion ||
+        !datos.infoExperto.precioPorHora ||
+        !datos.infoExperto.especialidad ||
+        !datos.infoExperto.categorias ||
+        !datos.infoExperto.skills ||
+        !datos.infoExperto.banco ||
+        !datos.infoExperto.tipoCuenta ||
+        !datos.infoExperto.numeroCuenta ||
+        !datos.infoExperto.titular ||
+        !datos.infoExperto.tipoDocumento ||
+        !datos.infoExperto.numeroDocumento
+      ) {
+        return res.status(400).json({
+          mensaje:
+            "Para asignar el rol 'experto' debes llenar toda la información de experto (infoExperto).",
+        });
+      }
+      usuario.infoExperto = datos.infoExperto;
+    } else {
+      usuario.infoExperto = undefined;
+    }
+
+    if (datos.nombre) usuario.nombre = datos.nombre;
+    if (datos.apellido) usuario.apellido = datos.apellido;
+    if (datos.estado) usuario.estado = datos.estado;
+    if (datos.roles) usuario.roles = datos.roles;
+    if (datos.avatarUrl) usuario.avatarUrl = datos.avatarUrl;
+    if (datos.email) usuario.email = datos.email;
+
+    await usuario.save();
+    res.json({ mensaje: "Usuario actualizado correctamente.", usuario });
+  } catch (error) {
+    console.error("Error al actualizar usuario por admin:", error);
+    res.status(500).json({ mensaje: "Error interno al actualizar usuario." });
+  }
+};
+
+// Obtener usuario individual por email (admin)
+const obtenerUsuarioPorEmailAdmin = async (req, res) => {
+  try {
+    const email = req.params.email;
+    const usuario = await Usuario.findOne({ email }).select("-passwordHash");
+    if (!usuario) {
+      return res.status(404).json({ mensaje: "Usuario no encontrado." });
+    }
+    res.json(usuario);
+  } catch (error) {
+    res.status(500).json({ mensaje: "Error interno al obtener usuario." });
   }
 };
 
@@ -356,4 +425,6 @@ module.exports = {
   actualizarPerfilUsuario,
   eliminarUsuarioPropio,
   eliminarUsuarioPorAdmin,
+  actualizarUsuarioPorEmailAdmin,
+  obtenerUsuarioPorEmailAdmin,
 };
