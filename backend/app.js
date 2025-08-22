@@ -9,7 +9,6 @@ const multer = require("multer");
 const upload = multer();
 const path = require("path");
 
-
 // se llaman todas las rutas
 const usuarioRoutes = require("./routes/usuario.routes.js");
 const categoriaRoutes = require("./routes/categoria.routes.js");
@@ -25,7 +24,6 @@ conectarDB();
 const app = express();
 const session = require("express-session");
 app.use(
-  // Middleware de sesión para manejar la autenticación de usuarios 
   session({
     secret: "servitech-secret",
     resave: false,
@@ -65,7 +63,7 @@ app.use("/api/categorias", categoriaRoutes);
 app.use("/api/pagos", pagoRoutes);
 app.use("/api/notificaciones", notificacionRoutes);
 app.use("/api/logs", logRoutes);
-app.use("/", expertoRoutes);
+app.use("/api/usuarios/expertos", expertoRoutes); 
 app.use("/api/especialidades", especialidadRoutes);
 app.use("/api/habilidades", habilidadRoutes);
 
