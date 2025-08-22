@@ -18,6 +18,7 @@ const logRoutes = require("./routes/log.routes.js");
 const expertoRoutes = require("./routes/experto.routes.js");
 const especialidadRoutes = require("./routes/especialidad.routes.js");
 const habilidadRoutes = require("./routes/habilidad.routes.js");
+const asesoriaRoutes = require("./routes/asesoria.routes.js");
 
 // Conectar a la base de datos
 conectarDB();
@@ -63,9 +64,10 @@ app.use("/api/categorias", categoriaRoutes);
 app.use("/api/pagos", pagoRoutes);
 app.use("/api/notificaciones", notificacionRoutes);
 app.use("/api/logs", logRoutes);
-app.use("/api/usuarios/expertos", expertoRoutes); 
+app.use("/api/usuarios/expertos", expertoRoutes);
 app.use("/api/especialidades", especialidadRoutes);
 app.use("/api/habilidades", habilidadRoutes);
+app.use("/api/asesorias", asesoriaRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
