@@ -1,3 +1,5 @@
+@import url("base.css");
+
 /* Estilos base existentes se mantienen */
 .container.mt-3 {
   max-width: var(--content-max-width);

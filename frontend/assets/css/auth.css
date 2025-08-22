@@ -1,4 +1,4 @@
-/* auth.css - Estilos compartidos para páginas de autenticación (login y registro) */
+/* auth-login.css - Estilos específicos para página de login */
 @import url("base.css");
 
 .auth-container {
@@ -11,11 +11,6 @@
   flex-direction: column;
   min-height: 100vh;
   justify-content: center;
-}
-
-/* Modifier for wider auth container (e.g., password recovery) */
-.auth-container--wide {
-  max-width: 28.125rem;
 }
 
 .auth-card {
@@ -161,81 +156,58 @@
   transform: translateY(-0.125rem);
 }
 
-.remember-me {
+/* ESTILOS MEJORADOS PARA reCAPTCHA */
+.g-recaptcha {
   display: flex;
-  align-items: center;
-  margin-bottom: 1.25rem;
+  justify-content: center;
+  margin: 0 auto 1.375rem auto;
+  overflow: hidden;
+  min-height: 78px; /* Altura mínima para evitar saltos de layout */
 }
 
-.checkbox-container {
-  display: flex;
-  align-items: center;
-  position: relative;
-  padding-left: 1.875rem;
-  cursor: pointer;
-  font-size: 0.875rem;
-  color: var(--text-light);
+/* Contenedor principal de reCAPTCHA */
+.g-recaptcha > div {
+  margin: 0 auto !important;
+  display: flex !important;
+  justify-content: center !important;
 }
 
-.checkbox-container input {
-  position: absolute;
-  opacity: 0;
-  cursor: pointer;
-  height: 0;
-  width: 0;
+/* Ajuste responsivo para móviles */
+@media (max-width: 400px) {
+  .g-recaptcha {
+    transform: scale(0.95);
+    transform-origin: center center;
+  }
 }
 
-.checkmark {
-  position: absolute;
-  left: 0;
-  height: 1.125rem;
-  width: 1.125rem;
-  background-color: var(--input-bg);
-  border: 0.0625rem solid var(--border-color);
-  border-radius: 0.25rem;
-  transition: var(--transition);
+@media (max-width: 340px) {
+  .g-recaptcha {
+    transform: scale(0.85);
+  }
 }
 
-.checkbox-container:hover input ~ .checkmark {
-  border-color: var(--primary-color);
+/* Mejorar la apariencia del badge en modo oscuro/claro */
+.grecaptcha-badge {
+  transition: opacity 0.3s ease;
 }
 
-.checkbox-container input:checked ~ .checkmark {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
+.grecaptcha-badge:hover {
+  opacity: 0.8;
 }
 
-.checkmark:after {
-  content: "";
-  position: absolute;
-  display: none;
-}
-
-.checkbox-container input:checked ~ .checkmark:after {
-  display: block;
-}
-
-.checkbox-container .checkmark:after {
-  left: 0.375rem;
-  top: 0.125rem;
-  width: 0.25rem;
-  height: 0.5625rem;
-  border: solid white;
-  border-width: 0 0.125rem 0.125rem 0;
-  transform: rotate(45deg);
-}
-
-.forgot-password {
-  display: block;
+.forgot-pass-link {
+  margin-top: 0.5rem;
   text-align: right;
+}
+
+.forgot-pass-link a {
   font-size: 0.875rem;
   color: var(--primary-color);
   text-decoration: none;
-  margin-top: 0.5rem;
   transition: var(--transition);
 }
 
-.forgot-password:hover {
+.forgot-pass-link a:hover {
   color: var(--primary-hover);
   text-decoration: underline;
 }
@@ -295,67 +267,6 @@
   transform: translateX(0.25rem);
 }
 
-.divider {
-  display: flex;
-  align-items: center;
-  margin: 1.5625rem 0;
-}
-
-.divider::before,
-.divider::after {
-  content: "";
-  flex: 1;
-  border-bottom: 0.0625rem solid var(--border-color);
-}
-
-.divider span {
-  padding: 0 0.9375rem;
-  color: var(--text-light);
-  font-size: 0.875rem;
-}
-
-.social-login {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.social-login button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  padding: 0.875rem;
-  background-color: var(--input-bg);
-  border: 0.0625rem solid var(--border-light);
-  border-radius: var(--btn-radius);
-  color: var(--text-color);
-  font-size: 1rem;
-  cursor: pointer;
-  transition: var(--transition);
-  font-weight: 500;
-  position: relative;
-  overflow: hidden;
-}
-
-.social-login button:hover {
-  background-color: rgba(42, 42, 42, 0.8);
-  transform: translateY(-0.125rem);
-  box-shadow: var(--hover-shadow);
-}
-
-.social-login button i {
-  font-size: 1.125rem;
-}
-
-.google-login i {
-  color: #ea4335;
-}
-
-.github-login i {
-  color: var(--text-color);
-}
-
 .auth-footer {
   text-align: center;
   margin-top: 1.5625rem;
@@ -395,56 +306,9 @@
   transform: translateX(-0.3125rem);
 }
 
-/* Estilo específico para el botón en registro de experto */
-.back-home a:hover {
-  background-color: rgba(255, 255, 255, 0.1) !important;
-  color: var(--primary-color) !important;
-  transform: translateX(-0.2rem) !important;
-}
-
 .back-home i {
   margin-right: 0.3125rem;
   font-size: 0.75rem;
-}
-
-.auth-date {
-  text-align: center;
-  margin-top: 0.75rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--border-color);
-}
-
-.auth-date small {
-  color: var(--text-light);
-  font-size: 0.75rem;
-  font-style: italic;
-}
-
-/* Estilos específicos para registro */
-.terms-policy {
-  font-size: 0.8125rem;
-  color: var(--text-light);
-  margin-top: 0.9375rem;
-  text-align: center;
-}
-
-.terms-policy a {
-  color: var(--primary-color);
-  text-decoration: none;
-}
-
-.terms-policy a:hover {
-  text-decoration: underline;
-}
-
-@media (max-width: 576px) {
-  .auth-card {
-    padding: 1.875rem 1.25rem;
-  }
-
-  .auth-header h1 {
-    font-size: 1.375rem;
-  }
 }
 
 .error-message {
@@ -462,157 +326,26 @@
   font-size: 0.75rem;
   color: var(--text-light);
   margin-top: 0.3125rem;
+  margin-bottom: 0.5rem;
 }
 
-.requirement {
+.password-requirements li {
   margin-bottom: 0.1875rem;
   display: flex;
   align-items: center;
 }
 
-.requirement i {
+.password-requirements li i {
   margin-right: 0.3125rem;
   font-size: 0.625rem;
 }
 
-.requirement-met i {
-  color: #4caf50;
-}
+@media (max-width: 576px) {
+  .auth-card {
+    padding: 1.875rem 1.25rem;
+  }
 
-.requirement-not-met i {
-  color: #ff5050;
-}
-
-#registroExitoso {
-  display: none;
-  background-color: rgba(76, 175, 80, 0.1);
-  border: 0.0625rem solid #4caf50;
-  color: #4caf50;
-  padding: 0.625rem;
-  border-radius: 0.375rem;
-  margin-bottom: 0.9375rem;
-  text-align: center;
-}
-
-
-/* VALIDACIONES VISUALES DE CONTRASEÑA */
-:root {
-  --success-color: #1da53c;
-  --error-color: #a91826;
-  --criteria-color: #bababa;
-  --criteria-bg: transparent;
-}
-
-.password-requirements {
-  margin: 0.5em 0 0.2em 0;
-  padding: 0;
-  font-size: 0.98rem;
-  background: var(--criteria-bg);
-}
-
-.requirement {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  color: var(--criteria-color);
-  margin-bottom: 2px;
-  font-weight: 400;
-  transition: color 0.2s, font-weight 0.2s;
-}
-
-.requirement i {
-  font-size: 1rem;
-  width: 18px;
-  min-width: 18px;
-  text-align: center;
-  transition: color 0.2s;
-}
-
-/* Estado válido */
-.requirement.valid {
-  color: var(--success-color);
-  font-weight: 600;
-}
-.requirement.valid i {
-  color: var(--success-color);
-}
-/* Estado inválido */
-.requirement.invalid {
-  color: var(--error-color);
-  font-weight: 500;
-}
-.requirement.invalid i {
-  color: var(--error-color);
-}
-
-/* Checkbox subtítulo y pequeño */
-.checkbox-group {
-  margin-bottom: 0.65rem;
-}
-.checkbox-container.small {
-  display: flex;
-  align-items: center;
-  position: relative;
-  padding-left: 1.25em;
-  margin-bottom: 0.1em;
-  cursor: pointer;
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  font-weight: 500;
-}
-.checkbox-container.small .checkbox-text {
-  margin-left: 0.6em;
-  color: var(--text-secondary, #bbb);
-  font-size: 0.92em;
-  font-weight: 500;
-  opacity: 0.85;
-}
-.checkbox-container.small input[type="checkbox"] {
-  position: absolute;
-  left: 0.1em;
-  top: 0.1em;
-  width: 0.95em;
-  height: 0.95em;
-  margin: 0;
-  opacity: 0;
-  cursor: pointer;
-}
-.checkbox-container.small .checkmark {
-  position: absolute;
-  left: 0;
-  top: 0.15em;
-  height: 0.95em;
-  width: 0.95em;
-  background-color: var(--input-bg, #222);
-  border: 1.5px solid var(--border-color, #595959);
-  border-radius: 0.18em;
-  transition: border-color 0.2s;
-}
-.checkbox-container.small input:checked ~ .checkmark {
-  background-color: var(--success-color);
-  border-color: var(--success-color);
-}
-.checkbox-container.small .checkmark:after {
-  content: "";
-  position: absolute;
-  display: none;
-}
-.checkbox-container.small input:checked ~ .checkmark:after {
-  display: block;
-}
-.checkbox-container.small .checkmark:after {
-  left: 0.26em;
-  top: 0.03em;
-  width: 0.19em;
-  height: 0.44em;
-  border: solid white;
-  border-width: 0 0.11em 0.11em 0;
-  transform: rotate(45deg);
-}
-.error-message {
-  color: var(--error-color);
-  font-size: 0.83rem;
-  margin: 0.2em 0 0.3em 0;
-  display: none;
-  font-weight: 500;
+  .auth-header h1 {
+    font-size: 1.375rem;
+  }
 }
