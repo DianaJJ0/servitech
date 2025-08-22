@@ -10,7 +10,7 @@ const pagoSchema = new Schema(
     asesoriaId: {
       type: Schema.Types.ObjectId,
       ref: "Asesoria",
-      required: true,
+      required: false,
     }, // Relación con asesoría
     clienteId: { type: Schema.Types.ObjectId, ref: "Usuario", required: true }, // Cliente pagador
     expertoId: { type: Schema.Types.ObjectId, ref: "Usuario", required: true }, // Experto receptor

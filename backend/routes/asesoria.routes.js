@@ -1,14 +1,21 @@
 /**
  * RUTAS DE ASESORÍAS
- * CRUD y consultas por email de cliente y experto.
+ * CRUD y flujo de pago + finalización.
  */
 const express = require("express");
 const router = express.Router();
 const asesoriaController = require("../controllers/asesoria.controller.js");
 const authMiddleware = require("../middleware/auth.middleware.js");
 
-// Crear asesoría (protegido, cualquier usuario autenticado)
+// Crear asesoría (protegido)
 router.post("/", authMiddleware.protect, asesoriaController.crearAsesoria);
+
+// Finalizar asesoría y liberar pago (cliente autenticado)
+router.put(
+  "/:id/finalizar",
+  authMiddleware.protect,
+  asesoriaController.finalizarAsesoria
+);
 
 // Listar todas (admin)
 router.get(
