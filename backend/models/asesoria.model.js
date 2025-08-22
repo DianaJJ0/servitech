@@ -1,15 +1,12 @@
 /**
- * MODELO DE ASESORÍA (DESNORMALIZADO) - SERVITECH
- * Contiene toda la información necesaria para una asesoría en un solo documento,
- * incluyendo datos del cliente y experto, para minimizar consultas a la base de datos.
- */
+ * MODELO DE ASESORÍA - SERVITECH
+ * Contiene toda la información necesaria para una asesoría en un solo documento */
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 /**
  * Define la estructura para la información de un participante (cliente o experto).
  * Es un sub-esquema, lo que significa que es un objeto anidado dentro de Asesoria.
- * Almacena una copia de los datos en el momento de la creación de la asesoría.
  */
 const infoParticipanteSchema = new Schema(
   {
@@ -91,7 +88,7 @@ const asesoriaSchema = new Schema(
       iniciadaEn: Date,
       finalizadaEn: Date,
     },
-    // La reseña asociada a esta asesoría (RF-CAL-01 y RF-CAL-02).
+    // La reseña asociada a esta asesoría 
     reseña: {
       calificacion: { type: Number, min: 1, max: 5 },
       comentario: String,

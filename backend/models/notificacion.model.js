@@ -8,6 +8,7 @@ const { Schema } = mongoose;
 const notificacionSchema = new Schema(
   {
     usuarioId: { type: Schema.Types.ObjectId, ref: "Usuario", required: true }, // Usuario destinatario
+    email: { type: String, required: true }, // Email del destinatario
     tipo: { type: String, required: true }, // email, sms, push
     asunto: String, // Asunto del mensaje
     mensaje: String, // Texto enviado
@@ -15,7 +16,6 @@ const notificacionSchema = new Schema(
       tipo: String, // Ej: "Asesoria", "Pago"
       referenciaId: Schema.Types.ObjectId, // Relación opcional
     },
-    // Estado de la notificación 
     estado: {
       type: String,
       enum: ["pendiente", "enviado", "fallido"],

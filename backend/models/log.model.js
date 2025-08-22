@@ -8,6 +8,7 @@ const { Schema } = mongoose;
 const logSchema = new Schema(
   {
     usuarioId: { type: Schema.Types.ObjectId, ref: "Usuario" }, // Usuario que hizo la acción
+    email: { type: String, required: true }, // Email del usuario
     tipo: { type: String, required: true }, // login, cambio-estado, pago, admin
     descripcion: { type: String, required: true }, // Breve descripción de la acción
     entidad: { type: String }, // Ej: Usuario, Asesoria, Pago

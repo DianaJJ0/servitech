@@ -3,6 +3,9 @@
  * Lógica para registrar, listar y actualizar pagos asociados a asesorías.
  */
 const Pago = require("../models/pago.model.js");
+const Usuario = require("../models/usuario.model.js");
+const Notificacion = require("../models/notificacion.model.js");
+const Log = require("../models/log.model.js");
 
 const crearPago = async (req, res) => {
   try {
@@ -62,6 +65,39 @@ const crearPago = async (req, res) => {
     // Registro normal
     const nuevoPago = new Pago(datosPago);
     await nuevoPago.save();
+
+    // Registrar notificación a cliente y log
+    try {
+      const cliente = await Usuario.findById(nuevoPago.clienteId);
+      if (cliente) {
+        const asunto = "Confirmación de pago";
+        const mensaje = `Tu pago de $${nuevoPago.monto} COP se ha registrado correctamente para la asesoría.`;
+
+        await Notificacion.create({
+          usuarioId: cliente._id,
+          email: cliente.email,
+          tipo: "email",
+          asunto,
+          mensaje,
+          relacionadoCon: { tipo: "Pago", referenciaId: nuevoPago._id },
+          estado: "enviado",
+          fechaEnvio: new Date(),
+        });
+        await Log.create({
+          usuarioId: cliente._id,
+          email: cliente.email,
+          tipo: "pago",
+          descripcion: "Registro de pago",
+          entidad: "Pago",
+          referenciaId: nuevoPago._id,
+          datos: { asunto, mensaje },
+        });
+      }
+    } catch (e) {
+      // No detiene la creación si la notificación/log falla
+      console.error("Error registrando notificación/log de pago:", e);
+    }
+
     res.status(201).json({ mensaje: "Pago registrado.", pago: nuevoPago });
   } catch (error) {
     // Error de validación de MongoDB
@@ -137,6 +173,41 @@ const actualizarEstadoPago = async (req, res) => {
       { new: true }
     );
     if (!pago) return res.status(404).json({ mensaje: "Pago no encontrado." });
+
+    // Registrar notificación/log por cambio de estado
+    try {
+      const cliente = await Usuario.findById(pago.clienteId);
+      if (cliente) {
+        const asunto = "Actualización de estado de pago";
+        const mensaje = `Tu pago ha cambiado de estado a "${estado}".`;
+
+        await Notificacion.create({
+          usuarioId: cliente._id,
+          email: cliente.email,
+          tipo: "email",
+          asunto,
+          mensaje,
+          relacionadoCon: { tipo: "Pago", referenciaId: pago._id },
+          estado: "enviado",
+          fechaEnvio: new Date(),
+        });
+        await Log.create({
+          usuarioId: cliente._id,
+          email: cliente.email,
+          tipo: "pago",
+          descripcion: "Actualización de estado de pago",
+          entidad: "Pago",
+          referenciaId: pago._id,
+          datos: { asunto, mensaje, nuevoEstado: estado },
+        });
+      }
+    } catch (e) {
+      console.error(
+        "Error registrando notificación/log actualización pago:",
+        e
+      );
+    }
+
     res.status(200).json({ mensaje: "Estado actualizado.", pago });
   } catch (error) {
     res.status(500).json({

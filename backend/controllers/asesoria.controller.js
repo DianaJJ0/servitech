@@ -5,6 +5,8 @@
 const Asesoria = require("../models/asesoria.model.js");
 const Pago = require("../models/pago.model.js");
 const Usuario = require("../models/usuario.model.js");
+const Notificacion = require("../models/notificacion.model.js");
+const Log = require("../models/log.model.js");
 const { enviarCorreo } = require("../services/email.service.js");
 
 // Crear una nueva asesoría (requiere objeto de pago ya creado y exitoso)
@@ -56,34 +58,73 @@ const crearAsesoria = async (req, res) => {
       asesoriaId: asesoria._id,
     });
 
-    // Enviar correo de confirmación de asesoría al cliente y experto
+    // Enviar correo y registrar notificación/log
     try {
       const cliente = await Usuario.findOne({ email: datos.cliente.email });
       const experto = await Usuario.findOne({ email: datos.experto.email });
 
       if (cliente) {
-        await enviarCorreo(
-          cliente.email,
-          "Confirmación de asesoría agendada",
-          `Hola ${cliente.nombre}, tu asesoría con ${
-            experto ? experto.nombre : datos.experto.nombre
-          } está agendada para ${datos.fechaHoraInicio}.`
-        );
+        const asuntoCliente = "Confirmación de asesoría agendada";
+        const mensajeCliente = `Hola ${cliente.nombre}, tu asesoría con ${
+          experto ? experto.nombre : datos.experto.nombre
+        } está agendada para ${datos.fechaHoraInicio}.`;
+        await enviarCorreo(cliente.email, asuntoCliente, mensajeCliente);
+
+        // Guardar notificación en la DB
+        await Notificacion.create({
+          usuarioId: cliente._id,
+          email: cliente.email,
+          tipo: "email",
+          asunto: asuntoCliente,
+          mensaje: mensajeCliente,
+          relacionadoCon: { tipo: "Asesoria", referenciaId: asesoria._id },
+          estado: "enviado",
+          fechaEnvio: new Date(),
+        });
+
+        // Guardar log en la DB
+        await Log.create({
+          usuarioId: cliente._id,
+          email: cliente.email,
+          tipo: "asesoria",
+          descripcion:
+            "Creación de asesoría y envío de confirmación al cliente",
+          entidad: "Asesoria",
+          referenciaId: asesoria._id,
+          datos: { asunto: asuntoCliente, mensaje: mensajeCliente },
+        });
       }
       if (experto) {
-        await enviarCorreo(
-          experto.email,
-          "Nueva asesoría agendada",
-          `Hola ${
-            experto.nombre
-          }, tienes una nueva asesoría agendada con el cliente ${
-            cliente ? cliente.nombre : datos.cliente.nombre
-          } para ${datos.fechaHoraInicio}.`
-        );
+        const asuntoExperto = "Nueva asesoría agendada";
+        const mensajeExperto = `Hola ${
+          experto.nombre
+        }, tienes una nueva asesoría agendada con el cliente ${
+          cliente ? cliente.nombre : datos.cliente.nombre
+        } para ${datos.fechaHoraInicio}.`;
+        await enviarCorreo(experto.email, asuntoExperto, mensajeExperto);
+        await Notificacion.create({
+          usuarioId: experto._id,
+          email: experto.email,
+          tipo: "email",
+          asunto: asuntoExperto,
+          mensaje: mensajeExperto,
+          relacionadoCon: { tipo: "Asesoria", referenciaId: asesoria._id },
+          estado: "enviado",
+          fechaEnvio: new Date(),
+        });
+        await Log.create({
+          usuarioId: experto._id,
+          email: experto.email,
+          tipo: "asesoria",
+          descripcion:
+            "Creación de asesoría y envío de confirmación al experto",
+          entidad: "Asesoria",
+          referenciaId: asesoria._id,
+          datos: { asunto: asuntoExperto, mensaje: mensajeExperto },
+        });
       }
     } catch (e) {
-      // Loguea pero no falla la asesoría si el correo no se manda
-      console.error("Error enviando correo de confirmación de asesoría:", e);
+      console.error("Error enviando correo/notificación/log de asesoría:", e);
     }
 
     res
@@ -124,27 +165,64 @@ const finalizarAsesoria = async (req, res) => {
       await asesoria.save();
     }
 
-    // Notifica al cliente y experto por correo
+    // Notifica por correo y registra notificación/log
     try {
       const cliente = await Usuario.findOne({ email: asesoria.cliente.email });
       const experto = await Usuario.findOne({ email: asesoria.experto.email });
 
       if (experto) {
-        await enviarCorreo(
-          experto.email,
-          "Tu pago por asesoría fue liberado",
-          `¡Felicidades! El cliente ha finalizado la asesoría "${asesoria.titulo}" y tu pago ha sido liberado.`
-        );
+        const asuntoExperto = "Tu pago por asesoría fue liberado";
+        const mensajeExperto = `¡Excelente trabajo! El cliente ha finalizado la asesoría "${asesoria.titulo}" y tu pago ha sido liberado.`;
+        await enviarCorreo(experto.email, asuntoExperto, mensajeExperto);
+        await Notificacion.create({
+          usuarioId: experto._id,
+          email: experto.email,
+          tipo: "email",
+          asunto: asuntoExperto,
+          mensaje: mensajeExperto,
+          relacionadoCon: { tipo: "Pago", referenciaId: asesoria.pago._id },
+          estado: "enviado",
+          fechaEnvio: new Date(),
+        });
+        await Log.create({
+          usuarioId: experto._id,
+          email: experto.email,
+          tipo: "pago",
+          descripcion: "Liberación de pago tras finalizar asesoría",
+          entidad: "Pago",
+          referenciaId: asesoria.pago._id,
+          datos: { asunto: asuntoExperto, mensaje: mensajeExperto },
+        });
       }
       if (cliente) {
-        await enviarCorreo(
-          cliente.email,
-          "Asesoría finalizada con éxito",
-          `Gracias por usar Servitech. Tu asesoría "${asesoria.titulo}" ha sido finalizada y el pago fue entregado al experto.`
-        );
+        const asuntoCliente = "Asesoría finalizada con éxito";
+        const mensajeCliente = `Gracias por usar Servitech. Tu asesoría "${asesoria.titulo}" ha sido finalizada y el pago fue entregado al experto.`;
+        await enviarCorreo(cliente.email, asuntoCliente, mensajeCliente);
+        await Notificacion.create({
+          usuarioId: cliente._id,
+          email: cliente.email,
+          tipo: "email",
+          asunto: asuntoCliente,
+          mensaje: mensajeCliente,
+          relacionadoCon: { tipo: "Pago", referenciaId: asesoria.pago._id },
+          estado: "enviado",
+          fechaEnvio: new Date(),
+        });
+        await Log.create({
+          usuarioId: cliente._id,
+          email: cliente.email,
+          tipo: "pago",
+          descripcion: "Liberación de pago tras finalizar asesoría",
+          entidad: "Pago",
+          referenciaId: asesoria.pago._id,
+          datos: { asunto: asuntoCliente, mensaje: mensajeCliente },
+        });
       }
     } catch (e) {
-      console.error("Error enviando correo de finalización de asesoría:", e);
+      console.error(
+        "Error enviando correo/notificación/log de finalización:",
+        e
+      );
     }
 
     res.json({ mensaje: "Asesoría finalizada y pago liberado.", asesoria });
@@ -153,7 +231,6 @@ const finalizarAsesoria = async (req, res) => {
   }
 };
 
-// Resto del CRUD se mantiene igual (listar, actualizar, eliminar, obtener por ID, etc.)
 
 const listarAsesorias = async (req, res) => {
   try {
@@ -226,7 +303,7 @@ const eliminarAsesoria = async (req, res) => {
 
 module.exports = {
   crearAsesoria,
-  finalizarAsesoria, // Nuevo endpoint
+  finalizarAsesoria,
   listarAsesorias,
   listarPorCliente,
   listarPorExperto,
