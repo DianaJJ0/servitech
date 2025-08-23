@@ -32,9 +32,6 @@ servitech-1/
 │   ├── package.json # Dependencias y scripts
 │   └── ...otros archivos
 └── README.md     # Esta guía
-```
-
-> **Actualización:** El nombre de la carpeta principal es `servitech-1`. El archivo principal del frontend es `server.js` (no `servidor.js`). Los puertos por defecto son: backend en `3001`, frontend en `3000`.
 
 ---
 
@@ -152,12 +149,6 @@ Abre tu navegador y visita `http://localhost:3000` para ver la página principal
 - Para cambiar la lógica de usuarios, ve a `backend/controllers/usuario.controller.js`.
 - Para agregar nuevas rutas, usa `backend/routes/`.
 - Para cambiar el diseño, edita los archivos en `frontend/views/` y `frontend/assets/css/`.
-
----
-
-## 8. Contacto y soporte
-
-Si tienes dudas, busca ayuda en la documentación de Node.js, Express, MongoDB o pregunta a tu equipo.
 
 ---
 
