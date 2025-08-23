@@ -35,14 +35,28 @@ document.addEventListener("DOMContentLoaded", () => {
     const hasLowercase = /[a-z]/.test(pw);
     const hasNumber = /[0-9]/.test(pw);
 
+    function setIcon(item, valid) {
+      const iconSpan = item.querySelector(".icon");
+      if (iconSpan) {
+        iconSpan.innerHTML = valid ? "✔️" : "❌";
+      }
+    }
+
     minLengthItem.classList.toggle("valid", minLength);
     minLengthItem.classList.toggle("invalid", !minLength);
+    setIcon(minLengthItem, minLength);
+
     uppercaseItem.classList.toggle("valid", hasUppercase);
     uppercaseItem.classList.toggle("invalid", !hasUppercase);
+    setIcon(uppercaseItem, hasUppercase);
+
     lowercaseItem.classList.toggle("valid", hasLowercase);
     lowercaseItem.classList.toggle("invalid", !hasLowercase);
+    setIcon(lowercaseItem, hasLowercase);
+
     numberItem.classList.toggle("valid", hasNumber);
     numberItem.classList.toggle("invalid", !hasNumber);
+    setIcon(numberItem, hasNumber);
 
     return minLength && hasUppercase && hasLowercase && hasNumber;
   }

@@ -190,6 +190,36 @@
 .error-message,
 .password-requirements {
   grid-column: span 2;
+  list-style: none;
+  padding-left: 0;
+}
+
+.password-requirements li {
+  display: flex;
+  align-items: center;
+  font-size: 0.85rem;
+  margin-bottom: 0.2rem;
+}
+
+.password-requirements .icon {
+  display: inline-block;
+  width: 1.1em;
+  text-align: center;
+  margin-right: 0.5em;
+  font-size: 1em;
+}
+
+.password-requirements .valid .icon {
+  color: #28a745;
+}
+.password-requirements .invalid .icon {
+  color: #dc3545;
+}
+.password-requirements .valid {
+  color: #28a745;
+}
+.password-requirements .invalid {
+  color: #dc3545;
 }
 
 /* ===========================================================
@@ -221,6 +251,7 @@
 }
 
 .checkmark {
+  display:none;
   position: absolute;
   left: 0;
   height: 1rem;
