@@ -13,7 +13,7 @@ ServiTech es una plataforma web para conectar usuarios con expertos en tecnolog�
 ## 2. Estructura del Proyecto
 
 ```
-servitech-6/
+servitech-1/
 ├── backend/      # Lógica y API del servidor
 │   ├── app.js    # Archivo principal del servidor backend
 │   ├── config/   # Configuración de la base de datos
@@ -33,6 +33,8 @@ servitech-6/
 │   └── ...otros archivos
 └── README.md     # Esta guía
 ```
+
+> **Actualización:** El nombre de la carpeta principal es `servitech-1`. El archivo principal del frontend es `server.js` (no `servidor.js`). Los puertos por defecto son: backend en `3001`, frontend en `3000`.
 
 ---
 
@@ -96,7 +98,7 @@ mongod
 Abre una terminal nueva y asegúrate de estar en la carpeta `backend`. Puedes navegar con:
 
 ```bash
-cd /ruta/a/tu/proyecto/servitech-6/backend
+cd /ruta/a/tu/proyecto/servitech-1/backend
 ```
 
 Luego inicia el servidor backend con:
@@ -109,15 +111,12 @@ npm start
 > Si ves un error como "command not found" o "Cannot find module", verifica que ejecutaste `npm install` antes y que estás en la carpeta correcta.
 > Mantén esta terminal abierta para ver mensajes y errores del servidor.
 
-
-
-
 #### 4. Activa el servidor frontend
 
 Abre una terminal nueva y asegúrate de estar en la carpeta `frontend`. Puedes navegar con:
 
 ```bash
-cd /ruta/a/tu/proyecto/servitech-6/frontend
+cd /ruta/a/tu/proyecto/servitech-1/frontend
 ```
 
 Luego inicia el servidor frontend con:
@@ -132,10 +131,10 @@ node server.js
 
 ## 5. ¿Cómo acceder a la aplicación?
 
-- El backend estará en: `http://localhost:3000`
-- El frontend estará en: `http://localhost:3001`
+- El backend estará en: `http://localhost:3001`
+- El frontend estará en: `http://localhost:3000`
 
-Abre tu navegador y visita `http://localhost:3001` para ver la página principal.
+Abre tu navegador y visita `http://localhost:3000` para ver la página principal.
 
 ---
 
@@ -305,8 +304,6 @@ Crea y configura el archivo `.env` en el directorio `backend/` con las siguiente
 ```bash
 # Configuración de la Base de Datos
 MONGODB_URI=mongodb://localhost:27017/servitech
-# Para MongoDB Atlas:
-# MONGODB_URI=mongodb+srv://usuario:password@cluster.mongodb.net/servitech
 
 # Configuración del Servidor
 PORT=3001
@@ -322,7 +319,7 @@ EMAIL_USER=tu_email@gmail.com
 EMAIL_PASS=tu_contraseña_de_aplicación
 
 # URLs del Sistema
-FRONTEND_URL=http://localhost:3001
+FRONTEND_URL=http://localhost:3000
 API_BASE_URL=http://localhost:3001/api
 ```
 
@@ -344,12 +341,12 @@ node inicializar.js
 cd backend && node app.js
 
 # Terminal 2: Iniciar frontend
-cd frontend && node servidor.js
+cd frontend && node server.js
 ```
 
 ### 3. Acceder a la Aplicación
 
-- **Frontend (Vistas)**: http://localhost:3000 (o el puerto configurado en frontend)
+- **Frontend (Vistas)**: http://localhost:3000
 - **Backend (API)**: http://localhost:3001
 - **Panel de administración**: Incluido en las vistas del frontend
 
@@ -362,7 +359,7 @@ cd frontend && node servidor.js
 **Estructura MVC:**
 
 - **Models**: categoria.model.js, usuario.model.js
-- **Controllers**: categoriaController.js, usuarioController.js
+- **Controllers**: categoria.controller.js, usuario.controller.js
 - **Routes**: categoria.routes.js, usuario.routes.js
 - **Services**: email.service.js para envío de correos
 - **Config**: database.js para conexión MongoDB
@@ -374,7 +371,7 @@ cd frontend && node servidor.js
 
 - **Views**: Páginas EJS organizadas por funcionalidad
 - **Assets**: Archivos estáticos (CSS, JS, imágenes)
-- **Servidor**: servidor.js para servir las vistas EJS
+- **Servidor**: server.js para servir las vistas EJS
 - **Componentes**: Elementos reutilizables en views/componentes/
 
 ---
@@ -441,21 +438,10 @@ npm install -g concurrently
 concurrently "cd backend && node app.js" "cd frontend && node server.js"
 ```
 
-**Q: Error "Cannot find module"**
-
-```bash
-# Verificar que estás en el directorio correcto
-# Para backend:
-cd backend && npm install
-
-# Para frontend:
-cd frontend && npm install
-```
-
 **Q: ¿Qué puerto usa cada servidor?**
 
 - Backend (API): Puerto 3001 (por defecto)
-- Frontend (Vistas): Configurado en frontend/server.js
+- Frontend (Vistas): Puerto 3000 (por defecto, ver frontend/server.js)
 
 ### Base de Datos
 
@@ -519,7 +505,7 @@ rm -rf node_modules && npm install
 
 ## 👨‍💻 Autor
 
-**Diana Carolina Jiménez**
+**Diana Jiménez**
 
 - GitHub: [@DianaJJ0](https://github.com/DianaJJ0)
 - Email: dianacjj23@gmail.com
