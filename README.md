@@ -349,12 +349,12 @@ cd frontend && node server.js
 
 **Estructura MVC:**
 
-- **Models**: categoria.model.js, usuario.model.js
-- **Controllers**: categoria.controller.js, usuario.controller.js
-- **Routes**: categoria.routes.js, usuario.routes.js
-- **Services**: email.service.js para envío de correos
-- **Config**: database.js para conexión MongoDB
-- **Middleware**: middleware.js para autenticación y validaciones
+- **Models**: categoria.model.js, usuario.model.js, etc
+- **Controllers**: categoria.controller.js, usuario.controller.js, etc
+- **Routes**: categoria.routes.js, usuario.routes.js, etc
+- **Services**: email.service.js para envío de correos, etc
+- **Config**: database.js para conexión MongoDB, etc
+- **Middleware**: middleware.js para autenticación y validaciones, etc
 
 ### Frontend (EJS + Express)
 
@@ -364,26 +364,6 @@ cd frontend && node server.js
 - **Assets**: Archivos estáticos (CSS, JS, imágenes)
 - **Servidor**: server.js para servir las vistas EJS
 - **Componentes**: Elementos reutilizables en views/componentes/
-
----
-
-## 🔗 Endpoints Principales de la API
-
-### Usuarios
-
-- `GET /api/usuarios` - Listar usuarios
-- `POST /api/usuarios` - Crear usuario
-- `PUT /api/usuarios/:id` - Actualizar usuario
-- `DELETE /api/usuarios/:id` - Eliminar usuario
-
-### Categorías
-
-- `GET /api/categorias` - Listar categorías
-- `POST /api/categorias` - Crear categoría
-- `PUT /api/categorias/:id` - Actualizar categoría
-- `DELETE /api/categorias/:id` - Eliminar categoría
-
----
 
 ## 📊 Estado Actual del Proyecto
 
