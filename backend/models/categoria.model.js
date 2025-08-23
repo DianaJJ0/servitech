@@ -11,7 +11,7 @@ const categoriaSchema = new Schema(
     nombre: {
       type: String,
       required: true,
-      unique: true, // El nombre visible también debe ser único
+      unique: true, 
       trim: true,
     },
     descripcion: {

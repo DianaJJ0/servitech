@@ -44,19 +44,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     minLengthItem.classList.toggle("valid", minLength);
     minLengthItem.classList.toggle("invalid", !minLength);
-    setIcon(minLengthItem, minLength);
 
     uppercaseItem.classList.toggle("valid", hasUppercase);
     uppercaseItem.classList.toggle("invalid", !hasUppercase);
-    setIcon(uppercaseItem, hasUppercase);
 
     lowercaseItem.classList.toggle("valid", hasLowercase);
     lowercaseItem.classList.toggle("invalid", !hasLowercase);
-    setIcon(lowercaseItem, hasLowercase);
 
     numberItem.classList.toggle("valid", hasNumber);
     numberItem.classList.toggle("invalid", !hasNumber);
-    setIcon(numberItem, hasNumber);
 
     return minLength && hasUppercase && hasLowercase && hasNumber;
   }
@@ -121,7 +117,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  
+
   function validarConfirmPassword() {
     if (!confirmPasswordInput.value.trim()) {
       confirmPasswordError.textContent = "Debes confirmar la contraseña.";

@@ -6,6 +6,7 @@
 /**
  * Inicia sesión enviando las credenciales al backend.
  * Si el login es exitoso, guarda el token y los datos del usuario en localStorage.
+ * 
  * @param {string} email - Correo electrónico del usuario.
  * @param {string} password - Contraseña del usuario.
  * @returns {Promise<Object>} - Objeto usuario autenticado.

@@ -188,8 +188,8 @@ app.get("/registro-experto", async (req, res) => {
     const email =
       req.session.user && req.session.user.email ? req.session.user.email : "";
     const fetch = (...args) =>
-      import("node-fetch").then(({ default: fetch }) => fetch(...args));
-    const catRes = await fetch("http://localhost:3000/api/categorias");
+      import("node-fetch").then(({ default: fetch }) => fetch(...args)); // para obtener datos de la API
+    const catRes = await fetch("http://localhost:3000/api/categorias"); // para obtener categorías
     const categorias = catRes.ok ? await catRes.json() : [];
     const espRes = await fetch("http://localhost:3000/api/especialidades");
     const especialidades = espRes.ok ? await espRes.json() : [];
