@@ -41,6 +41,35 @@
   animation: gradientMove 4s linear infinite;
 }
 
+
+.password-requirements .icon {
+  display: inline-block;
+  width: 1.1em;
+  text-align: center;
+  margin-right: 0.5em;
+  font-size: 1em;
+}
+
+
+/* .valid: Aplica color verde (#28a745) para indicar que el requisito se cumple. */
+.password-requirements .valid .icon {
+  color: #28a745;
+}
+/* .invalid: Aplica color rojo (#dc3545) para indicar que el requisito no se cumple. */
+.password-requirements .invalid .icon {
+  color: #dc3545;
+}
+/* .valid: Aplica color verde (#28a745) al texto del requisito cumplido. */
+.password-requirements .valid {
+  color: #28a745;
+}
+/* .invalid: Aplica color rojo (#dc3545) al texto del requisito no cumplido. */
+.password-requirements .invalid {
+  color: #dc3545;
+}
+
+
+
 .auth-card::before {
   content: "";
   position: absolute;

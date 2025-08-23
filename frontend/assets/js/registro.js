@@ -120,6 +120,8 @@ document.addEventListener("DOMContentLoaded", () => {
       return true;
     }
   }
+
+  
   function validarConfirmPassword() {
     if (!confirmPasswordInput.value.trim()) {
       confirmPasswordError.textContent = "Debes confirmar la contraseña.";
