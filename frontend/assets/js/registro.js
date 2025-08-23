@@ -35,13 +35,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const hasLowercase = /[a-z]/.test(pw);
     const hasNumber = /[0-9]/.test(pw);
 
-    function setIcon(item, valid) {
-      const iconSpan = item.querySelector(".icon");
-      if (iconSpan) {
-        iconSpan.innerHTML = valid ? "✔️" : "❌";
-      }
-    }
-
     minLengthItem.classList.toggle("valid", minLength);
     minLengthItem.classList.toggle("invalid", !minLength);
 
