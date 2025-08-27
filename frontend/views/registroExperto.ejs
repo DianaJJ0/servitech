@@ -2,6 +2,9 @@
 <html lang="es">
 
 <head>
+  <link rel="stylesheet" href="/assets/css/choices-custom.css" />
+  <!-- Choices.js CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Registro | Servitech</title>
@@ -96,7 +99,7 @@
                 <div class="form-row double">
                   <div class="form-group compact full-width">
                     <label for="categorias">
-                      <i class="fas fa-layer-group"></i> Categorías
+                      <i class="fas fa-layer-group"></i> <span class="categorias-label-text">Categorías</span>
                       <span class="form-tooltip"
                         title="Selecciona las áreas tecnológicas en las que tienes experiencia">
                         <i class="fas fa-info-circle"></i>
@@ -111,7 +114,7 @@
                     <p class="form-hint">Selecciona una o más categorías tecnológicas</p>
 
                     <label for="especialidad" style="margin-top: 1.5em;">
-                      <i class="fas fa-star"></i> Especialidad
+                      <i class="fas fa-star"></i> <span class="especialidad-label-text">Especialidad</span>
                       <span class="form-tooltip" title="Tu principal área de especialización">
                         <i class="fas fa-info-circle"></i>
                       </span>
@@ -131,38 +134,73 @@
                 </div>
                 <!-- Modern tags for categorías y habilidades seleccionadas -->
                 <script>
-                  document.addEventListener('DOMContentLoaded', function () {
-                    // Categorías tags
-                    const categoriasSelect = document.getElementById('categorias');
-                    const categoriasTags = document.getElementById('categoriasTags');
-                    if (categoriasSelect && categoriasTags) {
-                      categoriasSelect.addEventListener('change', function () {
-                        categoriasTags.innerHTML = '';
-                        Array.from(categoriasSelect.selectedOptions).forEach(opt => {
-                          const tag = document.createElement('span');
-                          tag.className = 'tag';
-                          tag.textContent = opt.text;
-                          categoriasTags.appendChild(tag);
-                        });
+                  // Choices.js CDN
+                  var script = document.createElement('script');
+                  script.src = 'https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js';
+                  script.onload = function () {
+                    var categoriasSelect = document.getElementById('categorias');
+                    if (categoriasSelect) {
+                      new Choices(categoriasSelect, {
+                        removeItemButton: true,
+                        searchEnabled: true,
+                        placeholder: true,
+                        placeholderValue: 'Selecciona categorías',
+                        noResultsText: 'No hay resultados',
+                        noChoicesText: 'No hay opciones',
+                        itemSelectText: 'Seleccionar',
+                        classNames: {
+                          containerInner: 'choices-container',
+                          input: 'choices-input',
+                        }
                       });
                     }
-                    // Habilidades tags
-                    const skillsSelect = document.getElementById('skills');
-                    const skillsTags = document.getElementById('skillsTags');
-                    if (skillsSelect && skillsTags) {
-                      skillsSelect.addEventListener('change', function () {
-                        skillsTags.innerHTML = '';
-                        Array.from(skillsSelect.selectedOptions).forEach(opt => {
-                          const tag = document.createElement('span');
-                          tag.className = 'tag';
-                          tag.textContent = opt.text;
-                          skillsTags.appendChild(tag);
-                        });
+                    var skillsSelect = document.getElementById('skills');
+                    if (skillsSelect) {
+                      new Choices(skillsSelect, {
+                        removeItemButton: true,
+                        searchEnabled: true,
+                        placeholder: true,
+                        placeholderValue: 'Selecciona habilidades',
+                        noResultsText: 'No hay resultados',
+                        noChoicesText: 'No hay opciones',
+                        itemSelectText: 'Seleccionar',
+                        classNames: {
+                          containerInner: 'choices-container',
+                          input: 'choices-input',
+                        }
                       });
                     }
-                  });
+                  };
+                  document.head.appendChild(script);
+
+                  // Choices.js para habilidades
+                  var skillsSelect = document.getElementById('skills');
+                  if (skillsSelect) {
+                    var choicesSkills = new Choices(skillsSelect, {
+                      removeItemButton: true,
+                      searchEnabled: true,
+                      placeholder: true,
+                      placeholderValue: 'Selecciona habilidades',
+                      noResultsText: 'No hay resultados',
+                      noChoicesText: 'No hay opciones',
+                      itemSelectText: 'Seleccionar',
+                      classNames: {
+                        containerInner: 'choices-container',
+                        input: 'choices-input',
+                      }
+                    });
+                  }
                 </script>
                 <style>
+                  .categorias-label-text {
+                    color: var(--accent-color);
+                    font-weight: 600;
+                  }
+
+                  .fa-layer-group {
+                    color: var(--accent-color);
+                  }
+
                   .tags-container {
                     margin-top: 8px;
                     display: flex;
@@ -190,17 +228,17 @@
                   .skills-modern {
                     width: 100%;
                     padding-right: 28px;
-                    border-radius: 8px;
-                    border: 1px solid #ccc;
+                    border-radius: var(--input-radius);
+                    border: 1px solid var(--border-color);
                     font-size: 15px;
-                    background: #fff;
-                    color: #222;
+                    background: var(--input-bg);
+                    color: var(--text-color);
                     transition: border-color 0.2s;
                   }
 
                   .especialidad-modern:focus,
                   .skills-modern:focus {
-                    border-color: #00796b;
+                    border-color: var(--accent-color);
                     outline: none;
                   }
 
@@ -208,15 +246,20 @@
                     position: absolute;
                     right: 10px;
                     pointer-events: none;
-                    color: #888;
+                    color: var(--accent-color);
                     font-size: 16px;
                   }
 
                   .form-tooltip {
                     margin-left: 6px;
-                    color: #00796b;
+                    color: var(--accent-color);
                     cursor: pointer;
                     font-size: 14px;
+                  }
+
+                  .especialidad-label-text {
+                    color: var(--accent-color);
+                    font-weight: 600;
                   }
                 </style>
 
@@ -224,7 +267,7 @@
                 <div class="form-row single">
                   <div class="form-group compact full-width">
                     <label for="skills">
-                      <i class="fas fa-bolt"></i> Habilidades
+                      <i class="fas fa-bolt"></i> <span class="skills-label-text">Habilidades</span>
                       <span class="form-tooltip" title="Selecciona habilidades tecnológicas">
                         <i class="fas fa-info-circle"></i>
                       </span>
