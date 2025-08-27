@@ -1,20 +1,31 @@
 /**
- * CONTROLADOR DE USUARIOS
- * Lógica de negocio para registro, inicio de sesión, recuperación y gestión de perfiles.
- * Valida que el admin no pueda asignar el rol "experto" sin infoExperto completa (solo en edición por admin).
+ * @file Controlador de usuarios
+ * @module controllers/usuario
+ * @description Lógica de negocio para registro, inicio de sesión, recuperación y gestión de perfiles en Servitech.
  */
+
 const Usuario = require("../models/usuario.model.js");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const { enviarCorreo } = require("../services/email.service.js");
 const mongoose = require("mongoose");
 
-// --- Funciones Auxiliares ---
+/**
+ * Genera un token JWT para el usuario
+ * @param {string} id - ID del usuario
+ * @returns {string} Token JWT generado
+ */
 const generarToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "2d" });
 };
 
-// Registro de usuario nuevo (sin validación extra)
+/**
+ * Registra un usuario nuevo
+ * @function
+ * @param {import('express').Request} req - Solicitud HTTP
+ * @param {import('express').Response} res - Respuesta HTTP
+ * @returns {void}
+ */
 const registrarUsuario = async (req, res) => {
   const { nombre, apellido, email, password, roles } = req.body;
   try {
@@ -53,7 +64,13 @@ const registrarUsuario = async (req, res) => {
   }
 };
 
-// Login de usuario. Devuelve token JWT y datos básicos.
+/**
+ * Inicia sesión de usuario. Devuelve token JWT y datos básicos.
+ * @function
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @returns {void}
+ */
 const iniciarSesion = async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -103,7 +120,13 @@ const iniciarSesion = async (req, res) => {
   }
 };
 
-// Obtiene datos del perfil del usuario autenticado
+/**
+ * Obtiene los datos del perfil del usuario autenticado
+ * @function
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @returns {void}
+ */
 const obtenerPerfilUsuario = async (req, res) => {
   try {
     const usuario = await Usuario.findById(req.usuario._id).select(
@@ -119,7 +142,13 @@ const obtenerPerfilUsuario = async (req, res) => {
   }
 };
 
-// Devuelve la lista de usuarios con paginación, filtro por email, estado y roles (por defecto: solo activos)
+/**
+ * Lista usuarios con paginación, filtro por email, estado y roles
+ * @function
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @returns {void}
+ */
 const obtenerUsuarios = async (req, res) => {
   try {
     const { page = 1, limit = 10, email, estado, roles } = req.query;
@@ -142,8 +171,6 @@ const obtenerUsuarios = async (req, res) => {
       filtro.roles = { $in: rolesArray };
     }
 
-    // Paginación y selección de campos
-    // Se omiten el hash de la contraseña y otros campos sensibles
     const usuarios = await Usuario.find(filtro)
       .select("-passwordHash")
       .skip((page - 1) * limit)
@@ -159,6 +186,10 @@ const obtenerUsuarios = async (req, res) => {
 
 /**
  * Solicita recuperación de contraseña (envía email con token)
+ * @function
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @returns {void}
  */
 const solicitarRecuperacionPassword = async (req, res) => {
   const { email } = req.body;
@@ -168,12 +199,11 @@ const solicitarRecuperacionPassword = async (req, res) => {
       return res
         .status(200)
         .json({ mensaje: "Si el email existe, se enviaron instrucciones." });
-    // Generar token de recuperación con crypto
+    // Generar token de recuperación
     const token = crypto.randomBytes(32).toString("hex");
     usuario.passwordResetToken = token;
     usuario.passwordResetExpires = Date.now() + 60 * 60 * 1000;
     await usuario.save();
-    // Construir enlace de recuperación y enviar email de notificación
     const enlace = `${process.env.FRONTEND_URL}/recuperarPassword.html?token=${token}`;
     const asunto = "Recupera tu contraseña - ServiTech";
     const mensaje = `
@@ -185,7 +215,6 @@ const solicitarRecuperacionPassword = async (req, res) => {
       <br>
       <p>Saludos,<br>Equipo ServiTech</p>
     `;
-    // Enviar correo electrónico
     await enviarCorreo(usuario.email, asunto, mensaje, mensaje);
     res
       .status(200)
@@ -198,6 +227,10 @@ const solicitarRecuperacionPassword = async (req, res) => {
 
 /**
  * Restablece contraseña usando el token
+ * @function
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @returns {void}
  */
 const resetearPassword = async (req, res) => {
   const { token, newPassword } = req.body;
@@ -221,7 +254,13 @@ const resetearPassword = async (req, res) => {
   }
 };
 
-// Actualiza el perfil del usuario autenticado
+/**
+ * Actualiza el perfil del usuario autenticado
+ * @function
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @returns {void}
+ */
 const actualizarPerfilUsuario = async (req, res) => {
   try {
     const datos = req.body;
@@ -231,12 +270,15 @@ const actualizarPerfilUsuario = async (req, res) => {
       return res.status(404).json({ mensaje: "Usuario no encontrado." });
     }
 
-    // --- VALIDACIÓN SEGURA DE CATEGORÍAS ---
     let categoriasArray = [];
     if (datos.categorias) {
       if (Array.isArray(datos.categorias)) {
         categoriasArray = datos.categorias
-          .map((id) => typeof id === "string" && id.match(/^[0-9a-fA-F]{24}$/) ? new mongoose.Types.ObjectId(id) : null)
+          .map((id) =>
+            typeof id === "string" && id.match(/^[0-9a-fA-F]{24}$/)
+              ? new mongoose.Types.ObjectId(id)
+              : null
+          )
           .filter((id) => id !== null);
       } else if (typeof datos.categorias === "string") {
         categoriasArray = datos.categorias
@@ -247,7 +289,6 @@ const actualizarPerfilUsuario = async (req, res) => {
       }
     }
 
-    // --- VALIDACIÓN DE SKILLS ---
     let skillsArray = [];
     if (datos.skills) {
       if (Array.isArray(datos.skills)) {
@@ -257,7 +298,6 @@ const actualizarPerfilUsuario = async (req, res) => {
       }
     }
 
-    // --- VALIDACIÓN DE DÍAS DISPONIBLES ---
     let diasArray = [];
     if (datos.diasDisponibles) {
       if (Array.isArray(datos.diasDisponibles)) {
@@ -267,7 +307,6 @@ const actualizarPerfilUsuario = async (req, res) => {
       }
     }
 
-    // --- Actualiza infoExperto solo si hay datos relevantes ---
     if (
       datos.descripcion ||
       datos.precioPorHora ||
@@ -309,16 +348,20 @@ const actualizarPerfilUsuario = async (req, res) => {
   }
 };
 
-// Desactiva el usuario autenticado (no lo elimina de la base de datos)
+/**
+ * Desactiva el usuario autenticado (no lo elimina de la base de datos)
+ * @function
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @returns {void}
+ */
 const eliminarUsuarioPropio = async (req, res) => {
   try {
     const usuarioId = req.usuario._id;
-    // Busca el usuario
     const usuario = await Usuario.findById(usuarioId);
     if (!usuario) {
       return res.status(404).json({ mensaje: "Usuario no encontrado." });
     }
-    // Cambia el estado a inactivo
     usuario.estado = "inactivo";
     await usuario.save();
     res.json({ mensaje: "Cuenta desactivada correctamente." });
@@ -330,7 +373,13 @@ const eliminarUsuarioPropio = async (req, res) => {
   }
 };
 
-// Elimina (desactiva) un usuario por admin + API Key
+/**
+ * Desactiva/elimina usuario por admin + API Key
+ * @function
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @returns {void}
+ */
 const eliminarUsuarioPorAdmin = async (req, res) => {
   try {
     const usuarioId = req.params.id;
@@ -349,8 +398,14 @@ const eliminarUsuarioPorAdmin = async (req, res) => {
   }
 };
 
-// --- EDITAR USUARIO POR EMAIL (ADMIN) ---
-// Solo valida que si se asigna el rol experto, infoExperto debe estar presente y completo
+/**
+ * Actualiza usuario por email (admin)
+ * Solo valida que si se asigna el rol experto, infoExperto debe estar presente y completo
+ * @function
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @returns {void}
+ */
 const actualizarUsuarioPorEmailAdmin = async (req, res) => {
   try {
     const email = req.params.email;
@@ -360,7 +415,6 @@ const actualizarUsuarioPorEmailAdmin = async (req, res) => {
       return res.status(404).json({ mensaje: "Usuario no encontrado." });
     }
 
-    // Si se le asigna el rol experto, infoExperto debe estar completo
     if (datos.roles && datos.roles.includes("experto")) {
       if (
         !datos.infoExperto ||
@@ -401,7 +455,13 @@ const actualizarUsuarioPorEmailAdmin = async (req, res) => {
   }
 };
 
-// Obtener usuario individual por email (admin)
+/**
+ * Obtiene usuario individual por email (admin)
+ * @function
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @returns {void}
+ */
 const obtenerUsuarioPorEmailAdmin = async (req, res) => {
   try {
     const email = req.params.email;

@@ -27,7 +27,7 @@ app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
 // Ruta POST para editar perfil de experto
-app.post("/editar-perfil-experto", async (req, res) => {
+app.post("/editarExperto", async (req, res) => {
   try {
     // Validar sesión
     if (!req.session?.user?.token) {
@@ -83,7 +83,7 @@ app.post("/editar-perfil-experto", async (req, res) => {
       success: "Perfil actualizado correctamente.",
     });
   } catch (err) {
-    console.error("[ERROR POST editar-perfil-experto]", err);
+    console.error("[ERROR POST editarExperto]", err);
     res.status(500).render("editarExpertos", {
       experto: null,
       categorias: [],
@@ -179,11 +179,11 @@ app.get("/registro.html", (req, res) => {
   res.render("registro", { user: req.session.user || null });
 });
 
-// Ruta protegida para registro de experto
-app.get("/registro-experto", async (req, res) => {
+// Ruta protegida para registro de experto (.html)
+app.get("/registroExperto.html", async (req, res) => {
   try {
     if (!req.session.user) {
-      return res.redirect("/login.html?next=/registro-experto");
+      return res.redirect("/login.html?next=/registroExperto");
     }
     const email =
       req.session.user && req.session.user.email ? req.session.user.email : "";
@@ -204,7 +204,47 @@ app.get("/registro-experto", async (req, res) => {
       error: null,
     });
   } catch (err) {
-    console.error("[ERROR registro-experto]", err);
+    console.error("[ERROR registroExperto]", err);
+    res.render("registroExperto", {
+      user: req.session.user,
+      email:
+        req.session.user && req.session.user.email
+          ? req.session.user.email
+          : "",
+      categorias: [],
+      especialidades: [],
+      habilidades: [],
+      error: "Error al cargar datos: " + err.message,
+    });
+  }
+});
+
+// Nueva ruta para registro de experto
+app.get("/registroExperto", async (req, res) => {
+  try {
+    if (!req.session.user) {
+      return res.redirect("/login.html?next=/registroExperto");
+    }
+    const email =
+      req.session.user && req.session.user.email ? req.session.user.email : "";
+    const fetch = (...args) =>
+      import("node-fetch").then(({ default: fetch }) => fetch(...args));
+    const catRes = await fetch("http://localhost:3000/api/categorias");
+    const categorias = catRes.ok ? await catRes.json() : [];
+    const espRes = await fetch("http://localhost:3000/api/especialidades");
+    const especialidades = espRes.ok ? await espRes.json() : [];
+    const habRes = await fetch("http://localhost:3000/api/habilidades");
+    const habilidades = habRes.ok ? await habRes.json() : [];
+    res.render("registroExperto", {
+      user: req.session.user,
+      email,
+      categorias,
+      especialidades,
+      habilidades,
+      error: null,
+    });
+  } catch (err) {
+    console.error("[ERROR registroExperto]", err);
     res.render("registroExperto", {
       user: req.session.user,
       email:
@@ -220,7 +260,7 @@ app.get("/registro-experto", async (req, res) => {
 });
 
 // Ruta POST para editar perfil de experto
-app.post("/editar-perfil-experto", async (req, res) => {
+app.post("/editarExperto", async (req, res) => {
   try {
     // Validar sesión
     if (!req.session?.user?.token) {
@@ -269,7 +309,7 @@ app.post("/editar-perfil-experto", async (req, res) => {
       success: "Perfil actualizado correctamente.",
     });
   } catch (err) {
-    console.error("[ERROR POST editar-perfil-experto]", err);
+    console.error("[ERROR POST editarExperto]", err);
     res.status(500).render("editarExpertos", {
       experto: null,
       categorias: [],
@@ -293,10 +333,10 @@ const cacheTTL = 10 * 60 * 1000; // 10 minutos
 let lastCacheTime = 0;
 
 // Ruta para editar perfil de experto
-app.get("/editar-perfil-experto", async (req, res) => {
+app.get("/editarExperto", async (req, res) => {
   try {
     if (!req.session?.user?.email) {
-      return res.redirect("/login.html?next=/editar-perfil-experto");
+      return res.redirect("/login.html?next=/editarExperto");
     }
     const fetch = (...args) =>
       import("node-fetch").then(({ default: fetch }) => fetch(...args));
@@ -334,7 +374,7 @@ app.get("/editar-perfil-experto", async (req, res) => {
       success: null,
     });
   } catch (err) {
-    console.error("[ERROR editar-perfil-experto]", err);
+    console.error("[ERROR editarExperto]", err);
     res.render("editarExpertos", {
       experto: null,
       categorias: [],

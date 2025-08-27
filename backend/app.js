@@ -37,6 +37,31 @@ app.use(
   })
 );
 
+// --- Swagger ---
+const swaggerUi = require('swagger-ui-express'); // pa
+const swaggerJSDoc = require('swagger-jsdoc');
+
+const swaggerDefinition = {
+  openapi: '3.0.0',
+  info: {
+    title: 'API Servitech',
+    version: '1.0.0',
+    description: 'Documentación interactiva de la API de Servitech',
+  },
+  servers: [
+    { url: 'http://localhost:3000/api', description: 'Servidor local' },
+  ],
+};
+
+const options = {
+  swaggerDefinition,
+  apis: ['./routes/*.js', './models/*.js'], // el * indica que se lean todos los archivos .js en esa carpeta
+};
+
+const swaggerSpec = swaggerJSDoc(options);
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 // Middleware de registro de solicitudes
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.url} - ${new Date().toISOString()}`);

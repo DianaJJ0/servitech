@@ -10,14 +10,14 @@
   <link rel="stylesheet" href="/assets/css/registroExperto.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <!-- Choices.js CDN -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+  <!-- Choices.js CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
 </head>
 
 <body>
 
-  <main class="registro-experto-main">
-    <section class="registro-experto-section">
+  <main class="registroExperto-main">
+    <section class="registroExperto-section">
       <% if (typeof error !=='undefined' ) { %>
         <div class="alert alert-danger">
           <%= error %>
@@ -46,7 +46,7 @@
                 </div>
               </div>
 
-              <form id="registroExpertoForm" class="registro-experto-form">
+              <form id="registroExpertoForm" class="registroExperto-form">
                 <!-- Primera fila horizontal -->
                 <div class="form-row triple">
                   <!-- Email -->
@@ -83,20 +83,26 @@
                   <div class="form-group compact days-group">
                     <label>Días disponibles</label>
                     <div class="days-selector">
-                      <div class="day-option <%= (experto && experto.horario && experto.horario.includes('Lunes')) ? 'selected' : '' %>"
+                      <div
+                        class="day-option <%= (experto && experto.horario && experto.horario.includes('Lunes')) ? 'selected' : '' %>"
                         data-day="Lunes">L</div>
-                      <div class="day-option <%= (experto && experto.horario && experto.horario.includes('Martes')) ? 'selected' : '' %>"
+                      <div
+                        class="day-option <%= (experto && experto.horario && experto.horario.includes('Martes')) ? 'selected' : '' %>"
                         data-day="Martes">M</div>
                       <div
                         class="day-option <%= (experto && experto.horario && experto.horario.includes('Miércoles')) ? 'selected' : '' %>"
                         data-day="Miércoles">X</div>
-                      <div class="day-option <%= (experto && experto.horario && experto.horario.includes('Jueves')) ? 'selected' : '' %>"
+                      <div
+                        class="day-option <%= (experto && experto.horario && experto.horario.includes('Jueves')) ? 'selected' : '' %>"
                         data-day="Jueves">J</div>
-                      <div class="day-option <%= (experto && experto.horario && experto.horario.includes('Viernes')) ? 'selected' : '' %>"
+                      <div
+                        class="day-option <%= (experto && experto.horario && experto.horario.includes('Viernes')) ? 'selected' : '' %>"
                         data-day="Viernes">V</div>
-                      <div class="day-option <%= (experto && experto.horario && experto.horario.includes('Sábado')) ? 'selected' : '' %>"
+                      <div
+                        class="day-option <%= (experto && experto.horario && experto.horario.includes('Sábado')) ? 'selected' : '' %>"
                         data-day="Sábado">S</div>
-                      <div class="day-option <%= (experto && experto.horario && experto.horario.includes('Domingo')) ? 'selected' : '' %>"
+                      <div
+                        class="day-option <%= (experto && experto.horario && experto.horario.includes('Domingo')) ? 'selected' : '' %>"
                         data-day="Domingo">D</div>
                     </div>
                     <div class="days-selected-display">
@@ -126,10 +132,13 @@
                     </span>
                     </label>
                     <select id="categorias" name="categorias" multiple class="select-multiple categorias-modern">
-                      <% if (categorias && categorias.length) { categorias.forEach(function(categoria) { var isSelected=false; if (experto
-                        && experto.infoExperto && Array.isArray(experto.infoExperto.categorias)) {
-                        isSelected=experto.infoExperto.categorias.map(String).includes(String(categoria.id || categoria._id)); } %>
-                        <option value="<%= categoria.id || categoria._id %>" <%=isSelected ? 'selected' : '' %>><%- categoria.nombre %>
+                      <% if (categorias && categorias.length) { categorias.forEach(function(categoria) { var
+                        isSelected=false; if (experto && experto.infoExperto &&
+                        Array.isArray(experto.infoExperto.categorias)) {
+                        isSelected=experto.infoExperto.categorias.map(String).includes(String(categoria.id ||
+                        categoria._id)); } %>
+                        <option value="<%= categoria.id || categoria._id %>" <%=isSelected ? 'selected' : '' %>><%-
+                            categoria.nombre %>
                         </option>
                         <% }); } %>
                     </select>
@@ -148,8 +157,9 @@
                     <div class="especialidad-select-container">
                       <select id="especialidad" name="especialidad" required class="especialidad-modern">
                         <option value="">Selecciona especialidad</option>
-                        <% especialidades.forEach(function(especialidad) { var isSelected=false; if (experto && experto.infoExperto &&
-                          experto.infoExperto.especialidad==especialidad.id) { isSelected=true; } %>
+                        <% especialidades.forEach(function(especialidad) { var isSelected=false; if (experto &&
+                          experto.infoExperto && experto.infoExperto.especialidad==especialidad.id) { isSelected=true; }
+                          %>
                           <option value="<%= especialidad.id || especialidad._id %>" <%=isSelected ? 'selected' : '' %>>
                             <%= especialidad.nombre %>
                           </option>
@@ -168,10 +178,12 @@
                       </span>
                     </label>
                     <select id="skills" name="skills" multiple class="select-multiple skills-modern">
-                      <% habilidades.forEach(function(habilidad) { var isSelected=false; if (experto && experto.infoExperto &&
-                        Array.isArray(experto.infoExperto.skills)) {
-                        isSelected=experto.infoExperto.skills.map(String).includes(String(habilidad.id || habilidad._id)); } %>
-                        <option value="<%= habilidad.id || habilidad._id %>" <%=isSelected ? 'selected' : '' %>><%= habilidad.nombre %>
+                      <% habilidades.forEach(function(habilidad) { var isSelected=false; if (experto &&
+                        experto.infoExperto && Array.isArray(experto.infoExperto.skills)) {
+                        isSelected=experto.infoExperto.skills.map(String).includes(String(habilidad.id ||
+                        habilidad._id)); } %>
+                        <option value="<%= habilidad.id || habilidad._id %>" <%=isSelected ? 'selected' : '' %>><%=
+                            habilidad.nombre %>
                         </option>
                         <% }); %>
                     </select>
@@ -193,46 +205,69 @@
                     <div class="form-group compact">
                       <label for="banco">Banco *</label>
                       <select id="banco" name="banco" required>
-                        <% var banco=(experto && experto.infoExperto && experto.infoExperto.banco) || (experto && experto.banco) || '' ; %>
-                        <option value="">Selecciona tu banco</option>
-                        <option value="Banco de Bogotá" <%=banco==='Banco de Bogotá' ? 'selected' : '' %>>Banco de Bogotá</option>
-                        <option value="Bancolombia" <%=banco==='Bancolombia' ? 'selected' : '' %>>Bancolombia</option>
-                        <option value="Banco Popular" <%=banco==='Banco Popular' ? 'selected' : '' %>>Banco Popular</option>
-                        <option value="Banco AV Villas" <%=banco==='Banco AV Villas' ? 'selected' : '' %>>Banco AV Villas</option>
-                        <option value="Banco Caja Social" <%=banco==='Banco Caja Social' ? 'selected' : '' %>>Banco Caja Social</option>
-                        <option value="Banco de Occidente" <%=banco==='Banco de Occidente' ? 'selected' : '' %>>Banco de Occidente</option>
-                        <option value="Banco GNB Sudameris" <%=banco==='Banco GNB Sudameris' ? 'selected' : '' %>>Banco GNB Sudameris</option>
-                        <option value="Banco Itaú" <%=banco==='Banco Itaú' ? 'selected' : '' %>>Banco Itaú</option>
-                        <option value="Banco Pichincha" <%=banco==='Banco Pichincha' ? 'selected' : '' %>>Banco Pichincha</option>
-                        <option value="Banco Santander" <%=banco==='Banco Santander' ? 'selected' : '' %>>Banco Santander</option>
-                        <option value="Banco Scotiabank Colpatria" <%=banco==='Banco Scotiabank Colpatria' ? 'selected' : '' %>>Banco Scotiabank Colpatria</option>
-                        <option value="Davivienda" <%=banco==='Davivienda' ? 'selected' : '' %>>Davivienda</option>
-                        <option value="Banco Agrario" <%=banco==='Banco Agrario' ? 'selected' : '' %>>Banco Agrario</option>
-                        <option value="Banco Falabella" <%=banco==='Banco Falabella' ? 'selected' : '' %>>Banco Falabella</option>
-                        <option value="Banco Finandina" <%=banco==='Banco Finandina' ? 'selected' : '' %>>Banco Finandina</option>
-                        <option value="Banco W" <%=banco==='Banco W' ? 'selected' : '' %>>Banco W</option>
-                        <option value="Banco Serfinanza" <%=banco==='Banco Serfinanza' ? 'selected' : '' %>>Banco Serfinanza</option>
-                        <option value="Banco Cooperativo Coopcentral" <%=banco==='Banco Cooperativo Coopcentral' ? 'selected' : '' %>>Banco Cooperativo Coopcentral</option>
-                        <option value="Banco BBVA" <%=banco==='Banco BBVA' ? 'selected' : '' %>>Banco BBVA</option>
-                        <option value="Nequi" <%=banco==='Nequi' ? 'selected' : '' %>>Nequi</option>
-                        <option value="Daviplata" <%=banco==='Daviplata' ? 'selected' : '' %>>Daviplata</option>
-                        <option value="Movii" <%=banco==='Movii' ? 'selected' : '' %>>Movii</option>
-                        <option value="Banco de Vivienda" <%=banco==='Banco de Vivienda' ? 'selected' : '' %>>Banco de Vivienda</option>
-                        <option value="Banco ProCredit" <%=banco==='Banco ProCredit' ? 'selected' : '' %>>Banco ProCredit</option>
-                        <option value="Banco Multibank" <%=banco==='Banco Multibank' ? 'selected' : '' %>>Banco Multibank</option>
-                        <option value="Banco Coopcentral" <%=banco==='Banco Coopcentral' ? 'selected' : '' %>>Banco Coopcentral</option>
-                        <option value="Banco Credifinanciera" <%=banco==='Banco Credifinanciera' ? 'selected' : '' %>>Banco Credifinanciera</option>
-                        <option value="Banco Mundo Mujer" <%=banco==='Banco Mundo Mujer' ? 'selected' : '' %>>Banco Mundo Mujer</option>
-                        <option value="Banco Ripley" <%=banco==='Banco Ripley' ? 'selected' : '' %>>Banco Ripley</option>
-                        <option value="Banco CrediScotia" <%=banco==='Banco CrediScotia' ? 'selected' : '' %>>Banco CrediScotia</option>
+                        <% var banco=(experto && experto.infoExperto && experto.infoExperto.banco) || (experto &&
+                          experto.banco) || '' ; %>
+                          <option value="">Selecciona tu banco</option>
+                          <option value="Banco de Bogotá" <%=banco==='Banco de Bogotá' ? 'selected' : '' %>>Banco de
+                            Bogotá</option>
+                          <option value="Bancolombia" <%=banco==='Bancolombia' ? 'selected' : '' %>>Bancolombia</option>
+                          <option value="Banco Popular" <%=banco==='Banco Popular' ? 'selected' : '' %>>Banco Popular
+                          </option>
+                          <option value="Banco AV Villas" <%=banco==='Banco AV Villas' ? 'selected' : '' %>>Banco AV
+                            Villas</option>
+                          <option value="Banco Caja Social" <%=banco==='Banco Caja Social' ? 'selected' : '' %>>Banco
+                            Caja Social</option>
+                          <option value="Banco de Occidente" <%=banco==='Banco de Occidente' ? 'selected' : '' %>>Banco
+                            de Occidente</option>
+                          <option value="Banco GNB Sudameris" <%=banco==='Banco GNB Sudameris' ? 'selected' : '' %>
+                            >Banco GNB Sudameris</option>
+                          <option value="Banco Itaú" <%=banco==='Banco Itaú' ? 'selected' : '' %>>Banco Itaú</option>
+                          <option value="Banco Pichincha" <%=banco==='Banco Pichincha' ? 'selected' : '' %>>Banco
+                            Pichincha</option>
+                          <option value="Banco Santander" <%=banco==='Banco Santander' ? 'selected' : '' %>>Banco
+                            Santander</option>
+                          <option value="Banco Scotiabank Colpatria" <%=banco==='Banco Scotiabank Colpatria'
+                            ? 'selected' : '' %>>Banco Scotiabank Colpatria</option>
+                          <option value="Davivienda" <%=banco==='Davivienda' ? 'selected' : '' %>>Davivienda</option>
+                          <option value="Banco Agrario" <%=banco==='Banco Agrario' ? 'selected' : '' %>>Banco Agrario
+                          </option>
+                          <option value="Banco Falabella" <%=banco==='Banco Falabella' ? 'selected' : '' %>>Banco
+                            Falabella</option>
+                          <option value="Banco Finandina" <%=banco==='Banco Finandina' ? 'selected' : '' %>>Banco
+                            Finandina</option>
+                          <option value="Banco W" <%=banco==='Banco W' ? 'selected' : '' %>>Banco W</option>
+                          <option value="Banco Serfinanza" <%=banco==='Banco Serfinanza' ? 'selected' : '' %>>Banco
+                            Serfinanza</option>
+                          <option value="Banco Cooperativo Coopcentral" <%=banco==='Banco Cooperativo Coopcentral'
+                            ? 'selected' : '' %>>Banco Cooperativo Coopcentral</option>
+                          <option value="Banco BBVA" <%=banco==='Banco BBVA' ? 'selected' : '' %>>Banco BBVA</option>
+                          <option value="Nequi" <%=banco==='Nequi' ? 'selected' : '' %>>Nequi</option>
+                          <option value="Daviplata" <%=banco==='Daviplata' ? 'selected' : '' %>>Daviplata</option>
+                          <option value="Movii" <%=banco==='Movii' ? 'selected' : '' %>>Movii</option>
+                          <option value="Banco de Vivienda" <%=banco==='Banco de Vivienda' ? 'selected' : '' %>>Banco de
+                            Vivienda</option>
+                          <option value="Banco ProCredit" <%=banco==='Banco ProCredit' ? 'selected' : '' %>>Banco
+                            ProCredit</option>
+                          <option value="Banco Multibank" <%=banco==='Banco Multibank' ? 'selected' : '' %>>Banco
+                            Multibank</option>
+                          <option value="Banco Coopcentral" <%=banco==='Banco Coopcentral' ? 'selected' : '' %>>Banco
+                            Coopcentral</option>
+                          <option value="Banco Credifinanciera" <%=banco==='Banco Credifinanciera' ? 'selected' : '' %>
+                            >Banco Credifinanciera</option>
+                          <option value="Banco Mundo Mujer" <%=banco==='Banco Mundo Mujer' ? 'selected' : '' %>>Banco
+                            Mundo Mujer</option>
+                          <option value="Banco Ripley" <%=banco==='Banco Ripley' ? 'selected' : '' %>>Banco Ripley
+                          </option>
+                          <option value="Banco CrediScotia" <%=banco==='Banco CrediScotia' ? 'selected' : '' %>>Banco
+                            CrediScotia</option>
                       </select>
                     </div>
 
                     <div class="form-group compact">
                       <label for="tipoCuenta">Tipo de cuenta *</label>
                       <select id="tipoCuenta" name="tipoCuenta" required>
-                        <% var tipoCuenta=(experto && experto.infoExperto && experto.infoExperto.tipoCuenta) || (experto &&
-                          experto.tipoCuenta) || '' ; %>
+                        <% var tipoCuenta=(experto && experto.infoExperto && experto.infoExperto.tipoCuenta) || (experto
+                          && experto.tipoCuenta) || '' ; %>
                           <option value="">Selecciona el tipo</option>
                           <option value="Cuenta de Ahorros" <%=tipoCuenta==='Cuenta de Ahorros' ? 'selected' : '' %>
                             >Cuenta de Ahorros</option>
@@ -251,8 +286,9 @@
                     <div class="form-group compact">
                       <label for="numeroCuenta">Número de cuenta *</label>
                       <div class="cuenta-container">
-                        <input type="password" id="numeroCuenta" name="numeroCuenta" required placeholder="Número de cuenta"
-                          pattern="[0-9\-]*" title="Solo números y guiones" class="input-cuenta"
+                        <input type="password" id="numeroCuenta" name="numeroCuenta" required
+                          placeholder="Número de cuenta" pattern="[0-9\-]*" title="Solo números y guiones"
+                          class="input-cuenta"
                           value="<%- experto && experto.infoExperto && experto.infoExperto.numeroCuenta ? experto.infoExperto.numeroCuenta : '' %>">
                         <button type="button" id="toggleAccountNumber" class="btn-toggle-cuenta">
                           <i class="fas fa-eye"></i>
@@ -276,12 +312,14 @@
                     <div class="form-group compact">
                       <label for="tipoDocumento">Tipo de documento *</label>
                       <select id="tipoDocumento" name="tipoDocumento" required>
-                        <% var tipoDocumento=(experto && experto.infoExperto && experto.infoExperto.tipoDocumento) || (experto &&
-                          experto.tipoDocumento) || '' ; %>
+                        <% var tipoDocumento=(experto && experto.infoExperto && experto.infoExperto.tipoDocumento) ||
+                          (experto && experto.tipoDocumento) || '' ; %>
                           <option value="">Selecciona el tipo</option>
-                          <option value="Cédula de Ciudadanía" <%=tipoDocumento==='Cédula de Ciudadanía' ? 'selected' : '' %>>Cédula de
+                          <option value="Cédula de Ciudadanía" <%=tipoDocumento==='Cédula de Ciudadanía' ? 'selected'
+                            : '' %>>Cédula de
                             Ciudadanía</option>
-                          <option value="Cédula de Extranjería" <%=tipoDocumento==='Cédula de Extranjería' ? 'selected' : '' %>>Cédula de
+                          <option value="Cédula de Extranjería" <%=tipoDocumento==='Cédula de Extranjería' ? 'selected'
+                            : '' %>>Cédula de
                             Extranjería</option>
                           <option value="Pasaporte" <%=tipoDocumento==='Pasaporte' ? 'selected' : '' %>>Pasaporte
                           </option>
@@ -292,8 +330,8 @@
 
                     <div class="form-group compact">
                       <label for="numeroDocumento">Número de documento *</label>
-                      <input type="text" id="numeroDocumento" name="numeroDocumento" required placeholder="Número de identificación"
-                        pattern="[0-9\-]*"
+                      <input type="text" id="numeroDocumento" name="numeroDocumento" required
+                        placeholder="Número de identificación" pattern="[0-9\-]*"
                         value="<%- experto && experto.infoExperto && experto.infoExperto.numeroDocumento ? experto.infoExperto.numeroDocumento : '' %>">
                       <p class="form-hint">Documento del titular</p>
                     </div>
@@ -329,8 +367,8 @@
                   <button type="submit" id="guardarCambios" class="btn btn-primary">
                     <span>Guardar cambios</span>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round" />
+                      <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
                   </button>
                   <button type="button" id="cancelarEdicion" class="btn btn-secondary" style="margin-top: 1rem;">
@@ -342,7 +380,6 @@
   </main>
 
   <script src="/assets/js/registroExperto.js"></script>
-  <script src="/assets/js/registroExperto.script.js"></script>
 </body>
 
 </html>

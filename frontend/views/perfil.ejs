@@ -191,14 +191,14 @@
                 <div class="profile-tab" id="expertInfo">
                   <div class="alert alert-warning">
                     <strong>¡Atención!</strong> Tu perfil de experto está incompleto.
-                    <a href="/registro-experto">Completa tu información aquí</a>.
+                    <a href="/registroExperto">Completa tu información aquí</a>.
                   </div>
                 </div>
                 <% } else if (user && user.roles && !user.roles.includes('experto')) { %>
                   <div class="profile-tab" id="expertInfo">
                     <div class="alert alert-info">
                       ¿Quieres convertirte en experto?
-                      <a href="/registro-experto">Regístrate como experto aquí</a>.
+                      <a href="/registroExperto">Regístrate como experto aquí</a>.
                     </div>
                   </div>
                   <% } %>
@@ -216,53 +216,6 @@
   <script src="/assets/js/test-auth.js"></script>
   <script src="/assets/js/index.js"></script>
   <script src="/assets/js/perfil.js"></script>
-
-  <!-- Script para mostrar/ocultar número de cuenta -->
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      const btnShowAccount = document.querySelector('.btn-show-account');
-      if (btnShowAccount) {
-        btnShowAccount.addEventListener('click', function () {
-          const accountElement = this.closest('.account-number');
-          const realNumber = accountElement.getAttribute('data-number');
-
-          if (accountElement.textContent.includes('••••')) {
-            accountElement.innerHTML = realNumber +
-              ' <button class="btn-show-account"><i class="fas fa-eye-slash"></i></button>';
-          } else {
-            accountElement.innerHTML = '••••••••••••••••' +
-              ' <button class="btn-show-account"><i class="fas fa-eye"></i></button>';
-          }
-        });
-      }
-    });
-  </script>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      const btnEditarPerfil = document.getElementById('btnEditarPerfil');
-      if (btnEditarPerfil) {
-        btnEditarPerfil.addEventListener('click', async function (e) {
-          e.preventDefault();
-          // Sincroniza sesión si hay token en localStorage pero no en window.user
-          const token = localStorage.getItem('token');
-          const usuario = localStorage.getItem('usuario');
-          if (token && usuario) {
-            try {
-              await fetch('/set-session', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ usuario: { ...JSON.parse(usuario), token } })
-              });
-            } catch (err) {
-              // Si falla, igual redirige
-            }
-          }
-          window.location.href = '/editar-perfil-experto';
-        });
-      }
-    });
-  </script>
 </body>
 
 </html>

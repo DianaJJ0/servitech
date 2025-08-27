@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // Si no hay token, redirige al login
   const token = localStorage.getItem("token");
   if (!token || token === "null") {
-    window.location.href = "/login.html?next=/editar-perfil-experto";
+    window.location.href = "/login.html?next=/editarExperto";
     return;
   }
   const dayOptions = document.querySelectorAll(".days-selector .day-option");
@@ -44,4 +44,50 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   updateSelectedDays();
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+  const btnShowAccount = document.querySelector(".btn-show-account");
+  if (btnShowAccount) {
+    btnShowAccount.addEventListener("click", function () {
+      const accountElement = this.closest(".account-number");
+      const realNumber = accountElement.getAttribute("data-number");
+
+      if (accountElement.textContent.includes("••••")) {
+        accountElement.innerHTML =
+          realNumber +
+          ' <button class="btn-show-account"><i class="fas fa-eye-slash"></i></button>';
+      } else {
+        accountElement.innerHTML =
+          "••••••••••••••••" +
+          ' <button class="btn-show-account"><i class="fas fa-eye"></i></button>';
+      }
+    });
+  }
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+  const btnEditarPerfil = document.getElementById("btnEditarPerfil");
+  if (btnEditarPerfil) {
+    btnEditarPerfil.addEventListener("click", async function (e) {
+      e.preventDefault();
+      // Sincroniza sesión si hay token en localStorage pero no en window.user
+      const token = localStorage.getItem("token");
+      const usuario = localStorage.getItem("usuario");
+      if (token && usuario) {
+        try {
+          await fetch("/set-session", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              usuario: { ...JSON.parse(usuario), token },
+            }),
+          });
+        } catch (err) {
+          // Si falla, igual redirige
+        }
+      }
+      window.location.href = "/editarExperto";
+    });
+  }
 });

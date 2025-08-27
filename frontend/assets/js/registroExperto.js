@@ -1,17 +1,18 @@
 console.log("registroExperto.js cargado correctamente");
-// Mostrar/ocultar número de cuenta bancaria (ejemplo de bloque correcto)
+
+// Mostrar/ocultar número de cuenta bancaria
 document.addEventListener("DOMContentLoaded", function () {
-  // Sincroniza el token entre la sesión y localStorage si está disponible en window.user
+  // Sincroniza token entre sesión y localStorage si está disponible
   if (window.user && window.user.token) {
     localStorage.setItem("token", window.user.token);
   }
-  // Si no hay token, redirige al login
+  // Verifica autenticación
   const token = localStorage.getItem("token");
   if (!token || token === "null") {
-    window.location.href = "/login.html?next=/registro-experto";
+    window.location.href = "/login.html?next=/registroExperto";
     return;
   }
-  // Mostrar/ocultar número de cuenta bancaria (id corregido)
+  // Mostrar/ocultar número de cuenta bancaria
   const toggleBtn = document.getElementById("toggleAccountNumber");
   if (toggleBtn) {
     toggleBtn.addEventListener("click", function () {
@@ -27,7 +28,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // --- Lógica de selección de días disponibles ---
+  // Selección de días disponibles
   const diasDisponiblesInput = document.getElementById("diasDisponibles");
   const dayOptions = document.querySelectorAll(".day-option");
   const daysDisplay = document.querySelector(".days-selected-display");
@@ -44,30 +45,27 @@ document.addEventListener("DOMContentLoaded", function () {
           : "Selecciona tus días disponibles";
     }
   }
-
   dayOptions.forEach((day) => {
     day.addEventListener("click", function () {
       this.classList.toggle("selected");
       updateSelectedDays();
     });
   });
-
   updateSelectedDays();
 });
 
-// Nueva lógica para estructura anidada
+// Elementos del formulario
 const especialidadSelect = document.getElementById("especialidad");
 const categoriasSelect = document.getElementById("categorias");
 const skillsSelect = document.getElementById("skills");
-let categoriasData = [];
 
-// Envío del formulario
+// Envío del formulario experto
 const form = document.getElementById("registroExpertoForm");
-const diasDisponiblesSelect = document.getElementById("diasDisponibles");
 if (form) {
   form.addEventListener("submit", async function (e) {
     e.preventDefault();
-    // Validar campos requeridos de datos bancarios
+
+    // Validar campos obligatorios de datos bancarios
     const requiredBankFields = [
       "banco",
       "tipoCuenta",
@@ -77,7 +75,6 @@ if (form) {
       "numeroDocumento",
     ];
     let missingFields = [];
-
     requiredBankFields.forEach((fieldName) => {
       const field = document.getElementById(fieldName);
       if (!field.value.trim()) {
@@ -86,7 +83,6 @@ if (form) {
         );
       }
     });
-
     if (missingFields.length > 0) {
       alert(
         "Por favor completa los siguientes campos obligatorios:\n\n• " +
@@ -95,65 +91,53 @@ if (form) {
       return;
     }
 
-    Array.from(categoriasSelect.options).forEach((opt) => {
-      if (opt.selected) opt.setAttribute("selected", "selected");
-      else opt.removeAttribute("selected");
-    });
-    Array.from(skillsSelect.options).forEach((opt) => {
-      if (opt.selected) opt.setAttribute("selected", "selected");
-      else opt.removeAttribute("selected");
-    });
-    const diasDisponiblesValue =
-      document.getElementById("diasDisponibles").value;
-    const formData = new FormData(form);
-    formData.set(
-      "categorias",
-      Array.from(categoriasSelect.selectedOptions)
-        .map((o) => o.value)
-        .join(",")
-    );
-    formData.set(
-      "skills",
-      Array.from(skillsSelect.selectedOptions)
-        .map((o) => o.value)
-        .join(",")
-    );
-    formData.set("diasDisponibles", diasDisponiblesValue);
-
-    const datosBancarios = {
-      banco: formData.get("banco"),
-      tipoCuenta: formData.get("tipoCuenta"),
-      numeroCuenta: formData.get("numeroCuenta"),
-      titular: formData.get("titular"),
-      tipoDocumento: formData.get("tipoDocumento"),
-      numeroDocumento: formData.get("numeroDocumento"),
-      telefonoContacto: formData.get("telefonoContacto") || "",
-      verificado: false,
+    // Construir payload en formato JSON
+    const payload = {
+      precioPorHora: document.getElementById("precio").value,
+      descripcion: document.getElementById("descripcion").value,
+      categorias: Array.from(categoriasSelect.selectedOptions).map(
+        (o) => o.value
+      ),
+      especialidad: especialidadSelect.value,
+      skills: Array.from(skillsSelect.selectedOptions).map((o) => o.value),
+      banco: document.getElementById("banco").value,
+      tipoCuenta: document.getElementById("tipoCuenta").value,
+      numeroCuenta: document.getElementById("numeroCuenta").value,
+      titular: document.getElementById("titular").value,
+      tipoDocumento: document.getElementById("tipoDocumento").value,
+      numeroDocumento: document.getElementById("numeroDocumento").value,
+      telefonoContacto: document.getElementById("telefonoContacto").value,
+      diasDisponibles: document
+        .getElementById("diasDisponibles")
+        .value.split(","),
     };
-    formData.set("datosBancarios", JSON.stringify(datosBancarios));
 
     try {
       const token = localStorage.getItem("token");
       if (!token || token === "null") {
         alert("Debes iniciar sesión para registrar como experto.");
-        window.location.href = "/login.html?next=/registro-experto";
+        window.location.href = "/login.html?next=/registroExperto";
         return;
       }
-      const response = await fetch("/api/registro-experto", {
-        method: "POST",
-        body: formData,
+      // Enviar datos al backend usando la ruta correcta y método PUT
+      const response = await fetch("/api/usuarios/perfil", {
+        method: "PUT",
+        body: JSON.stringify(payload),
         credentials: "include",
         headers: {
           Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
       });
+
       const alertContainer = document.createElement("div");
       alertContainer.className = "alert-container";
       document.body.appendChild(alertContainer);
+
       if (response.ok) {
         const result = await response.json().catch(() => null);
-        alertContainer.innerHTML = `<div class='alert alert-success'>Registro exitoso. Actualizando perfil...`;
-        // Obtiene el perfil actualizado del backend
+        alertContainer.innerHTML = `<div class='alert alert-success'>Registro exitoso. Actualizando perfil...</div>`;
+        // Actualiza la sesión y redirige
         const perfilRes = await fetch("/api/usuarios/perfil", {
           method: "GET",
           headers: { Authorization: `Bearer ${token}` },
@@ -161,7 +145,6 @@ if (form) {
         });
         if (perfilRes.ok) {
           const usuarioActualizado = await perfilRes.json();
-          // Actualiza la sesión en el servidor frontend
           await fetch("/set-session", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -181,3 +164,72 @@ if (form) {
     }
   });
 }
+
+// Validación y feedback para tarifa COP
+document.addEventListener("DOMContentLoaded", function () {
+  var precioInput = document.getElementById("precio");
+  var feedback = document.getElementById("precio-feedback");
+  if (precioInput && feedback) {
+    precioInput.addEventListener("input", function () {
+      var valor = parseInt(precioInput.value, 10);
+      if (isNaN(valor) || valor < 10000) {
+        feedback.textContent = "La tarifa mínima es $10.000 COP.";
+        precioInput.style.borderColor = "#ff5252";
+      } else if (valor > 500000) {
+        feedback.textContent = "La tarifa máxima recomendada es $500.000 COP.";
+        precioInput.style.borderColor = "#ff5252";
+      } else if (valor < 30000) {
+        feedback.textContent =
+          "Sugerencia: La mayoría de expertos cobran más de $30.000 COP/hora.";
+        precioInput.style.borderColor = "#ffb300";
+      } else if (valor > 200000) {
+        feedback.textContent =
+          "Sugerencia: Tarifas superiores a $200.000 COP/hora suelen ser para expertos muy especializados.";
+        precioInput.style.borderColor = "#ffb300";
+      } else {
+        feedback.textContent = "";
+        precioInput.style.borderColor = "var(--accent-color)";
+      }
+    });
+  }
+});
+
+// Choices.js para selects múltiples
+var script = document.createElement("script");
+script.src =
+  "https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js";
+script.onload = function () {
+  var categoriasSelect = document.getElementById("categorias");
+  if (categoriasSelect) {
+    new Choices(categoriasSelect, {
+      removeItemButton: true,
+      searchEnabled: true,
+      placeholder: true,
+      placeholderValue: "Selecciona categorías",
+      noResultsText: "No hay resultados",
+      noChoicesText: "No hay opciones",
+      itemSelectText: "Seleccionar",
+      classNames: {
+        containerInner: "choices-container",
+        input: "choices-input",
+      },
+    });
+  }
+  var skillsSelect = document.getElementById("skills");
+  if (skillsSelect) {
+    new Choices(skillsSelect, {
+      removeItemButton: true,
+      searchEnabled: true,
+      placeholder: true,
+      placeholderValue: "Selecciona habilidades",
+      noResultsText: "No hay resultados",
+      noChoicesText: "No hay opciones",
+      itemSelectText: "Seleccionar",
+      classNames: {
+        containerInner: "choices-container",
+        input: "choices-input",
+      },
+    });
+  }
+};
+document.head.appendChild(script);

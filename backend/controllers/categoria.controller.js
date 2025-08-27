@@ -38,7 +38,7 @@ const obtenerCategorias = async (req, res) => {
   try {
     const { nombre } = req.query;
     let filtro = {};
-    if (nombre && typeof nombre === "string" && nombre.trim() !== "") {
+    if (nombre && typeof nombre === "string" && nombre.trim() !== "") {  
       // Busca por nombre parcial, insensible a mayúsculas y minúsculas
       filtro.nombre = { $regex: nombre.trim(), $options: "i" };
     }

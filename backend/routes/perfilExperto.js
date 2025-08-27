@@ -8,16 +8,16 @@ const {
 const { protect } = require("../middleware/auth.middleware.js");
 
 // Ruta POST para registro de experto protegida
-router.post("/registro-experto", protect, actualizarPerfilExperto);
+router.post("/perfil", protect, actualizarPerfilExperto);
 
-// Define una ruta GET para "/editar-perfil-experto"
+// Define una ruta GET para "/editarExperto"
 // Modelos necesarios
 const Categoria = require("../models/categoria.model.js");
 const Especialidad = require("../models/especialidad.model.js");
 const Habilidad = require("../models/habilidad.model.js");
 const Usuario = require("../models/usuario.model.js");
 
-router.get("/editar-perfil-experto", async (req, res) => {
+router.get("/editarExperto", async (req, res) => {
   try {
     // Obtén el usuario actual (ajusta según tu lógica de sesión)
     let usuario = req.session?.user;
