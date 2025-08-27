@@ -2,17 +2,19 @@
 <html lang="es">
 
 <head>
+  <link rel="stylesheet" href="/assets/css/choices-custom.css" />
+  <!-- Choices.js CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Editar Perfil | Servitech</title>
+  <title>Registro | Servitech</title>
   <link rel="stylesheet" href="/assets/css/auth.css" />
-  <link rel="stylesheet" href="/assets/css/editarExpertos.css" />
+  <link rel="stylesheet" href="/assets/css/registroExperto.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 </head>
 
 <body>
-
 
   <main class="registro-experto-main">
     <section class="registro-experto-section">
@@ -32,7 +34,7 @@
                   <a href="/" class="logo-link">
                     <img src="/assets/img/logo.png" alt="Logo de ServiTech" class="logo-img">
                   </a>
-                  <h1 class="registro-header-title">Editar Perfil de Experto</h1>
+                  <h1 class="registro-header-title">Editar Perfil Expertos</h1>
                   <p class="subtitle registro-header-subtitle">Actualiza tu información para mantener tu perfil al día
                   </p>
                 </div>
@@ -44,56 +46,60 @@
                 </div>
               </div>
 
-              <form id="editarExpertoForm" class="registro-experto-form" method="POST" action="/editar-perfil-experto">
+              <form id="registroExpertoForm" class="registro-experto-form">
                 <!-- Primera fila horizontal -->
                 <div class="form-row triple">
                   <!-- Email -->
-                  <div class="form-group compact email-group">
-                    <label for="email">Email registrado</label>
-                    <div class="email-field">
+                  <div class="form-group compact email-group"
+                    style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; background: var(--input-bg); border-radius: var(--input-radius); box-shadow: 0 2px 8px rgba(0,0,0,0.04); padding: 14px 0; min-width: 220px;">
+                    <label for="email"
+                      style="font-size: 1em; font-weight: 600; color: var(--accent-color); margin-bottom: 6px; letter-spacing: 0.01em;">
+                      <i class="fas fa-envelope" style="margin-right: 6px; color: var(--accent-color);"></i>
+                      Email registrado
+                    </label>
+                    <div class="email-field"
+                      style="font-size: 0.98em; font-weight: 500; color: var(--text-secondary); background: var(--card-bg); border-radius: var(--input-radius); padding: 6px 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.03); margin-bottom: 4px; border: 1px solid var(--border-color);">
                       <%- experto && experto.email ? experto.email : '' %>
                     </div>
-                    <p class="form-hint">Email de tu cuenta (no editable)</p>
+                    <p class="form-hint" style="font-size: 0.92em; color: var(--accent-color); margin-top: 2px;">
+                      Email de tu cuenta (no editable)
+                    </p>
                   </div>
 
                   <div class="form-group compact price-group">
                     <label for="precio">
-                      Precio por hora (USD)
-                      <span class="price-tooltip" title="Precio sugerido">
+                      Precio por hora (COP)
+                      <span class="price-tooltip" title="Ejemplo recomendado: $30.000 - $200.000 COP">
                         <i class="fas fa-info-circle"></i>
                       </span>
                     </label>
                     <div class="price-input">
                       <span class="currency">$</span>
-                      <input type="number" id="precio" name="precio" min="0" step="0.01" required
-                        value="<%- experto && experto.precio ? experto.precio : '0.00' %>">
+                      <input type="number" id="precio" name="precio" min="10000" step="100" required
+                        value="<%- experto && experto.precio ? experto.precio : '0' %>" placeholder="Ej: 50000">
                     </div>
-                    <p class="form-hint">Tarifa por hora de asesoría</p>
+                    <p class="form-hint">Tarifa por hora de asesoría (Recomendado: $30.000 - $200.000 COP)</p>
+                    <div id="precio-feedback" style="color:#ff5252; font-size:0.95em; margin-top:4px;"></div>
                   </div>
+
 
                   <div class="form-group compact days-group">
                     <label>Días disponibles</label>
                     <div class="days-selector">
-                      <div
-                        class="day-option <%= (experto && experto.horario && experto.horario.includes('Lunes')) ? 'selected' : '' %>"
+                      <div class="day-option <%= (experto && experto.horario && experto.horario.includes('Lunes')) ? 'selected' : '' %>"
                         data-day="Lunes">L</div>
-                      <div
-                        class="day-option <%= (experto && experto.horario && experto.horario.includes('Martes')) ? 'selected' : '' %>"
+                      <div class="day-option <%= (experto && experto.horario && experto.horario.includes('Martes')) ? 'selected' : '' %>"
                         data-day="Martes">M</div>
                       <div
                         class="day-option <%= (experto && experto.horario && experto.horario.includes('Miércoles')) ? 'selected' : '' %>"
                         data-day="Miércoles">X</div>
-                      <div
-                        class="day-option <%= (experto && experto.horario && experto.horario.includes('Jueves')) ? 'selected' : '' %>"
+                      <div class="day-option <%= (experto && experto.horario && experto.horario.includes('Jueves')) ? 'selected' : '' %>"
                         data-day="Jueves">J</div>
-                      <div
-                        class="day-option <%= (experto && experto.horario && experto.horario.includes('Viernes')) ? 'selected' : '' %>"
+                      <div class="day-option <%= (experto && experto.horario && experto.horario.includes('Viernes')) ? 'selected' : '' %>"
                         data-day="Viernes">V</div>
-                      <div
-                        class="day-option <%= (experto && experto.horario && experto.horario.includes('Sábado')) ? 'selected' : '' %>"
+                      <div class="day-option <%= (experto && experto.horario && experto.horario.includes('Sábado')) ? 'selected' : '' %>"
                         data-day="Sábado">S</div>
-                      <div
-                        class="day-option <%= (experto && experto.horario && experto.horario.includes('Domingo')) ? 'selected' : '' %>"
+                      <div class="day-option <%= (experto && experto.horario && experto.horario.includes('Domingo')) ? 'selected' : '' %>"
                         data-day="Domingo">D</div>
                     </div>
                     <div class="days-selected-display">
@@ -111,42 +117,47 @@
                     placeholder="Tu experiencia y enfoque profesional"><%- experto && experto.infoExperto && experto.infoExperto.descripcion ? experto.infoExperto.descripcion : '' %></textarea>
                 </div>
 
-                <!-- Segunda fila horizontal: Categorías y Especialidad en un bloque -->
 
-                <div class="form-row double">
-                  <div class="form-group compact full-width">
-                    <label for="categorias">
-                      <i class="fas fa-layer-group"></i> Categorías
-                      <span class="form-tooltip"
-                        title="Selecciona las áreas tecnológicas en las que tienes experiencia">
-                        <i class="fas fa-info-circle"></i>
-                      </span>
+
+
+                <!-- Segunda fila horizontal: Categorías, Especialidad y Habilidades distribuidos en columnas -->
+                <div class="form-row triple">
+                  <div class="form-group compact">
+                    <!-- Categorías -->
+                    <label for="categorias"></label>
+                    <i class="fas fa-layer-group"></i> <span class="categorias-label-text">Categorías</span>
+                    <span class="form-tooltip"
+                      title="Selecciona las áreas tecnológicas en las que tienes experiencia"></span>
+                    <i class="fas fa-info-circle"></i>
+                    </span>
                     </label>
                     <select id="categorias" name="categorias" multiple class="select-multiple categorias-modern">
-                      <% if (categorias && categorias.length) { categorias.forEach(function(categoria) { var
-                        isSelected=false; if (experto && experto.infoExperto &&
-                        Array.isArray(experto.infoExperto.categorias)) {
-                        isSelected=experto.infoExperto.categorias.map(String).includes(String(categoria.id ||
-                        categoria._id)); } %>
-                        <option value="<%= categoria.id || categoria._id %>" <%=isSelected ? 'selected' : '' %>><%-
-                            categoria.nombre %></option>
+                      <% if (categorias && categorias.length) { categorias.forEach(function(categoria) { var isSelected=false; if (experto
+                        && experto.infoExperto && Array.isArray(experto.infoExperto.categorias)) {
+                        isSelected=experto.infoExperto.categorias.map(String).includes(String(categoria.id || categoria._id)); } %>
+                        <option value="<%= categoria.id || categoria._id %>" <%=isSelected ? 'selected' : '' %>><%- categoria.nombre %>
+                        </option>
                         <% }); } %>
                     </select>
                     <div id="categoriasTags" class="tags-container"></div>
                     <p class="form-hint">Selecciona una o más categorías tecnológicas</p>
 
-                    <label for="especialidad" style="margin-top: 1.5em;">
-                      <i class="fas fa-star"></i> Especialidad
-                      <span class="form-tooltip" title="Tu principal área de especialización">
-                        <i class="fas fa-info-circle"></i>
-                      </span>
+
+                  </div>
+
+                  <!-- Especialidad -->
+                  <div class="form-group compact">
+                    <label for="especialidad"></label>
+                    <i class="fas fa-star"></i> <span class="especialidad-label-text">Especialidad</span>
+                    <span class="form-tooltip" title="Tu principal área de especialización">
+                      <i class="fas fa-info-circle"></i>
+                    </span>
                     </label>
                     <div class="especialidad-select-container">
                       <select id="especialidad" name="especialidad" required class="especialidad-modern">
                         <option value="">Selecciona especialidad</option>
-                        <% especialidades.forEach(function(especialidad) { var isSelected=false; if (experto &&
-                          experto.infoExperto && experto.infoExperto.especialidad==especialidad.id) { isSelected=true; }
-                          %>
+                        <% especialidades.forEach(function(especialidad) { var isSelected=false; if (experto && experto.infoExperto &&
+                          experto.infoExperto.especialidad==especialidad.id) { isSelected=true; } %>
                           <option value="<%= especialidad.id || especialidad._id %>" <%=isSelected ? 'selected' : '' %>>
                             <%= especialidad.nombre %>
                           </option>
@@ -155,165 +166,157 @@
                       <i class="fas fa-chevron-down select-arrow"></i>
                     </div>
                   </div>
-                </div>
 
-                <!-- Modern tags for categorías y habilidades seleccionadas -->
-                <script>
-                  document.addEventListener('DOMContentLoaded', function () {
-                    // Categorías tags
-                    const categoriasSelect = document.getElementById('categorias');
-                    const categoriasTags = document.getElementById('categoriasTags');
-                    if (categoriasSelect && categoriasTags) {
-                      categoriasSelect.addEventListener('change', function () {
-                        categoriasTags.innerHTML = '';
-                        Array.from(categoriasSelect.selectedOptions).forEach(opt => {
-                          const tag = document.createElement('span');
-                          tag.className = 'tag';
-                          tag.textContent = opt.text;
-                          categoriasTags.appendChild(tag);
-                        });
-                      });
-                      // Inicializar tags si ya hay seleccionados
-                      Array.from(categoriasSelect.selectedOptions).forEach(opt => {
-                        const tag = document.createElement('span');
-                        tag.className = 'tag';
-                        tag.textContent = opt.text;
-                        categoriasTags.appendChild(tag);
-                      });
-                    }
-                    // Habilidades tags
-                    const skillsSelect = document.getElementById('skills');
-                    const skillsTags = document.getElementById('skillsTags');
-                    if (skillsSelect && skillsTags) {
-                      skillsSelect.addEventListener('change', function () {
-                        skillsTags.innerHTML = '';
-                        Array.from(skillsSelect.selectedOptions).forEach(opt => {
-                          const tag = document.createElement('span');
-                          tag.className = 'tag';
-                          tag.textContent = opt.text;
-                          skillsTags.appendChild(tag);
-                        });
-                      });
-                      // Inicializar tags si ya hay seleccionados
-                      Array.from(skillsSelect.selectedOptions).forEach(opt => {
-                        const tag = document.createElement('span');
-                        tag.className = 'tag';
-                        tag.textContent = opt.text;
-                        skillsTags.appendChild(tag);
-                      });
-                    }
-                  });
-                </script>
-                <style>
-                  .tags-container {
-                    margin-top: 8px;
-                    display: flex;
-                    flex-wrap: wrap;
-                    gap: 6px;
-                  }
-
-                  .tag {
-                    background: #e0f7fa;
-                    color: #00796b;
-                    border-radius: 12px;
-                    padding: 4px 12px;
-                    font-size: 13px;
-                    display: inline-block;
-                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-                  }
-
-                  .especialidad-select-container {
-                    position: relative;
-                    display: flex;
-                    align-items: center;
-                  }
-
-                  .especialidad-modern,
-                  .skills-modern {
-                    width: 100%;
-                    padding-right: 28px;
-                    border-radius: 8px;
-                    border: 1px solid #ccc;
-                    font-size: 15px;
-                    background: #fff;
-                    color: #222;
-                    transition: border-color 0.2s;
-                  }
-
-                  .especialidad-modern:focus,
-                  .skills-modern:focus {
-                    border-color: #00796b;
-                    outline: none;
-                  }
-
-                  .select-arrow {
-                    position: absolute;
-                    right: 10px;
-                    pointer-events: none;
-                    color: #888;
-                    font-size: 16px;
-                  }
-
-                  .form-tooltip {
-                    margin-left: 6px;
-                    color: #00796b;
-                    cursor: pointer;
-                    font-size: 14px;
-                  }
-                </style>
-
-                <!-- Habilidades en una fila horizontal debajo -->
-                <div class="form-row single">
-                  <div class="form-group compact full-width">
+                  <!-- Habilidades -->
+                  <div class="form-group compact">
                     <label for="skills">
-                      <i class="fas fa-bolt"></i> Habilidades
+                      <i class="fas fa-bolt"></i> <span class="skills-label-text">Habilidades</span>
                       <span class="form-tooltip" title="Selecciona habilidades tecnológicas">
                         <i class="fas fa-info-circle"></i>
                       </span>
                     </label>
                     <select id="skills" name="skills" multiple class="select-multiple skills-modern">
-                      <% habilidades.forEach(function(habilidad) { var isSelected=false; if (experto &&
-                        experto.infoExperto && Array.isArray(experto.infoExperto.skills)) {
-                        isSelected=experto.infoExperto.skills.map(String).includes(String(habilidad.id ||
-                        habilidad._id)); } %>
-                        <option value="<%= habilidad.id || habilidad._id %>" <%=isSelected ? 'selected' : '' %>><%=
-                            habilidad.nombre %>
+                      <% habilidades.forEach(function(habilidad) { var isSelected=false; if (experto && experto.infoExperto &&
+                        Array.isArray(experto.infoExperto.skills)) {
+                        isSelected=experto.infoExperto.skills.map(String).includes(String(habilidad.id || habilidad._id)); } %>
+                        <option value="<%= habilidad.id || habilidad._id %>" <%=isSelected ? 'selected' : '' %>><%= habilidad.nombre %>
                         </option>
                         <% }); %>
                     </select>
                     <div id="skillsTags" class="tags-container"></div>
                     <p class="form-hint">Selecciona habilidades tecnológicas</p>
                   </div>
+
+
+
                 </div>
+
+
+                </div>
+                <!-- Modern tags for categorías y habilidades seleccionadas -->
+                <script>
+                  // Validación y feedback para tarifa en COP
+                  document.addEventListener('DOMContentLoaded', function () {
+                    var precioInput = document.getElementById('precio');
+                    var feedback = document.getElementById('precio-feedback');
+                    if (precioInput && feedback) {
+                      precioInput.addEventListener('input', function () {
+                        var valor = parseInt(precioInput.value, 10);
+                        if (isNaN(valor) || valor < 10000) {
+                          feedback.textContent = 'La tarifa mínima es $10.000 COP.';
+                          precioInput.style.borderColor = '#ff5252';
+                        } else if (valor > 500000) {
+                          feedback.textContent = 'La tarifa máxima recomendada es $500.000 COP.';
+                          precioInput.style.borderColor = '#ff5252';
+                        } else if (valor < 30000) {
+                          feedback.textContent = 'Sugerencia: La mayoría de expertos cobran más de $30.000 COP/hora.';
+                          precioInput.style.borderColor = '#ffb300';
+                        } else if (valor > 200000) {
+                          feedback.textContent = 'Sugerencia: Tarifas superiores a $200.000 COP/hora suelen ser para expertos muy especializados.';
+                          precioInput.style.borderColor = '#ffb300';
+                        } else {
+                          feedback.textContent = '';
+                          precioInput.style.borderColor = 'var(--accent-color)';
+                        }
+                      });
+                    }
+                  });
+                  // Choices.js CDN
+                  var script = document.createElement('script');
+                  script.src = 'https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js';
+                  script.onload = function () {
+                    var categoriasSelect = document.getElementById('categorias');
+                    if (categoriasSelect) {
+                      new Choices(categoriasSelect, {
+                        removeItemButton: true,
+                        searchEnabled: true,
+                        placeholder: true,
+                        placeholderValue: 'Selecciona categorías',
+                        noResultsText: 'No hay resultados',
+                        noChoicesText: 'No hay opciones',
+                        itemSelectText: 'Seleccionar',
+                        classNames: {
+                          containerInner: 'choices-container',
+                          input: 'choices-input',
+                        }
+                      });
+                    }
+                    var skillsSelect = document.getElementById('skills');
+                    if (skillsSelect) {
+                      new Choices(skillsSelect, {
+                        removeItemButton: true,
+                        searchEnabled: true,
+                        placeholder: true,
+                        placeholderValue: 'Selecciona habilidades',
+                        noResultsText: 'No hay resultados',
+                        noChoicesText: 'No hay opciones',
+                        itemSelectText: 'Seleccionar',
+                        classNames: {
+                          containerInner: 'choices-container',
+                          input: 'choices-input',
+                        }
+                      });
+                    }
+                  };
+                  document.head.appendChild(script);
+
+                </script>
+
+
 
                 <!-- Datos Bancarios -->
                 <div class="form-section">
                   <h3 class="section-title">
                     <i class="fas fa-university"></i>
-                    Datos Bancarios para Pagos
+                    Editar Datos Bancarios para Pagos
                   </h3>
-                  <p class="section-subtitle">Actualiza tu información bancaria para recibir pagos</p>
+                  <p class="section-subtitle">Información necesaria para recibir pagos por tus asesorías</p>
 
                   <!-- Primera fila bancos -->
                   <div class="form-row double">
                     <div class="form-group compact">
                       <label for="banco">Banco *</label>
                       <select id="banco" name="banco" required>
-                        <% var banco=(experto && experto.infoExperto && experto.infoExperto.banco) || (experto &&
-                          experto.banco) || '' ; %>
-                          <option value="">Selecciona tu banco</option>
-                          <option value="Banco de Bogotá" <%=banco==='Banco de Bogotá' ? 'selected' : '' %>>Banco de
-                            Bogotá</option>
-                          <option value="Bancolombia" <%=banco==='Bancolombia' ? 'selected' : '' %>>Bancolombia</option>
-                          <!-- Resto de opciones bancarias -->
+                        <% var banco=(experto && experto.infoExperto && experto.infoExperto.banco) || (experto && experto.banco) || '' ; %>
+                        <option value="">Selecciona tu banco</option>
+                        <option value="Banco de Bogotá" <%=banco==='Banco de Bogotá' ? 'selected' : '' %>>Banco de Bogotá</option>
+                        <option value="Bancolombia" <%=banco==='Bancolombia' ? 'selected' : '' %>>Bancolombia</option>
+                        <option value="Banco Popular" <%=banco==='Banco Popular' ? 'selected' : '' %>>Banco Popular</option>
+                        <option value="Banco AV Villas" <%=banco==='Banco AV Villas' ? 'selected' : '' %>>Banco AV Villas</option>
+                        <option value="Banco Caja Social" <%=banco==='Banco Caja Social' ? 'selected' : '' %>>Banco Caja Social</option>
+                        <option value="Banco de Occidente" <%=banco==='Banco de Occidente' ? 'selected' : '' %>>Banco de Occidente</option>
+                        <option value="Banco GNB Sudameris" <%=banco==='Banco GNB Sudameris' ? 'selected' : '' %>>Banco GNB Sudameris</option>
+                        <option value="Banco Itaú" <%=banco==='Banco Itaú' ? 'selected' : '' %>>Banco Itaú</option>
+                        <option value="Banco Pichincha" <%=banco==='Banco Pichincha' ? 'selected' : '' %>>Banco Pichincha</option>
+                        <option value="Banco Santander" <%=banco==='Banco Santander' ? 'selected' : '' %>>Banco Santander</option>
+                        <option value="Banco Scotiabank Colpatria" <%=banco==='Banco Scotiabank Colpatria' ? 'selected' : '' %>>Banco Scotiabank Colpatria</option>
+                        <option value="Davivienda" <%=banco==='Davivienda' ? 'selected' : '' %>>Davivienda</option>
+                        <option value="Banco Agrario" <%=banco==='Banco Agrario' ? 'selected' : '' %>>Banco Agrario</option>
+                        <option value="Banco Falabella" <%=banco==='Banco Falabella' ? 'selected' : '' %>>Banco Falabella</option>
+                        <option value="Banco Finandina" <%=banco==='Banco Finandina' ? 'selected' : '' %>>Banco Finandina</option>
+                        <option value="Banco W" <%=banco==='Banco W' ? 'selected' : '' %>>Banco W</option>
+                        <option value="Banco Serfinanza" <%=banco==='Banco Serfinanza' ? 'selected' : '' %>>Banco Serfinanza</option>
+                        <option value="Banco Cooperativo Coopcentral" <%=banco==='Banco Cooperativo Coopcentral' ? 'selected' : '' %>>Banco Cooperativo Coopcentral</option>
+                        <option value="Banco BBVA" <%=banco==='Banco BBVA' ? 'selected' : '' %>>Banco BBVA</option>
+                        <option value="Nequi" <%=banco==='Nequi' ? 'selected' : '' %>>Nequi</option>
+                        <option value="Daviplata" <%=banco==='Daviplata' ? 'selected' : '' %>>Daviplata</option>
+                        <option value="Movii" <%=banco==='Movii' ? 'selected' : '' %>>Movii</option>
+                        <option value="Banco de Vivienda" <%=banco==='Banco de Vivienda' ? 'selected' : '' %>>Banco de Vivienda</option>
+                        <option value="Banco ProCredit" <%=banco==='Banco ProCredit' ? 'selected' : '' %>>Banco ProCredit</option>
+                        <option value="Banco Multibank" <%=banco==='Banco Multibank' ? 'selected' : '' %>>Banco Multibank</option>
+                        <option value="Banco Coopcentral" <%=banco==='Banco Coopcentral' ? 'selected' : '' %>>Banco Coopcentral</option>
+                        <option value="Banco Credifinanciera" <%=banco==='Banco Credifinanciera' ? 'selected' : '' %>>Banco Credifinanciera</option>
+                        <option value="Banco Mundo Mujer" <%=banco==='Banco Mundo Mujer' ? 'selected' : '' %>>Banco Mundo Mujer</option>
+                        <option value="Banco Ripley" <%=banco==='Banco Ripley' ? 'selected' : '' %>>Banco Ripley</option>
+                        <option value="Banco CrediScotia" <%=banco==='Banco CrediScotia' ? 'selected' : '' %>>Banco CrediScotia</option>
                       </select>
                     </div>
 
                     <div class="form-group compact">
                       <label for="tipoCuenta">Tipo de cuenta *</label>
                       <select id="tipoCuenta" name="tipoCuenta" required>
-                        <% var tipoCuenta=(experto && experto.infoExperto && experto.infoExperto.tipoCuenta) || (experto
-                          && experto.tipoCuenta) || '' ; %>
+                        <% var tipoCuenta=(experto && experto.infoExperto && experto.infoExperto.tipoCuenta) || (experto &&
+                          experto.tipoCuenta) || '' ; %>
                           <option value="">Selecciona el tipo</option>
                           <option value="Cuenta de Ahorros" <%=tipoCuenta==='Cuenta de Ahorros' ? 'selected' : '' %>
                             >Cuenta de Ahorros</option>
@@ -332,9 +335,8 @@
                     <div class="form-group compact">
                       <label for="numeroCuenta">Número de cuenta *</label>
                       <div class="cuenta-container">
-                        <input type="password" id="numeroCuenta" name="numeroCuenta" required
-                          placeholder="Número de cuenta" pattern="[0-9\-]*" title="Solo números y guiones"
-                          class="input-cuenta"
+                        <input type="password" id="numeroCuenta" name="numeroCuenta" required placeholder="Número de cuenta"
+                          pattern="[0-9\-]*" title="Solo números y guiones" class="input-cuenta"
                           value="<%- experto && experto.infoExperto && experto.infoExperto.numeroCuenta ? experto.infoExperto.numeroCuenta : '' %>">
                         <button type="button" id="toggleAccountNumber" class="btn-toggle-cuenta">
                           <i class="fas fa-eye"></i>
@@ -352,18 +354,19 @@
                     </div>
                   </div>
 
+
                   <!-- Tercera fila bancos -->
                   <div class="form-row double">
                     <div class="form-group compact">
                       <label for="tipoDocumento">Tipo de documento *</label>
                       <select id="tipoDocumento" name="tipoDocumento" required>
-                        <% var tipoDocumento=(experto && experto.infoExperto && experto.infoExperto.tipoDocumento) ||
-                          (experto && experto.tipoDocumento) || '' ; %>
+                        <% var tipoDocumento=(experto && experto.infoExperto && experto.infoExperto.tipoDocumento) || (experto &&
+                          experto.tipoDocumento) || '' ; %>
                           <option value="">Selecciona el tipo</option>
-                          <option value="Cédula de Ciudadanía" <%=tipoDocumento==='Cédula de Ciudadanía' ? 'selected'
-                            : '' %>>Cédula de Ciudadanía</option>
-                          <option value="Cédula de Extranjería" <%=tipoDocumento==='Cédula de Extranjería' ? 'selected'
-                            : '' %>>Cédula de Extranjería</option>
+                          <option value="Cédula de Ciudadanía" <%=tipoDocumento==='Cédula de Ciudadanía' ? 'selected' : '' %>>Cédula de
+                            Ciudadanía</option>
+                          <option value="Cédula de Extranjería" <%=tipoDocumento==='Cédula de Extranjería' ? 'selected' : '' %>>Cédula de
+                            Extranjería</option>
                           <option value="Pasaporte" <%=tipoDocumento==='Pasaporte' ? 'selected' : '' %>>Pasaporte
                           </option>
                           <option value="NIT" <%=tipoDocumento==='NIT' ? 'selected' : '' %>>NIT (Persona Jurídica)
@@ -373,12 +376,13 @@
 
                     <div class="form-group compact">
                       <label for="numeroDocumento">Número de documento *</label>
-                      <input type="text" id="numeroDocumento" name="numeroDocumento" required
-                        placeholder="Número de identificación" pattern="[0-9\-]*"
+                      <input type="text" id="numeroDocumento" name="numeroDocumento" required placeholder="Número de identificación"
+                        pattern="[0-9\-]*"
                         value="<%- experto && experto.infoExperto && experto.infoExperto.numeroDocumento ? experto.infoExperto.numeroDocumento : '' %>">
                       <p class="form-hint">Documento del titular</p>
                     </div>
                   </div>
+
 
                   <!-- Contacto -->
                   <div class="form-group">
@@ -409,8 +413,8 @@
                   <button type="submit" id="guardarCambios" class="btn btn-primary">
                     <span>Guardar cambios</span>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round" />
+                      <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
                     </svg>
                   </button>
                   <button type="button" id="cancelarEdicion" class="btn btn-secondary" style="margin-top: 1rem;">
@@ -421,7 +425,7 @@
     </section>
   </main>
 
-  <script src="/assets/js/editarExperto.js"></script>
+  <script src="/assets/js/registroExperto.js"></script>
 </body>
 
 </html>
