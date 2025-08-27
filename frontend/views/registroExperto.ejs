@@ -50,27 +50,38 @@
                 <!-- Primera fila horizontal -->
                 <div class="form-row triple">
                   <!-- Email -->
-                  <div class="form-group compact email-group">
-                    <label for="email">Email registrado</label>
-                    <div class="email-field">
+                  <div class="form-group compact email-group"
+                    style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; background: var(--input-bg); border-radius: var(--input-radius); box-shadow: 0 2px 8px rgba(0,0,0,0.04); padding: 14px 0; min-width: 220px;">
+                    <label for="email"
+                      style="font-size: 1em; font-weight: 600; color: var(--accent-color); margin-bottom: 6px; letter-spacing: 0.01em;">
+                      <i class="fas fa-envelope" style="margin-right: 6px; color: var(--accent-color);"></i>
+                      Email registrado
+                    </label>
+                    <div class="email-field"
+                      style="font-size: 0.98em; font-weight: 500; color: var(--text-secondary); background: var(--card-bg); border-radius: var(--input-radius); padding: 6px 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.03); margin-bottom: 4px; border: 1px solid var(--border-color);">
                       <%= email ? email : '' %>
                     </div>
-                    <p class="form-hint">Email de tu cuenta</p>
+                    <p class="form-hint" style="font-size: 0.92em; color: var(--accent-color); margin-top: 2px;">
+                      Email de tu cuenta
+                    </p>
                   </div>
 
                   <div class="form-group compact price-group">
                     <label for="precio">
-                      Precio por hora (USD)
-                      <span class="price-tooltip" title="Precio sugerido">
+                      Precio por hora (COP)
+                      <span class="price-tooltip" title="Ejemplo recomendado: $30.000 - $200.000 COP">
                         <i class="fas fa-info-circle"></i>
                       </span>
                     </label>
                     <div class="price-input">
                       <span class="currency">$</span>
-                      <input type="number" id="precio" name="precio" min="0" step="0.01" required placeholder="0.00">
+                      <input type="number" id="precio" name="precio" min="10000" step="100" required
+                        placeholder="Ej: 50000">
                     </div>
-                    <p class="form-hint">Tarifa por hora de asesoría</p>
+                    <p class="form-hint">Tarifa por hora de asesoría (Recomendado: $30.000 - $200.000 COP)</p>
+                    <div id="precio-feedback" style="color:#ff5252; font-size:0.95em; margin-top:4px;"></div>
                   </div>
+
 
                   <div class="form-group compact days-group">
                     <label>Días disponibles</label>
@@ -86,6 +97,7 @@
                     <div class="days-selected-display"></div>
                     <input type="hidden" id="diasDisponibles" name="diasDisponibles">
                   </div>
+
                 </div>
 
                 <!-- Descripción -->
@@ -95,15 +107,15 @@
                     placeholder="Tu experiencia y enfoque profesional"></textarea>
                 </div>
 
-                <!-- Segunda fila horizontal: Categorías y Especialidad en un bloque moderno -->
-                <div class="form-row double">
-                  <div class="form-group compact full-width">
-                    <label for="categorias">
-                      <i class="fas fa-layer-group"></i> <span class="categorias-label-text">Categorías</span>
-                      <span class="form-tooltip"
-                        title="Selecciona las áreas tecnológicas en las que tienes experiencia">
-                        <i class="fas fa-info-circle"></i>
-                      </span>
+                <!-- Segunda fila horizontal: Categorías, Especialidad y Habilidades distribuidos en columnas -->
+                <div class="form-row triple">
+                  <div class="form-group compact">
+                    <!-- Categorías -->
+                    <label for="categorias"></label>
+                    <i class="fas fa-layer-group"></i> <span class="categorias-label-text">Categorías</span>
+                    <span class="form-tooltip" title="Selecciona las áreas tecnológicas en las que tienes experiencia"></span>
+                    <i class="fas fa-info-circle"></i>
+                    </span>
                     </label>
                     <select id="categorias" name="categorias" multiple class="select-multiple categorias-modern">
                       <% if (categorias && categorias.length) { categorias.forEach(function(categoria) { %>
@@ -113,27 +125,83 @@
                     <div id="categoriasTags" class="tags-container"></div>
                     <p class="form-hint">Selecciona una o más categorías tecnológicas</p>
 
-                    <label for="especialidad" style="margin-top: 1.5em;">
+
+                  </div>
+
+                    <!-- Especialidad -->
+                    <div class="form-group compact">
+                      <label for="especialidad"></label>
                       <i class="fas fa-star"></i> <span class="especialidad-label-text">Especialidad</span>
                       <span class="form-tooltip" title="Tu principal área de especialización">
                         <i class="fas fa-info-circle"></i>
                       </span>
-                    </label>
-                    <div class="especialidad-select-container">
-                      <select id="especialidad" name="especialidad" required class="especialidad-modern">
-                        <option value="">Selecciona especialidad</option>
-                        <% especialidades.forEach(function(especialidad) { %>
-                          <option value="<%= especialidad._id %>">
-                            <%= especialidad.nombre %>
+                      </label>
+                      <div class="especialidad-select-container">
+                        <select id="especialidad" name="especialidad" required class="especialidad-modern">
+                          <option value="">Selecciona especialidad</option>
+                          <% especialidades.forEach(function(especialidad) { %>
+                            <option value="<%= especialidad._id %>">
+                              <%= especialidad.nombre %>
+                            </option>
+                            <% }); %>
+                        </select>
+                        <i class="fas fa-chevron-down select-arrow"></i>
+                      </div>
+                    </div>
+
+                    <!-- Habilidades -->
+                    <div class="form-group compact">
+                      <label for="skills">
+                        <i class="fas fa-bolt"></i> <span class="skills-label-text">Habilidades</span>
+                        <span class="form-tooltip" title="Selecciona habilidades tecnológicas">
+                          <i class="fas fa-info-circle"></i>
+                        </span>
+                      </label>
+                      <select id="skills" name="skills" multiple class="select-multiple skills-modern">
+                        <% habilidades.forEach(function(habilidad) { %>
+                          <option value="<%= habilidad._id %>">
+                            <%= habilidad.nombre %>
                           </option>
                           <% }); %>
                       </select>
-                      <i class="fas fa-chevron-down select-arrow"></i>
+                      <div id="skillsTags" class="tags-container"></div>
+                      <p class="form-hint">Selecciona habilidades tecnológicas</p>
                     </div>
+
+
+
                   </div>
+
+
                 </div>
                 <!-- Modern tags for categorías y habilidades seleccionadas -->
                 <script>
+                  // Validación y feedback para tarifa en COP
+                  document.addEventListener('DOMContentLoaded', function () {
+                    var precioInput = document.getElementById('precio');
+                    var feedback = document.getElementById('precio-feedback');
+                    if (precioInput && feedback) {
+                      precioInput.addEventListener('input', function () {
+                        var valor = parseInt(precioInput.value, 10);
+                        if (isNaN(valor) || valor < 10000) {
+                          feedback.textContent = 'La tarifa mínima es $10.000 COP.';
+                          precioInput.style.borderColor = '#ff5252';
+                        } else if (valor > 500000) {
+                          feedback.textContent = 'La tarifa máxima recomendada es $500.000 COP.';
+                          precioInput.style.borderColor = '#ff5252';
+                        } else if (valor < 30000) {
+                          feedback.textContent = 'Sugerencia: La mayoría de expertos cobran más de $30.000 COP/hora.';
+                          precioInput.style.borderColor = '#ffb300';
+                        } else if (valor > 200000) {
+                          feedback.textContent = 'Sugerencia: Tarifas superiores a $200.000 COP/hora suelen ser para expertos muy especializados.';
+                          precioInput.style.borderColor = '#ffb300';
+                        } else {
+                          feedback.textContent = '';
+                          precioInput.style.borderColor = 'var(--accent-color)';
+                        }
+                      });
+                    }
+                  });
                   // Choices.js CDN
                   var script = document.createElement('script');
                   script.src = 'https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js';
@@ -173,23 +241,6 @@
                   };
                   document.head.appendChild(script);
 
-                  // Choices.js para habilidades
-                  var skillsSelect = document.getElementById('skills');
-                  if (skillsSelect) {
-                    var choicesSkills = new Choices(skillsSelect, {
-                      removeItemButton: true,
-                      searchEnabled: true,
-                      placeholder: true,
-                      placeholderValue: 'Selecciona habilidades',
-                      noResultsText: 'No hay resultados',
-                      noChoicesText: 'No hay opciones',
-                      itemSelectText: 'Seleccionar',
-                      classNames: {
-                        containerInner: 'choices-container',
-                        input: 'choices-input',
-                      }
-                    });
-                  }
                 </script>
                 <style>
                   .categorias-label-text {
@@ -263,26 +314,7 @@
                   }
                 </style>
 
-                <!-- Habilidades en una fila horizontal debajo -->
-                <div class="form-row single">
-                  <div class="form-group compact full-width">
-                    <label for="skills">
-                      <i class="fas fa-bolt"></i> <span class="skills-label-text">Habilidades</span>
-                      <span class="form-tooltip" title="Selecciona habilidades tecnológicas">
-                        <i class="fas fa-info-circle"></i>
-                      </span>
-                    </label>
-                    <select id="skills" name="skills" multiple class="select-multiple skills-modern">
-                      <% habilidades.forEach(function(habilidad) { %>
-                        <option value="<%= habilidad._id %>">
-                          <%= habilidad.nombre %>
-                        </option>
-                        <% }); %>
-                    </select>
-                    <div id="skillsTags" class="tags-container"></div>
-                    <p class="form-hint">Selecciona habilidades tecnológicas</p>
-                  </div>
-                </div>
+
 
                 <!-- Datos Bancarios -->
                 <div class="form-section">
