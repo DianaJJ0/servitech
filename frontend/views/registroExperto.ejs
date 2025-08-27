@@ -113,7 +113,8 @@
                     <!-- Categorías -->
                     <label for="categorias"></label>
                     <i class="fas fa-layer-group"></i> <span class="categorias-label-text">Categorías</span>
-                    <span class="form-tooltip" title="Selecciona las áreas tecnológicas en las que tienes experiencia"></span>
+                    <span class="form-tooltip"
+                      title="Selecciona las áreas tecnológicas en las que tienes experiencia"></span>
                     <i class="fas fa-info-circle"></i>
                     </span>
                     </label>
@@ -128,49 +129,49 @@
 
                   </div>
 
-                    <!-- Especialidad -->
-                    <div class="form-group compact">
-                      <label for="especialidad"></label>
-                      <i class="fas fa-star"></i> <span class="especialidad-label-text">Especialidad</span>
-                      <span class="form-tooltip" title="Tu principal área de especialización">
-                        <i class="fas fa-info-circle"></i>
-                      </span>
-                      </label>
-                      <div class="especialidad-select-container">
-                        <select id="especialidad" name="especialidad" required class="especialidad-modern">
-                          <option value="">Selecciona especialidad</option>
-                          <% especialidades.forEach(function(especialidad) { %>
-                            <option value="<%= especialidad._id %>">
-                              <%= especialidad.nombre %>
-                            </option>
-                            <% }); %>
-                        </select>
-                        <i class="fas fa-chevron-down select-arrow"></i>
-                      </div>
-                    </div>
-
-                    <!-- Habilidades -->
-                    <div class="form-group compact">
-                      <label for="skills">
-                        <i class="fas fa-bolt"></i> <span class="skills-label-text">Habilidades</span>
-                        <span class="form-tooltip" title="Selecciona habilidades tecnológicas">
-                          <i class="fas fa-info-circle"></i>
-                        </span>
-                      </label>
-                      <select id="skills" name="skills" multiple class="select-multiple skills-modern">
-                        <% habilidades.forEach(function(habilidad) { %>
-                          <option value="<%= habilidad._id %>">
-                            <%= habilidad.nombre %>
+                  <!-- Especialidad -->
+                  <div class="form-group compact">
+                    <label for="especialidad"></label>
+                    <i class="fas fa-star"></i> <span class="especialidad-label-text">Especialidad</span>
+                    <span class="form-tooltip" title="Tu principal área de especialización">
+                      <i class="fas fa-info-circle"></i>
+                    </span>
+                    </label>
+                    <div class="especialidad-select-container">
+                      <select id="especialidad" name="especialidad" required class="especialidad-modern">
+                        <option value="">Selecciona especialidad</option>
+                        <% especialidades.forEach(function(especialidad) { %>
+                          <option value="<%= especialidad._id %>">
+                            <%= especialidad.nombre %>
                           </option>
                           <% }); %>
                       </select>
-                      <div id="skillsTags" class="tags-container"></div>
-                      <p class="form-hint">Selecciona habilidades tecnológicas</p>
+                      <i class="fas fa-chevron-down select-arrow"></i>
                     </div>
-
-
-
                   </div>
+
+                  <!-- Habilidades -->
+                  <div class="form-group compact">
+                    <label for="skills">
+                      <i class="fas fa-bolt"></i> <span class="skills-label-text">Habilidades</span>
+                      <span class="form-tooltip" title="Selecciona habilidades tecnológicas">
+                        <i class="fas fa-info-circle"></i>
+                      </span>
+                    </label>
+                    <select id="skills" name="skills" multiple class="select-multiple skills-modern">
+                      <% habilidades.forEach(function(habilidad) { %>
+                        <option value="<%= habilidad._id %>">
+                          <%= habilidad.nombre %>
+                        </option>
+                        <% }); %>
+                    </select>
+                    <div id="skillsTags" class="tags-container"></div>
+                    <p class="form-hint">Selecciona habilidades tecnológicas</p>
+                  </div>
+
+
+
+                </div>
 
 
                 </div>
@@ -263,16 +264,32 @@
                         <option value="Bancolombia">Bancolombia</option>
                         <option value="Banco Popular">Banco Popular</option>
                         <option value="Banco AV Villas">Banco AV Villas</option>
-                        <option value="Banco de Occidente">Banco de Occidente</option>
                         <option value="Banco Caja Social">Banco Caja Social</option>
-                        <option value="Banco Agrario">Banco Agrario</option>
-                        <option value="Davivienda">Davivienda</option>
+                        <option value="Banco de Occidente">Banco de Occidente</option>
+                        <option value="Banco GNB Sudameris">Banco GNB Sudameris</option>
                         <option value="Banco Itaú">Banco Itaú</option>
                         <option value="Banco Pichincha">Banco Pichincha</option>
-                        <option value="Banco Falabella">Banco Falabella</option>
-                        <option value="Banco GNB Sudameris">Banco GNB Sudameris</option>
                         <option value="Banco Santander">Banco Santander</option>
-                        <!-- Resto de opciones bancarias -->
+                        <option value="Banco Scotiabank Colpatria">Banco Scotiabank Colpatria</option>
+                        <option value="Davivienda">Davivienda</option>
+                        <option value="Banco Agrario">Banco Agrario</option>
+                        <option value="Banco Falabella">Banco Falabella</option>
+                        <option value="Banco Finandina">Banco Finandina</option>
+                        <option value="Banco W">Banco W</option>
+                        <option value="Banco Serfinanza">Banco Serfinanza</option>
+                        <option value="Banco Cooperativo Coopcentral">Banco Cooperativo Coopcentral</option>
+                        <option value="Banco BBVA">Banco BBVA</option>
+                        <option value="Nequi">Nequi</option>
+                        <option value="Daviplata">Daviplata</option>
+                        <option value="Movii">Movii</option>
+                        <option value="Banco de Vivienda">Banco de Vivienda</option>
+                        <option value="Banco ProCredit">Banco ProCredit</option>
+                        <option value="Banco Multibank">Banco Multibank</option>
+                        <option value="Banco Coopcentral">Banco Coopcentral</option>
+                        <option value="Banco Credifinanciera">Banco Credifinanciera</option>
+                        <option value="Banco Mundo Mujer">Banco Mundo Mujer</option>
+                        <option value="Banco Ripley">Banco Ripley</option>
+                        <option value="Banco CrediScotia">Banco CrediScotia</option>
                       </select>
                     </div>
 
