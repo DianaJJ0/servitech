@@ -19,13 +19,6 @@ const generarToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "2d" });
 };
 
-/**
- * Registra un usuario nuevo
- * @function
- * @param {import('express').Request} req - Solicitud HTTP
- * @param {import('express').Response} res - Respuesta HTTP
- * @returns {void}
- */
 const registrarUsuario = async (req, res) => {
   const { nombre, apellido, email, password, roles } = req.body;
   try {
@@ -64,13 +57,6 @@ const registrarUsuario = async (req, res) => {
   }
 };
 
-/**
- * Inicia sesión de usuario. Devuelve token JWT y datos básicos.
- * @function
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @returns {void}
- */
 const iniciarSesion = async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -120,13 +106,6 @@ const iniciarSesion = async (req, res) => {
   }
 };
 
-/**
- * Obtiene los datos del perfil del usuario autenticado
- * @function
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @returns {void}
- */
 const obtenerPerfilUsuario = async (req, res) => {
   try {
     const usuario = await Usuario.findById(req.usuario._id).select(
@@ -142,13 +121,6 @@ const obtenerPerfilUsuario = async (req, res) => {
   }
 };
 
-/**
- * Lista usuarios con paginación, filtro por email, estado y roles
- * @function
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @returns {void}
- */
 const obtenerUsuarios = async (req, res) => {
   try {
     const { page = 1, limit = 10, email, estado, roles } = req.query;
@@ -184,13 +156,6 @@ const obtenerUsuarios = async (req, res) => {
   }
 };
 
-/**
- * Solicita recuperación de contraseña (envía email con token)
- * @function
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @returns {void}
- */
 const solicitarRecuperacionPassword = async (req, res) => {
   const { email } = req.body;
   try {
@@ -199,7 +164,6 @@ const solicitarRecuperacionPassword = async (req, res) => {
       return res
         .status(200)
         .json({ mensaje: "Si el email existe, se enviaron instrucciones." });
-    // Generar token de recuperación
     const token = crypto.randomBytes(32).toString("hex");
     usuario.passwordResetToken = token;
     usuario.passwordResetExpires = Date.now() + 60 * 60 * 1000;
@@ -225,13 +189,6 @@ const solicitarRecuperacionPassword = async (req, res) => {
   }
 };
 
-/**
- * Restablece contraseña usando el token
- * @function
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @returns {void}
- */
 const resetearPassword = async (req, res) => {
   const { token, newPassword } = req.body;
   try {
@@ -254,13 +211,6 @@ const resetearPassword = async (req, res) => {
   }
 };
 
-/**
- * Actualiza el perfil del usuario autenticado
- * @function
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @returns {void}
- */
 const actualizarPerfilUsuario = async (req, res) => {
   try {
     const datos = req.body;
@@ -273,19 +223,9 @@ const actualizarPerfilUsuario = async (req, res) => {
     let categoriasArray = [];
     if (datos.categorias) {
       if (Array.isArray(datos.categorias)) {
-        categoriasArray = datos.categorias
-          .map((id) =>
-            typeof id === "string" && id.match(/^[0-9a-fA-F]{24}$/)
-              ? new mongoose.Types.ObjectId(id)
-              : null
-          )
-          .filter((id) => id !== null);
+        categoriasArray = datos.categorias.map((id) => String(id));
       } else if (typeof datos.categorias === "string") {
-        categoriasArray = datos.categorias
-          .split(",")
-          .map((id) => id.trim())
-          .filter((id) => id.length === 24 && id.match(/^[0-9a-fA-F]{24}$/))
-          .map((id) => new mongoose.Types.ObjectId(id));
+        categoriasArray = datos.categorias.split(",").map((id) => id.trim());
       }
     }
 
@@ -307,32 +247,44 @@ const actualizarPerfilUsuario = async (req, res) => {
       }
     }
 
+    // Validación de campos obligatorios para experto
     if (
-      datos.descripcion ||
-      datos.precioPorHora ||
-      categoriasArray.length > 0 ||
-      datos.especialidad ||
-      skillsArray.length > 0 ||
-      datos.banco
+      !datos.descripcion ||
+      !datos.precioPorHora ||
+      categoriasArray.length === 0 ||
+      !datos.especialidad ||
+      skillsArray.length === 0 ||
+      !datos.banco ||
+      !datos.tipoCuenta ||
+      !datos.numeroCuenta ||
+      !datos.titular ||
+      !datos.tipoDocumento ||
+      !datos.numeroDocumento
     ) {
-      usuario.infoExperto = {
-        descripcion: datos.descripcion,
-        precioPorHora: datos.precioPorHora,
-        diasDisponibles: diasArray,
-        categorias: categoriasArray,
-        especialidad: datos.especialidad,
-        skills: skillsArray,
-        banco: datos.banco,
-        tipoCuenta: datos.tipoCuenta,
-        numeroCuenta: datos.numeroCuenta,
-        titular: datos.titular,
-        tipoDocumento: datos.tipoDocumento,
-        numeroDocumento: datos.numeroDocumento,
-        telefonoContacto: datos.telefonoContacto,
-      };
-      if (!usuario.roles.includes("experto")) {
-        usuario.roles.push("experto");
-      }
+      return res.status(400).json({
+        mensaje:
+          "Faltan campos obligatorios para crear el perfil de experto. Revisa todos los campos y selecciona al menos una categoría y una habilidad.",
+      });
+    }
+
+    // Si hay datos completos de experto, actualiza infoExperto y el rol
+    usuario.infoExperto = {
+      descripcion: datos.descripcion,
+      precioPorHora: datos.precioPorHora,
+      diasDisponibles: diasArray,
+      categorias: categoriasArray,
+      especialidad: datos.especialidad,
+      skills: skillsArray,
+      banco: datos.banco,
+      tipoCuenta: datos.tipoCuenta,
+      numeroCuenta: datos.numeroCuenta,
+      titular: datos.titular,
+      tipoDocumento: datos.tipoDocumento,
+      numeroDocumento: datos.numeroDocumento,
+      telefonoContacto: datos.telefonoContacto,
+    };
+    if (!usuario.roles.includes("experto")) {
+      usuario.roles.push("experto");
     }
 
     if (datos.nombre) usuario.nombre = datos.nombre;
@@ -341,20 +293,22 @@ const actualizarPerfilUsuario = async (req, res) => {
     if (datos.avatarUrl) usuario.avatarUrl = datos.avatarUrl;
 
     await usuario.save();
-    res.json(usuario);
+
+    // RESPUESTA SIEMPRE CLARA Y ÚTIL
+    return res.status(200).json({
+      mensaje: "Perfil de experto actualizado correctamente.",
+      usuario,
+    });
   } catch (error) {
     console.error("Error al actualizar perfil:", error);
-    res.status(500).json({ mensaje: "Error interno del servidor." });
+    res.status(500).json({
+      mensaje: "Error interno del servidor al actualizar el perfil de experto.",
+      error: error.message,
+    });
   }
 };
 
-/**
- * Desactiva el usuario autenticado (no lo elimina de la base de datos)
- * @function
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @returns {void}
- */
+// Eliminar usuario propio
 const eliminarUsuarioPropio = async (req, res) => {
   try {
     const usuarioId = req.usuario._id;
@@ -373,13 +327,6 @@ const eliminarUsuarioPropio = async (req, res) => {
   }
 };
 
-/**
- * Desactiva/elimina usuario por admin + API Key
- * @function
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @returns {void}
- */
 const eliminarUsuarioPorAdmin = async (req, res) => {
   try {
     const usuarioId = req.params.id;
@@ -398,14 +345,6 @@ const eliminarUsuarioPorAdmin = async (req, res) => {
   }
 };
 
-/**
- * Actualiza usuario por email (admin)
- * Solo valida que si se asigna el rol experto, infoExperto debe estar presente y completo
- * @function
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @returns {void}
- */
 const actualizarUsuarioPorEmailAdmin = async (req, res) => {
   try {
     const email = req.params.email;
@@ -455,13 +394,6 @@ const actualizarUsuarioPorEmailAdmin = async (req, res) => {
   }
 };
 
-/**
- * Obtiene usuario individual por email (admin)
- * @function
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @returns {void}
- */
 const obtenerUsuarioPorEmailAdmin = async (req, res) => {
   try {
     const email = req.params.email;

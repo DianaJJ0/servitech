@@ -2,17 +2,14 @@ console.log("registroExperto.js cargado correctamente");
 
 // Mostrar/ocultar número de cuenta bancaria
 document.addEventListener("DOMContentLoaded", function () {
-  // Sincroniza token entre sesión y localStorage si está disponible
   if (window.user && window.user.token) {
     localStorage.setItem("token", window.user.token);
   }
-  // Verifica autenticación
   const token = localStorage.getItem("token");
   if (!token || token === "null") {
     window.location.href = "/login.html?next=/registroExperto";
     return;
   }
-  // Mostrar/ocultar número de cuenta bancaria
   const toggleBtn = document.getElementById("toggleAccountNumber");
   if (toggleBtn) {
     toggleBtn.addEventListener("click", function () {
@@ -119,6 +116,10 @@ if (form) {
         window.location.href = "/login.html?next=/registroExperto";
         return;
       }
+      // Elimina alertas previas
+      const prevAlert = document.querySelector(".alert-container");
+      if (prevAlert) prevAlert.remove();
+
       // Enviar datos al backend usando la ruta correcta y método PUT
       const response = await fetch("/api/usuarios/perfil", {
         method: "PUT",
@@ -130,34 +131,29 @@ if (form) {
         },
       });
 
-      const alertContainer = document.createElement("div");
-      alertContainer.className = "alert-container";
-      document.body.appendChild(alertContainer);
+      const nuevaAlerta = document.createElement("div");
+      nuevaAlerta.className = "alert-container";
+      document.body.appendChild(nuevaAlerta);
+
+      // Lee SIEMPRE el JSON de la respuesta
+      let result = null;
+      try {
+        result = await response.json();
+      } catch (e) {
+        result = null;
+      }
+      let mensaje =
+        result && result.mensaje
+          ? result.mensaje
+          : "No se pudo obtener el mensaje del servidor.";
 
       if (response.ok) {
-        const result = await response.json().catch(() => null);
-        alertContainer.innerHTML = `<div class='alert alert-success'>Registro exitoso. Actualizando perfil...</div>`;
-        // Actualiza la sesión y redirige
-        const perfilRes = await fetch("/api/usuarios/perfil", {
-          method: "GET",
-          headers: { Authorization: `Bearer ${token}` },
-          credentials: "include",
-        });
-        if (perfilRes.ok) {
-          const usuarioActualizado = await perfilRes.json();
-          await fetch("/set-session", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ usuario: usuarioActualizado }),
-            credentials: "include",
-          });
-        }
+        nuevaAlerta.innerHTML = `<div class='alert alert-success'>${mensaje}</div>`;
         setTimeout(() => {
           window.location.href = "/perfil";
         }, 1200);
       } else {
-        const errorText = await response.text();
-        alertContainer.innerHTML = `<div class='alert alert-danger'>Error al registrar: ${errorText}</div>`;
+        nuevaAlerta.innerHTML = `<div class='alert alert-danger'>${mensaje}</div>`;
       }
     } catch (error) {
       alert("Error al enviar el formulario: " + error.message);
