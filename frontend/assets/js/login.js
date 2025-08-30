@@ -113,6 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }),
         credentials: "include",
       });
+      
       // Redirección inteligente según parámetro next
       const nextInput = document.getElementById("next");
       const nextUrl = nextInput && nextInput.value ? nextInput.value : "/";

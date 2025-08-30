@@ -4,10 +4,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gestión Usuarios - Servitech Admin</title>
+  <title>Gestión de Usuarios - Servitech Admin</title>
+  <!-- Enlaces a CSS globales y específicos del admin (ajusta rutas si mueves carpetas) -->
+  <link rel="stylesheet" href="/assets/css/administrador.css" />
   <link rel="stylesheet" href="/assets/css/admin.css" />
   <link rel="stylesheet" href="/assets/css/admin-responsive.css" />
-  <link rel="stylesheet" href="/assets/css/administrador.css" />
   <link rel="stylesheet" href="/assets/css/admin-components.css" />
   <link rel="stylesheet" href="/assets/css/admin-usuarios.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -20,7 +21,7 @@
     <%- include('../componentes/navbarAdmin.ejs') %>
 
       <main class="admin-main">
-        <!-- Header modularizado -->
+        <!-- Header modularizado, puedes extraerlo a un include si lo usas en todos los módulos -->
         <header class="admin-header">
           <div class="header-search">
             <i class="fas fa-search"></i>
@@ -43,6 +44,7 @@
         </header>
 
         <div class="admin-content">
+          <!-- Título y acciones rápidas -->
           <div class="page-header">
             <h1>Gestión de Usuarios</h1>
             <div class="page-actions">
@@ -58,8 +60,8 @@
           </div>
 
           <div class="usuarios-grid">
+            <!-- Filtros y estadísticas -->
             <div class="table-container usuarios-grid__filters">
-              <!-- Filtros y estadísticas, igual que el diseño original -->
               <div class="usuarios-filtros">
                 <h3 class="usuarios-filtros__title">Filtros</h3>
                 <div class="usuarios-filtros__group">
@@ -96,7 +98,7 @@
                   <span>Aplicar filtros</span>
                 </button>
               </div>
-              <!-- Estadísticas -->
+              <!-- Estadísticas rápidas -->
               <div class="usuarios-estadisticas">
                 <h3 class="usuarios-estadisticas__title">Estadísticas</h3>
                 <div class="usuarios-estadisticas__list">
@@ -131,7 +133,7 @@
                 </div>
               </div>
             </div>
-
+            <!-- Tabla principal de usuarios -->
             <div class="table-container usuarios-grid__tabla">
               <table class="admin-table">
                 <thead>
@@ -149,12 +151,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <!-- Si tienes datos del backend, usa un loop EJS aquí.
-                Ejemplo:
-                <% usuarios.forEach(function(usuario) { %>
-                  <tr> ... </tr>
-                <% }) %>
-                Por ahora, mantengo estático como el diseño original. -->
+                  <!-- Usa loop EJS si tienes datos del backend, por ahora estático -->
                   <tr>
                     <td>
                       <input type="checkbox" id="select1" class="usuarios-checkbox" />
@@ -187,10 +184,10 @@
                       </div>
                     </td>
                   </tr>
-                  <!-- ... (más filas de usuarios estáticas) ... -->
+                  <!-- ...más filas de usuarios estáticas o usa loop EJS -->
                 </tbody>
               </table>
-
+              <!-- Paginación -->
               <div class="usuarios-paginacion">
                 <span class="usuarios-paginacion__info">Mostrando 1-7 de 2,453 usuarios</span>
                 <div class="usuarios-paginacion__controles">
@@ -353,8 +350,7 @@
         <p>
           ¿Está seguro que desea inactivar este usuario?<br />
           <span class="modal-usuario__texto-secundario">
-            El usuario <b>no se eliminará</b> de la base de datos, solo pasará
-            a estado <b>inactivo</b>.
+            El usuario <b>no se eliminará</b> de la base de datos, solo pasará a estado <b>inactivo</b>.
           </span>
         </p>
       </div>
@@ -369,6 +365,7 @@
     </div>
   </div>
 
+  <!-- Scripts JS para lógica de UI -->
   <script src="/assets/js/admin/admin-usuarios.js"></script>
   <script src="/assets/js/admin/admin-common.js"></script>
 </body>
