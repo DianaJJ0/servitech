@@ -3,9 +3,7 @@
  * Funcionalidad del panel de administración para la gestión de usuarios en Servitech.
  * Permite listar, filtrar, agregar, editar, ver y eliminar usuarios desde la interfaz de administrador.
  * Incluye manejo de modales, validaciones y actualización dinámica de la tabla de usuarios.
- *
- * Autor: Diana Carolina Jimenez
- * Fecha: 2025-06-04
+
  */
 
 /**
