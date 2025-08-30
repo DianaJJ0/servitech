@@ -123,26 +123,38 @@ const obtenerPerfilUsuario = async (req, res) => {
 
 const obtenerUsuarios = async (req, res) => {
   try {
-    const { page = 1, limit = 10, email, estado, roles } = req.query;
+    const {
+      page = 1,
+      limit = 10,
+      email,
+      estado,
+      roles,
+      soloClientesPuros,
+    } = req.query;
     const filtro = {};
 
     if (email) {
       filtro.email = { $regex: email, $options: "i" };
     }
 
+    // Estado (opcional)
     if (typeof estado !== "undefined" && estado !== "") {
       filtro.estado = estado;
-    } else {
-      filtro.estado = "activo";
     }
 
-    if (roles) {
+    // --- FILTRADO POR ROLES ---
+    // Si se pide solo clientes filtra roles exactamente ["cliente"]
+    if (soloClientesPuros === "true" || roles === "cliente") {
+      // Solo usuarios con exactamente el rol cliente
+      filtro.roles = ["cliente"];
+    } else if (roles) {
       const rolesArray = Array.isArray(roles)
         ? roles
         : roles.split(",").map((r) => r.trim());
       filtro.roles = { $in: rolesArray };
     }
 
+    // PAGINACIÓN
     const usuarios = await Usuario.find(filtro)
       .select("-passwordHash")
       .skip((page - 1) * limit)

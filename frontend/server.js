@@ -262,8 +262,8 @@ app.post("/editarExperto", async (req, res) => {
 app.get("/admin/admin", requireAdmin, (req, res) => {
   res.render("admin/admin", { user: req.session.user || {} });
 });
-app.get("/admin/adminUsuarios", requireAdmin, (req, res) => {
-  res.render("admin/adminUsuarios", { user: req.session.user || {} });
+app.get("/admin/adminClientes", requireAdmin, (req, res) => {
+  res.render("admin/adminClientes", { user: req.session.user || {} });
 });
 app.get("/admin/adminExpertos", requireAdmin, (req, res) => {
   res.render("admin/adminExpertos", { user: req.session.user || {} });
