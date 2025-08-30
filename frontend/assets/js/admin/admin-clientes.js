@@ -5,14 +5,15 @@
  */
 
 document.addEventListener("DOMContentLoaded", function () {
-  setupClientModal();
   cargarClientes(1); // Carga inicial página 1
 
   // Modal agregar cliente
   const btnAddClient = document.getElementById("btnAddClient");
   const modalAgregar = document.getElementById("modalAgregarCliente");
   const closeAgregar = modalAgregar.querySelector(".btn-close");
-  const cancelarAgregar = modalAgregar.querySelector(".modal-cliente-agregar-cancelar");
+  const cancelarAgregar = modalAgregar.querySelector(
+    ".modal-cliente-agregar-cancelar"
+  );
   const formAgregar = document.getElementById("formAgregarCliente");
 
   btnAddClient.addEventListener("click", () => {
@@ -38,7 +39,9 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   // Delegación de eventos para acciones en tabla
-  const tbody = document.querySelector(".clientes-grid__tabla .admin-table tbody");
+  const tbody = document.querySelector(
+    ".clientes-grid__tabla .admin-table tbody"
+  );
   let rowInactivar = null;
 
   if (tbody) {
@@ -77,8 +80,14 @@ document.addEventListener("DOMContentLoaded", function () {
   const cancelarEditar = modalEditar.querySelector(".modal-cliente-cancelar");
   const formEditar = document.getElementById("formEditarCliente");
 
-  closeEditar.addEventListener("click", () => (modalEditar.style.display = "none"));
-  cancelarEditar.addEventListener("click", () => (modalEditar.style.display = "none"));
+  closeEditar.addEventListener(
+    "click",
+    () => (modalEditar.style.display = "none")
+  );
+  cancelarEditar.addEventListener(
+    "click",
+    () => (modalEditar.style.display = "none")
+  );
   window.addEventListener("click", (e) => {
     if (e.target === modalEditar) modalEditar.style.display = "none";
   });
@@ -102,11 +111,21 @@ document.addEventListener("DOMContentLoaded", function () {
   // MODAL INACTIVAR CLIENTE
   const modalInactivar = document.getElementById("modalInactivarCliente");
   const closeInactivar = modalInactivar.querySelector(".btn-close");
-  const cancelarInactivar = modalInactivar.querySelector(".modal-cliente-inactivar-cancelar");
-  const confirmarInactivar = modalInactivar.querySelector(".modal-cliente-inactivar-confirmar");
+  const cancelarInactivar = modalInactivar.querySelector(
+    ".modal-cliente-inactivar-cancelar"
+  );
+  const confirmarInactivar = modalInactivar.querySelector(
+    ".modal-cliente-inactivar-confirmar"
+  );
 
-  closeInactivar.addEventListener("click", () => (modalInactivar.style.display = "none"));
-  cancelarInactivar.addEventListener("click", () => (modalInactivar.style.display = "none"));
+  closeInactivar.addEventListener(
+    "click",
+    () => (modalInactivar.style.display = "none")
+  );
+  cancelarInactivar.addEventListener(
+    "click",
+    () => (modalInactivar.style.display = "none")
+  );
   window.addEventListener("click", (e) => {
     if (e.target === modalInactivar) modalInactivar.style.display = "none";
   });
@@ -131,11 +150,14 @@ const limit = 10;
 async function cargarClientes(page) {
   try {
     currentPage = page;
-    const res = await fetch(`/api/usuarios?soloClientesPuros=true&page=${page}&limit=${limit}`, {
-      headers: {
-        "Authorization": "Bearer " + (localStorage.getItem("token") || "")
+    const res = await fetch(
+      `/api/usuarios?soloClientesPuros=true&page=${page}&limit=${limit}`,
+      {
+        headers: {
+          Authorization: "Bearer " + (localStorage.getItem("token") || ""),
+        },
       }
-    });
+    );
     if (!res.ok) throw new Error("Error al obtener clientes");
     const data = await res.json();
     clientes = data.usuarios || [];
@@ -152,18 +174,25 @@ async function cargarClientes(page) {
  * Renderiza la tabla principal de clientes
  */
 function renderizarTablaClientes() {
-  const tbody = document.querySelector(".clientes-grid__tabla .admin-table tbody");
+  const tbody = document.querySelector(
+    ".clientes-grid__tabla .admin-table tbody"
+  );
   tbody.innerHTML = "";
-  clientes.forEach(cliente => {
+  clientes.forEach((cliente) => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td><input type="checkbox" class="clientes-checkbox" /></td>
       <td>
-        <img src="${cliente.avatarUrl || 'https://ui-avatars.com/api/?name=' + cliente.nombre}" alt="Cliente" class="clientes-avatar" />
+        <img src="${
+          cliente.avatarUrl ||
+          "https://ui-avatars.com/api/?name=" + cliente.nombre
+        }" alt="Cliente" class="clientes-avatar" />
       </td>
       <td>${cliente.nombre} ${cliente.apellido}</td>
       <td>${cliente.email}</td>
-      <td><span class="status ${cliente.estado}">${cliente.estado.charAt(0).toUpperCase() + cliente.estado.slice(1)}</span></td>
+      <td><span class="status ${cliente.estado}">${
+      cliente.estado.charAt(0).toUpperCase() + cliente.estado.slice(1)
+    }</span></td>
       <td>
         <div class="action-buttons">
           <button class="btn-icon" title="Editar"><i class="fas fa-edit"></i></button>
@@ -183,7 +212,10 @@ function renderizarPaginacionClientes() {
   const info = document.getElementById("clientesPaginacionInfo");
   const controles = document.getElementById("clientesPaginacionControles");
   const totalPages = Math.ceil(totalClientes / limit);
-  info.textContent = `Mostrando ${(currentPage - 1) * limit + 1}-${Math.min(currentPage * limit, totalClientes)} de ${totalClientes} clientes`;
+  info.textContent = `Mostrando ${(currentPage - 1) * limit + 1}-${Math.min(
+    currentPage * limit,
+    totalClientes
+  )} de ${totalClientes} clientes`;
   controles.innerHTML = "";
 
   // Botón anterior
@@ -200,7 +232,9 @@ function renderizarPaginacionClientes() {
   for (let i = 1; i <= totalPages; i++) {
     if (i === 1 || i === totalPages || Math.abs(i - currentPage) <= 1) {
       const btn = document.createElement("button");
-      btn.className = "clientes-paginacion__btn" + (i === currentPage ? " clientes-paginacion__btn--active" : "");
+      btn.className =
+        "clientes-paginacion__btn" +
+        (i === currentPage ? " clientes-paginacion__btn--active" : "");
       btn.textContent = i;
       btn.onclick = () => cargarClientes(i);
       controles.appendChild(btn);
@@ -228,7 +262,9 @@ function renderizarPaginacionClientes() {
  */
 function renderizarEstadisticasClientes() {
   document.getElementById("clientesTotalCount").textContent = totalClientes;
-  document.getElementById("clientesActivosCount").textContent = clientes.filter(c => c.estado === "activo").length;
+  document.getElementById("clientesActivosCount").textContent = clientes.filter(
+    (c) => c.estado === "activo"
+  ).length;
   document.getElementById("clientesNuevosMesCount").textContent = "-";
 }
 
@@ -237,11 +273,18 @@ function renderizarEstadisticasClientes() {
  */
 function abrirModalEditarCliente(row) {
   const modal = document.getElementById("modalEditarCliente");
-  document.getElementById("editarNombreCliente").value = row.children[2].textContent.trim().split(" ")[0];
-  document.getElementById("editarApellidoCliente").value = row.children[2].textContent.trim().split(" ")[1] || "";
-  document.getElementById("editarCorreoCliente").value = row.children[3].textContent.trim();
-  document.getElementById("editarEstadoCliente").value = row.querySelector(".status").textContent.trim().toLowerCase();
-  document.getElementById("editarFotoCliente").value = row.children[1].querySelector("img").src;
+  document.getElementById("editarNombreCliente").value =
+    row.children[2].textContent.trim().split(" ")[0];
+  document.getElementById("editarApellidoCliente").value =
+    row.children[2].textContent.trim().split(" ")[1] || "";
+  document.getElementById("editarCorreoCliente").value =
+    row.children[3].textContent.trim();
+  document.getElementById("editarEstadoCliente").value = row
+    .querySelector(".status")
+    .textContent.trim()
+    .toLowerCase();
+  document.getElementById("editarFotoCliente").value =
+    row.children[1].querySelector("img").src;
   modal.style.display = "flex";
 }
 
@@ -250,7 +293,9 @@ function abrirModalEditarCliente(row) {
  */
 async function editarCliente() {
   const nombre = document.getElementById("editarNombreCliente").value.trim();
-  const apellido = document.getElementById("editarApellidoCliente").value.trim();
+  const apellido = document
+    .getElementById("editarApellidoCliente")
+    .value.trim();
   const email = document.getElementById("editarCorreoCliente").value.trim();
   const estado = document.getElementById("editarEstadoCliente").value;
   const avatarUrl = document.getElementById("editarFotoCliente").value.trim();
@@ -261,10 +306,10 @@ async function editarCliente() {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": "Bearer " + (localStorage.getItem("token") || ""),
-        "x-api-key": (window.API_KEY || "")
+        Authorization: "Bearer " + (localStorage.getItem("token") || ""),
+        "x-api-key": window.API_KEY || "",
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
     });
     if (!res.ok) throw new Error("Error al editar cliente");
   } catch (err) {
@@ -276,11 +321,17 @@ async function editarCliente() {
  * Modal ver cliente (rellena y abre el modal)
  */
 function abrirModalVerCliente(row) {
-  document.getElementById("verNombreCliente").value = row.children[2].textContent.trim().split(" ")[0];
-  document.getElementById("verApellidoCliente").value = row.children[2].textContent.trim().split(" ")[1] || "";
-  document.getElementById("verCorreoCliente").value = row.children[3].textContent.trim();
-  document.getElementById("verEstadoCliente").value = row.querySelector(".status").textContent.trim();
-  document.getElementById("verFotoCliente").value = row.children[1].querySelector("img").src;
+  document.getElementById("verNombreCliente").value =
+    row.children[2].textContent.trim().split(" ")[0];
+  document.getElementById("verApellidoCliente").value =
+    row.children[2].textContent.trim().split(" ")[1] || "";
+  document.getElementById("verCorreoCliente").value =
+    row.children[3].textContent.trim();
+  document.getElementById("verEstadoCliente").value = row
+    .querySelector(".status")
+    .textContent.trim();
+  document.getElementById("verFotoCliente").value =
+    row.children[1].querySelector("img").src;
   document.getElementById("modalVerCliente").style.display = "flex";
 }
 
@@ -292,13 +343,12 @@ async function inactivarCliente(email) {
     const res = await fetch(`/api/usuarios/${email}`, {
       method: "DELETE",
       headers: {
-        "Authorization": "Bearer " + (localStorage.getItem("token") || ""),
-        "x-api-key": (window.API_KEY || "")
-      }
+        Authorization: "Bearer " + (localStorage.getItem("token") || ""),
+        "x-api-key": window.API_KEY || "",
+      },
     });
     if (!res.ok) throw new Error("Error al inactivar cliente");
   } catch (err) {
     console.error("Error:", err);
   }
 }
-
