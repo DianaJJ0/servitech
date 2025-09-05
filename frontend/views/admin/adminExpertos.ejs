@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestión de Expertos - Servitech Admin</title>
+  <!-- Cargar estilos base y luego los específicos del panel admin (orden importante) -->
+  <link rel="stylesheet" href="/assets/css/base.css" />
+  <link rel="stylesheet" href="/assets/css/admin.css" />
+  <!-- Estilos específicos del panel: componentes y experto -->
+  <link rel="stylesheet" href="/assets/css/admin-components.css" />
+  <link rel="stylesheet" href="/assets/css/Admin-expertos.css" />
+  <!-- Choices.js styles for enhanced multi-selects -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+  <!-- Responsive último para que sus media queries tengan prioridad sobre reglas de componentes/página -->
+  <link rel="stylesheet" href="/assets/css/admin-responsive.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+
+<body>
+  <div class="admin-layout">
+    <%- include('../componentes/navbarAdmin.ejs') %>
+
+      <script id="initial-expertos" type="application/json"><%= JSON.stringify(initialExpertos || []) %></script>
+
+      <main class="admin-main">
+        <header class="admin-header">
+          <div class="admin-content-wrapper">
+            <div class="header-search">
+              <i class="fas fa-search"></i>
+              <input type="text" placeholder="Buscar expertos..." />
+            </div>
+            <div class="header-actions">
+              <div class="notification-icon">
+                <i class="fas fa-bell"></i>
+                <span class="notification-badge">5</span>
+              </div>
+              <div class="admin-profile">
+                <img src="https://i.pravatar.cc/150?img=11" alt="Admin profile" class="profile-img" />
+                <div class="profile-info">
+                  <span class="profile-name">Admin ServiTech</span>
+                  <span class="profile-role">Administrador</span>
+                </div>
+                <i class="fas fa-chevron-down"></i>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div class="admin-content">
+          <div class="page-header">
+            <h1>Gestión de Expertos</h1>
+            <div class="page-actions">
+              <button type="button" class="btn-primary" id="btnAddExpert">
+                <i class="fas fa-plus"></i>
+                <span>Nuevo experto</span>
+              </button>
+              <button class="btn-outline">
+                <i class="fas fa-file-export"></i>
+                <span>Exportar</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="expertos-grid">
+            <div class="table-container expertos-grid__filters">
+              <div class="expertos-filtros">
+                <h3 class="expertos-filtros__title">Filtros</h3>
+                <div class="expertos-filtros__group">
+                  <label class="expertos-filtros__label">Estado</label>
+                  <select class="expertos-filtros__select" id="filterEstado">
+                    <option value="">Todos los estados</option>
+                    <option value="active">Activos</option>
+                    <option value="pending">Pendientes</option>
+                    <option value="inactive">Inactivos</option>
+                  </select>
+                </div>
+                <div class="expertos-filtros__group">
+                  <label class="expertos-filtros__label">Categoría</label>
+                  <select class="expertos-filtros__select" id="filterCategoria">
+                    <option value="">Todas las categorías</option>
+                    <% if (typeof categorias !=='undefined' && Array.isArray(categorias)) { %>
+                      <% categorias.forEach(function(c){ %>
+                        <option value="<%= c._id %>">
+                          <%= c.nombre || c.name %>
+                        </option>
+                        <% }) %>
+                          <% } %>
+                  </select>
+                </div>
+                <div class="expertos-filtros__group">
+                  <label class="expertos-filtros__label">Calificación mínima</label>
+                  <select class="expertos-filtros__select" id="filterRating">
+                    <option value="">Todas las calificaciones</option>
+                    <option value="5">5 estrellas</option>
+                    <option value="4">4+ estrellas</option>
+                    <option value="3">3+ estrellas</option>
+                    <option value="2">2+ estrellas</option>
+                  </select>
+                </div>
+                <button class="btn-primary expertos-filtros__btn expertos-filtros__btn--center">
+                  <i class="fas fa-filter"></i>
+                  <span>Aplicar filtros</span>
+                </button>
+              </div>
+
+              <div class="expertos-estadisticas">
+                <h3 class="expertos-estadisticas__title">Estadísticas</h3>
+                <div class="expertos-estadisticas__list">
+                  <div class="expertos-estadisticas__item expertos-estadisticas__item--total">
+                    <div class="expertos-estadisticas__item-info">
+                      <i class="fas fa-user-tie expertos-estadisticas__icon expertos-estadisticas__icon--total"></i>
+                      <span>Total Expertos</span>
+                    </div>
+                    <span class="expertos-estadisticas__value">128</span>
+                  </div>
+                  <div class="expertos-estadisticas__item expertos-estadisticas__item--activos">
+                    <div class="expertos-estadisticas__item-info">
+                      <i
+                        class="fas fa-check-circle expertos-estadisticas__icon expertos-estadisticas__icon--activos"></i>
+                      <span>Expertos Activos</span>
+                    </div>
+                    <span class="expertos-estadisticas__value">98</span>
+                  </div>
+                  <div class="expertos-estadisticas__item expertos-estadisticas__item--pendientes">
+                    <div class="expertos-estadisticas__item-info">
+                      <i class="fas fa-clock expertos-estadisticas__icon expertos-estadisticas__icon--pendientes"></i>
+                      <span>Pendientes</span>
+                    </div>
+                    <span class="expertos-estadisticas__value">22</span>
+                  </div>
+                  <div class="expertos-estadisticas__item expertos-estadisticas__item--promedio">
+                    <div class="expertos-estadisticas__item-info">
+                      <i class="fas fa-star expertos-estadisticas__icon expertos-estadisticas__icon--promedio"></i>
+                      <span>Calificación Promedio</span>
+                    </div>
+                    <span class="expertos-estadisticas__value">4.7</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="table-container expertos-grid__tabla">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th style="width:40px;">
+                      <input type="checkbox" id="selectAll" class="expertos-checkbox" />
+                    </th>
+                    <th>Experto</th>
+                    <th>Categorías</th>
+                    <th>Especialidad</th>
+                    <th>Registro</th>
+                    <th>Sesiones</th>
+                    <th>Calificación</th>
+                    <th>Estado</th>
+                    <th style="width:160px;">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="placeholder-row">
+                    <td colspan="9" style="text-align:center;padding:24px;color:#9aa0a6;">
+                      Cargando expertos...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="expertos-paginacion">
+              <span class="expertos-paginacion__info">Mostrando 1-7 de 128 expertos</span>
+              <div class="expertos-paginacion__controles">
+                <button class="expertos-paginacion__btn expertos-paginacion__btn--disabled">
+                  <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="expertos-paginacion__btn expertos-paginacion__btn--active">
+                  1
+                </button>
+                <button class="expertos-paginacion__btn">2</button>
+                <button class="expertos-paginacion__btn">3</button>
+                <span class="expertos-paginacion__ellipsis">...</span>
+                <button class="expertos-paginacion__btn">18</button>
+                <button class="expertos-paginacion__btn">
+                  <i class="fas fa-chevron-right"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+  </div>
+  </main>
+  </div>
+
+  <!-- Modal para agregar experto -->
+  <div id="expertModal" class="modal-expert">
+
+    <div class="modal-expert__container">
+      <div class="modal-expert__header">
+        <h2 class="modal-expert__title">Agregar nuevo experto</h2>
+        <button class="btn-close"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-expert__body">
+        <form id="expertForm">
+          <!-- Información básica nombre y correo-->
+          <div class="modal-expert__grid">
+            <!-- Nombre completo -->
+            <div>
+              <label class="modal-expert__label">Nombre completo</label>
+              <input type="text" id="name" placeholder="Nombre y apellidos" class="modal-expert__input" />
+            </div>
+            <!-- Correo electrónico -->
+            <div>
+              <label class="modal-expert__label">Correo electrónico</label>
+              <input type="email" id="email" placeholder="correo@ejemplo.com" class="modal-expert__input" />
+            </div>
+          </div>
+
+          <div class="modal-expert__price-days">
+            <!-- Precio por hora -->
+            <div class="srv-row price-row">
+              <label for="precio" class="srv-label price-label">
+                <!-- Usar la clase modal-expert__label sin estilos inline para asegurar tamaño coherente -->
+                <span class="modal-expert__label">Precio por hora (COP)</span>
+                <span class="price-tooltip icon-tooltip" title="Ejemplo recomendado: $30.000 - $200.000 COP">
+                  <i class="fas fa-info-circle"></i>
+                </span>
+              </label>
+              <div class="srv-price-input price-input">
+                <span class="srv-currency currency-symbol">$</span>
+                <input type="number" id="precio" name="precio" min="10000" step="100" required placeholder="Ej: 50000"
+                  class="srv-input price-field" />
+              </div>
+              <p class="srv-note price-note">Tarifa por hora de asesoría (Recomendado: $30.000 - $200.000 COP)</p>
+              <div id="precio-feedback" class="srv-feedback price-feedback"></div>
+            </div>
+
+            <!-- Días disponibles -->
+            <div class="srv-grid">
+              <label for="diasDisponibles" class="modal-expert__label">Días disponibles</label>
+              <div class="srv-days">
+                <div class="srv-day" data-day="Lunes">L</div>
+                <div class="srv-day" data-day="Martes">M</div>
+                <div class="srv-day" data-day="Miércoles">X</div>
+                <div class="srv-day" data-day="Jueves">J</div>
+                <div class="srv-day" data-day="Viernes">V</div>
+                <div class="srv-day" data-day="Sábado">S</div>
+                <div class="srv-day" data-day="Domingo">D</div>
+              </div>
+              <div class="srv-days-display"></div>
+              <input type="hidden" id="diasDisponibles" name="diasDisponibles">
+            </div>
+
+          </div>
+
+
+
+          <!-- Especialidad, estado -->
+          <div class="modal-expert__grid">
+            <div>
+              <label class="modal-expert__label">Especialidad principal</label>
+              <select id="specialty" class="modal-expert__input">
+                <option value="">Seleccionar especialidad</option>
+                <option value="web">Desarrollo Web</option>
+                <option value="mobile">Desarrollo Móvil</option>
+                <option value="data">Ciencia de Datos</option>
+                <option value="uxui">UX/UI</option>
+                <option value="devops">DevOps</option>
+                <option value="blockchain">Blockchain</option>
+                <option value="cloud">Cloud Computing</option>
+              </select>
+            </div>
+            <div>
+              <label class="modal-expert__label">Estado</label>
+              <select id="status" class="modal-expert__input">
+                <option value="active">Activo</option>
+                <option value="pending">Pendiente</option>
+                <option value="inactive">Inactivo</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Categorías: cargadas dinámicamente desde /api/categorias -->
+          <div class="modal-expert__grid">
+            <div class="modal-expert__full-row">
+              <label class="modal-expert__label">Categorías</label>
+              <select id="categorias" class="modal-expert__input modal-expert__select-categorias" multiple size="4">
+                <!-- opciones añadidas dinámicamente -->
+              </select>
+              <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                  if (window.Choices) {
+                    const catSelect = document.getElementById('categorias');
+                    if (catSelect && !catSelect.classList.contains('choices-initialized')) {
+                      new Choices(catSelect, {
+                        removeItemButton: true,
+                        delimiter: ',',
+                        editItems: false,
+                        maxItemCount: 10,
+                        duplicateItemsAllowed: false,
+                        classNames: {
+                          containerInner: 'choices__inner',
+                          input: 'choices__input',
+                          item: 'choices__item',
+                          button: 'choices__button',
+                          list: 'choices__list',
+                          listMultiple: 'choices__list--multiple',
+                        }
+                      });
+                      catSelect.classList.add('choices-initialized');
+                    }
+                  }
+                });
+                // Ensure remove buttons show a visible × (fallback if CSS rules are overridden)
+                (function ensureRemoveGlyphs() {
+                  function setGlyph(btn) {
+                    try {
+                      if (!btn || btn.nodeType !== 1) return;
+                      // If button already has visible content, skip
+                      const hasVisible = btn.textContent && btn.textContent.trim().length > 0;
+                      if (hasVisible) return;
+                      const color = (getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#fff').trim() || '#fff';
+                      // Insert a tiny SVG '×' so it's immune to pseudo-element removal
+                      btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="#ffffff" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+                      btn.style.padding = '0';
+                      btn.style.display = 'inline-flex';
+                      btn.style.alignItems = 'center';
+                      btn.style.justifyContent = 'center';
+                    } catch (e) { /* ignore */ }
+                  }
+
+                  function processAll() {
+                    document.querySelectorAll('#categorias + .choices .choices__button, #categorias ~ .choices .choices__button, button.choices__button').forEach(setGlyph);
+                  }
+
+                  // run repeatedly for a short window to catch dynamic re-renders from Choices
+                  let attempts = 0;
+                  const interval = setInterval(function () {
+                    processAll();
+                    attempts += 1;
+                    if (attempts > 10) clearInterval(interval);
+                  }, 200);
+
+                  // also observe container for dynamically added buttons as a fallback
+                  const observer = new MutationObserver(function () {
+                    processAll();
+                  });
+                  const root = document.getElementById('categorias');
+                  if (root) {
+                    observer.observe(document.body, { childList: true, subtree: true });
+                  }
+                })();
+              </script>
+              <small class="modal-expert__hint">Selecciona una o varias categorías (Ctrl/Cmd+click)</small>
+            </div>
+          </div>
+
+          <!-- Habilidades: cargadas dinámicamente desde /api/habilidades -->
+          <div class="modal-expert__group">
+            <label class="modal-expert__label">Habilidades</label>
+            <% /* Renderizar select multiple con las habilidades conocidas */ %>
+              <select id="skills" class="modal-expert__input" multiple size="6">
+                <% if (typeof habilidades !=='undefined' && Array.isArray(habilidades) && habilidades.length> 0) { %>
+                  <% habilidades.forEach(function(h) { %>
+                    <% const val=(h && (h.nombre || h.name || h.label)) ? (h.nombre || h.name || h.label) : (h && h._id
+                      ? String(h._id) : '' ); %>
+                      <% if (val) { %>
+                        <option value="<%= val %>">
+                          <%= val %>
+                        </option>
+                        <% } %>
+                          <% }); %>
+                            <% } %>
+              </select>
+              <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                  if (window.Choices) {
+                    const skillsSelect = document.getElementById('skills');
+                    if (skillsSelect && !skillsSelect.classList.contains('choices-initialized')) {
+                      new Choices(skillsSelect, {
+                        removeItemButton: true,
+                        delimiter: ',',
+                        editItems: false,
+                        maxItemCount: 10,
+                        duplicateItemsAllowed: false,
+                        classNames: {
+                          containerInner: 'choices__inner',
+                          input: 'choices__input',
+                          item: 'choices__item',
+                          button: 'choices__button',
+                          list: 'choices__list',
+                          listMultiple: 'choices__list--multiple',
+                        }
+                      });
+                      skillsSelect.classList.add('choices-initialized');
+                    }
+                  }
+                });
+              </script>
+              <small class="modal-expert__hint">Selecciona o escribe para añadir nuevas habilidades</small>
+          </div>
+
+          <!-- Biografía -->
+          <div class="modal-expert__group">
+            <label class="modal-expert__label">Biografía profesional</label>
+            <textarea id="bio" rows="4" placeholder="Descripción breve de experiencia y especialización"
+              class="modal-expert__input modal-expert__textarea"></textarea>
+          </div>
+
+          <!-- Imagen de perfil -->
+          <div class="modal-expert__group">
+            <label class="modal-expert__label">Imagen de perfil</label>
+            <div class="modal-expert__upload-wrapper">
+              <input type="file" id="profileImage" class="modal-expert__file-input" />
+              <div class="modal-expert__upload-box">
+                <i class="fas fa-upload"></i>
+                <span>Seleccionar imagen</span>
+              </div>
+            </div>
+          </div>
+
+        </form>
+      </div>
+
+      <div class="modal-expert__footer">
+        <button class="btn-outline" data-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn-primary" id="saveExpert">Guardar experto</button>
+      </div>
+    </div>
+  </div>
+
+  <!--modal editar experto-->
+  <div id="editarExperto" class="modal-expert">
+    <div class="modal-expert__content">
+      <div class="modal-expert__header">
+        <h2 class="modal-expert__title">Editar experto</h2>
+        <button class="btn-close"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-expert__body">
+        <form id="formEditarExperto">
+          <div class="modal-expert__grid">
+            <div>
+              <label class="modal-expert__label">Nombre</label>
+              <input type="text" id="nombreExperto" class="modal-expert__input" />
+            </div>
+            <div>
+              <label class="modal-expert__label">Correo</label>
+              <input type="email" id="correoExperto" class="modal-expert__input" />
+            </div>
+            <div>
+              <label class="modal-expert__label">Especialidad</label>
+              <input type="text" id="especialidadExperto" class="modal-expert__input" />
+            </div>
+            <div>
+              <label class="modal-expert__label">Estado</label>
+              <select id="estadoExperto" class="modal-expert__input">
+                <option value="Activo">Activo</option>
+                <option value="Inactivo">Inactivo</option>
+                <option value="Pendiente">Pendiente</option>
+              </select>
+            </div>
+            <div>
+              <label class="modal-expert__label">Fecha de registro</label>
+              <input type="date" id="fechaRegistroExperto" class="modal-expert__input" disabled />
+            </div>
+            <div>
+              <label class="modal-expert__label">Sesiones</label>
+              <input type="number" id="sesionesExperto" class="modal-expert__input" disabled />
+            </div>
+
+            <div>
+              <label class="modal-expert__label">Calificación</label>
+              <input type="number" id="calificacionExperto" class="modal-expert__input" disabled />
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-expert__footer">
+        <button type="button" class="btn-outline modal-editar-cancelar">
+          Cancelar
+        </button>
+        <button class="btn-primary" type="submit" form="formEditarExperto">
+          Guardar cambios
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!--modal ver perfil experto-->
+  <div id="verPerfilExperto" class="modal-expert">
+    <div class="modal-expert__content">
+      <div class="modal-expert__header">
+        <h2 class="modal-expert__title">Perfil del experto</h2>
+        <button class="btn-close"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-expert__body">
+        <form id="formVerPerfilExperto">
+          <div class="modal-expert__grid">
+            <div>
+              <label class="modal-expert__label">Nombre</label>
+              <input type="text" id="verNombreExperto" class="modal-expert__input" disabled />
+            </div>
+            <div>
+              <label class="modal-expert__label">Correo</label>
+              <input type="email" id="verCorreoExperto" class="modal-expert__input" disabled />
+            </div>
+            <div>
+              <label class="modal-expert__label">Especialidad</label>
+              <input type="text" id="verEspecialidadExperto" class="modal-expert__input" disabled />
+            </div>
+            <div>
+              <label class="modal-expert__label">Estado</label>
+              <input type="text" id="verEstadoExperto" class="modal-expert__input" disabled />
+            </div>
+            <div>
+              <label class="modal-expert__label">Fecha de registro</label>
+              <input type="date" id="verFechaRegistroExperto" class="modal-expert__input" disabled />
+            </div>
+            <div>
+              <label class="modal-expert__label">Sesiones</label>
+              <input type="number" id="verSesionesExperto" class="modal-expert__input" disabled />
+            </div>
+            <div>
+              <label class="modal-expert__label">Calificación</label>
+              <input type="number" id="verCalificacionExperto" class="modal-expert__input" disabled />
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-expert__footer">
+        <button type="button" class="btn-outline modal-ver-cerrar">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal inactivar experto -->
+  <div id="modalInactivarExperto" class="modal-expert">
+    <div class="modal-expert__content">
+      <div class="modal-expert__header">
+        <h2 class="modal-expert__title">Inactivar experto</h2>
+        <button class="btn-close"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-expert__body">
+        <p id="modalInactivarExpertoNombre" class="modal-expert__nombre-destacado"></p>
+        <p>
+          ¿Está seguro que desea inactivar este usuario?<br />
+          <span class="modal-expert__texto-secundario">
+            El usuario <b>no se eliminará</b> de la base de datos, solo pasará
+            a estado <b>inactivo</b>.
+          </span>
+        </p>
+      </div>
+      <div class="modal-expert__footer">
+        <button type="button" class="btn-outline modal-inactivar-cancelar">
+          Cancelar
+        </button>
+        <button type="button" class="btn-primary modal-inactivar-confirmar">
+          Inactivar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/assets/js/admin/admin-common.js"></script>
+  <% /* Garantizar que _adminHabs siempre sea un array para producir JSON válido */ %>
+    <% const _adminHabs=(typeof habilidades !=='undefined' && Array.isArray(habilidades)) ? habilidades : []; %>
+      <!-- Inyectar JSON en un script de tipo application/json y leerlo desde JS -->
+      <script id="admin-habilidades" type="application/json"><%- JSON.stringify(_adminHabs) %></script>
+      <script src="/assets/js/admin/admin-expertos.js"></script>
+      <script>
+        // Forzar color del input clonado de Choices con placeholder/aria-label "Selecciona habilidades"
+        (function forceSkillsPlaceholderColor() {
+          function apply(el) {
+            try {
+              if (!el) return;
+              // Apply inline styles with CSS priority using setProperty and 'important'
+              el.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-secondary') || '#a0a0a0', 'important');
+              el.style.setProperty('-webkit-text-fill-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-secondary') || '#a0a0a0', 'important');
+              el.style.setProperty('caret-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-secondary') || '#a0a0a0', 'important');
+            } catch (e) { /* ignore */ }
+          }
+
+          function findAndApply() {
+            // Common places Choices places the cloned input
+            var selectors = [
+              'input.choices__input--cloned[aria-label="Selecciona habilidades"]',
+              'input.choices__input--cloned[placeholder="Selecciona habilidades"]',
+              'input.choices__input[aria-label="Selecciona habilidades"]',
+              'input.choices__input[placeholder="Selecciona habilidades"]'
+            ];
+            selectors.forEach(function (s) {
+              document.querySelectorAll(s).forEach(apply);
+            });
+          }
+
+          // Run after DOM ready and periodically for dynamic injection by Choices
+          document.addEventListener('DOMContentLoaded', function () {
+            findAndApply();
+            var attempts = 0;
+            var id = setInterval(function () {
+              findAndApply();
+              attempts += 1;
+              if (attempts > 20) clearInterval(id);
+            }, 150);
+          });
+
+          // Observe DOM changes to catch later insertions
+          var mo = new MutationObserver(function () {
+            findAndApply();
+          });
+          mo.observe(document.body, { childList: true, subtree: true });
+        })();
+      </script>
+      <script>
+        // Forzar estilos inline para el bloque Precio por hora si el CSS no se está aplicando
+        (function forcePriceRowStyles() {
+          function varOr(name, def) { try { var v = getComputedStyle(document.documentElement).getPropertyValue(name); return (v && v.trim()) || def; } catch (e) { return def; } }
+          var bg = varOr('--admin-card-bg', '#1a1a1a');
+          var text = varOr('--admin-text-primary', '#ffffff');
+          var secondary = varOr('--admin-text-secondary', '#a0a0a0');
+          var border = varOr('--admin-border-color', '#333');
+          var accent = varOr('--admin-accent-color', '#5e81ff');
+
+          function apply() {
+            // Apply grid to the container that holds both columns (precio + días)
+            var containers = document.querySelectorAll('.modal-expert__price-days');
+            containers.forEach(function (c) {
+              c.style.setProperty('display', 'grid', 'important');
+              c.style.setProperty('grid-template-columns', '1fr 1fr', 'important');
+              c.style.setProperty('gap', '1rem', 'important');
+              c.style.setProperty('align-items', 'start', 'important');
+              c.style.setProperty('width', '100%', 'important');
+              c.style.setProperty('box-sizing', 'border-box', 'important');
+            });
+
+            // Ensure internal rows are stacked normally
+            document.querySelectorAll('.modal-expert__price-days .price-row, .modal-expert__price-days .srv-grid').forEach(function (w) {
+              w.style.setProperty('display', 'block', 'important');
+              w.style.setProperty('margin', '0', 'important');
+            });
+
+            document.querySelectorAll('.srv-price-input, .price-input').forEach(function (pi) {
+              pi.style.setProperty('display', 'flex', 'important');
+              pi.style.setProperty('align-items', 'center', 'important');
+              pi.style.setProperty('gap', '0.5rem', 'important');
+              pi.style.setProperty('background', 'rgba(255,255,255,0.02)', 'important');
+              pi.style.setProperty('border', '1px solid ' + border, 'important');
+              pi.style.setProperty('padding', '0.375rem 0.5rem', 'important');
+              pi.style.setProperty('border-radius', '0.5rem', 'important');
+              pi.style.setProperty('box-sizing', 'border-box', 'important');
+            });
+
+            document.querySelectorAll('.srv-currency, .currency-symbol').forEach(function (c) {
+              c.style.setProperty('display', 'inline-flex', 'important');
+              c.style.setProperty('align-items', 'center', 'important');
+              c.style.setProperty('justify-content', 'center', 'important');
+              c.style.setProperty('min-width', '30px', 'important');
+              c.style.setProperty('height', '36px', 'important');
+              c.style.setProperty('color', text, 'important');
+              c.style.setProperty('font-weight', '700', 'important');
+              c.style.setProperty('font-size', '0.95rem', 'important');
+            });
+
+            document.querySelectorAll('input.srv-input.price-field, .price-input input.srv-input').forEach(function (inp) {
+              inp.style.setProperty('flex', '1 1 auto', 'important');
+              inp.style.setProperty('border', 'none', 'important');
+              inp.style.setProperty('background', 'transparent', 'important');
+              inp.style.setProperty('color', text, 'important');
+              inp.style.setProperty('font-size', '1rem', 'important');
+              inp.style.setProperty('padding', '0.25rem 0.25rem', 'important');
+              inp.style.setProperty('outline', 'none', 'important');
+              inp.style.setProperty('min-width', '0', 'important');
+            });
+
+            document.querySelectorAll('.srv-note.price-note').forEach(function (n) {
+              n.style.setProperty('margin', '0.35rem 0 0 0', 'important');
+              n.style.setProperty('color', secondary, 'important');
+              n.style.setProperty('font-size', '0.8rem', 'important');
+            });
+
+            document.querySelectorAll('.srv-feedback.price-feedback').forEach(function (f) {
+              f.style.setProperty('margin-top', '0.35rem', 'important');
+              f.style.setProperty('font-size', '0.85rem', 'important');
+              f.style.setProperty('color', accent, 'important');
+              // keep hidden unless JS toggles it
+              if (!f.classList.contains('visible')) f.style.setProperty('display', 'none', 'important');
+            });
+          }
+
+          // Run now and observe
+          apply();
+          var attempts = 0; var id = setInterval(function () { apply(); attempts++; if (attempts > 20) clearInterval(id); }, 150);
+          var mo = new MutationObserver(function () { apply(); }); mo.observe(document.body, { childList: true, subtree: true });
+        })();
+      </script>
+      <script>
+        // Forzar estilos inline en dropdown y items de Choices para evitar reglas externas que los pongan en blanco
+        (function forceChoicesDropdownColors() {
+          function varOr(def, name) {
+            try { var v = getComputedStyle(document.documentElement).getPropertyValue(name); return (v && v.trim()) || def; } catch (e) { return def; }
+          }
+          var bg = varOr('#1a1a1a', '--admin-card-bg');
+          var text = varOr('#ffffff', '--admin-text-primary');
+          var border = varOr('#333', '--admin-border-color');
+
+          function applyToList(list) {
+            try {
+              list.style.setProperty('background', bg, 'important');
+              list.style.setProperty('color', text, 'important');
+              list.style.setProperty('border', '1px solid ' + border, 'important');
+            } catch (e) { }
+          }
+          function applyToItem(it) {
+            try {
+              it.style.setProperty('color', text, 'important');
+              it.style.setProperty('background', 'transparent', 'important');
+              it.style.setProperty('border-color', border, 'important');
+            } catch (e) { }
+          }
+
+          function process() {
+            document.querySelectorAll('.choices__list--dropdown').forEach(applyToList);
+            document.querySelectorAll('.choices__list--dropdown .choices__item').forEach(applyToItem);
+          }
+
+          // Run immediately and then repeatedly for dynamic injection
+          process();
+          var attempts = 0;
+          var iid = setInterval(function () { process(); attempts++; if (attempts > 30) clearInterval(iid); }, 150);
+
+          var mo = new MutationObserver(function () { process(); });
+          mo.observe(document.body, { childList: true, subtree: true });
+        })();
+      </script>
+      <script>
+        // Selector dinámico de Días Disponibles: click / teclado y sincronización con input oculto
+        (function daysSelector() {
+          function readHidden() {
+            var h = document.getElementById('diasDisponibles');
+            if (!h) return [];
+            if (!h.value) return [];
+            try { var v = JSON.parse(h.value); if (Array.isArray(v)) return v; } catch (e) { }
+            return h.value.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+          }
+
+          function writeHidden(arr) {
+            var h = document.getElementById('diasDisponibles');
+            if (!h) return;
+            h.value = JSON.stringify(arr);
+          }
+
+          function shortLabel(day) {
+            // Map day names to short letters shown in UI
+            var map = { 'Lunes': 'L', 'Martes': 'M', 'Miércoles': 'X', 'Miercoles': 'X', 'Jueves': 'J', 'Viernes': 'V', 'Sábado': 'S', 'Sabado': 'S', 'Domingo': 'D' };
+            return map[day] || (day && day.charAt(0)) || '';
+          }
+
+          function updateDisplay(selected) {
+            var disp = document.querySelector('.srv-days-display');
+            if (!disp) return;
+            if (!selected || selected.length === 0) {
+              disp.textContent = 'Ningún día seleccionado';
+            } else {
+              // mostrar nombres cortos y la lista completa al pasar el ratón
+              var short = selected.map(function (d) { return shortLabel(d); }).join(' ');
+              disp.textContent = short + ' — ' + selected.join(', ');
+            }
+          }
+
+          function toggleDay(el) {
+            if (!el) return;
+            var day = el.getAttribute('data-day');
+            if (!day) return;
+            var was = el.classList.toggle('selected');
+            el.setAttribute('aria-pressed', was ? 'true' : 'false');
+            syncHiddenFromUI();
+          }
+
+          function syncHiddenFromUI() {
+            var items = Array.from(document.querySelectorAll('.srv-day.selected')).map(function (e) { return e.getAttribute('data-day'); }).filter(Boolean);
+            writeHidden(items);
+            updateDisplay(items);
+          }
+
+          document.addEventListener('DOMContentLoaded', function () {
+            var nodes = Array.from(document.querySelectorAll('.srv-day'));
+            nodes.forEach(function (n) {
+              n.setAttribute('tabindex', '0');
+              n.setAttribute('role', 'button');
+              n.setAttribute('aria-pressed', 'false');
+              n.addEventListener('click', function (e) { toggleDay(n); });
+              n.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleDay(n); } });
+            });
+
+            // Initialize from hidden input if present (edición)
+            var initial = readHidden();
+            if (initial && initial.length) {
+              nodes.forEach(function (n) { var d = n.getAttribute('data-day'); if (initial.indexOf(d) !== -1) { n.classList.add('selected'); n.setAttribute('aria-pressed', 'true'); } });
+            }
+            syncHiddenFromUI();
+
+            // Exponer función global rápida para tests (opcional)
+            window._srv = window._srv || {};
+            window._srv.getSelectedDays = function () { try { return JSON.parse(document.getElementById('diasDisponibles').value); } catch (e) { return []; } };
+          });
+        })();
+      </script>
+      <script>
+        // Fallback definitivo: aplicar estilos inline para forzar layout horizontal de días
+        (function forceDaysInlineStyles() {
+          function apply() {
+            try {
+              var containers = document.querySelectorAll('.srv-days');
+              containers.forEach(function (c) {
+                c.style.setProperty('display', 'flex', 'important');
+                c.style.setProperty('flex-direction', 'row', 'important');
+                c.style.setProperty('flex-wrap', 'wrap', 'important');
+                c.style.setProperty('gap', '0.5rem', 'important');
+                c.style.setProperty('align-items', 'center', 'important');
+                c.style.setProperty('justify-content', 'flex-start', 'important');
+                c.style.setProperty('margin-top', '0.35rem', 'important');
+                c.style.setProperty('padding', '0', 'important');
+              });
+
+              document.querySelectorAll('.srv-day').forEach(function (n) {
+                n.style.setProperty('display', 'inline-flex', 'important');
+                n.style.setProperty('align-items', 'center', 'important');
+                n.style.setProperty('justify-content', 'center', 'important');
+                n.style.setProperty('width', '40px', 'important');
+                n.style.setProperty('height', '40px', 'important');
+                n.style.setProperty('min-width', '40px', 'important');
+                n.style.setProperty('padding', '0', 'important');
+                n.style.setProperty('margin', '0', 'important');
+                n.style.setProperty('box-sizing', 'border-box', 'important');
+                n.style.setProperty('line-height', '1', 'important');
+                n.style.setProperty('position', 'relative', 'important');
+              });
+            } catch (e) { /* ignore */ }
+          }
+
+          document.addEventListener('DOMContentLoaded', function () {
+            apply();
+            var attempts = 0;
+            var iid = setInterval(function () { apply(); attempts++; if (attempts > 25) clearInterval(iid); }, 120);
+
+            var mo = new MutationObserver(function () { apply(); });
+            mo.observe(document.body, { childList: true, subtree: true });
+
+            // reapply on window resize in case responsive rules try to change layout
+            window.addEventListener('resize', function () { apply(); });
+          });
+        })();
+      </script>
+</body>
+
+</html>

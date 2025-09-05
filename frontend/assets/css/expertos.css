@@ -1,0 +1,561 @@
+/* Estilos base mejorados */
+.container {
+  max-width: var(--content-max-width, 1200px);
+  margin: 2rem auto;
+  padding: 0 2rem;
+  box-sizing: border-box;
+}
+
+/* Hero Section */
+.hero-section {
+  text-align: center;
+  margin-bottom: 3rem;
+  padding: 2rem 0;
+}
+
+.hero-title {
+  font-size: clamp(1.8rem, 5vw, 2.5rem);
+  color: var(--text-color);
+  margin-bottom: 1rem;
+  font-weight: 700;
+}
+
+.hero-subtitle {
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  color: var(--text-secondary);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Layout principal */
+.expert-layout {
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  gap: 2.5rem;
+  align-items: flex-start;
+}
+
+@media (max-width: 1200px) {
+  .container {
+    max-width: 1000px;
+    padding: 0 1.5rem;
+  }
+  .expert-layout {
+    grid-template-columns: 320px 1fr;
+    gap: 2rem;
+  }
+}
+
+@media (max-width: 992px) {
+  .container {
+    max-width: 100vw;
+    padding: 0 1rem;
+  }
+  .expert-layout {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  .filter-sidebar {
+    position: static !important;
+    margin-bottom: 2rem;
+    min-width: unset !important;
+    max-width: unset !important;
+    width: 100% !important;
+    z-index: auto !important;
+    box-shadow: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 0.5rem;
+  }
+  .expert-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .expert-card-header,
+  .expert-card-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+  .expert-card-body {
+    padding: 1rem;
+  }
+  .filter-sidebar {
+    margin-bottom: 1.5rem;
+    z-index: 2;
+  }
+}
+
+@media (max-width: 576px) {
+  .container {
+    padding: 0 0.25rem;
+  }
+  .hero-title {
+    font-size: 1.5rem;
+  }
+  .hero-subtitle {
+    font-size: 0.95rem;
+  }
+  .expert-list-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .filter-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .filter-actions .btn {
+    width: 100%;
+    font-size: 0.98rem;
+    padding: 0.7rem 0.8rem;
+    box-sizing: border-box;
+  }
+  .expert-card {
+    border-radius: 12px;
+  }
+  .filter-sidebar {
+    margin-bottom: 1rem;
+    z-index: auto !important;
+    min-width: unset !important;
+    max-width: unset !important;
+    width: 100% !important;
+    position: static !important;
+    box-shadow: none;
+  }
+}
+
+/* Sidebar de filtros */
+.filter-sidebar {
+  position: sticky;
+  top: 2rem;
+  height: fit-content;
+  min-width: 320px;
+  max-width: 400px;
+  width: 100%;
+  background: var(--card-bg);
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(58, 142, 255, 0.07);
+}
+
+.filter-card {
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius, 16px);
+  padding: 1.5rem;
+  box-shadow: var(--card-shadow);
+}
+
+.filter-title {
+  font-size: 1.25rem;
+  color: var(--text-color);
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.filter-group {
+  margin-bottom: 1.5rem;
+}
+
+.filter-label {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--text-color);
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.filter-input {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--input-radius, 8px);
+  color: var(--text-color);
+}
+
+/* Estilos para controles de filtro */
+.price-range {
+  margin-top: 1rem;
+}
+
+.price-slider {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--border-color);
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.price-slider::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  background: var(--primary-color);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.price-value {
+  text-align: center;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.availability-options,
+.rating-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.availability-option,
+.rating-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.filter-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  justify-content: stretch;
+}
+
+/* Botones de acción de filtros */
+.filter-actions .btn {
+  flex: 1 1 0;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  border-radius: var(--input-radius, 8px);
+  box-shadow: 0 2px 8px rgba(58, 142, 255, 0.07);
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.filter-actions .btn-primary {
+  background: var(--primary-color);
+  color: #fff;
+  border: none;
+}
+
+.filter-actions .btn-secondary {
+  background: #f3f7fa;
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+}
+
+.filter-actions .btn:hover {
+  box-shadow: 0 4px 16px rgba(58, 142, 255, 0.13);
+  filter: brightness(0.98);
+}
+
+/* Lista de expertos */
+.expert-list-section {
+  flex: 1;
+}
+
+.expert-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.expert-list-title {
+  font-size: 1.5rem;
+  color: var(--text-color);
+}
+
+.expert-count {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-weight: normal;
+}
+
+.sort-select {
+  padding: 0.5rem;
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--input-radius, 8px);
+  color: var(--text-color);
+  min-width: 120px;
+}
+
+/* Tarjetas de expertos mejoradas */
+.expert-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  z-index: 0;
+}
+
+.expert-card {
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius, 16px);
+  overflow: hidden;
+  box-shadow: var(--card-shadow);
+  transition: var(--transition, box-shadow 0.2s, transform 0.2s);
+  border: 1px solid var(--border-light);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  z-index: 0;
+}
+
+.expert-card:hover {
+  transform: translateY(-5px) scale(1.01);
+  box-shadow: var(--hover-shadow, 0 8px 24px rgba(58, 142, 255, 0.13));
+  border-color: var(--primary-color);
+}
+
+.expert-card-header {
+  display: flex;
+  padding: 1.5rem;
+  gap: 1rem;
+  align-items: center;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.expert-photo {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--primary-color);
+  flex-shrink: 0;
+}
+
+.expert-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.expert-name {
+  font-size: 1.1rem;
+  margin: 0;
+  color: var(--text-color);
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.expert-specialty {
+  font-size: 0.9rem;
+  color: var(--primary-color);
+  margin: 0.25rem 0;
+}
+
+/* Bloque que muestra la etiqueta 'Especialidad' y su valor */
+.expert-specialty-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-bottom: 0.4rem;
+}
+.expert-specialty-block .tag-group-title {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+.expert-specialty-block .expert-specialty {
+  font-size: 0.92rem;
+  color: var(--primary-color);
+  margin: 0;
+  font-weight: 600;
+}
+
+.expert-specialty-block .expert-specialty.placeholder {
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-style: italic;
+}
+
+.expert-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.rating-stars {
+  color: #ffd700;
+}
+
+.rating-value {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.expert-card-body {
+  padding: 1.5rem;
+}
+
+.expert-description {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+/* Bloque de biografía profesional dentro de la tarjeta */
+.expert-bio-block {
+  margin-bottom: 0.75rem;
+}
+.expert-bio-block .tag-group-title {
+  margin-bottom: 0.25rem;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+.expert-description.placeholder {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.expert-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.skill-tag {
+  background-color: rgba(58, 142, 255, 0.12);
+  color: var(--primary-color);
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1px solid rgba(58, 142, 255, 0.18);
+  box-shadow: 0 1px 0 rgba(58, 142, 255, 0.04);
+}
+
+/* Tag específica para categorías (diferente color) */
+.category-tag {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: var(--text-color);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 0.28rem 0.7rem;
+  border-radius: 14px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+/* Ajustes del contenedor de tags dentro de la tarjeta */
+.expert-tags {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.tag-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-right: 0.75rem;
+}
+.tag-group-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.tag-list {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.tag-group-categories .category-tag {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.04);
+}
+.tag-group-skills .skill-tag {
+  background: rgba(58, 142, 255, 0.12);
+  border-color: rgba(58, 142, 255, 0.18);
+}
+
+/* Contacto dentro de la tarjeta: teléfono y días */
+.expert-contact small {
+  display: inline-block;
+  margin-right: 0.8rem;
+  color: var(--text-secondary);
+  font-size: 0.86rem;
+}
+
+/* Hacer el precio más prominente */
+.expert-price {
+  font-weight: 700;
+  color: var(--primary-color);
+  font-size: 1.05rem;
+}
+
+/* Asegurar buen espaciado entre cuerpo y footer */
+.expert-card-body {
+  padding-bottom: 0.8rem;
+}
+.expert-card-footer {
+  padding-top: 0.8rem;
+}
+
+/* Ajuste del footer para alinear mejor */
+.expert-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.expert-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border-light);
+}
+
+.expert-price {
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.view-profile-btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  border-radius: 8px;
+  background: var(--primary-color, #3a8eff);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.view-profile-btn:hover {
+  background: #2566b0;
+}
+
+/* Mejoras de accesibilidad y touch */
+@media (hover: none) {
+  .expert-card:hover {
+    transform: none;
+    box-shadow: var(--card-shadow);
+    border-color: var(--border-light);
+  }
+}

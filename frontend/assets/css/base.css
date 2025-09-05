@@ -1,0 +1,187 @@
+:root {
+  --primary-color: #3a8eff;
+  --primary-hover: #2a7af0;
+  --accent-color: #12d8fa;
+  --text-color: #fff;
+  --text-secondary: #d0d0d0;
+  --text-light: #a0a0a0;
+  --background: #0f0f0f;
+  --card-bg: #1a1a1a;
+  --input-bg: #2a2a2a;
+  --border-color: #3a3a3a;
+  --border-light: #ffffff14;
+  --focus-shadow: 0 0 0 0.1875rem #3a8eff33;
+  --card-shadow: 0 1.25rem 2.5rem #0000004d;
+  --hover-shadow: 0 0.625rem 1.5625rem #0000004d;
+  --btn-shadow: 0 0.3125rem 0.9375rem #2a7af04d;
+  --border-radius: 1rem;
+  --btn-radius: 0.5rem;
+  --input-radius: 0.5rem;
+  --transition: all 0.5s ease;
+  --header-height: 4.5rem; /* Actualizando a la altura correcta */
+  --content-max-width: 81.25rem;
+}
+
+
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--text-color);
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-image: radial-gradient(
+      circle at 15% 50%,
+      #3a8eff1a 0%,
+      transparent 25%
+    ),
+    radial-gradient(circle at 85% 30%, #3a8eff1a 0%, transparent 25%);
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: var(--transition);
+}
+
+a:hover {
+  opacity: 0.85;
+}
+
+button,
+.btn {
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+.btn {
+  display: inline-block;
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--btn-radius);
+  font-weight: 600;
+  transition: var(--transition);
+  text-align: center;
+}
+
+.btn-lg {
+  padding: 0.85rem 1.8rem;
+  font-size: 1.1rem;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-0.125rem);
+  box-shadow: var(--btn-shadow);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: #fff;
+  border: 1px solid #fff;
+}
+
+.btn-secondary:hover {
+  background-color: #ffffff1a;
+  transform: translateY(-0.125rem);
+}
+
+.btn-outline {
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  background-color: transparent;
+}
+
+.btn-outline:hover {
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+  transform: translateY(-0.125rem);
+}
+
+.btn-light {
+  background-color: #fff;
+  color: var(--primary-color);
+}
+
+.btn-light:hover {
+  background-color: #f0f0f0;
+  transform: translateY(-0.125rem);
+  box-shadow: 0 0.3125rem 0.9375rem #fff3;
+}
+
+.card {
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius);
+  padding: 1.5625rem;
+  border: 0.0625rem solid var(--border-light);
+  box-shadow: var(--card-shadow);
+  transition: var(--transition);
+}
+
+.card:hover {
+  transform: translateY(-0.3125rem);
+  box-shadow: 0 1.5625rem 3.125rem #0006;
+}
+
+.form-group {
+  margin-bottom: 0.9375rem;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: var(--input-bg);
+  border: 0.0625rem solid var(--border-color);
+  border-radius: var(--input-radius);
+  color: var(--text-color);
+  font-size: 1rem;
+  transition: var(--transition);
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: var(--focus-shadow);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(1.25rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade {
+  animation: fadeIn 0.5s ease-out forwards;
+}

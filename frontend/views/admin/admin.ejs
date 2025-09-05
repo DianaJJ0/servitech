@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard - Servitech Admin</title>
+  <link rel="stylesheet" href="/assets/css/administrador.css" />
+  <link rel="stylesheet" href="/assets/css/admin.css" />
+  <link rel="stylesheet" href="/assets/css/admin-responsive.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar (renderizado por el servidor) -->
+    <%- include('../componentes/navbarAdmin.ejs') %>
+
+      <main class="admin-main">
+        <header class="admin-header">
+          <div class="header-search">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Buscar en ServiTech..." />
+          </div>
+          <div class="header-actions">
+            <div class="notification-icon">
+              <i class="fas fa-bell"></i>
+              <span class="notification-badge">5</span>
+            </div>
+            <div class="admin-profile">
+              <img src="https://i.pravatar.cc/150?img=11" alt="Admin profile" class="profile-img" />
+              <div class="profile-info">
+                <span class="profile-name">Admin ServiTech</span>
+                <span class="profile-role">Administrador</span>
+              </div>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+          </div>
+        </header>
+
+        <div class="admin-content">
+          <div class="page-header">
+            <h1>Dashboard</h1>
+            <div class="page-actions">
+              <button class="btn-outline">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Último mes</span>
+              </button>
+              <button class="btn-primary">
+                <i class="fas fa-file-export"></i>
+                <span>Descargar reporte</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="stats-mini-grid">
+            <div class="stat-card">
+              <div class="stat-icon stat-icon--accent">
+                <i class="fas fa-user-tie"></i>
+              </div>
+              <div class="stat-details">
+                <h3>Expertos Totales</h3>
+                <span class="stat-value">128</span>
+                <div class="stat-trend trend-up">
+                  <i class="fas fa-arrow-up"></i>
+                  <span>12% vs mes anterior</span>
+                </div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon stat-icon--secondary">
+                <i class="fas fa-users"></i>
+              </div>
+              <div class="stat-details">
+                <h3>Usuarios Registrados</h3>
+                <span class="stat-value">1,493</span>
+                <div class="stat-trend trend-up">
+                  <i class="fas fa-arrow-up"></i>
+                  <span>8% vs mes anterior</span>
+                </div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon stat-icon--danger">
+                <i class="fas fa-ticket-alt"></i>
+              </div>
+              <div class="stat-details">
+                <h3>Solicitudes Abiertas</h3>
+                <span class="stat-value">57</span>
+                <div class="stat-trend trend-down">
+                  <i class="fas fa-arrow-down"></i>
+                  <span>3% vs mes anterior</span>
+                </div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon stat-icon--success">
+                <i class="fas fa-money-bill-wave"></i>
+              </div>
+              <div class="stat-details">
+                <h3>Ingresos Mensuales</h3>
+                <span class="stat-value">$15,840</span>
+                <div class="stat-trend trend-up">
+                  <i class="fas fa-arrow-up"></i>
+                  <span>15% vs mes anterior</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="dashboard-charts-row">
+            <div class="table-container">
+              <div class="dashboard-table-header">
+                <h3 class="dashboard-table-title">Tendencia de Usuarios</h3>
+                <div class="dashboard-table-actions">
+                  <button class="btn-outline btn-xs">Diario</button>
+                  <button class="btn-primary btn-xs">Mensual</button>
+                  <button class="btn-outline btn-xs">Anual</button>
+                </div>
+              </div>
+              <div class="dashboard-table-body">
+                <canvas id="userTrendChart" height="300"></canvas>
+              </div>
+            </div>
+
+            <div class="table-container">
+              <div class="dashboard-table-header">
+                <h3 class="dashboard-table-title">
+                  Distribución por Categoría
+                </h3>
+              </div>
+              <div class="dashboard-table-body">
+                <canvas id="categoryChart" height="300"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <div class="admin-dashboard-row">
+            <div class="table-container">
+              <div class="admin-dashboard-table-header">
+                <h3 class="admin-dashboard-table-title">Expertos destacados</h3>
+              </div>
+              <div>
+                <div class="admin-dashboard-expert-row">
+                  <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Experto"
+                    class="admin-dashboard-expert-img" />
+                  <div class="admin-dashboard-expert-info">
+                    <h4 class="admin-dashboard-expert-name">Mario Velázquez</h4>
+                    <p class="admin-dashboard-expert-specialty">
+                      Desarrollo Web
+                    </p>
+                  </div>
+                  <div class="admin-dashboard-expert-rating">
+                    <div class="admin-dashboard-expert-rating-stars">
+                      <i class="fas fa-star"></i>
+                      <span>5.0</span>
+                    </div>
+                    <span class="admin-dashboard-expert-sessions">24 sesiones</span>
+                  </div>
+                </div>
+                <div class="admin-dashboard-expert-row">
+                  <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Experto"
+                    class="admin-dashboard-expert-img" />
+                  <div class="admin-dashboard-expert-info">
+                    <h4 class="admin-dashboard-expert-name">Ana García</h4>
+                    <p class="admin-dashboard-expert-specialty">UX/UI Design</p>
+                  </div>
+                  <div class="admin-dashboard-expert-rating">
+                    <div class="admin-dashboard-expert-rating-stars">
+                      <i class="fas fa-star"></i>
+                      <span>4.5</span>
+                    </div>
+                    <span class="admin-dashboard-expert-sessions">18 sesiones</span>
+                  </div>
+                </div>
+                <div class="admin-dashboard-expert-row">
+                  <img src="https://randomuser.me/api/portraits/men/22.jpg" alt="Experto"
+                    class="admin-dashboard-expert-img" />
+                  <div class="admin-dashboard-expert-info">
+                    <h4 class="admin-dashboard-expert-name">Pedro Ramírez</h4>
+                    <p class="admin-dashboard-expert-specialty">
+                      Mobile Development
+                    </p>
+                  </div>
+                  <div class="admin-dashboard-expert-rating">
+                    <div class="admin-dashboard-expert-rating-stars">
+                      <i class="fas fa-star"></i>
+                      <span>4.8</span>
+                    </div>
+                    <span class="admin-dashboard-expert-sessions">16 sesiones</span>
+                  </div>
+                </div>
+                <div class="admin-dashboard-expert-link-row">
+                  <a href="admin-expertos.html" class="admin-dashboard-link">
+                    Ver todos los expertos
+                    <i class="fas fa-chevron-right admin-dashboard-link-icon"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <div class="table-container">
+              <div class="admin-dashboard-table-header">
+                <h3 class="admin-dashboard-table-title">Actividad reciente</h3>
+              </div>
+              <div>
+                <div class="admin-dashboard-activity-row">
+                  <div class="admin-dashboard-activity-icon admin-dashboard-activity-icon--accent">
+                    <i class="fas fa-user-plus"></i>
+                  </div>
+                  <div class="admin-dashboard-activity-info">
+                    <h4 class="admin-dashboard-activity-title">
+                      Nuevo experto registrado
+                    </h4>
+                    <p class="admin-dashboard-activity-time">Hace 2 horas</p>
+                  </div>
+                  <p class="admin-dashboard-activity-desc">
+                    Alejandro Ruiz se ha registrado como experto en Cloud
+                    Computing.
+                  </p>
+                </div>
+                <div class="admin-dashboard-activity-row">
+                  <div class="admin-dashboard-activity-icon admin-dashboard-activity-icon--danger">
+                    <i class="fas fa-ticket-alt"></i>
+                  </div>
+                  <div class="admin-dashboard-activity-info">
+                    <h4 class="admin-dashboard-activity-title">
+                      Nueva solicitud de soporte
+                    </h4>
+                    <p class="admin-dashboard-activity-time">Hace 5 horas</p>
+                  </div>
+                  <p class="admin-dashboard-activity-desc">
+                    Maria López ha reportado un problema con la plataforma de
+                    pagos.
+                  </p>
+                </div>
+                <div class="admin-dashboard-activity-row">
+                  <div class="admin-dashboard-activity-icon admin-dashboard-activity-icon--success">
+                    <i class="fas fa-check-circle"></i>
+                  </div>
+                  <div class="admin-dashboard-activity-info">
+                    <h4 class="admin-dashboard-activity-title">
+                      Sesión completada
+                    </h4>
+                    <p class="admin-dashboard-activity-time">Hace 8 horas</p>
+                  </div>
+                  <p class="admin-dashboard-activity-desc">
+                    Mario Velázquez completó una sesión con Juan Martinez (5★).
+                  </p>
+                </div>
+                <div class="admin-dashboard-activity-link-row">
+                  <a href="#" class="admin-dashboard-link">
+                    Ver toda la actividad
+                    <i class="fas fa-chevron-right admin-dashboard-link-icon"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <div class="dashboard-table-header dashboard-table-header--border">
+              <h3 class="dashboard-table-title">Últimas solicitudes</h3>
+              <button class="btn-outline btn-sm">
+                <i class="fas fa-filter"></i>
+                <span>Filtrar</span>
+              </button>
+            </div>
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Usuario</th>
+                  <th>Tipo</th>
+                  <th>Categoría</th>
+                  <th>Fecha</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>#ST-1234</td>
+                  <td>
+                    <div class="user-info">
+                      <img src="https://randomuser.me/api/portraits/women/67.jpg" alt="Usuario" />
+                      <div>
+                        <h4>María López</h4>
+                        <span>maria.lopez@gmail.com</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>Soporte técnico</td>
+                  <td>Pagos</td>
+                  <td>13/04/2025</td>
+                  <td><span class="status pending">Pendiente</span></td>
+                  <td>
+                    <div class="action-buttons">
+                      <button class="btn-icon dashboard-view-btn" title="Ver detalles">
+                        <i class="fas fa-eye"></i>
+                      </button>
+
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>#ST-1233</td>
+                  <td>
+                    <div class="user-info">
+                      <img src="https://randomuser.me/api/portraits/men/42.jpg" alt="Usuario" />
+                      <div>
+                        <h4>Juan Martínez</h4>
+                        <span>juan.m@outlook.com</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>Consultoría</td>
+                  <td>Desarrollo Web</td>
+                  <td>12/04/2025</td>
+                  <td><span class="status active">Asignado</span></td>
+                  <td>
+                    <div class="action-buttons">
+                      <button class="btn-icon dashboard-view-btn" title="Ver detalles">
+                        <i class="fas fa-eye"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>#ST-1232</td>
+                  <td>
+                    <div class="user-info">
+                      <img src="https://randomuser.me/api/portraits/women/33.jpg" alt="Usuario" />
+                      <div>
+                        <h4>Sofía Rodriguez</h4>
+                        <span>sofia.r@gmail.com</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>Consultoría</td>
+                  <td>UX/UI</td>
+                  <td>11/04/2025</td>
+                  <td><span class="status inactive">Cerrado</span></td>
+                  <td>
+                    <div class="action-buttons">
+                      <button class="btn-icon dashboard-view-btn" title="Ver detalles">
+                        <i class="fas fa-eye"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>#ST-1231</td>
+                  <td>
+                    <div class="user-info">
+                      <img src="https://randomuser.me/api/portraits/men/75.jpg" alt="Usuario" />
+                      <div>
+                        <h4>Carlos Pérez</h4>
+                        <span>carlos.p@hotmail.com</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>Soporte técnico</td>
+                  <td>Cuenta</td>
+                  <td>10/04/2025</td>
+                  <td><span class="status active">Asignado</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="/assets/js/admin/admin-common.js"></script>
+  <script src="/assets/js/admin/admin.js"></script>
+
+</body>
+
+</html>

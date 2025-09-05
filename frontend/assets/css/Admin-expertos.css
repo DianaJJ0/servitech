@@ -1,0 +1,2538 @@
+/* -------------------------
+   Small scoped adjustments for the "Precio por hora" block
+   Scoped under .modal-expert so modal sizing is respected. No !important used.
+   ------------------------- */
+.modal-expert .modal-expert__price-days .price-row {
+  font-size: 0.95rem; /* slightly smaller than modal base */
+  padding: 0; /* remove extra vertical padding inside the row */
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.modal-expert .modal-expert__price-days .price-label {
+  display: block;
+  font-size: 0.8125rem; /* match .modal-expert__label */
+  margin-bottom: 0.125rem;
+  font-weight: 600;
+}
+
+.modal-expert .modal-expert__price-days .price-input,
+.modal-expert .modal-expert__price-days .srv-price-input {
+  max-width: 100%;
+  align-items: center;
+}
+
+.modal-expert .modal-expert__price-days .currency-symbol,
+.modal-expert .modal-expert__price-days .srv-currency {
+  min-width: 26px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+}
+
+.modal-expert .modal-expert__price-days input.price-field,
+.modal-expert .modal-expert__price-days input.srv-input {
+  font-size: 0.95rem;
+  padding: 0.25rem 0.35rem;
+  height: 32px;
+}
+
+.modal-expert .modal-expert__price-days .price-note {
+  font-size: 0.78rem;
+  margin-top: 0.25rem;
+
+  /* Highly-specific overrides to ensure days text matches modal baseline */
+  #expertModal
+    .modal-expert__container
+    .modal-expert__body
+    .modal-expert__price-days
+    .srv-grid
+    .srv-days,
+  #expertModal
+    .modal-expert__container
+    .modal-expert__body
+    .modal-expert__price-days
+    .srv-grid
+    .srv-days
+    .srv-day,
+  #expertModal .srv-days-display,
+  #expertModal .modal-expert__price-days .srv-days-display {
+    font-size: var(--modal-label-size);
+  }
+  color: var(--admin-text-secondary, #9aa0a6);
+}
+
+.modal-expert .modal-expert__price-days .price-feedback {
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
+
+/* Normalize text sizing inside the add-expert modal so all form text follows page measurements */
+.modal-expert {
+  --modal-label-size: 0.8125rem; /* base label/input size used across modal */
+  --modal-hint-size: 0.6875rem;
+}
+
+.modal-expert .modal-expert__label,
+.modal-expert .modal-expert__input,
+.modal-expert .modal-expert__textarea,
+.modal-expert .modal-expert__hint,
+.modal-expert .srv-note,
+.modal-expert .price-note,
+.modal-expert .srv-feedback,
+.modal-expert .price-feedback {
+  font-size: var(--modal-label-size);
+}
+
+.modal-expert .modal-expert__hint,
+.modal-expert .srv-days-display {
+  font-size: var(--modal-hint-size);
+}
+
+/* Ensure days labels are visually consistent */
+.modal-expert .srv-day {
+  font-size: 0.9rem; /* keep slightly bolder for legibility */
+}
+
+/* keep modal title and header larger and untouched */
+.modal-expert .modal-expert__title {
+  font-size: 1.125rem;
+}
+
+.modal-expert {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Bloque final: unificar estilos de Choices.js para Categorías y Habilidades
+   Alta especificidad y  para sobreescribir reglas conflictivas
+*/
+.modal-expert .choices-container,
+.modal-expert .choices,
+.modal-expert .choices__inner {
+  background: var(--admin-card-bg);
+  color: var(--admin-text-primary);
+  border: 1px solid var(--admin-border-color); /* usar color de borde del tema */
+  border-radius: 8px;
+  padding: 10px 12px;
+  min-height: 44px;
+  box-shadow: var(--admin-shadow);
+  font-size: 16px;
+  font-family: "Inter", sans-serif;
+  box-sizing: border-box;
+}
+
+.modal-expert .choices__list--multiple {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 6px 8px;
+  margin: 0;
+  align-items: center;
+  background: transparent;
+}
+
+.modal-expert .choices__list--multiple .choices__item {
+  background: var(--admin-card-bg); /* chip usa fondo de tarjeta del tema */
+  color: var(--admin-text-primary);
+  border-radius: 8px;
+  margin: 0 8px 8px 0;
+  padding: 6px 12px;
+  font-size: 15px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  border: 1px solid var(--admin-border-color); /* borde acorde a tema */
+  box-shadow: none;
+  width: auto; /* evitar full-width */
+}
+
+.modal-expert .choices__input,
+.modal-expert .choices__placeholder {
+  color: var(--admin-text-secondary); /* placeholder color via variable */
+}
+
+/* Very high-specificity overrides for the Add Expert modal to beat Choices default CSS */
+#expertModal .modal-expert__full-row .choices__inner,
+#expertModal .modal-expert__full-row .choices__list--multiple,
+#expertModal .modal-expert__full-row .choices__container {
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-border-color);
+  color: var(--admin-text-primary);
+}
+
+#expertModal .modal-expert__full-row .choices__placeholder {
+  color: var(--admin-text-secondary);
+  opacity: 1;
+}
+
+#expertModal .modal-expert__full-row .choices__input,
+#expertModal .modal-expert__full-row input.choices__input,
+#expertModal .modal-expert__full-row input.choices__input--cloned {
+  color: var(--admin-text-primary);
+  background: transparent;
+  border: none;
+}
+
+#expertModal .modal-expert__full-row .choices__list--multiple .choices__item {
+  background: var(--admin-card-bg);
+  color: var(--admin-text-primary);
+  border: 1px solid var(--admin-border-color);
+}
+
+.modal-expert .choices__button,
+.modal-expert .choices__item--selectable .choices__button {
+  background: var(--admin-text-secondary);
+  color: var(--admin-text-primary);
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+}
+
+/* Forzar que el input dentro del widget mantenga fondo transparente sobre el blanco */
+.modal-expert .choices__inner .choices__input {
+  background: transparent;
+  color: #111827;
+}
+
+.modal-expert.show {
+  display: flex;
+}
+
+.modal-expert__content,
+.modal-expert__container {
+  width: 37.5rem;
+  max-width: 95%;
+  max-height: 85vh;
+  background-color: var(--admin-card-bg);
+  border-radius: 0.75rem;
+  box-shadow: var(--admin-shadow);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Mover reglas válidas para Choices.js fuera de cualquier anidamiento */
+.modal-expert__grid .choices__inner,
+.modal-expert__group .choices__inner {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1.5px solid var(--admin-border-color);
+  background: var(--admin-card-bg);
+  color: var(--admin-text-primary);
+  font-size: 17px;
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  box-shadow: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+.modal-expert__grid .choices__inner:focus,
+.modal-expert__group .choices__inner:focus {
+  border-color: var(--admin-accent-color);
+  box-shadow: 0 0 0 2px var(--admin-accent-color); /* sin transparencia para consistencia */
+  outline: none;
+}
+.modal-expert__grid .choices__list--multiple .choices__item {
+  background: rgba(255, 255, 255, 0.06);
+  color: #222;
+  border-radius: 6px;
+  margin: 0 6px 6px 0;
+  padding: 6px 16px;
+  font-size: 15px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+/* Responsive design para modal */
+@media (max-width: 768px) {
+  .modal-expert__content,
+  .modal-expert__container {
+    width: 95%;
+    max-width: 95%;
+    max-height: 95vh;
+    margin: 1rem;
+  }
+
+  .modal-expert__grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .modal-expert__header {
+    padding: 0.75rem;
+  }
+
+  .modal-expert__title {
+    font-size: 1rem;
+  }
+
+  .modal-expert__body {
+    padding: 0.75rem;
+  }
+
+  .modal-expert__footer {
+    padding: 0.75rem;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .modal-expert__footer button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-expert {
+    padding: 0.5rem;
+  }
+
+  .modal-expert__content,
+  .modal-expert__container {
+    width: 100%;
+    max-width: 100%;
+    max-height: 98vh;
+    margin: 0;
+    border-radius: 0.5rem;
+  }
+
+  .modal-expert__header,
+  .modal-expert__body,
+  .modal-expert__footer {
+    padding: 0.5rem;
+  }
+
+  .modal-expert__grid {
+    gap: 0.375rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .modal-expert__group {
+    margin-bottom: 0.5rem;
+  }
+
+  .modal-expert__label {
+    margin-bottom: 0.125rem;
+    font-size: 0.8125rem;
+  }
+
+  .modal-expert__input {
+    padding: 0.375rem 0.5rem;
+    font-size: 0.8125rem;
+  }
+
+  .modal-expert__textarea {
+    min-height: 2.5rem;
+  }
+
+  .modal-expert__hint {
+    font-size: 0.6875rem;
+  }
+}
+
+.modal-expert__content {
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-expert__header {
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 0.0625rem solid var(--admin-border-color);
+  flex-shrink: 0;
+}
+
+.modal-expert__title {
+  margin: 0;
+  font-size: 1.125rem;
+  color: var(--admin-text-primary);
+}
+
+.modal-expert__body {
+  padding: 1rem;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.modal-expert__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Make certain form rows span full width (useful for selects that should
+   occupy the entire modal width like Categorías) */
+.modal-expert__full-row {
+  grid-column: 1 / -1;
+}
+
+/* Specific styling for Choices in full-row elements to match Habilidades */
+.modal-expert__full-row .choices-container,
+.modal-expert__full-row .choices__inner {
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-border-color);
+  border-radius: 8px;
+  padding: 10px 12px;
+  box-shadow: var(--admin-shadow);
+}
+
+/* Use the full-row container itself as the white framed box so chips and placeholder
+   are grouped inside (avoids double framed areas). */
+.modal-expert__full-row {
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-border-color);
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: var(--admin-shadow);
+}
+
+/* Make inner choices transparent so the outer full-row box is the visible frame */
+.modal-expert__full-row .choices-container,
+.modal-expert__full-row .choices__inner,
+.modal-expert__full-row .choices__list--multiple {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+.modal-expert__full-row .choices__list--multiple {
+  margin-top: 0;
+}
+
+/* Final strong override to ensure the full-row choices take full modal width */
+.modal-expert__full-row,
+.modal-expert__full-row > * {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.modal-expert__full-row .choices-container,
+.modal-expert__full-row .choices,
+.modal-expert__full-row .choices__inner,
+.modal-expert__full-row .choices__list--multiple {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+.modal-expert__full-row .choices__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.modal-expert__full-row .choices__list--multiple .choices__item,
+.modal-expert__full-row .choices__item {
+  width: auto;
+}
+
+/* Center and expand placeholder for empty Categories widget */
+.modal-expert__full-row .choices__placeholder {
+  display: block;
+  width: 100%;
+  text-align: center;
+  margin: 0;
+  padding: 6px 0;
+  color: var(--admin-text-secondary);
+  box-sizing: border-box;
+}
+
+.modal-expert__full-row .choices__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  text-align: center; /* centers placeholder; when user types caret will be centered too */
+  background: transparent;
+  border: none;
+}
+
+/* Stronger override: make the actual input element inside choices behave as a block full-width centered field */
+.modal-expert__full-row .choices__inner input.choices__input,
+.modal-expert__full-row .choices__inner .choices__input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  margin: 0;
+  text-align: center;
+  background: transparent;
+  border: none;
+  color: inherit;
+}
+
+.modal-expert__full-row .choices__inner {
+  min-height: 44px;
+  padding: 8px 12px;
+  justify-content: center;
+}
+
+/* Remove inner small box around the placeholder/input inside the Categories widget */
+.modal-expert__full-row .choices__inner input.choices__input,
+.modal-expert__full-row .choices__inner input.choices__input--cloned,
+.modal-expert__full-row .choices__inner .choices__input,
+.modal-expert__full-row .choices__inner .choices__input--cloned {
+  border: none;
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+}
+
+.modal-expert__full-row .choices__placeholder {
+  border: none;
+  background: transparent;
+}
+
+/* Strong override to remove the dark line around the placeholder input only.
+   Exclude chips (.choices__item) and buttons to preserve their borders. */
+.modal-expert__full-row .choices__inner input.choices__input,
+.modal-expert__full-row .choices__inner input.choices__input--cloned,
+.modal-expert__full-row .choices__inner .choices__input,
+.modal-expert__full-row .choices__inner .choices__placeholder,
+.modal-expert__full-row .choices__inner .choices__list--single {
+  border: none;
+  border-color: transparent;
+  box-shadow: none;
+  outline: none;
+  background: transparent;
+}
+
+/* Remove pseudo-element outlines that could produce thin lines */
+.modal-expert__full-row .choices__inner *::before,
+.modal-expert__full-row .choices__inner *::after {
+  border: none;
+  box-shadow: none;
+  background: transparent;
+}
+
+.modal-expert__full-row .choices__inner {
+  justify-content: center; /* center content by default; chips will still wrap */
+}
+
+/* If the native select remains visible for alguna razón, ocultarlo dentro del full-row */
+.modal-expert__full-row select.modal-expert__select-categorias {
+  display: none;
+  visibility: hidden;
+  height: 0;
+  margin: 0;
+  padding: 0;
+}
+
+/* Forzar que cualquier input que genere Choices ocupe el 100% (incluye variantes clonadas) */
+.modal-expert__full-row .choices__inner input.choices__input,
+.modal-expert__full-row .choices__inner input.choices__input--cloned,
+.modal-expert__full-row .choices__inner .choices__input,
+.modal-expert__full-row .choices__input--cloned,
+.modal-expert__full-row .choices__input {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 8px 12px;
+  margin: 0;
+  text-align: center;
+}
+
+/* Final aggressive overrides to ensure no inner borders/lines remain */
+.modal-expert__full-row .choices__list,
+.modal-expert__full-row .choices__list--multiple,
+.modal-expert__full-row .choices__inner,
+.modal-expert__full-row .choices-container,
+.modal-expert__full-row input.choices__input,
+.modal-expert__full-row input.choices__input--cloned,
+.modal-expert__full-row input.choices-input,
+.modal-expert__full-row input[placeholder][style] {
+  border: none;
+  border-top: none;
+  border-bottom: none;
+  box-shadow: none;
+  outline: none;
+  background: transparent;
+}
+
+.modal-expert__full-row .choices__list--multiple {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+}
+
+.modal-expert__full-row .choices__inner {
+  padding: 0;
+  justify-content: center;
+}
+
+/* Overrides específicos para evitar que :hover convierta el texto a blanco o cambie la alineación
+   - Mantener los colores del tema en hover
+   - Forzar alineación izquierda en los chips (items) para evitar que se centren inesperadamente
+   - Preservar placeholder centrado solo cuando está vacío */
+#expertModal .modal-expert__full-row .choices__list--multiple .choices__item,
+#expertModal
+  .modal-expert__full-row
+  .choices__list--multiple
+  .choices__item:hover,
+#expertModal .modal-expert__full-row .choices__list--multiple .choices__item * {
+  color: var(--admin-text-primary);
+  text-align: left;
+}
+
+/* Botón eliminar - mantener color del texto del tema incluso en hover */
+#expertModal .modal-expert__full-row .choices__button,
+#expertModal .modal-expert__full-row .choices__button:hover,
+#expertModal .modal-expert__full-row .choices__button:focus {
+  color: var(--admin-text-primary);
+}
+
+/* Evitar que el hover del contenedor cambie el placeholder a blanco */
+#expertModal
+  .modal-expert__full-row
+  .choices__inner:hover
+  .choices__placeholder,
+#expertModal
+  .modal-expert__full-row
+  .choices__inner:focus
+  .choices__placeholder {
+  color: var(--admin-text-secondary);
+  opacity: 1;
+}
+
+/* Evitar reglas globales que pongan color blanco en elementos dentro del modal */
+#expertModal .modal-expert__full-row .choices__item:hover,
+#expertModal .modal-expert__full-row .choices__item:focus,
+#expertModal .modal-expert__full-row .choices__item *:hover {
+  color: var(--admin-text-primary);
+}
+
+/* Garantizar que el input mantenga color y alineación por defecto (izquierda) al escribir/hover
+   Si quieres mantener placeholder centrado pero texto a la izquierda una vez que escribes,
+   se puede ajustar más adelante; por ahora forzamos left para evitar el comportamiento inesperado. */
+#expertModal .modal-expert__full-row .choices__inner input.choices__input,
+#expertModal
+  .modal-expert__full-row
+  .choices__inner
+  input.choices__input--cloned {
+  color: var(--admin-text-primary);
+  text-align: left;
+}
+
+.modal-expert__group {
+  margin-bottom: 0.75rem;
+}
+
+.modal-expert__label {
+  display: block;
+  font-size: var(--modal-label-size);
+  color: var(--admin-text-secondary);
+  margin-bottom: 0.25rem;
+}
+
+.modal-expert__input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 0.0625rem solid var(--admin-border-color);
+  border-radius: 0.375rem;
+  color: var(--admin-text-primary);
+  font-size: var(--modal-label-size);
+}
+
+.modal-expert__textarea {
+  resize: vertical;
+  min-height: 3rem;
+}
+
+.modal-expert__hint {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--admin-text-secondary);
+  font-size: 0.75rem;
+}
+
+/* Modal-scoped stronger hint color to ensure visibility against dark backgrounds */
+#expertModal .modal-expert__hint,
+#expertModal .modal-expert__hint *,
+#expertModal .modal-expert__hint + .choices-container,
+#expertModal .modal-expert__hint ~ .choices-container {
+  color: var(--admin-text-secondary);
+}
+
+/* Explicit rule for the skills hint text to match theme secondary color */
+#expertModal .modal-expert__group > .modal-expert__hint {
+  color: var(--admin-text-secondary);
+}
+
+.modal-expert__upload-wrapper {
+  position: relative;
+}
+
+.modal-expert__file-input {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.modal-expert__upload-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 0.0625rem dashed var(--admin-border-color);
+  border-radius: 0.375rem;
+  color: var(--admin-text-primary);
+}
+
+.modal-expert__upload-box i {
+  margin-right: 0.5rem;
+}
+
+.modal-expert__footer {
+  padding: 0.75rem 1rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.625rem;
+  border-top: 0.0625rem solid var(--admin-border-color);
+}
+
+/* Select personalizado para expertos */
+/* Mejora visual para select de categorías y Choices.js en el modal de expertos */
+.modal-expert__grid label {
+  color: #bfc8e2;
+  font-weight: 500;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.modal-expert__grid select,
+.modal-expert__grid .choices__inner {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--admin-border-color); /* match unified */
+  background: var(--admin-card-bg); /* match unified */
+  color: var(--admin-text-primary);
+  font-size: 16px;
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  box-shadow: var(--admin-shadow);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.modal-expert__grid select:focus,
+.modal-expert__grid .choices__inner:focus {
+  border-color: #5e81ff;
+  box-shadow: 0 0 0 2px #5e81ff44;
+  outline: none;
+}
+
+.modal-expert__grid .choices__list--dropdown {
+  background: var(--admin-card-bg);
+  border-radius: 8px;
+  border: 1.5px solid var(--admin-border-color);
+  color: var(--admin-text-primary);
+  font-size: 16px;
+  box-shadow: 0 4px 16px rgba(40, 44, 52, 0.06);
+}
+
+.modal-expert__grid .choices__input {
+  background: transparent;
+  color: #6b7280; /* placeholder-like */
+  border: none;
+  font-size: 16px;
+}
+
+.modal-expert__grid .choices__list--multiple .choices__item {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--admin-text-primary);
+  border-radius: 6px;
+  margin: 0 6px 6px 0;
+  padding: 6px 16px;
+  font-size: 15px;
+  font-weight: 500;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+.modal-expert__grid .choices__list--multiple {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin: 0;
+  padding: 6px 8px;
+  justify-content: flex-start;
+  width: 100%;
+  min-height: 44px;
+  background: transparent;
+  border-radius: 6px;
+}
+
+.modal-expert__grid .choices__list--multiple {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+}
+
+.modal-expert__grid .choices__item--selectable .choices__button {
+  background: var(--admin-text-secondary);
+  color: var(--admin-text-primary);
+  border-radius: 50%;
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  cursor: pointer;
+  margin-left: 6px;
+  border: none;
+  opacity: 1;
+  transition: transform 0.12s ease;
+}
+.modal-expert__grid .choices__item--selectable .choices__button:hover {
+  transform: scale(1.05);
+}
+/* Elimina estilos directos a select en el modal para evitar conflicto con Choices.js */
+/* Los estilos de Choices.js se aplican en la sección correspondiente más abajo */
+
+/* Utilidades para modales de expertos */
+.modal-expert__nombre-destacado {
+  font-weight: bold;
+  margin-bottom: 0.625rem;
+}
+
+.modal-expert__texto-secundario {
+  color: var(--admin-text-secondary);
+  font-size: 0.875rem;
+}
+
+#formEditarExperto,
+#formEditarExperto > input,
+.modal-expert #formEditarExperto > select {
+  display: flex;
+  flex-direction: column;
+  font-size: 1.25rem;
+}
+
+#formEditarExperto > label,
+#formEditarExperto > button {
+  margin-top: 1em;
+}
+
+/* --- Expertos Grid Layout --- */
+.expertos-grid {
+  display: grid;
+  grid-template-columns: 1fr 3fr;
+  gap: 1.25rem;
+  margin-bottom: 1.5625rem;
+}
+.modal-expert .modal-expert__grid select,
+.modal-expert .modal-expert__grid .choices,
+.modal-expert .modal-expert__grid .choices__inner,
+.modal-expert .modal-expert__grid .choices-container {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+.expertos-filtros {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--admin-text-primary);
+  width: 100%;
+  padding: 0.375rem 0.5rem;
+  font-size: 0.8125rem;
+  .modal-expert .expertos-filtros__select {
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 6px 8px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 0.0625rem solid var(--admin-border-color);
+    padding: 8px 10px;
+    background: transparent;
+    color: var(--admin-text-secondary);
+    color: var(--admin-text-primary);
+    font-size: 0.875rem;
+    background: rgba(255, 255, 255, 0.045);
+    color: var(--admin-text-primary);
+    .expertos-filtros__btn {
+      width: 100%;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(58, 142, 255, 0.08);
+      border-color: rgba(58, 142, 255, 0.6);
+    }
+
+    max-height: 160px;
+    overflow-y: auto;
+    background: #1a1a1a;
+    border: 0.0625rem solid var(--admin-border-color);
+    border-radius: 6px;
+    padding: 6px 0;
+    .expertos-estadisticas {
+      margin-top: 1.875rem;
+      color: #ffffff;
+      background: transparent;
+      border-bottom: none;
+      outline: none;
+      padding: 8px 12px;
+      .expertos-estadisticas__title {
+        font-size: 1rem;
+        font-weight: 600;
+        background: #ff4444;
+        border: none;
+        border-radius: 50%;
+        color: #ffffff;
+        width: 18px;
+        height: 18px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        cursor: pointer;
+        margin-left: 6px;
+        padding: 0;
+        line-height: 1;
+        min-width: 18px;
+        min-height: 18px;
+        position: relative;
+        opacity: 1;
+        visibility: visible;
+        flex-shrink: 0;
+        margin-bottom: 0.9375rem;
+      }
+      .expertos-estadisticas__list {
+        background: var(--admin-accent-color);
+        transform: scale(1.1);
+        flex-direction: column;
+        gap: 0.9375rem;
+      }
+      background: rgba(255, 255, 255, 0.035);
+      color: var(--admin-text-primary);
+      display: flex;
+      justify-content: space-between;
+      color: #888888;
+      opacity: 1;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      background: transparent;
+      border: none;
+      color: #ffffff;
+      font-size: 0.85rem;
+    }
+    .expertos-estadisticas__item--total {
+      outline: none;
+      box-shadow: none;
+    }
+    .expertos-estadisticas__item--activos {
+      background-color: rgba(40, 167, 69, 0.1);
+    }
+    .expertos-estadisticas__item--pendientes {
+      background-color: rgba(255, 193, 7, 0.1);
+    }
+    .expertos-estadisticas__item--promedio {
+      background-color: rgba(18, 216, 250, 0.1);
+    }
+    .expertos-estadisticas__item-info {
+      display: flex;
+      align-items: center;
+    }
+    .expertos-estadisticas__icon {
+      font-size: 1.25rem;
+      margin-right: 0.75rem;
+    }
+    .expertos-estadisticas__icon--total {
+      color: var(--admin-accent-color);
+    }
+    .expertos-estadisticas__icon--activos {
+      color: #28a745;
+    }
+    .expertos-estadisticas__icon--pendientes {
+      color: #ffc107;
+    }
+    .expertos-estadisticas__icon--promedio {
+      color: var(--admin-accent-secondary);
+    }
+    .expertos-estadisticas__value {
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    /* --- Paginación --- */
+    .expertos-paginacion {
+      padding: 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 0.0625rem solid var(--admin-border-color);
+    }
+    .expertos-paginacion__info {
+      color: var(--admin-text-secondary);
+      font-size: 0.875rem;
+    }
+    .expertos-paginacion__controles {
+      display: flex;
+      gap: 0.3125rem;
+    }
+    .expertos-paginacion__btn {
+      width: 2rem;
+      height: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 0.0625rem solid var(--admin-border-color);
+      border-radius: 0.375rem;
+      background: none;
+      color: var(--admin-text-primary);
+      cursor: pointer;
+      font-size: 0.875rem;
+      transition: background 0.2s, color 0.2s;
+    }
+    .expertos-paginacion__btn--active {
+      background: var(--admin-accent-color);
+      color: #fff;
+      border: none;
+    }
+    .expertos-paginacion__btn--disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+      color: var(--admin-text-secondary);
+      background: none;
+      border: 0.0625rem solid var(--admin-border-color);
+    }
+    .expertos-paginacion__ellipsis {
+      display: flex;
+      align-items: center;
+      color: var(--admin-text-secondary);
+    }
+
+    /* Checkbox color para expertos */
+    .expertos-checkbox {
+      accent-color: var(--admin-accent-color);
+    }
+
+    /* Rating de expertos */
+    .expertos-rating {
+      display: flex;
+      align-items: center;
+    }
+    .expertos-rating__value {
+      color: #ffbb00;
+      margin-right: 0.3125rem;
+    }
+    .expertos-rating__stars {
+      display: flex;
+      gap: 0.125rem;
+    }
+    .expertos-rating__star {
+      font-size: 0.75rem;
+      color: #ffbb00;
+    }
+    .expertos-rating__star.far {
+      opacity: 0.3;
+    }
+    .expertos-rating__nocount {
+      color: var(--admin-text-secondary);
+      font-size: 0.8125rem;
+    }
+
+    /* Small badges to display categorias under the user info in the table */
+    .user-cats {
+      margin-top: 6px;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .user-cats .badge {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--admin-text-primary);
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+    }
+
+    /* Styles for Choices.js inside admin expert modal */
+    /* Unificación de estilos Choices.js para el modal de expertos */
+    .modal-expert .choices-container {
+      background: transparent;
+      border: none;
+      width: 100%;
+      box-sizing: border-box;
+      margin: 0;
+    }
+    .modal-expert .choices__inner {
+      min-height: 44px;
+      padding: 6px 8px;
+      background-color: var(--admin-card-bg, #1a1a1a);
+      border: 1px solid var(--admin-border-color, #333);
+      border-radius: var(--input-radius, 6px);
+      color: var(--admin-text-primary, #fff);
+      width: 100%;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      overflow: auto;
+    }
+    .modal-expert .choices__list--multiple {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 0;
+      margin: 0;
+    }
+    .modal-expert .choices__item {
+      background: var(--card-bg, #2a2a2a);
+      color: var(--text-color, #fff);
+      border: 1px solid #3a3a3a;
+      padding: 6px 8px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      white-space: nowrap;
+      max-width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Botón de eliminar en los elementos seleccionados - Clases correctas de Choices.js */
+    .modal-expert .choices__item--selectable .choices__button,
+    .modal-expert .choices__button {
+      background: var(--admin-text-secondary);
+      background: var(--admin-text-secondary);
+      color: var(--admin-text-primary);
+      width: 14px;
+      width: 14px;
+      height: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      cursor: pointer;
+      margin-left: 6px;
+      padding: 0;
+      line-height: 1;
+      min-width: 14px;
+      min-height: 14px;
+      position: relative;
+      opacity: 1;
+      visibility: visible;
+      flex-shrink: 0;
+    }
+
+    .modal-expert .choices__item--selectable .choices__button:hover,
+    .modal-expert .choices__button:hover {
+      background: var(--admin-text-secondary);
+      transform: scale(1.05);
+    }
+
+    /* Force restore of ::after glyph inside modal to ensure × is visible (overrides content:none) */
+    #expertModal .modal-expert .choices__button,
+    #expertModal .modal-expert button[data-button] {
+      position: relative;
+      overflow: visible;
+    }
+
+    #expertModal .modal-expert .choices__button::after,
+    #expertModal .modal-expert button[data-button]::after {
+      content: "×";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--admin-text-primary);
+      opacity: 1;
+      visibility: visible;
+      line-height: 1;
+    }
+
+    /* Ultra-specific enforced rules for the exact button element seen in DOM (use attribute selectors)
+   This will override any content: none on generic .choices__item::after rules */
+    #expertModal button.choices__button[data-button]::after,
+    #expertModal button.choices__button[aria-label^="Remove"]::after {
+      content: "×";
+      color: var(--admin-text-primary);
+      font-size: 11px;
+      font-weight: 700;
+      opacity: 1;
+      visibility: visible;
+    }
+
+    /* Botón de eliminar - Estilo simple y directo (unificado) */
+    .modal-expert .choices__button,
+    .modal-expert [class*="choices__button"],
+    .modal-expert button[data-button] {
+      background: var(--admin-text-secondary);
+      color: var(--admin-text-primary);
+      border-radius: 50%;
+      width: 14px;
+      height: 14px;
+      border: none;
+      cursor: pointer;
+      margin-left: 6px;
+      font-size: 10px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 1;
+      visibility: visible;
+      text-align: center;
+      font-family: Arial, sans-serif;
+      line-height: 1;
+      min-width: 14px;
+      min-height: 14px;
+      flex-shrink: 0;
+    }
+
+    .modal-expert .choices__button:hover,
+    .modal-expert [class*="choices__button"]:hover,
+    .modal-expert button[data-button]:hover {
+      background: var(--admin-text-secondary);
+      transform: scale(1.05);
+    }
+
+    /* Mostrar la × centrada en el botón */
+    .modal-expert button[data-button] {
+      text-indent: 0;
+      overflow: visible;
+      position: relative;
+    }
+
+    .modal-expert .choices__button:after,
+    .modal-expert button[data-button]:after {
+      content: "×";
+      text-indent: 0;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--admin-text-primary);
+      line-height: 1;
+    }
+
+    /* Modal-scoped strong override: asegurar que la X de eliminar sea visible y no transparente
+   Usa la variable de tema --admin-text-secondary (por ejemplo #a0a0a0) */
+    #expertModal .modal-expert button[data-button],
+    #expertModal .modal-expert .choices__button {
+      background: transparent;
+      border: none;
+      opacity: 1;
+      visibility: visible;
+      padding: 0;
+    }
+
+    #expertModal .modal-expert button[data-button]:after,
+    #expertModal .modal-expert .choices__button:after {
+      color: var(--admin-text-secondary);
+      opacity: 1;
+      visibility: visible;
+      text-indent: 0;
+    }
+    .modal-expert .choices__list[role="listbox"] {
+      max-height: 160px;
+      overflow-y: auto;
+      background: #1a1a1a;
+      border: 0.0625rem solid var(--admin-border-color);
+      border-radius: 6px;
+      padding: 6px 0;
+    }
+    .modal-expert .choices__list[role="listbox"] .choices__item {
+      color: var(--admin-text-primary);
+      background: transparent;
+      border-bottom: none;
+      outline: none;
+      padding: 8px 12px;
+    }
+
+    /* Días disponibles (modal) - chips visuales similares a registroExperto */
+    .modal-days-selector,
+    .days-selector {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 0.4rem;
+      margin-top: 0.5rem;
+    }
+
+    .modal-days-selector .day-option,
+    .days-selector .day-option {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 50%;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.8rem;
+      border: 1px solid transparent;
+      user-select: none;
+    }
+
+    .modal-days-selector .day-option.selected,
+    .days-selector .day-option.selected {
+      background: var(--admin-accent-color);
+      color: white;
+      border-color: transparent;
+    }
+
+    .modal-days-display,
+    .days-selected-display {
+      margin-top: 0.5rem;
+      color: var(--admin-text-secondary);
+      font-size: 0.85rem;
+    }
+
+    /* Responsive para selector de días */
+    @media (max-width: 480px) {
+      .modal-days-selector,
+      .days-selector {
+        gap: 0.25rem;
+      }
+
+      .modal-days-selector .day-option,
+      .days-selector .day-option {
+        width: 28px;
+        height: 28px;
+        font-size: 0.75rem;
+      }
+
+      .modal-days-display,
+      .days-selected-display {
+        font-size: 0.75rem;
+        margin-top: 0.375rem;
+      }
+    }
+
+    /* Estilos específicos para la sección precio-días */
+    .precio-dias-grid {
+      align-items: start;
+    }
+
+    .precio-container {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .dias-container {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Responsive específico para precio-días */
+    @media (max-width: 768px) {
+      .precio-dias-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+
+      .precio-container {
+        order: 2;
+        background: rgba(255, 255, 255, 0.02);
+        padding: 0.75rem;
+        border-radius: 0.375rem;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      .dias-container {
+        order: 1;
+      }
+
+      .precio-container .modal-expert__label {
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: var(--admin-text-secondary);
+      }
+
+      .precio-container .modal-expert__input {
+        font-size: 1rem;
+        font-weight: 600;
+        text-align: center;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid var(--admin-primary-color);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .precio-dias-grid {
+        gap: 0.75rem;
+      }
+
+      .precio-container,
+      .dias-container {
+        width: 100%;
+      }
+
+      .precio-container {
+        padding: 0.5rem;
+      }
+
+      .precio-container .modal-expert__input {
+        font-size: 0.9rem;
+        padding: 0.75rem;
+      }
+    }
+
+    /* Estilos específicos para la sección especialidad-estado */
+    .especialidad-estado-grid {
+      align-items: start;
+    }
+
+    .especialidad-container,
+    .estado-container {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Responsive específico para especialidad-estado */
+    @media (max-width: 768px) {
+      .especialidad-estado-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+      }
+
+      .especialidad-container,
+      .estado-container {
+        background: rgba(255, 255, 255, 0.02);
+        padding: 0.75rem;
+        border-radius: 0.375rem;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      .especialidad-container .modal-expert__label,
+      .estado-container .modal-expert__label {
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: var(--admin-text-secondary);
+      }
+
+      .especialidad-container .modal-expert__input,
+      .estado-container .modal-expert__input {
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid var(--admin-text-primary);
+        font-weight: 500;
+        font-size: 1rem;
+      }
+
+      .especialidad-container select.modal-expert__input option,
+      .estado-container select.modal-expert__input option {
+        color: var(--admin-text-secondary);
+        background: var(--admin-card-bg);
+      }
+
+      .especialidad-container select.modal-expert__input option:checked,
+      .estado-container select.modal-expert__input option:checked {
+        color: var(--admin-text-primary);
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .estado-container {
+        order: -1;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .especialidad-estado-grid {
+        gap: 0.5rem;
+      }
+
+      .especialidad-container,
+      .estado-container {
+        padding: 0.5rem;
+      }
+
+      .especialidad-container .modal-expert__label,
+      .estado-container .modal-expert__label {
+        color: var(--admin-text-secondary);
+      }
+
+      .especialidad-container .modal-expert__input,
+      .estado-container .modal-expert__input {
+        font-size: 0.9rem;
+        padding: 0.75rem;
+      }
+
+      .especialidad-container select.modal-expert__input option,
+      .estado-container select.modal-expert__input option {
+        color: var(--admin-text-secondary);
+        background: var(--admin-card-bg);
+        font-size: 0.875rem;
+      }
+
+      .especialidad-container select.modal-expert__input option:checked,
+      .estado-container select.modal-expert__input option:checked {
+        color: var(--admin-text-primary);
+        background: rgba(255, 255, 255, 0.1);
+      }
+    }
+    .modal-expert .choices__list[role="listbox"] .choices__item:hover,
+    .modal-expert .choices__list[role="listbox"] .choices__item.is-highlighted {
+      background: var(--admin-card-bg);
+      color: var(--admin-text-primary);
+      border-color: var(--admin-border-color);
+    }
+
+    /* Placeholder text for Choices.js */
+    .modal-expert .choices__placeholder {
+      color: var(--admin-text-secondary);
+      opacity: 1;
+    }
+
+    /* Force input placeholder and cloned input color inside expert modal to white */
+    #expertModal .choices__input::placeholder,
+    #expertModal input.choices__input--cloned::placeholder,
+    #expertModal input.choices__input::placeholder,
+    #expertModal input[aria-label*="Selecciona"] {
+      color: #ffffff;
+      opacity: 1;
+    }
+
+    /* Specific rule for the choices cloned input element itself (inline styles may exist) - white text */
+    #expertModal input.choices__input--cloned,
+    #expertModal .choices__input {
+      color: #ffffff;
+      -webkit-text-fill-color: #ffffff; /* for WebKit browsers */
+      caret-color: #ffffff;
+    }
+
+    /* Very specific selectors to target the cloned input generated by Choices when the placeholder/aria-label is "Selecciona habilidades" */
+    #expertModal
+      input.choices__input--cloned[aria-label="Selecciona habilidades"],
+    #expertModal
+      input.choices__input--cloned[placeholder="Selecciona habilidades"],
+    #expertModal input.choices__input[aria-label="Selecciona habilidades"],
+    #expertModal input.choices__input[placeholder="Selecciona habilidades"] {
+      /* Use theme secondary text color for placeholder/text (avoid accent blue) */
+      color: var(--admin-text-secondary);
+      -webkit-text-fill-color: var(--admin-text-secondary);
+      caret-color: var(--admin-text-secondary);
+      opacity: 1;
+    }
+
+    /* Placeholder pseudo-element explicit for the specific hint text */
+    #expertModal
+      input.choices__input--cloned[aria-label="Selecciona habilidades"]::placeholder,
+    #expertModal
+      input.choices__input--cloned[placeholder="Selecciona habilidades"]::placeholder,
+    #expertModal
+      input.choices__input[aria-label="Selecciona habilidades"]::placeholder,
+    #expertModal
+      input.choices__input[placeholder="Selecciona habilidades"]::placeholder {
+      color: var(--admin-text-secondary);
+      opacity: 1;
+    }
+
+    /* Input dentro del selector */
+    .modal-expert .choices__input {
+      background: transparent;
+      border: none;
+      color: var(--admin-text-primary);
+      font-size: 0.85rem;
+    }
+
+    .modal-expert .choices__input:focus {
+      outline: none;
+      box-shadow: none;
+    }
+
+    /* Forzar colores legibles y quitar líneas blancas en hover (alto impacto) */
+    .modal-expert .choices__list[role="listbox"] .choices__item,
+    .modal-expert .choices__list[role="listbox"] .choices__item * {
+      color: var(--admin-text-primary);
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      outline: none;
+    }
+    .modal-expert .choices__list[role="listbox"] .choices__item:hover,
+    .modal-expert .choices__list[role="listbox"] .choices__item.is-highlighted {
+      background: rgba(255, 255, 255, 0.035);
+      color: var(--admin-text-primary);
+    }
+    .modal-expert
+      .choices__list[role="listbox"]
+      .choices__item[aria-selected="true"] {
+      background: rgba(255, 255, 255, 0.045);
+    }
+
+    /* Modal-scoped strong overrides: eliminar cualquier fondo/linea blanca en opciones del dropdown
+   y forzar colores del tema en hover/selected */
+    #expertModal .choices__list[role="listbox"] .choices__item,
+    #expertModal .choices__list[role="listbox"] .choices__item:hover,
+    #expertModal .choices__list[role="listbox"] .choices__item.is-highlighted,
+    #expertModal
+      .choices__list[role="listbox"]
+      .choices__item[aria-selected="true"] {
+      background: var(--admin-card-bg);
+      color: var(--admin-text-primary);
+      border: 1px solid var(--admin-border-color);
+      box-shadow: none;
+      outline: none;
+    }
+
+    /* Si Choices inyecta .is-highlighted o clases transitorias, forzamos también la variante dentro del full-row */
+    #expertModal
+      .modal-expert__full-row
+      .choices__list--dropdown
+      .choices__item,
+    #expertModal
+      .modal-expert__full-row
+      .choices__list--dropdown
+      .choices__item:hover,
+    #expertModal
+      .modal-expert__full-row
+      .choices__list--dropdown
+      .choices__item.is-highlighted {
+      background: var(--admin-card-bg);
+      color: var(--admin-text-primary);
+      border-color: var(--admin-border-color);
+    }
+
+    /* Ultra-specific override to remove any white line or white text when hovering or highlighting
+   Covers generated ids, .is-highlighted and hover states, and removes pseudo-elements */
+    #expertModal .choices__list[role="listbox"] .choices__item,
+    #expertModal .choices__list[role="listbox"] .choices__item:hover,
+    #expertModal .choices__list[role="listbox"] .choices__item.is-highlighted,
+    #expertModal .choices__list--dropdown .choices__item,
+    #expertModal .choices__list--dropdown .choices__item:hover,
+    #expertModal .choices__list--dropdown .choices__item.is-highlighted,
+    #expertModal .choices__inner .choices__item.is-highlighted,
+    #expertModal .choices__inner .choices__item:hover {
+      background: var(--admin-card-bg);
+      color: var(--admin-text-primary);
+      border: 1px solid var(--admin-border-color);
+      box-shadow: none;
+      outline: none;
+    }
+
+    /* Remove any pseudo-element or before/after that may draw a white line */
+    #expertModal .choices__item::before,
+    #expertModal .choices__item::after,
+    #expertModal .choices__list[role="listbox"] .choices__item::before,
+    #expertModal .choices__list[role="listbox"] .choices__item::after {
+      content: none;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+    }
+
+    /* Ensure inner text nodes and any spans keep theme color */
+    #expertModal .choices__item,
+    #expertModal .choices__item * {
+      color: var(--admin-text-primary);
+    }
+
+    /* Styles for skills choices in modal (tags input) */
+    .modal-expert #skills.choices__inner,
+    .modal-expert .choices__inner[for="skills"] {
+      min-height: 44px;
+      padding: 6px 8px;
+      background-color: rgba(255, 255, 255, 0.03);
+      border-radius: 6px;
+      border: 0.0625rem solid var(--admin-border-color);
+    }
+    .modal-expert .choices__list--single .choices__item,
+    .modal-expert .choices__list--multiple .choices__item {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--admin-text-primary);
+    }
+    .modal-expert .choices__input {
+      color: var(--admin-text-primary);
+    }
+
+    /* ensure the hint text below select doesn't overlap */
+    .modal-expert .modal-expert__hint + .choices-container,
+    .modal-expert .modal-expert__hint ~ .choices-container {
+      margin-top: 6px;
+    }
+
+    /* Fallback styling for native select when Choices.js isn't active */
+    .modal-expert select.modal-expert__input {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      padding: 0;
+      background-color: transparent;
+      border: none;
+      color: inherit;
+      min-height: auto;
+      line-height: normal;
+    }
+
+    /* Multiple select: make it look like a dropdown list with spacing */
+    .modal-expert select.modal-expert__input[multiple] {
+      max-height: 200px;
+      overflow-y: auto;
+      padding: 6px 8px;
+    }
+
+    .modal-expert select.modal-expert__input option {
+      padding: 8px 10px;
+      background: transparent;
+      color: var(--admin-text-secondary);
+    }
+
+    .modal-expert select.modal-expert__input option:checked {
+      background: rgba(255, 255, 255, 0.045);
+      color: var(--admin-text-primary);
+    }
+
+    .modal-expert select.modal-expert__input:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(58, 142, 255, 0.08);
+      border-color: rgba(58, 142, 255, 0.6);
+    }
+
+    /* Responsive media queries adicionales para Choices.js y elementos del modal */
+    @media (max-width: 768px) {
+      .modal-expert .choices__inner {
+        padding: 0.375rem 0.5rem;
+        min-height: 2.5rem;
+      }
+
+      .modal-expert .choices__list--multiple .choices__item {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        margin: 0.125rem 0.25rem 0.125rem 0;
+      }
+
+      .choices__button {
+        width: 16px;
+        height: 16px;
+        padding: 0;
+        font-size: 12px;
+        line-height: 16px;
+      }
+
+      .modal-expert select.modal-expert__input[multiple] {
+        max-height: 150px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .modal-expert .choices__inner {
+        padding: 0.25rem 0.375rem;
+        min-height: 2.25rem;
+      }
+
+      .modal-expert .choices__list--multiple .choices__item {
+        font-size: 0.6875rem;
+        padding: 0.1875rem 0.375rem;
+        margin: 0.125rem 0.1875rem 0.125rem 0;
+      }
+
+      .choices__button {
+        width: 14px;
+        height: 14px;
+        font-size: 10px;
+        line-height: 14px;
+      }
+
+      .modal-expert select.modal-expert__input[multiple] {
+        max-height: 120px;
+        font-size: 0.8125rem;
+      }
+
+      .modal-expert select.modal-expert__input option {
+        padding: 6px 8px;
+        font-size: 0.8125rem;
+        color: var(--admin-text-secondary);
+      }
+    }
+
+    /* Fix específico: forzar comportamiento de .choices-container y sus hijos dentro del modal
+   Evita que los chips (choices__item) se expandan a full-width y asegura que mantengan
+   el mismo layout que el selector de Habilidades. Este bloque va al final para tener
+   mayor prioridad sobre reglas anteriores. */
+    .modal-expert .modal-expert__grid .choices-container,
+    .modal-expert .choices-container,
+    .modal-expert .choices {
+      width: 100%;
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      display: block;
+    }
+
+    .modal-expert .modal-expert__grid .choices__inner,
+    .modal-expert .choices__inner {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 6px 8px;
+      min-height: 44px;
+      background: transparent;
+    }
+
+    .modal-expert .modal-expert__grid .choices__list--multiple,
+    .modal-expert .choices__list--multiple {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      padding: 0;
+      margin: 0;
+      justify-content: flex-start;
+    }
+
+    .modal-expert .choices__list--multiple .choices__item,
+    .modal-expert .choices__item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      width: auto;
+      max-width: none;
+      white-space: nowrap;
+      padding: 6px 12px;
+      margin: 0 8px 8px 0;
+      box-sizing: border-box;
+    }
+
+    .modal-expert .choices__item--selectable .choices__button,
+    .modal-expert .choices__button {
+      margin-left: 6px;
+    }
+
+    /* Paleta unificada para Categorías y Habilidades */
+    .modal-expert .choices__list--multiple .choices__item,
+    .modal-expert .choices__item {
+      background: var(--admin-card-bg); /* chip background acorde al tema */
+      color: var(--admin-text-primary); /* chip text */
+      border: 1px solid var(--admin-border-color); /* chip border acorde a tema */
+      box-shadow: none;
+    }
+
+    .modal-expert .choices__inner,
+    .modal-expert__full-row {
+      background: var(--admin-card-bg);
+      border: 1px solid var(--admin-border-color);
+      box-shadow: var(--admin-shadow);
+    }
+
+    .modal-expert .choices__placeholder,
+    .modal-expert__full-row .choices__placeholder {
+      color: var(--admin-text-secondary); /* placeholder via variable */
+    }
+
+    .modal-expert .choices__button,
+    .modal-expert .choices__item--selectable .choices__button {
+      background: var(
+        --admin-text-secondary
+      ); /* remove button acorde al tema */
+      color: var(--admin-text-primary);
+      width: 14px;
+      height: 14px;
+      font-size: 10px;
+    }
+
+    .modal-expert .choices__button:hover,
+    .modal-expert .choices__item--selectable .choices__button:hover {
+      background: var(--admin-text-secondary);
+    }
+
+    /* ---------- Price row (Precio por hora) styles ---------- */
+    .srv-row,
+    .price-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      align-items: start;
+      margin-bottom: 1rem;
+    }
+
+    .srv-row .srv-label,
+    .price-row .srv-label,
+    .srv-label.price-label {
+      display: block;
+      font-weight: 400;
+      color: var(--admin-text-secondary);
+      margin-bottom: 0.375rem;
+      font-size: var(--modal-label-size);
+    }
+
+    .srv-row .price-tooltip.icon-tooltip {
+      margin-left: 0.5rem;
+      color: var(--admin-text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .srv-price-input,
+    .price-input {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--admin-border-color);
+      padding: 0.375rem 0.5rem;
+      border-radius: 0.5rem;
+      box-sizing: border-box;
+    }
+
+    .srv-currency,
+    .currency-symbol {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 30px;
+      height: 36px;
+      background: transparent;
+      color: var(--admin-text-primary);
+      font-weight: 700;
+      font-size: 0.95rem;
+      padding: 0 0.5rem;
+    }
+
+    .srv-input.price-field,
+    .price-input input.srv-input,
+    .price-input .price-field {
+      flex: 1 1 auto;
+      border: none;
+      background: transparent;
+      color: var(--admin-text-primary);
+      font-size: 1rem;
+      padding: 0.25rem 0.25rem;
+      outline: none;
+    }
+
+    /* Remove number input spinners (web) */
+    input[type="number"].srv-input::-webkit-outer-spin-button,
+    input[type="number"].srv-input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"].srv-input {
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+
+    .srv-input.price-field:focus,
+    .price-input input.srv-input:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(94, 129, 255, 0.08);
+      border-radius: 6px;
+    }
+
+    .srv-note.price-note {
+      margin: 0.35rem 0 0 0;
+      color: var(--admin-text-secondary);
+      font-size: 0.8rem;
+    }
+
+    .srv-feedback.price-feedback {
+      margin-top: 0.35rem;
+      font-size: 0.85rem;
+      color: var(--admin-accent-color);
+      display: none; /* show only when needed by JS validation */
+    }
+
+    /* Error state */
+    .srv-row.error .price-input,
+    .price-row.error .price-input,
+    .srv-row .price-input.error,
+    .price-input.error {
+      border-color: var(--admin-accent-color);
+    }
+    .srv-row.error .srv-feedback,
+    .price-row.error .srv-feedback,
+    .price-input.error + .srv-feedback {
+      display: block;
+    }
+
+    /* Responsive: stack on small screens */
+    @media (max-width: 600px) {
+      .srv-row,
+      .price-row {
+        grid-template-columns: 1fr;
+      }
+      .srv-price-input,
+      .price-input {
+        width: 100%;
+      }
+    }
+
+    /* Refined layout for price + days area inside the modal */
+    .modal-expert__price-days {
+      display: grid;
+      grid-template-columns: 1fr 260px; /* price area + days column */
+      gap: 1rem;
+      align-items: start;
+    }
+
+    .modal-expert__price-days .srv-row.price-row {
+      grid-column: 1 / 2;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .modal-expert__price-days .srv-grid {
+      grid-column: 2 / 3;
+    }
+
+    .srv-price-input.price-input {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--admin-card-bg);
+      border: 1px solid var(--admin-border-color);
+      padding: 0.5rem 0.6rem;
+      border-radius: 0.5rem;
+      width: 100%;
+      max-width: 420px;
+      box-sizing: border-box;
+    }
+
+    .srv-price-input .srv-currency,
+    .price-input .srv-currency {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 40px;
+      height: 36px;
+      background: transparent;
+      color: var(--admin-text-secondary);
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0 0.5rem;
+      border-right: 1px solid var(--admin-border-color);
+    }
+
+    .srv-price-input input.srv-input.price-field {
+      flex: 1 1 auto;
+      border: none;
+      background: transparent;
+      color: var(--admin-text-primary);
+      font-size: 1rem;
+      padding: 0 0.5rem;
+      outline: none;
+    }
+
+    /* placeholder color for price input */
+    .srv-price-input input.srv-input.price-field::placeholder {
+      color: var(--admin-text-secondary);
+      opacity: 1;
+    }
+
+    /* remove native spinner but keep accessible control */
+    .srv-price-input input[type="number"]::-webkit-outer-spin-button,
+    .srv-price-input input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    .srv-price-input input[type="number"] {
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+  }
+  .modal-expert__price-days .srv-grid {
+    grid-column: 1 / -1;
+  }
+  .srv-days {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+}
+*/
+
+/* Layout: Precio por hora y Días disponibles lado a lado en modal de experto */
+#expertModal .modal-expert__price-days {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  align-items: start;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Asegurar que cada columna use su espacio correctamente */
+#expertModal .modal-expert__price-days .price-row {
+  margin: 0;
+}
+#expertModal .modal-expert__price-days .srv-grid {
+  margin: 0;
+}
+
+/* Ajustes para el input de precio: prefijo $ y campo alineados verticalmente */
+#expertModal .modal-expert__price-days .srv-price-input,
+#expertModal .modal-expert__price-days .price-input {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+#expertModal .modal-expert__price-days .srv-currency {
+  min-width: 34px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+#expertModal .modal-expert__price-days input.srv-input.price-field {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Días: fila flexible con wrap para pantallas pequeñas */
+#expertModal .modal-expert__price-days .srv-days {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+#expertModal .modal-expert__price-days .srv-day {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Responsive: apilar en pantallas pequeñas */
+@media (max-width: 720px) {
+  #expertModal .modal-expert__price-days {
+    grid-template-columns: 1fr;
+  }
+  #expertModal .modal-expert__price-days .srv-price-input,
+  #expertModal .modal-expert__price-days .price-input {
+    width: 100%;
+  }
+}
+
+/* Estado seleccionado */
+#expertModal .srv-day.selected {
+  background: var(--admin-accent-color, #5e81ff);
+  color: var(--admin-accent-on, #ffffff);
+  border-color: transparent;
+}
+
+/* Estado deseleccionable (visual) */
+#expertModal .srv-day.selected::after {
+  content: "";
+  display: block;
+}
+
+/* Display de días seleccionados (texto pequeño) */
+#expertModal .srv-days-display {
+  margin-top: 0.5rem;
+  color: var(--admin-text-secondary, #a0a0a0);
+  font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+*/
+
+/* Forzar con alta especificidad: evitar que reglas globales pongan los días en columna */
+#expertModal .modal-expert__container .modal-expert__body .modal-expert__price-days .srv-grid .srv-days {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0;
+  margin: 0;
+}
+
+#expertModal
+  .modal-expert__container
+  .modal-expert__body
+  .modal-expert__price-days
+  .srv-grid
+  .srv-days
+  .srv-day {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  padding: 0;
+  margin: 0;
+  line-height: 1;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+/* Si algún reset global aplica display:block a div.* forzar inline-flex */
+#expertModal .srv-grid div.srv-day,
+#expertModal .srv-day {
+  display: inline-flex;
+}
+
+/* Colores individuales por día y forma circular */
+#expertModal .modal-expert__price-days .srv-day {
+  border-radius: 50%; /* circular */
+  padding: 0;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  transition: background 0.12s ease, color 0.12s ease, transform 0.08s ease,
+    box-shadow 0.12s ease;
+}
+
+/* Default visual (unselected) uses soft pastel backgrounds */
+#expertModal .modal-expert__price-days .srv-day[data-day="Lunes"] {
+  background: rgba(94, 129, 255, 0.08); /* azul claro */
+  color: var(--admin-text-primary, #eaf0ff);
+}
+#expertModal .modal-expert__price-days .srv-day[data-day="Martes"] {
+  background: rgba(56, 198, 112, 0.08); /* verde claro */
+  color: var(--admin-text-primary, #e9fff0);
+}
+#expertModal .modal-expert__price-days .srv-day[data-day="Miércoles"],
+#expertModal .modal-expert__price-days .srv-day[data-day="Miercoles"] {
+  background: rgba(255, 159, 67, 0.07); /* naranja claro */
+  color: var(--admin-text-primary, #fff6ea);
+}
+#expertModal .modal-expert__price-days .srv-day[data-day="Jueves"] {
+  background: rgba(148, 115, 255, 0.07); /* morado claro */
+  color: var(--admin-text-primary, #f0edff);
+}
+#expertModal .modal-expert__price-days .srv-day[data-day="Viernes"] {
+  background: rgba(0, 199, 199, 0.06); /* teal claro */
+  color: var(--admin-text-primary, #eaffff);
+}
+#expertModal .modal-expert__price-days .srv-day[data-day="Sábado"],
+#expertModal .modal-expert__price-days .srv-day[data-day="Sabado"] {
+  background: rgba(255, 115, 174, 0.07); /* rosa claro */
+  color: var(--admin-text-primary, #fff0f6);
+}
+#expertModal .modal-expert__price-days .srv-day[data-day="Domingo"] {
+  background: rgba(255, 206, 84, 0.07); /* amarillo claro */
+  color: var(--admin-text-primary, #fffbe6);
+}
+
+/* Selected state: color sólido más intenso */
+#expertModal .modal-expert__price-days .srv-day.selected[data-day="Lunes"] {
+  background: var(--admin-accent-color, #5e81ff);
+  color: var(--admin-accent-on, #ffffff);
+}
+#expertModal .modal-expert__price-days .srv-day.selected[data-day="Martes"] {
+  background: #38c670;
+  color: #04230a;
+}
+#expertModal .modal-expert__price-days .srv-day.selected[data-day="Miércoles"],
+#expertModal .modal-expert__price-days .srv-day.selected[data-day="Miercoles"] {
+  background: #ff9f43;
+  color: #2b1800;
+}
+#expertModal .modal-expert__price-days .srv-day.selected[data-day="Jueves"] {
+  background: #946ff0;
+  color: #1a0533;
+}
+#expertModal .modal-expert__price-days .srv-day.selected[data-day="Viernes"] {
+  background: #00c7c7;
+  color: #002525;
+}
+#expertModal .modal-expert__price-days .srv-day.selected[data-day="Sábado"],
+#expertModal .modal-expert__price-days .srv-day.selected[data-day="Sabado"] {
+  background: #ff73ae;
+  color: #330017;
+}
+#expertModal .modal-expert__price-days .srv-day.selected[data-day="Domingo"] {
+  background: #ffce54;
+  color: #2b1f00;
+}
+
+/* Improve contrast for unselected text (optional) */
+#expertModal .modal-expert__price-days .srv-day {
+  color: var(--admin-text-secondary, #cbd5e1);
+}
+#expertModal .modal-expert__price-days .srv-day.selected {
+  color: #ffffff;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
+}
+
+/* Small hover effect */
+#expertModal .modal-expert__price-days .srv-day:hover {
+  transform: translateY(-2px);
+}
+
+/* -------------------------------------------------------------------------
+   Consolidated DÍAS styles (single source of truth)
+   - Purpose: definir colores por día, forma circular y estados seleccionado/no
+   - Strategy: selector específico para el modal; NO usar  aquí.
+   - If older rules with  still override this block, we should
+     remove duplicates or apply a tiny JS inline-style fallback (targeted).
+
+   Duplicates found elsewhere in this file for these selectors (search keys):
+   - .srv-days  (multiple occurrences)
+   - .srv-day   (multiple occurrences)
+   - #expertModal .srv-day.selected
+   - #expertModal .modal-expert__price-days .srv-day::after
+
+   Recommendation: after confirming this block works, remove the other
+   duplicate definitions above to avoid cascade confusion and eliminate
+   widespread use of  throughout this file.
+   ------------------------------------------------------------------------- */
+
+/* Theme-aware variables for day colors (can be adjusted centrally) */
+#expertModal {
+  --day-lunes: #5e81ff;
+  --day-martes: #38c670;
+  --day-miercoles: #ff9f43;
+  --day-jueves: #946ff0;
+  --day-viernes: #00c7c7;
+  --day-sabado: #ff73ae;
+  --day-domingo: #ffce54;
+
+  --day-lunes-soft: rgba(94, 129, 255, 0.08);
+  --day-martes-soft: rgba(56, 198, 112, 0.08);
+  --day-miercoles-soft: rgba(255, 159, 67, 0.07);
+  --day-jueves-soft: rgba(148, 115, 255, 0.07);
+  --day-viernes-soft: rgba(0, 199, 199, 0.06);
+  --day-sabado-soft: rgba(255, 115, 174, 0.07);
+  --day-domingo-soft: rgba(255, 206, 84, 0.07);
+}
+
+/* Consolidated layout: horizontal, wrap, circular day buttons */
+#expertModal .modal-expert__price-days .srv-days {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: flex-start;
+  margin-top: 0.35rem;
+}
+
+#expertModal .modal-expert__price-days .srv-day {
+  --day-size: 40px;
+  width: var(--day-size);
+  height: var(--day-size);
+  min-width: var(--day-size);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%; /* circular */
+  background: transparent;
+  color: var(--admin-text-secondary, #b8c0c8);
+  border: 1px solid var(--admin-border-color, rgba(255, 255, 255, 0.06));
+  cursor: pointer;
+  user-select: none;
+  font-weight: 700;
+  transition: background 0.14s ease, color 0.12s ease, transform 0.08s ease,
+    box-shadow 0.12s ease;
+}
+
+/* Ensure days text matches modal baseline labels/inputs */
+#expertModal .modal-expert__price-days .srv-day,
+#expertModal .modal-expert__price-days .srv-days-display,
+#expertModal .modal-days-display,
+#expertModal .days-selected-display,
+.modal-days-selector .day-option,
+.days-selector .day-option {
+  font-size: var(--modal-label-size); /* use modal's base label size */
+  line-height: 1;
+}
+
+/* Soft (unselected) backgrounds per data-day */
+#expertModal .modal-expert__price-days .srv-day[data-day="Lunes"] {
+  background: var(--day-lunes-soft);
+}
+#expertModal .modal-expert__price-days .srv-day[data-day="Martes"] {
+  background: var(--day-martes-soft);
+}
+#expertModal .modal-expert__price-days .srv-day[data-day="Miércoles"],
+#expertModal .modal-expert__price-days .srv-day[data-day="Miercoles"] {
+  background: var(--day-miercoles-soft);
+}
+#expertModal .modal-expert__price-days .srv-day[data-day="Jueves"] {
+  background: var(--day-jueves-soft);
+}
+#expertModal .modal-expert__price-days .srv-day[data-day="Viernes"] {
+  background: var(--day-viernes-soft);
+}
+#expertModal .modal-expert__price-days .srv-day[data-day="Sábado"],
+#expertModal .modal-expert__price-days .srv-day[data-day="Sabado"] {
+  background: var(--day-sabado-soft);
+}
+#expertModal .modal-expert__price-days .srv-day[data-day="Domingo"] {
+  background: var(--day-domingo-soft);
+}
+
+/* Selected state: solid color per day */
+#expertModal .modal-expert__price-days .srv-day.selected[data-day="Lunes"] {
+  background: var(--day-lunes);
+  color: var(--admin-accent-on, #fff);
+}
+#expertModal .modal-expert__price-days .srv-day.selected[data-day="Martes"] {
+  background: var(--day-martes);
+  color: #04230a;
+}
+#expertModal .modal-expert__price-days .srv-day.selected[data-day="Miércoles"],
+#expertModal .modal-expert__price-days .srv-day.selected[data-day="Miercoles"] {
+  background: var(--day-miercoles);
+  color: #2b1800;
+}
+#expertModal .modal-expert__price-days .srv-day.selected[data-day="Jueves"] {
+  background: var(--day-jueves);
+  color: #1a0533;
+}
+#expertModal .modal-expert__price-days .srv-day.selected[data-day="Viernes"] {
+  background: var(--day-viernes);
+  color: #002525;
+}
+#expertModal .modal-expert__price-days .srv-day.selected[data-day="Sábado"],
+#expertModal .modal-expert__price-days .srv-day.selected[data-day="Sabado"] {
+  background: var(--day-sabado);
+  color: #330017;
+}
+#expertModal .modal-expert__price-days .srv-day.selected[data-day="Domingo"] {
+  background: var(--day-domingo);
+  color: #2b1f00;
+}
+
+/* Selected mark in corner (kept small) */
+#expertModal .modal-expert__price-days .srv-day.selected::after {
+  content: "✕";
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.25);
+  color: #fff;
+  font-size: 10px;
+  line-height: 1;
+}
+
+/* Hover / focus polish */
+#expertModal .modal-expert__price-days .srv-day:hover {
+  transform: translateY(-2px);
+}
+#expertModal .modal-expert__price-days .srv-day:focus {
+  box-shadow: 0 0 0 4px rgba(94, 129, 255, 0.14);
+  outline: none;
+}
+
+/* FROM adminExpertos.ejs - compact modal tweaks (moved here) */
+#expertModal .choices__button {
+  width: 16px;
+  height: 16px;
+}
+
+#expertModal .srv-day {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  font-size: 0.75rem;
+  line-height: 1;
+  border-radius: 50%;
+}
+
+#expertModal .modal-expert__grid {
+  gap: 0.5rem;
+}
+
+#expertModal .modal-expert__body {
+  padding-top: 0.5rem;
+}
+
+/* Final override: force DAYS text sizing to modal baseline
+   Highly-specific selectors placed at file end to beat prior rules.
+   Uses --modal-label-size and falls back to --modal-hint-size on small screens. */
+#expertModal.modal-expert
+  .modal-expert__content
+  .modal-expert__body
+  .modal-expert__price-days
+  .srv-days
+  .srv-day,
+#expertModal.modal-expert
+  .modal-expert__content
+  .modal-expert__body
+  .modal-expert__price-days
+  .srv-days,
+#expertModal.modal-expert .modal-expert__price-days .srv-day,
+#expertModal.modal-expert .srv-days-display,
+#expertModal.modal-expert .modal-days-display,
+#expertModal.modal-expert .days-selected-display,
+#expertModal.modal-expert .modal-days-selector .day-option,
+#expertModal.modal-expert .days-selector .day-option,
+.modal-expert #expertModal .srv-day {
+  font-size: var(
+    --modal-label-size
+  ); /* small, deliberate override to ensure parity */
+  line-height: 1;
+}
+
+@media (max-width: 480px) {
+  #expertModal.modal-expert
+    .modal-expert__content
+    .modal-expert__body
+    .modal-expert__price-days
+    .srv-days
+    .srv-day,
+  #expertModal.modal-expert .modal-expert__price-days .srv-day,
+  #expertModal.modal-expert .srv-days-display,
+  #expertModal.modal-expert .modal-days-display,
+  #expertModal.modal-expert .days-selected-display,
+  #expertModal.modal-expert .modal-days-selector .day-option,
+  #expertModal.modal-expert .days-selector .day-option {
+    font-size: var(--modal-hint-size);
+  }
+}

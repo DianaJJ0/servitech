@@ -1,0 +1,308 @@
+/* Estilos para la página de configuración */
+.tab-button {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.tab-button::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 0.125rem;
+  background: var(--primary-color);
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+}
+
+.tab-button:hover::after {
+  width: 80%;
+}
+
+.tab-button.active::after {
+  width: 100%;
+}
+
+.stat-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-0.3125rem);
+  box-shadow: 0 0.625rem 1.25rem rgba(0, 0, 0, 0.1);
+}
+
+.action-buttons .btn-icon {
+  opacity: 0.7;
+  transition: all 0.2s ease;
+}
+
+.action-buttons .btn-icon:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* Modal styles - hidden by default, shown by adding .modal.modal-open */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+  overflow-y: auto;
+  padding: 1.25rem;
+}
+
+.modal.modal-open {
+  display: flex;
+}
+
+.modal-content {
+  width: 100%;
+  max-width: 37.5rem;
+  background-color: var(--admin-card-bg);
+  border-radius: 0.75rem;
+  box-shadow: 0 0.9375rem 1.875rem rgba(0, 0, 0, 0.2);
+  animation: modalFade 0.3s ease-in-out;
+  margin: auto;
+  position: relative;
+  border: 0.0625rem solid var(--admin-border-color);
+  opacity: 0;
+  transform: translateY(-1.25rem);
+  transition: all 0.3s ease;
+}
+
+.modal-open .modal-content {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.modal-header {
+  padding: 1.25rem;
+  border-bottom: 0.0625rem solid var(--admin-border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--admin-text-primary);
+  margin: 0;
+}
+
+.btn-close {
+  background: transparent;
+  border: none;
+  color: var(--admin-text-secondary);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.3125rem;
+  border-radius: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.btn-close:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--admin-text-primary);
+}
+
+.modal-body {
+  padding: 1.25rem;
+}
+
+.modal-footer {
+  padding: 0.9375rem 1.25rem;
+  border-top: 0.0625rem solid var(--admin-border-color);
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.625rem;
+}
+
+@keyframes modalFade {
+  from {
+    opacity: 0;
+    transform: translateY(-1.25rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.status {
+  padding: 0.3125rem 0.625rem;
+  border-radius: 1.25rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.status.active {
+  background-color: rgba(0, 184, 124, 0.15);
+  color: #00b87c;
+}
+
+.status.inactive {
+  background-color: rgba(235, 87, 87, 0.15);
+  color: #eb5757;
+}
+
+.form-control:focus {
+  box-shadow: 0 0 0 0.1875rem rgba(58, 142, 255, 0.15);
+}
+
+.btn-primary,
+.btn-outline {
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-0.125rem);
+  box-shadow: 0 0.25rem 0.5rem rgba(58, 142, 255, 0.3);
+}
+
+.pagination-controls .btn-page {
+  min-width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.pagination-controls .btn-page:hover:not([disabled]):not(.active) {
+  background-color: rgba(58, 142, 255, 0.1);
+  color: var(--primary-color);
+}
+
+.table-checkbox + label {
+  border-radius: 0.25rem;
+  transition: all 0.2s ease;
+}
+
+/* Estilos adicionales para notificaciones y mejoras visuales */
+.notification {
+  position: fixed;
+  top: 1.25rem;
+  right: 1.25rem;
+  padding: 0.9375rem 1.25rem;
+  background-color: #fff;
+  box-shadow: 0 0.3125rem 0.9375rem rgba(0, 0, 0, 0.1);
+  border-left: 0.25rem solid #3a8eff;
+  border-radius: 0.25rem;
+  z-index: 9999;
+  opacity: 0;
+  transform: translateY(-1.25rem);
+  transition: all 0.3s ease;
+}
+
+.notification.success {
+  border-left-color: #00b87c;
+}
+
+.notification.error {
+  border-left-color: #eb5757;
+}
+
+.notification i {
+  margin-right: 0.5rem;
+  color: #00b87c;
+}
+
+.notification.error i {
+  color: #eb5757;
+}
+
+.form-hint {
+  font-size: 0.8rem;
+  color: #6c757d;
+  margin-top: 0.3125rem;
+}
+
+.toggle-switch-container {
+  display: flex;
+  align-items: center;
+  margin-top: 0.625rem;
+}
+
+.toggle-label {
+  margin: 0 0.5rem;
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 3.125rem;
+  height: 1.5rem;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 0.1875rem;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 1.125rem;
+  width: 1.125rem;
+  left: 0.1875rem;
+  bottom: 0.1875rem;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+  background-color: #3a8eff;
+}
+
+input:checked + .toggle-slider:before {
+  transform: translateX(1.625rem);
+}
+
+.input-with-icon {
+  position: relative;
+}
+
+.input-with-icon i {
+  position: absolute;
+  left: 0.625rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6c757d;
+}
+
+.input-with-icon input,
+.input-with-icon select,
+.input-with-icon textarea {
+  padding-left: 1.875rem;
+}
+
+.required {
+  color: #eb5757;
+}

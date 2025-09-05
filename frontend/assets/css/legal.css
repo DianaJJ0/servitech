@@ -1,0 +1,101 @@
+.container {
+    max-width: var(--content-max-width);
+    margin: 2.5rem auto;
+    padding: 0 5%;
+}
+
+.card-title {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    color: var(--text-color);
+    margin-bottom: 1.5625rem;
+    font-size: 1.5rem;
+    border-bottom: 0.0625rem solid var(--border-light);
+    padding-bottom: 0.9375rem;
+}
+
+.card-title i {
+    color: var(--primary-color);
+}
+
+.legal-section, /* Renamed from privacy-section */
+.privacy-section {
+    margin-top: 1.875rem;
+}
+
+.legal-section h4,
+.privacy-section h4 {
+    color: var(--primary-color);
+    margin-bottom: 0.9375rem;
+    font-weight: 600;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+}
+
+.legal-section h4::before,
+.privacy-section h4::before {
+    content: '';
+    display: inline-block;
+    width: 0.3125rem;
+    height: 1.25rem;
+    background: linear-gradient(to bottom, var(--primary-color), var(--accent-color));
+    margin-right: 0.625rem;
+    border-radius: 0.1875rem;
+}
+
+.legal-section p,
+.privacy-section p {
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: 1.25rem;
+    padding-left: 0.9375rem;
+}
+
+.legal-toc, /* Renamed from privacy-toc */
+.privacy-toc {
+    background-color: rgba(58, 142, 255, 0.05);
+    border: 0.0625rem solid var(--border-light);
+    border-radius: var(--border-radius);
+    padding: 1.25rem;
+    margin-bottom: 1.875rem;
+}
+
+.legal-toc h4,
+.privacy-toc h4 {
+    margin-top: 0;
+    margin-bottom: 0.9375rem;
+}
+
+.legal-toc ul,
+.privacy-toc ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.legal-toc li,
+.privacy-toc li {
+    margin-bottom: 0.625rem;
+}
+
+.legal-toc a,
+.privacy-toc a {
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    transition: var(--transition);
+    text-decoration: none; /* Added */
+}
+
+.legal-toc a:hover,
+.privacy-toc a:hover {
+    transform: translateX(0.3125rem);
+}
+
+.legal-toc a i,
+.privacy-toc a i {
+    margin-right: 0.5rem;
+    font-size: 0.75rem;
+}

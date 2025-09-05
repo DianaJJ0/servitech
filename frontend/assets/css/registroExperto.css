@@ -1,0 +1,693 @@
+@import url("base.css");
+
+/* Estructura principal */
+.registro-experto-main {
+  width: 100%;
+  max-width: 1100px; /* límite máximo razonable en pantallas grandes */
+  margin: 1.5rem auto;
+  padding: 1rem 1rem;
+  box-sizing: border-box;
+}
+
+/* Ajustes responsivos: usar anchos más amplios en pantallas mayores */
+@media (min-width: 576px) {
+  .registro-experto-main {
+    max-width: 720px;
+    padding: 1.25rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .registro-experto-main {
+    max-width: 960px;
+    padding: 1.5rem 2rem;
+  }
+}
+
+@media (min-width: 1200px) {
+  .registro-experto-main {
+    max-width: 1100px;
+    margin: 2.5rem auto;
+    padding: 2rem 2.5rem;
+  }
+}
+
+.registro-experto-section {
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius);
+  padding: 1.25rem;
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--border-color);
+  margin-bottom: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.registro-experto-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    var(--primary-color),
+    var(--accent-color)
+  );
+  z-index: 0;
+}
+
+/* Header del formulario */
+.registro-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.logo-img {
+  max-width: 120px;
+  height: auto;
+  margin: 0 auto 0.75rem;
+  display: block;
+  filter: brightness(0) invert(1);
+  opacity: 0.9;
+}
+
+.registro-header h1 {
+  color: var(--primary-color);
+  font-size: 1.4rem;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
+  display: inline-block;
+  padding: 0.4rem 0.8rem;
+  background: rgba(58, 142, 255, 0.05);
+  border-radius: 1rem;
+  border: 1px solid var(--border-light);
+}
+
+.registro-fecha {
+  color: var(--text-light);
+  font-size: 0.75rem;
+  margin-bottom: 1rem;
+  display: inline-block;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  text-decoration: none;
+  padding: 0.5rem 0.8rem;
+  border-radius: var(--btn-radius);
+  transition: var(--transition);
+  margin-top: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-light);
+}
+
+/* Alertas */
+.alert {
+  padding: 0.8rem;
+  border-radius: var(--input-radius);
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+  position: relative;
+  overflow: hidden;
+  border-left: 4px solid transparent;
+}
+
+/* Formulario principal */
+.registro-experto-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  position: relative;
+  z-index: 1;
+  width: 100%;
+}
+
+/* Filas del formulario */
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: rgba(58, 142, 255, 0.05);
+  border-radius: var(--border-radius);
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--border-light);
+}
+
+/* Grupos de campos */
+.form-group {
+  margin-bottom: 1rem;
+  position: relative;
+  width: 100%;
+}
+
+.form-group.compact {
+  padding: 0.9rem;
+  background: var(--card-bg);
+  border-radius: calc(var(--border-radius) - 0.2rem);
+  border: 1px solid transparent;
+}
+
+.form-group.full-width {
+  padding: 1rem;
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-light);
+}
+
+.form-group label {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.form-hint {
+  color: var(--text-light);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  line-height: 1.3;
+}
+
+/* Campos de entrada */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="tel"],
+/* Aislar select solo dentro de registro-experto */
+.registro-experto select,
+textarea {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--input-radius);
+  color: var(--text-color);
+  font-size: 0.9rem;
+  transition: var(--transition);
+  min-height: 44px;
+}
+
+/* Aislar select solo dentro de registro-experto */
+.registro-experto select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23a0a0a0'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem;
+  padding-right: 2rem;
+}
+
+/* Textarea */
+textarea {
+  resize: vertical;
+  min-height: 100px;
+  line-height: 1.5;
+}
+
+/* Selectores múltiples */
+.registro-experto .select-multiple {
+  min-height: 100px;
+  padding: 0.5rem !important;
+  overflow-y: auto;
+}
+
+.registro-experto .select-multiple option {
+  padding: 0.5rem;
+  margin: 0.1rem 0;
+  white-space: normal;
+  word-break: break-word;
+}
+
+/* Input de precio */
+.price-group {
+  position: relative;
+}
+
+.price-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.price-input .currency {
+  position: absolute;
+  left: 0.75rem;
+  color: var(--primary-color);
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.price-input input {
+  padding-left: 1.75rem;
+}
+
+/* Días disponibles */
+.registro-experto .days-selector {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.day-option {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--input-bg);
+  border-radius: 50%;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.8rem;
+  border: 1px solid transparent;
+}
+
+.registro-experto .day-option.selected {
+  background: var(--primary-color);
+  color: white;
+}
+
+/* Sección de datos bancarios */
+.form-section {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: rgba(18, 216, 250, 0.03);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-light);
+}
+
+.section-title {
+  color: var(--accent-color);
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-subtitle {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+/* Contenedor de número de cuenta */
+.cuenta-container {
+  position: relative;
+}
+
+.btn-toggle-cuenta {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--text-light);
+  cursor: pointer;
+}
+
+/* Tarjeta de información */
+.info-card {
+  border-left: 3px solid var(--accent-color);
+  background: rgba(18, 216, 250, 0.05);
+  padding: 0.8rem;
+  border-radius: var(--input-radius);
+  margin-top: 1rem;
+}
+
+.info-list li {
+  position: relative;
+  padding-left: 1.25rem;
+  margin-bottom: 0.3rem;
+  font-size: 0.8rem;
+}
+
+/* Botón de envío */
+.form-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.9rem 1.5rem;
+  background-color: var(--primary-color);
+  color: var(--text-color);
+  border-radius: var(--btn-radius);
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  width: 100%;
+  max-width: 300px;
+}
+
+/* Media Queries para tablets */
+@media (min-width: 768px) {
+  body {
+    font-size: 16px;
+  }
+
+  .registro-experto-main {
+    padding: 1.5rem;
+  }
+
+  .registro-experto-section {
+    padding: 1.75rem;
+  }
+
+  .registro-header h1 {
+    font-size: 1.6rem;
+  }
+
+  .form-row {
+    flex-direction: row;
+    gap: 1.5rem;
+  }
+
+  .form-row.double {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .form-row.triple {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .form-group.compact {
+    padding: 1rem;
+  }
+
+  textarea {
+    min-height: 120px;
+  }
+}
+
+/* Media Queries para desktop */
+@media (min-width: 992px) {
+  .registro-experto-section {
+    padding: 2rem;
+  }
+
+  .registro-header h1 {
+    font-size: 1.8rem;
+  }
+
+  .form-row {
+    padding: 1.5rem;
+  }
+
+  .btn-primary {
+    max-width: none;
+    padding: 1rem 2rem;
+  }
+}
+
+/* Correcciones específicas */
+/* 1. Evitar desbordamiento en selects */
+.select-multiple {
+  max-width: 100%;
+}
+
+/* 2. Ajuste para tooltips */
+.price-tooltip:hover::after {
+  content: "Precio sugerido: $15 - $150 USD";
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  padding: 0.5rem;
+  border-radius: var(--input-radius);
+  font-size: 0.8rem;
+  width: 180px;
+  z-index: 10;
+}
+
+/* 3. Mejor espaciado en móviles */
+@media (max-width: 767px) {
+  .form-group {
+    margin-bottom: 0.75rem;
+  }
+
+  .form-row {
+    margin-bottom: 0.75rem;
+  }
+}
+
+/* 4. Ajuste para campos bancarios en móviles */
+@media (max-width: 767px) {
+  .form-section .form-row.double {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+/* 5. Corrección para días seleccionados */
+.days-selected-display {
+  font-size: 0.75rem;
+  word-break: break-word;
+  margin-top: 0.5rem;
+}
+
+/* Header principal limpio */
+.registro-header-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.registro-header-content .logo-img {
+  max-width: 120px;
+}
+
+.registro-header-title {
+  margin: 0.3em 0 0.1em 0;
+}
+
+.registro-header-subtitle {
+  margin: 0;
+}
+
+.categorias-label-text {
+  color: var(--accent-color);
+  font-weight: 600;
+}
+
+.fa-layer-group {
+  color: var(--accent-color);
+}
+
+.tags-container {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag {
+  background: #e0f7fa;
+  color: #00796b;
+  border-radius: 12px;
+  padding: 4px 12px;
+  font-size: 13px;
+  display: inline-block;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.registro-experto .especialidad-select-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.especialidad-modern,
+.skills-modern {
+  width: 100%;
+  padding-right: 28px;
+  border-radius: var(--input-radius);
+  border: 1px solid var(--border-color);
+  font-size: 15px;
+  background: var(--input-bg);
+  color: var(--text-color);
+  transition: border-color 0.2s;
+}
+
+.especialidad-modern:focus,
+.skills-modern:focus {
+  border-color: var(--accent-color);
+  outline: none;
+}
+
+.registro-experto .select-arrow {
+  position: absolute;
+  right: 10px;
+  pointer-events: none;
+  color: var(--accent-color);
+  font-size: 16px;
+}
+
+.form-tooltip {
+  margin-left: 6px;
+  color: var(--accent-color);
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.especialidad-label-text {
+  color: var(--accent-color);
+  font-weight: 600;
+}
+
+/* Ajuste visual para Choices.js en modo oscuro - scoped to registro-experto to avoid !important */
+.registro-experto .choices__list--dropdown,
+.registro-experto .choices__list[role="listbox"] {
+  background-color: var(--card-bg);
+}
+.registro-experto .choices__item,
+.registro-experto .choices__item--selectable {
+  color: var(--text-color);
+}
+.registro-experto .choices__item--disabled {
+  color: var(--text-light);
+}
+.registro-experto .choices__input {
+  background-color: var(--input-bg);
+  color: var(--text-color);
+}
+.registro-experto .choices__inner {
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  border-radius: var(--input-radius);
+}
+.registro-experto .choices__placeholder {
+  color: var(--text-light);
+}
+
+/* Fondo y texto usando variables para opción seleccionada y hover en Choices.js */
+.registro-experto .choices__item--selectable.is-highlighted,
+.registro-experto .choices__item--selectable:hover {
+  background-color: var(--accent-color);
+  color: var(--text-color);
+}
+
+.skills-label-text {
+  color: var(--accent-color);
+  font-weight: 600;
+}
+.fa-bolt {
+  color: var(--accent-color);
+}
+
+.form-group.compact.email-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: var(--input-bg);
+  border-radius: var(--input-radius);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  padding: 14px 0;
+  min-width: 220px;
+}
+
+.form-group.compact.email-group label[for="email"] {
+  font-size: 1em;
+  font-weight: 600;
+  color: var(--accent-color);
+  margin-bottom: 6px;
+  letter-spacing: 0.01em;
+}
+
+.form-group.compact.email-group label[for="email"] i.fas.fa-envelope {
+  margin-right: 6px;
+  color: var(--accent-color);
+}
+
+.form-group.compact.email-group .email-field {
+  font-size: 0.98em;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--card-bg);
+  border-radius: var(--input-radius);
+  padding: 6px 14px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+  margin-bottom: 4px;
+  border: 1px solid var(--border-color);
+}
+
+.form-group.compact.email-group .form-hint {
+  font-size: 0.92em;
+  color: var(--accent-color);
+  margin-top: 2px;
+}
+
+#precio-feedback {
+  color: #ff5252;
+  font-size: 0.95em;
+  margin-top: 4px;
+}
+
+/* Corrección: estilos para las clases usadas en la vista EJS (sin guion) */
+.registroExperto-main {
+  width: 100%;
+  max-width: 1100px;
+  margin: 1.5rem auto;
+  padding: 1rem 1rem;
+  box-sizing: border-box;
+}
+
+.registroExperto-section {
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius);
+  padding: 1.25rem;
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--border-color);
+  margin-bottom: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+@media (min-width: 576px) {
+  .registroExperto-main {
+    max-width: 720px;
+    padding: 1.25rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .registroExperto-main {
+    max-width: 960px;
+    padding: 1.5rem 2rem;
+  }
+}
+
+@media (min-width: 1200px) {
+  .registroExperto-main {
+    max-width: 1100px;
+    margin: 2.5rem auto;
+    padding: 2rem 2.5rem;
+  }
+}

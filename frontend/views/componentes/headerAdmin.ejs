@@ -1,0 +1,28 @@
+<header class="admin-header">
+  <div class="header-title">
+    <h2>
+      <%= titulo %>
+    </h2>
+  </div>
+  <div class="header-actions">
+    <div class="notification-icon">
+      <i class="fas fa-bell"></i>
+      <span class="notification-badge">5</span>
+    </div>
+    <div class="admin-profile">
+      <img src="<%= user?.avatar || 'https://i.pravatar.cc/150?img=11' %>" alt="Admin profile" class="profile-img" />
+      <div class="profile-info">
+        <span class="profile-name">
+          <%= user?.nombre || 'Admin ServiTech' %>
+        </span>
+        <span class="profile-role">Administrador</span>
+      </div>
+      <a href="/login" class="btn-logout" title="Cerrar sesión">
+        <i class="fas fa-sign-out-alt"></i>
+      </a>
+      <a href="/index" class="btn-outline" title="Ir al sitio principal">
+        <i class="fas fa-globe"></i>
+      </a>
+    </div>
+  </div>
+</header>

@@ -1,0 +1,372 @@
+@import url("base.css");
+
+/* Estilos base existentes se mantienen */
+.container.mt-3 {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+/* Mejoras en la estructura del calendario */
+.calendar {
+  margin: 0 auto 1.5rem auto;
+  width: 100%;
+  max-width: 480px;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--card-bg, #fff);
+  box-shadow: 0 2px 8px rgba(58, 142, 255, 0.07);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.calendar th,
+.calendar td {
+  text-align: center;
+  padding: 0.4rem 0.2rem;
+}
+
+.calendar th {
+  color: var(--primary-color, #3a8eff);
+  font-weight: 600;
+  font-size: 1rem;
+  background: transparent;
+  border-bottom: 1px solid var(--border-light, #e3eaf3);
+}
+
+.calendar td {
+  background: transparent;
+  border: none;
+}
+.appointment-system {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.calendar-container {
+  flex: 1;
+  min-width: 20rem;
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  box-shadow: var(--card-shadow);
+  padding: 1.5rem;
+  transition: var(--transition);
+  position: relative;
+}
+
+.calendar-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Mejoras en accesibilidad y feedback visual */
+.day {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  line-height: 1;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: var(--transition);
+  border: none;
+  background: transparent;
+  color: var(--text-color);
+  font-size: 0.9rem;
+  margin: 0 auto;
+}
+
+.day:hover,
+.day:focus {
+  background-color: var(--input-bg);
+  color: var(--accent-color);
+  outline: none;
+}
+
+.day.selected {
+  background-color: var(--primary-color);
+  color: var(--text-color);
+  font-weight: bold;
+}
+
+.day.today {
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  font-weight: bold;
+  border: 0.125rem solid var(--accent-color);
+}
+
+.day.inactive {
+  color: var(--border-color);
+  cursor: default;
+  pointer-events: none;
+}
+
+/* Mejoras en los slots de tiempo */
+.time-slots {
+  margin-top: 2rem;
+}
+
+.time-slots-title {
+  color: var(--text-color);
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+}
+
+.slots-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(5.625rem, 1fr));
+  gap: 0.625rem;
+}
+
+.time-slot {
+  padding: 0.5rem;
+  text-align: center;
+  background-color: var(--input-bg);
+  color: var(--text-secondary);
+  border-radius: var(--btn-radius);
+  cursor: pointer;
+  transition: var(--transition);
+  border: 0.0625rem solid var(--border-light);
+  font-size: 0.9rem;
+  border: none;
+}
+
+.time-slot:hover,
+.time-slot:focus {
+  background-color: var(--primary-color);
+  color: var(--text-color);
+  box-shadow: var(--btn-shadow);
+  transform: translateY(-0.125rem);
+  outline: none;
+}
+
+.time-slot.selected {
+  background-color: var(--primary-color);
+  color: var(--text-color);
+  border-color: var(--primary-hover);
+  box-shadow: var(--btn-shadow);
+}
+
+.time-slot.booked {
+  background-color: var(--border-color);
+  color: var(--text-light);
+  cursor: not-allowed;
+  opacity: 0.6;
+  border: none;
+}
+
+/* Mejoras en la información del experto */
+.expert-info {
+  flex: 1;
+  min-width: 20rem;
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  box-shadow: var(--card-shadow);
+  padding: 1.5rem;
+  transition: var(--transition);
+  display: flex;
+  flex-direction: column;
+}
+
+.expert-card {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 0.0625rem solid var(--border-light);
+}
+
+.expert-avatar {
+  flex-shrink: 0;
+  width: 5rem;
+  height: 5rem;
+  border-radius: 50%;
+  background-color: var(--input-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: var(--primary-color);
+  font-weight: bold;
+  border: 0.125rem solid var(--border-light);
+}
+
+.expert-name {
+  color: var(--text-color);
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.expert-specialty {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.expert-description {
+  color: var(--text-light);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.rating {
+  color: #ffd700;
+  margin-top: 0.5rem;
+  font-size: 1rem;
+}
+
+/* Mejoras en el resumen de la cita */
+.appointment-summary {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.summary-title {
+  color: var(--text-color);
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+}
+
+.summary-item {
+  display: flex;
+  margin-bottom: 0.8rem;
+  align-items: baseline;
+}
+
+.summary-label {
+  flex: 1;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.summary-value {
+  flex: 2;
+  color: var(--text-color);
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+/* Mejoras en los botones de acción */
+.action-buttons {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.confirm-btn {
+  padding: 0.8rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: var(--btn-radius);
+  transition: var(--transition);
+}
+
+.confirm-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--btn-shadow);
+}
+
+/* Mejoras en navegación del mes */
+.month-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.month-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: var(--text-color);
+  text-align: center;
+  flex-grow: 1;
+}
+
+.nav-btn {
+  background: var(--input-bg);
+  border: none;
+  color: var(--primary-color);
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  transition: var(--transition);
+  font-size: 1.2rem;
+}
+
+.nav-btn:hover {
+  background: var(--primary-color);
+  color: var(--text-color);
+  box-shadow: var(--btn-shadow);
+}
+
+/* Responsividad mejorada */
+@media (max-width: 768px) {
+  .appointment-system {
+    flex-direction: column;
+  }
+
+  .calendar-container,
+  .expert-info {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .expert-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .expert-avatar {
+    margin-bottom: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .calendar {
+    max-width: 100vw;
+    font-size: 0.9rem;
+  }
+  .calendar th,
+  .calendar td {
+    padding: 0.15rem;
+  }
+  .calendar th,
+  .calendar td {
+    padding: 0.25rem;
+  }
+
+  .day {
+    width: 2rem;
+    height: 2rem;
+    font-size: 0.8rem;
+  }
+
+  .slots-container {
+    grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr));
+  }
+
+  .time-slot {
+    padding: 0.4rem;
+    font-size: 0.8rem;
+  }
+
+  .summary-item {
+    flex-direction: column;
+    margin-bottom: 1rem;
+  }
+
+  .summary-label {
+    width: 100%;
+    margin-bottom: 0.2rem;
+  }
+}

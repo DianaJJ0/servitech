@@ -1,0 +1,28 @@
+<!-- Modal genérico para confirmación/inactivación -->
+<div id="<%= modalId %>" class="<%= modalClass %>">
+  <div class="<%= modalClass %>__content">
+    <div class="<%= modalClass %>__header">
+      <h2 class="<%= modalClass %>__title">
+        <%= titulo %>
+      </h2>
+      <button class="btn-close"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="<%= modalClass %>__body">
+      <p class="<%= modalClass %>__nombre-destacado">
+        <%= nombre %>
+      </p>
+      <p>
+        <%= mensaje %><br />
+          <span class="<%= modalClass %>__texto-secundario">
+            <%= nota %>
+          </span>
+      </p>
+    </div>
+    <div class="<%= modalClass %>__footer">
+      <button type="button" class="btn-outline <%= cancelarClass %>">Cancelar</button>
+      <button type="button" class="btn-primary <%= confirmarClass %>">
+        <%= textoAccion %>
+      </button>
+    </div>
+  </div>
+</div>

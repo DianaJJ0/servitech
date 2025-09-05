@@ -1,0 +1,7 @@
+
+> backend@1.0.0 start
+> node app.js
+
+Servidor API (Backend) ejecutándose en modo development en el puerto 3000
+MongoDB Conectado en: ac-amtxaab-shard-00-01.e4hnh5b.mongodb.net:27017
+DEBUG: URI de conexión MongoDB usada por el backend: ac-amtxaab-shard-00-01.e4hnh5b.mongodb.net:27017

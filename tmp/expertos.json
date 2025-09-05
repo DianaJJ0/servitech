@@ -1,0 +1,162 @@
+{
+  "total": 6,
+  "expertos": [
+    {
+      "_id": "68b4dee908e7fd388362a7a9",
+      "email": "33@gmail.com",
+      "nombre": "camilo",
+      "apellido": "montoña",
+      "avatarUrl": "https://ui-avatars.com/api/?name=User&background=random",
+      "roles": [
+        "experto"
+      ],
+      "estado": "activo",
+      "infoExperto": null,
+      "calificacion": 0,
+      "calificacionesCount": 0,
+      "fechaRegistro": "2025-08-31T23:46:49.596Z",
+      "fechaActualizacion": "2025-08-31T23:46:49.596Z",
+      "__v": 0,
+      "id": "68b4dee908e7fd388362a7a9"
+    },
+    {
+      "_id": "68b4e0b8e3a917d7a53eb739",
+      "email": "34@gmail.com",
+      "nombre": "camilo",
+      "apellido": "castro",
+      "avatarUrl": "https://ui-avatars.com/api/?name=User&background=random",
+      "roles": [
+        "experto"
+      ],
+      "estado": "activo",
+      "infoExperto": null,
+      "calificacion": 0,
+      "calificacionesCount": 0,
+      "fechaRegistro": "2025-08-31T23:54:32.707Z",
+      "fechaActualizacion": "2025-08-31T23:54:32.707Z",
+      "__v": 0,
+      "id": "68b4e0b8e3a917d7a53eb739"
+    },
+    {
+      "_id": "68b4e1c4e3a917d7a53eb8dc",
+      "email": "35@gmail.com",
+      "nombre": "camilo",
+      "apellido": "castro",
+      "avatarUrl": "https://ui-avatars.com/api/?name=User&background=random",
+      "roles": [
+        "experto"
+      ],
+      "estado": "activo",
+      "infoExperto": null,
+      "calificacion": 0,
+      "calificacionesCount": 0,
+      "fechaRegistro": "2025-08-31T23:59:00.397Z",
+      "fechaActualizacion": "2025-08-31T23:59:00.397Z",
+      "__v": 0,
+      "id": "68b4e1c4e3a917d7a53eb8dc"
+    },
+    {
+      "_id": "68b4e3920c80d878339f335b",
+      "email": "devuser@example.com",
+      "nombre": "DevUser",
+      "apellido": "Test",
+      "avatarUrl": "https://ui-avatars.com/api/?name=User&background=random",
+      "roles": [
+        "cliente",
+        "experto"
+      ],
+      "estado": "activo",
+      "infoExperto": {
+        "especialidad": "Frontend",
+        "descripcion": "Creado/poblado por script de desarrollo",
+        "categorias": [
+          {
+            "_id": "68a621f9f65005dadaf5e19f",
+            "nombre": "Desarrollo Web",
+            "id": "68a621f9f65005dadaf5e19f"
+          }
+        ],
+        "precioPorHora": 50,
+        "skills": [
+          "JavaScript",
+          "HTML"
+        ],
+        "horario": null,
+        "banco": "BancoTest",
+        "tipoCuenta": "Ahorros",
+        "numeroCuenta": "1234567890",
+        "titular": "DevUser Test",
+        "tipoDocumento": "DNI",
+        "numeroDocumento": "987654321",
+        "diasDisponibles": [],
+        "_id": "68b4e39dceb62d241fd2ba9c"
+      },
+      "calificacion": 0,
+      "calificacionesCount": 0,
+      "fechaRegistro": "2025-09-01T00:06:42.891Z",
+      "fechaActualizacion": "2025-09-01T00:06:53.875Z",
+      "__v": 0,
+      "id": "68b4e3920c80d878339f335b"
+    },
+    {
+      "_id": "68b4e3b6e3a917d7a53ebd22",
+      "email": "36@gmail.com",
+      "nombre": "camilo",
+      "apellido": "castro",
+      "avatarUrl": "https://ui-avatars.com/api/?name=User&background=random",
+      "roles": [
+        "experto"
+      ],
+      "estado": "activo",
+      "infoExperto": null,
+      "calificacion": 0,
+      "calificacionesCount": 0,
+      "fechaRegistro": "2025-09-01T00:07:18.820Z",
+      "fechaActualizacion": "2025-09-01T00:07:18.820Z",
+      "__v": 0,
+      "id": "68b4e3b6e3a917d7a53ebd22"
+    },
+    {
+      "_id": "68b4e8f1d1cf42bce38a1820",
+      "email": "newexpert2@example.com",
+      "nombre": "New2",
+      "apellido": "Expert2",
+      "avatarUrl": "https://ui-avatars.com/api/?name=User&background=random",
+      "roles": [
+        "experto"
+      ],
+      "estado": "activo",
+      "calificacion": 0,
+      "calificacionesCount": 0,
+      "fechaRegistro": "2025-09-01T00:29:37.454Z",
+      "fechaActualizacion": "2025-09-01T00:29:37.709Z",
+      "__v": 1,
+      "infoExperto": {
+        "especialidad": "Desarrollo Web",
+        "descripcion": "Creado por test E2E con API_KEY",
+        "categorias": [
+          {
+            "_id": "68a621f9f65005dadaf5e19f",
+            "nombre": "Desarrollo Web",
+            "id": "68a621f9f65005dadaf5e19f"
+          }
+        ],
+        "precioPorHora": 60,
+        "skills": [
+          "JavaScript",
+          "Node.js"
+        ],
+        "horario": null,
+        "banco": "BancoTest",
+        "tipoCuenta": "Ahorros",
+        "numeroCuenta": "111222333",
+        "titular": "New Expert2",
+        "tipoDocumento": "DNI",
+        "numeroDocumento": "12345678",
+        "diasDisponibles": [],
+        "_id": "68b4e8f1d1cf42bce38a1824"
+      },
+      "id": "68b4e8f1d1cf42bce38a1820"
+    }
+  ]
+}

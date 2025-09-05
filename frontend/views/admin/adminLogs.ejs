@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Registro de acciones - Servitech Admin</title>
+  <link rel="stylesheet" href="/assets/css/admin.css" />
+  <link rel="stylesheet" href="/assets/css/admin-responsive.css" />
+  <link rel="stylesheet" href="/assets/css/administrador.css" />
+  <link rel="stylesheet" href="/assets/css/admin-components.css" />
+  <link rel="stylesheet" href="/assets/css/admin-logs.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+
+<body>
+  <div class="admin-layout">
+    <%- include("../componentes/navbarAdmin.ejs") %>
+      <main class="admin-main">
+        <header class="admin-header">
+          <div class="header-search">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Buscar en logs..." />
+          </div>
+          <div class="header-actions">
+            <div class="notification-icon">
+              <i class="fas fa-bell"></i>
+              <span class="notification-badge">5</span>
+            </div>
+            <div class="admin-profile">
+              <img src="https://i.pravatar.cc/150?img=11" alt="Admin profile" class="profile-img" />
+              <div class="profile-info">
+                <span class="profile-name">Admin ServiTech</span>
+                <span class="profile-role">Administrador</span>
+              </div>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+          </div>
+        </header>
+        <div class="admin-content">
+          <div class="page-header">
+            <h1>Registro de acciones</h1>
+            <div class="page-actions"></div>
+          </div>
+          <div class="logs-filtros">
+            <form id="logsFilterForm" class="logs-filtros__form">
+              <div class="logs-filtros__group">
+                <label for="tipoAccion" class="logs-filtros__label">Tipo de acción</label>
+                <select id="tipoAccion" class="logs-filtros__select">
+                  <option value="">Todas</option>
+                  <option value="asesoria">Asesoría</option>
+                  <option value="pago">Pago</option>
+                  <option value="perfil">Perfil</option>
+                  <option value="eliminacion">Eliminación</option>
+                  <option value="error">Error</option>
+                </select>
+              </div>
+              <div class="logs-filtros__group">
+                <label for="usuario" class="logs-filtros__label">Usuario</label>
+                <input type="text" id="usuario" class="logs-filtros__input" placeholder="Nombre o email" />
+              </div>
+              <div class="logs-filtros__group">
+                <label for="fecha" class="logs-filtros__label">Fecha</label>
+                <input type="date" id="fecha" class="logs-filtros__input" />
+              </div>
+              <button class="btn-primary logs-filtros__btn" type="submit">
+                <i class="fas fa-filter"></i> <span>Filtrar</span>
+              </button>
+            </form>
+          </div>
+          <div class="table-container logs-table__wrapper">
+            <table class="admin-table logs-table">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Usuario</th>
+                  <th>Acción</th>
+                  <th>Detalle</th>
+                  <th>Resultado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>2025-08-29 18:22</td>
+                  <td>DianaJJ0</td>
+                  <td>Pago</td>
+                  <td>$15000 a Mario Velázquez</td>
+                  <td class="logs-success">Éxito</td>
+                </tr>
+                <tr>
+                  <td>2025-08-28 10:17</td>
+                  <td>Ana García</td>
+                  <td>Edición de perfil</td>
+                  <td>Cambió email</td>
+                  <td class="logs-success">Éxito</td>
+                </tr>
+                <tr>
+                  <td>2025-08-27 21:44</td>
+                  <td>Carlos Perez</td>
+                  <td>Eliminación</td>
+                  <td>Eliminó asesoría #12345</td>
+                  <td class="logs-success">Éxito</td>
+                </tr>
+                <tr>
+                  <td>2025-08-27 19:02</td>
+                  <td>Maria López</td>
+                  <td>Error</td>
+                  <td>Error en pago: tarjeta rechazada</td>
+                  <td class="logs-error">Error</td>
+                </tr>
+                <tr>
+                  <td>2025-08-27 17:30</td>
+                  <td>Juan Martinez</td>
+                  <td>Asesoría</td>
+                  <td>Agendó asesoría con Pedro Ramírez</td>
+                  <td class="logs-success">Éxito</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="logs-paginacion">
+              <span class="logs-paginacion__info">Mostrando 1-5 de 824 registros</span>
+              <div class="logs-paginacion__controles">
+                <button class="logs-paginacion__btn logs-paginacion__btn--disabled">
+                  <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="logs-paginacion__btn logs-paginacion__btn--active">1</button>
+                <button class="logs-paginacion__btn">2</button>
+                <button class="logs-paginacion__btn">3</button>
+                <span class="logs-paginacion__ellipsis">...</span>
+                <button class="logs-paginacion__btn">165</button>
+                <button class="logs-paginacion__btn">
+                  <i class="fas fa-chevron-right"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+  </div>
+  <script src="/assets/js/admin/admin-common.js"></script>
+  <script src="/assets/js/admin/admin-logs.js"></script>
+</body>
+
+</html>

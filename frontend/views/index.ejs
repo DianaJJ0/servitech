@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<!-- Declaración del tipo de documento HTML5 para asegurar compatibilidad y buenas prácticas -->
+
+<html lang="es">
+<!-- Indica que el contenido está en español -->
+
+<head>
+    <!-- Metadatos y enlaces a recursos externos para estilos y fuentes -->
+    <meta charset="UTF-8">
+    <!-- Codificación de caracteres para soportar caracteres especiales -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Permite que la página sea responsiva en dispositivos móviles -->
+    <title>Servitech - Especialistas en informática</title>
+    <!-- Título que aparece en la pestaña del navegador -->
+    <!-- RUTAS CORREGIDAS: Se ha eliminado el prefijo '/assets' de las rutas CSS. -->
+    <link rel="stylesheet" href="/assets/css/landing-page.css">
+    <!-- Estilos específicos para la página principal (landing) -->
+    <link rel="stylesheet" href="/assets/css/componentes.css">
+    <!-- Estilos para componentes reutilizables en todo el sitio -->
+    <link rel="stylesheet" href="/assets/css/base.css">
+    <script src="/assets/js/index.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Iconos vectoriales para mejorar la interfaz visual -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Fuente Inter para una mejor legibilidad y estética -->
+</head>
+
+<body>
+    <!-- Header principal con navegación -->
+    <%- include('componentes/header') %>
+        <!-- Incluye el encabezado reutilizable con menú de navegación -->
+
+        <section class="hero-banner">
+            <!-- Sección principal de bienvenida y presentación de la plataforma -->
+            <div class="banner-container">
+                <div class="banner-content">
+                    <h1>Conecta con expertos en tecnología</h1>
+                    <!-- Mensaje principal para captar la atención del usuario -->
+                    <p class="highlight-text">
+                        Plataforma líder para asesorías personalizadas en informática y desarrollo.
+                    </p>
+                    <!-- Breve descripción del propósito de la plataforma -->
+
+                    <div class="features-grid">
+                        <!-- Lista de características clave de la plataforma -->
+                        <div class="feature-item">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Asesoría 1:1 con profesionales certificados</span>
+                            <!-- Resalta la atención personalizada y certificada -->
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-video"></i>
+                            <span>Sesiones por videollamada seguras</span>
+                            <!-- Indica que las asesorías se realizan por videollamada -->
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-coins"></i>
+                            <span>Genera ingresos compartiendo tu conocimiento</span>
+                            <!-- Incentiva a expertos a unirse y monetizar su experiencia -->
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-search"></i>
+                            <span>Encuentra expertos</span>
+                            <!-- Facilita la búsqueda de expertos por parte de los usuarios -->
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <!-- Botones principales para acciones rápidas del usuario -->
+                        <a href="/expertos.html" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Buscar expertos
+                            <!-- Redirige a la página de listado de expertos -->
+                        </a>
+                        <% if (user && Array.isArray(user.roles) && user.roles.includes('experto')) { %>
+                            <a href="/editarExperto" class="btn btn-secondary">
+                                <i class="fas fa-user-edit"></i>
+                                <span>
+                                    Editar perfil
+                                    <% if (user && user.nombre) { %>
+                                        — <strong><%= user.nombre %></strong>
+                                    <% } %>
+                                </span>
+                                </a>
+                            <% } else { %>
+                                <a href="/registroExperto.html" class="btn btn-secondary">
+                                    <i class="fas fa-user-plus"></i> Registrarse como experto
+                                    <!-- Redirige al formulario de registro para nuevos expertos -->
+                                </a>
+                                <% } %>
+                    </div>
+
+                    <div class="trust-features">
+                        <!-- Características que generan confianza en la plataforma -->
+                        <div class="trust-item">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>Plataforma segura</span>
+                            <!-- Garantiza seguridad en el uso de la plataforma -->
+                        </div>
+                        <div class="trust-item">
+                            <i class="fas fa-clock"></i>
+                            <span>Horarios flexibles</span>
+                            <!-- Indica disponibilidad amplia para asesorías -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="banner-image">
+                    <img src="/assets/img/cuadro-animado.gif" alt="Animación cubo azul" class="banner-gif"
+                        loading="lazy">
+                    <!-- Imagen animada para dar dinamismo y atractivo visual -->
+                </div>
+            </div>
+        </section>
+
+        <section class="expert-categories">
+            <!-- Sección para mostrar las principales categorías de expertos -->
+            <div class="expert-categories-container">
+                <div class="categories-header">
+                    <h2>Explora nuestras categorías</h2>
+                    <!-- Título de la sección de categorías -->
+                    <p class="categories-subtitle">Encuentra expertos en las principales áreas de tecnología</p>
+                    <!-- Subtítulo que orienta al usuario sobre el contenido -->
+                </div>
+
+                <div class="expert-categories-grid">
+                    <!-- Grid de categorías de expertos, agrupadas en filas -->
+                    <!-- Fila 1 - 3 columnas -->
+                    <div class="expert-categories-row">
+                        <div class="expert-category-card">
+                            <h3>Programación</h3>
+                            <p>Desarrollo web, móvil y de software</p>
+                            <span class="experts-counter">18 expertos</span>
+                            <!-- Muestra el número de expertos disponibles en esta categoría -->
+                        </div>
+                        <div class="expert-category-card">
+                            <h3>Bases de datos</h3>
+                            <p>SQL, NoSQL, administración</p>
+                            <span class="experts-counter">15 expertos</span>
+                        </div>
+                        <div class="expert-category-card">
+                            <h3>Redes</h3>
+                            <p>Configuración y seguridad</p>
+                            <span class="experts-counter">12 expertos</span>
+                        </div>
+                    </div>
+                    <!-- Fila 2 - 3 columnas -->
+                    <div class="expert-categories-row">
+                        <div class="expert-category-card">
+                            <h3>Ciberseguridad</h3>
+                            <p>Protección y auditorías</p>
+                            <span class="experts-counter">20 expertos</span>
+                        </div>
+                        <div class="expert-category-card">
+                            <h3>Cloud Computing</h3>
+                            <p>AWS, Azure, Google Cloud</p>
+                            <span class="experts-counter">22 expertos</span>
+                        </div>
+                        <div class="expert-category-card">
+                            <h3>Inteligencia Artificial</h3>
+                            <p>ML y análisis de datos</p>
+                            <span class="experts-counter">25 expertos</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="tech-categories">
+            <!-- Sección alternativa para mostrar áreas tecnológicas destacadas -->
+            <div class="categories-container">
+                <div class="section-header">
+                    <h2>Encuentra expertos en las principales áreas de tecnología</h2>
+                    <!-- Título de la sección -->
+                </div>
+
+                <div class="categories-grid">
+                    <!-- Grid de áreas tecnológicas agrupadas en dos filas -->
+                    <!-- Fila 1 -->
+                    <div class="category-group">
+                        <div class="category-card">
+                            <h3>Programación</h3>
+                            <p>Desarrollo web, móvil y de software</p>
+                            <div class="expert-count">18 expertos</div>
+                            <!-- Muestra el número de expertos en programación -->
+                        </div>
+                        <div class="category-card">
+                            <h3>Bases de datos</h3>
+                            <p>SQL, NoSQL, administración</p>
+                            <div class="expert-count">15 expertos</div>
+                        </div>
+                        <div class="category-card">
+                            <h3>Redes</h3>
+                            <p>Configuración y seguridad</p>
+                            <div class="expert-count">12 expertos</div>
+                        </div>
+                    </div>
+                    <!-- Fila 2 -->
+                    <div class="category-group">
+                        <div class="category-card">
+                            <h3>Ciberseguridad</h3>
+                            <p>Protección y auditorías</p>
+                            <div class="expert-count">20 expertos</div>
+                        </div>
+                        <div class="category-card">
+                            <h3>Cloud Computing</h3>
+                            <p>AWS, Azure, Google Cloud</p>
+                            <div class="expert-count">22 expertos</div>
+                        </div>
+                        <div class="category-card">
+                            <h3>Inteligencia Artificial</h3>
+                            <p>ML y análisis de datos</p>
+                            <div class="expert-count">25 expertos</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="testimonials">
+            <!-- Sección de testimonios de usuarios -->
+            <div class="testimonials-container">
+                <div class="section-header">
+                    <h2>Testimonios</h2>
+                    <!-- Título de la sección de testimonios -->
+                    <p class="section-description">Lo que dicen nuestros usuarios</p>
+                    <!-- Descripción de la sección -->
+                </div>
+
+                <div class="testimonials-grid">
+                    <!-- Grid de tarjetas de testimonios -->
+                    <div class="testimonial-card">
+                        <div class="testimonial-content">
+                            <span class="quote-icon">“</span>
+                            <div class="testimonial-text">
+                                <p>Gracias a Servitech encontré un experto que me ayudó a aprobar mi proyecto final.
+                                    ¡100% recomendado!</p>
+                                <!-- Testimonio real de usuario satisfecho -->
+                            </div>
+                        </div>
+                        <div class="user-info">
+                            <div class="user-avatar">L</div>
+                            <!-- Inicial del usuario como avatar -->
+                            <div class="user-details">
+                                <span class="user-name">Laura G.</span>
+                                <span class="user-role">Estudiante de Ingeniería</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="testimonial-card">
+                        <div class="testimonial-content">
+                            <span class="quote-icon">“</span>
+                            <div class="testimonial-text">
+                                <p>La plataforma es muy fácil de usar y los expertos son realmente profesionales.</p>
+                            </div>
+                        </div>
+                        <div class="user-info">
+                            <div class="user-avatar">A</div>
+                            <div class="user-details">
+                                <span class="user-name">Andrés P.</span>
+                                <span class="user-role">Desarrollador Junior</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="testimonial-card">
+                        <div class="testimonial-content">
+                            <span class="quote-icon">“</span>
+                            <div class="testimonial-text">
+                                <p>Me gustó la rapidez y la seguridad en los pagos. Volveré a usarla.</p>
+                            </div>
+                        </div>
+                        <div class="user-info">
+                            <div class="user-avatar">C</div>
+                            <div class="user-details">
+                                <span class="user-name">Camila R.</span>
+                                <span class="user-role">Freelancer</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="faq">
+            <!-- Sección de preguntas frecuentes para resolver dudas comunes -->
+            <div class="faq-container">
+                <div class="section-header">
+                    <h2>Preguntas frecuentes</h2>
+                    <!-- Título de la sección de preguntas frecuentes -->
+                    <p class="section-description">Resuelve tus dudas sobre cómo funciona Servitech</p>
+                    <!-- Descripción de la sección -->
+                </div>
+
+                <div class="faq-accordion">
+                    <!-- Acordeón interactivo para mostrar respuestas a preguntas frecuentes -->
+                    <div class="faq-item">
+                        <button class="faq-question" aria-expanded="false">
+                            <div class="faq-icon">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                            <span class="faq-title">¿Cómo me registro como experto?</span>
+                            <div class="faq-arrow">
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                        </button>
+                        <div class="faq-answer">
+                            <p>Haz clic en <strong>"Convertirse en experto"</strong>, completa el formulario y nuestro
+                                equipo verificará tu perfil para que puedas comenzar a asesorar.</p>
+                            <!-- Explicación del proceso de registro para expertos -->
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <button class="faq-question" aria-expanded="false">
+                            <div class="faq-icon">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <span class="faq-title">¿Es seguro el pago?</span>
+                            <div class="faq-arrow">
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                        </button>
+                        <div class="faq-answer">
+                            <p>Sí, todos los pagos se procesan mediante pasarelas certificadas y tus datos están
+                                protegidos con tecnología de cifrado.</p>
+                            <!-- Explicación sobre la seguridad de los pagos -->
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <button class="faq-question" aria-expanded="false">
+                            <div class="faq-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <span class="faq-title">¿Puedo recibir asesoría en cualquier horario?</span>
+                            <div class="faq-arrow">
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                        </button>
+                        <div class="faq-answer">
+                            <p>Servitech cuenta con expertos disponibles <strong>24/7</strong>. Puedes agendar tu
+                                asesoría según la disponibilidad del experto que elijas.</p>
+                            <!-- Explicación sobre la disponibilidad de los expertos -->
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <button class="faq-question" aria-expanded="false">
+                            <div class="faq-icon">
+                                <i class="fas fa-video"></i>
+                            </div>
+                            <span class="faq-title">¿Las asesorías son por videollamada?</span>
+                            <div class="faq-arrow">
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                        </button>
+                        <div class="faq-answer">
+                            <p>Sí, puedes elegir la plataforma de videollamada que prefieras (Google Meet, Teams, Zoom,
+                                etc.) para tu sesión.</p>
+                            <!-- Explicación sobre las plataformas de videollamada disponibles -->
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <button class="faq-question" aria-expanded="false">
+                            <div class="faq-icon">
+                                <i class="fas fa-headset"></i>
+                            </div>
+                            <span class="faq-title">¿Qué hago si tengo un problema con mi asesoría?</span>
+                            <div class="faq-arrow">
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                        </button>
+                        <div class="faq-answer">
+                            <p>Contáctanos a través del soporte 24/7 y te ayudaremos a resolver cualquier inconveniente
+                                rápidamente.</p>
+                            <!-- Explicación sobre el soporte y ayuda disponible -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="cta-improved">
+            <!-- Sección de llamada a la acción para incentivar el registro y uso de la plataforma -->
+            <div class="cta-improved-content">
+                <h2>Transforma tu futuro en tecnología</h2>
+                <!-- Título motivacional para captar usuarios -->
+                <p>Únete a la comunidad Servitech y accede a mentorías personalizadas, networking con profesionales y
+                    recursos exclusivos para acelerar tu carrera en informática.</p>
+                <!-- Descripción de los beneficios de unirse a la plataforma -->
+
+                <div class="cta-improved-actions">
+                    <!-- Botones de acción para registro y demostración -->
+                    <a href="/registro.html" class="action-btn primary-action">
+                        <i class="fas fa-rocket"></i> Comienza gratis hoy
+                        <!-- Botón para registro rápido -->
+                    </a>
+                    <a href="/demo.html" class="action-btn secondary-action">
+                        <i class="fas fa-play-circle"></i> Ver demostración
+                        <!-- Botón para ver una demo de la plataforma -->
+                    </a>
+                </div>
+
+                <div class="cta-improved-features">
+                    <!-- Características adicionales que refuerzan la propuesta de valor -->
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <span>Acceso inmediato</span>
+                        <!-- Indica que el acceso es rápido y sin demoras -->
+                    </div>
+                    <div class="feature-card active">
+                        <div class="feature-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <span>Plataforma segura</span>
+                        <!-- Refuerza la seguridad de la plataforma -->
+                    </div>
+                    <div class="feature-card active">
+                        <div class="feature-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <span>Comunidad activa</span>
+                        <!-- Destaca la comunidad de usuarios y expertos -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        </main>
+        <!-- Footer -->
+        <%- include('componentes/footer') %>
+            <!-- Inclusión del pie de página principal con enlaces y redes sociales -->
+
+            <!-- RUTAS CORREGIDAS: Se ha eliminado el prefijo '/assets' y se ha añadido la barra inicial '/' a las rutas de los scripts. -->
+            <script src="/assets/js/common.js"></script>
+            <!-- Script común para funcionalidades generales (menú, validaciones, etc.) -->
+
+            <!-- Script de prueba para autenticación (remover en producción) -->
+            <script src="/assets/js/test-auth.js"></script>
+
+            <script src="/assets/js/index.js"></script>
+            <!-- Script para funcionalidad de acordeón FAQ -->
+</body>
+
+</html>

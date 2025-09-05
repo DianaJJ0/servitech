@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Cuenta - ServiTech</title>
+    <link rel="stylesheet" href="/assets/css/componentes.css">
+    <link rel="stylesheet" href="/assets/css/registro.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+</head>
+
+<body>
+
+    <main>
+        <div class="auth-container">
+            <div class="auth-card">
+                <header class="auth-header">
+                    <a href="/"><img src="/assets/img/logo.png" alt="Logo de ServiTech" class="logo-img"></a>
+                    <h1>Crear Cuenta</h1>
+                    <p class="subtitle">Únete a la comunidad de expertos</p>
+                </header>
+                <form id="registroForm" novalidate>
+                    <div class="input-group">
+                        <label for="nombre">Nombre</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-user input-icon"></i>
+                            <input type="text" id="nombre" name="nombre" placeholder="Escribe tu nombre" required>
+                        </div>
+                        <p class="error-message" id="nombreError"></p>
+                    </div>
+                    <div class="input-group">
+                        <label for="apellido">Apellido</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-user input-icon"></i>
+                            <input type="text" id="apellido" name="apellido" placeholder="Escribe tu apellido" required>
+                        </div>
+                        <p class="error-message" id="apellidoError"></p>
+                    </div>
+                    <div class="input-group">
+                        <label for="email">Correo electrónico</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-envelope input-icon"></i>
+                            <input type="email" id="email" name="email" placeholder="Escribe tu correo electrónico"
+                                required>
+                        </div>
+                        <p class="error-message" id="emailError"></p>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="confirmEmail">Confirmar correo electrónico</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-envelope input-icon"></i>
+                            <input type="email" id="confirmEmail" name="confirmEmail" placeholder="Confirma tu correo"
+                                required>
+                        </div>
+                        <p class="error-message" id="confirmEmailError"></p>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="password">Contraseña</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" id="password" name="password"
+                                placeholder="Crea una contraseña segura" required>
+                            <i class="fas fa-eye-slash toggle-password"></i>
+                        </div>
+                        <ul class="password-requirements" id="passwordCriteria" style="display:none;">
+                            <li id="minLengthCriteria"><span class="icon"></span>Mínimo 8 caracteres</li>
+                            <li id="uppercaseCriteria"><span class="icon"></span>Al menos una mayúscula</li>
+                            <li id="lowercaseCriteria"><span class="icon"></span>Al menos una minúscula</li>
+                            <li id="numberCriteria"><span class="icon"></span>Al menos un número</li>
+                        </ul>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="confirmPassword">Confirmar contraseña</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" id="confirmPassword" name="confirmPassword"
+                                placeholder="Confirma tu contraseña" required>
+                        </div>
+                        <p class="error-message" id="confirmPasswordError"></p>
+                    </div>
+
+
+
+                    <div class="checkbox-group">
+                        <label class="checkbox-container small">
+                            <input type="checkbox" id="terms" name="terms" required>
+                            <span class="checkmark"></span>
+                            <span class="checkbox-text">
+                                Estoy de acuerdo con los <a href="terminos.html" class="accent-link">Términos y
+                                    Condiciones</a>
+                            </span>
+                        </label>
+                        <p class="error-message" id="termsError">Debes aceptar los términos y condiciones</p>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <label class="checkbox-container small">
+                            <input type="checkbox" id="privacy" name="privacy" required>
+                            <span class="checkmark"></span>
+                            <span class="checkbox-text">
+                                Confirmo que he leído la <a href="privacidad.html" class="accent-link">Política de
+                                    Privacidad</a>
+                            </span>
+                        </label>
+                        <p class="error-message" id="privacyError">Debes aceptar la política de privacidad</p>
+                    </div>
+
+
+                    <div id="formError" class="error-message" style="text-align: center; margin-bottom: 1rem;">
+                    </div>
+                    <div class="input-group">
+                        <div class="g-recaptcha" data-sitekey="6LdghKQrAAAAANaGrKFXoONcZu3Q0R3RBue9_UWT"></div>
+                    </div>
+                    <button type="submit" class="auth-button">Crear Cuenta</button>
+                </form>
+                <footer class="auth-footer">
+                    <p>¿Ya tienes una cuenta? <a href="/login.html">Inicia sesión</a></p>
+                    <div class="back-home">
+                        <a href="/"><i class="fas fa-arrow-left"></i>Volver a la página principal</a>
+                    </div>
+                </footer>
+            </div>
+        </div>
+    </main>
+
+    <script src="/assets/js/common.js"></script>
+    <script src="/assets/js/registro.js"></script>
+</body>
+
+</html>

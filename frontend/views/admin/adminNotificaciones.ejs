@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Mensajes - Servitech Admin</title>
+    <link rel="stylesheet" href="/assets/css/admin.css">
+    <link rel="stylesheet" href="/assets/css/admin-responsive.css">
+    <link rel="stylesheet" href="/assets/css/administrador.css">
+    <link rel="stylesheet" href="/assets/css/admin-mensajes.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="admin-layout">
+        <%- include('../componentes/navbarAdmin.ejs') %>
+            <main class="admin-main">
+                <header class="admin-header">
+                    <div class="header-search">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Buscar mensajes...">
+                    </div>
+                    <div class="header-actions">
+                        <div class="notification-icon">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-badge">5</span>
+                        </div>
+                        <div class="admin-profile">
+                            <img src="https://i.pravatar.cc/150?img=11" alt="Admin profile" class="profile-img">
+                            <div class="profile-info">
+                                <span class="profile-name">Admin ServiTech</span>
+                                <span class="profile-role">Administrador</span>
+                            </div>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="admin-content">
+                    <div class="page-header">
+                        <h1>Gestión de Mensajes</h1>
+                        <div class="page-actions">
+                            <button class="btn-primary" id="btnComposeMessage">
+                                <i class="fas fa-plus"></i>
+                                <span>Nuevo mensaje</span>
+                            </button>
+                            <button class="btn-outline">
+                                <i class="fas fa-file-export"></i>
+                                <span>Exportar</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="admin-mensajes-grid">
+                        <div class="table-container admin-mensajes__sidebar">
+                            <div class="admin-mensajes__filtros">
+                                <h3 class="admin-mensajes__filtros-title">Filtros</h3>
+                                <div class="admin-mensajes__filtros-group">
+                                    <button class="filter-btn active">
+                                        <div class="filter-btn__icon-label">
+                                            <i class="fas fa-inbox"></i>
+                                            <span>Bandeja de entrada</span>
+                                        </div>
+                                        <span class="message-count message-count--primary">18</span>
+                                    </button>
+                                    <button class="filter-btn">
+                                        <div class="filter-btn__icon-label">
+                                            <i class="fas fa-star"></i>
+                                            <span>Destacados</span>
+                                        </div>
+                                        <span class="message-count">5</span>
+                                    </button>
+                                    <button class="filter-btn">
+                                        <div class="filter-btn__icon-label">
+                                            <i class="fas fa-paper-plane"></i>
+                                            <span>Enviados</span>
+                                        </div>
+                                        <span class="message-count">12</span>
+                                    </button>
+                                    <button class="filter-btn">
+                                        <div class="filter-btn__icon-label">
+                                            <i class="fas fa-exclamation-circle"></i>
+                                            <span>Importantes</span>
+                                        </div>
+                                        <span class="message-count">3</span>
+                                    </button>
+                                    <button class="filter-btn">
+                                        <div class="filter-btn__icon-label">
+                                            <i class="fas fa-trash-alt"></i>
+                                            <span>Eliminados</span>
+                                        </div>
+                                        <span class="message-count">8</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="admin-mensajes__etiquetas">
+                                <div class="espacio"></div>
+                                <h3 class="admin-mensajes__etiquetas-title">Etiquetas</h3>
+                                <div class="admin-mensajes__etiquetas-list">
+                                    <div class="admin-mensajes__etiqueta admin-mensajes__etiqueta--soporte">
+                                        <span
+                                            class="admin-mensajes__etiqueta-color admin-mensajes__etiqueta-color--soporte"></span>
+                                        <span>Soporte</span>
+                                        <div class="espacio"></div>
+                                    </div>
+                                    <div class="admin-mensajes__etiqueta admin-mensajes__etiqueta--proyectos">
+                                        <span
+                                            class="admin-mensajes__etiqueta-color admin-mensajes__etiqueta-color--proyectos"></span>
+                                        <span>Proyectos</span>
+                                    </div>
+                                    <div class="admin-mensajes__etiqueta admin-mensajes__etiqueta--clientes">
+                                        <span
+                                            class="admin-mensajes__etiqueta-color admin-mensajes__etiqueta-color--clientes"></span>
+                                        <span>Clientes</span>
+                                    </div>
+                                    <div class="admin-mensajes__etiqueta admin-mensajes__etiqueta--urgente">
+                                        <span
+                                            class="admin-mensajes__etiqueta-color admin-mensajes__etiqueta-color--urgente"></span>
+                                        <span>Urgente</span>
+                                    </div>
+                                    <div class="admin-mensajes__etiqueta admin-mensajes__etiqueta--personal">
+                                        <span
+                                            class="admin-mensajes__etiqueta-color admin-mensajes__etiqueta-color--personal"></span>
+                                        <span>Personal</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="admin-mensajes__estadisticas">
+                                <div class="espacio"></div>
+                                <h3 class="admin-mensajes__estadisticas-title">Estadísticas</h3>
+                                <div class="admin-mensajes__estadisticas-list">
+                                    <div class="admin-mensajes__estadistica admin-mensajes__estadistica--total">
+                                        <div class="admin-mensajes__estadistica-info">
+                                            <i
+                                                class="fas fa-envelope-open admin-mensajes__estadistica-icon admin-mensajes__estadistica-icon--total"></i>
+                                            <span>Total Mensajes</span>
+                                        </div>
+                                        <span class="admin-mensajes__estadistica-value">436</span>
+                                    </div>
+                                    <div class="admin-mensajes__estadistica admin-mensajes__estadistica--noleidos">
+                                        <div class="admin-mensajes__estadistica-info">
+                                            <i
+                                                class="fas fa-envelope admin-mensajes__estadistica-icon admin-mensajes__estadistica-icon--noleidos"></i>
+                                            <span>No leídos</span>
+                                        </div>
+                                        <span class="admin-mensajes__estadistica-value">18</span>
+                                    </div>
+                                    <div class="admin-mensajes__estadistica admin-mensajes__estadistica--enviados">
+                                        <div class="admin-mensajes__estadistica-info">
+                                            <i
+                                                class="fas fa-paper-plane admin-mensajes__estadistica-icon admin-mensajes__estadistica-icon--enviados"></i>
+                                            <span>Enviados hoy</span>
+                                        </div>
+                                        <span class="admin-mensajes__estadistica-value">8</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="table-container admin-mensajes__main">
+                            <div class="admin-mensajes__main-header">
+                                <div class="admin-mensajes__main-header-left">
+                                    <div>
+                                        <input type="checkbox" id="selectAll" class="admin-mensajes__checkbox">
+                                    </div>
+                                    <div>
+                                        <button class="btn-icon admin-mensajes__main-btn">
+                                            <i class="fas fa-chevron-down"></i>
+                                        </button>
+                                    </div>
+                                    <button class="btn-icon admin-mensajes__main-btn" title="Actualizar">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
+                                    <button class="btn-icon admin-mensajes__main-btn" title="Archivar">
+                                        <i class="fas fa-archive"></i>
+                                    </button>
+                                    <button class="btn-icon admin-mensajes__main-btn" title="Marcar como spam">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                    </button>
+                                    <button class="btn-icon admin-mensajes__main-btn" title="Eliminar">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                                <div class="admin-mensajes__main-header-right">
+                                    <span class="admin-mensajes__main-header-info">1-7 de 18</span>
+                                    <div class="admin-mensajes__main-header-paginacion">
+                                        <button
+                                            class="admin-mensajes__main-header-paginacion-btn admin-mensajes__main-header-paginacion-btn--disabled"><i
+                                                class="fas fa-chevron-left"></i></button>
+                                        <button class="admin-mensajes__main-header-paginacion-btn"><i
+                                                class="fas fa-chevron-right"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="admin-mensajes__list">
+                                <div class="admin-mensajes__item admin-mensajes__item--unread">
+                                    <div class="admin-mensajes__item-checkbox">
+                                        <input type="checkbox" id="msg1" class="admin-mensajes__checkbox">
+                                    </div>
+                                    <div class="admin-mensajes__item-star">
+                                        <i class="far fa-star"></i>
+                                    </div>
+                                    <div class="admin-mensajes__item-remitente">
+                                        <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Remitente"
+                                            class="admin-mensajes__item-remitente-img">
+                                        <span class="admin-mensajes__item-remitente-nombre">Mario Velázquez</span>
+                                    </div>
+                                    <div class="admin-mensajes__item-content">
+                                        <div class="admin-mensajes__item-title">Consulta sobre proyecto de desarrollo
+                                            web
+                                        </div>
+                                        <div class="admin-mensajes__item-snippet">
+                                            Hola, necesito información sobre los tiempos estimados para el proyecto de
+                                            desarrollo que estamos...
+                                        </div>
+                                    </div>
+                                    <div class="admin-mensajes__item-clip">
+                                        <i class="fas fa-paperclip"></i>
+                                    </div>
+                                    <div class="admin-mensajes__item-fecha">12:45 PM</div>
+                                </div>
+                                <div class="admin-mensajes__item admin-mensajes__item--unread">
+                                    <div class="admin-mensajes__item-checkbox">
+                                        <input type="checkbox" id="msg2" class="admin-mensajes__checkbox">
+                                    </div>
+                                    <div class="admin-mensajes__item-star admin-mensajes__item-star--active">
+                                        <i class="fas fa-star"></i>
+                                    </div>
+                                    <div class="admin-mensajes__item-remitente">
+                                        <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Remitente"
+                                            class="admin-mensajes__item-remitente-img">
+                                        <span class="admin-mensajes__item-remitente-nombre">Ana García</span>
+                                    </div>
+                                    <div class="admin-mensajes__item-content">
+                                        <div class="admin-mensajes__item-title">Actualizaciones de diseño para
+                                            aplicación
+                                        </div>
+                                        <div class="admin-mensajes__item-snippet">
+                                            Te envío los mockups actualizados para que los revises. Hice los cambios que
+                                            solicitaste en la última reunión...
+                                        </div>
+                                    </div>
+                                    <div class="admin-mensajes__item-clip">
+                                        <i class="fas fa-paperclip"></i>
+                                    </div>
+                                    <div class="admin-mensajes__item-fecha">11:20 AM</div>
+                                </div>
+                                <div class="admin-mensajes__item">
+                                    <div class="admin-mensajes__item-checkbox">
+                                        <input type="checkbox" id="msg3" class="admin-mensajes__checkbox">
+                                    </div>
+                                    <div class="admin-mensajes__item-star">
+                                        <i class="far fa-star"></i>
+                                    </div>
+                                    <div class="admin-mensajes__item-remitente">
+                                        <img src="https://randomuser.me/api/portraits/men/59.jpg" alt="Remitente"
+                                            class="admin-mensajes__item-remitente-img">
+                                        <span
+                                            class="admin-mensajes__item-remitente-nombre admin-mensajes__item-remitente-nombre--normal">Roberto
+                                            Sánchez</span>
+                                    </div>
+                                    <div class="admin-mensajes__item-content">
+                                        <div class="admin-mensajes__item-title admin-mensajes__item-title--normal">
+                                            Informe
+                                            mensual de actividades</div>
+                                        <div class="admin-mensajes__item-snippet">
+                                            Adjunto te envío el informe mensual de actividades con los KPIs
+                                            actualizados. El
+                                            rendimiento ha mejorado...
+                                        </div>
+                                    </div>
+                                    <div class="admin-mensajes__item-clip">
+                                        <i class="fas fa-paperclip"></i>
+                                    </div>
+                                    <div class="admin-mensajes__item-fecha">Ayer</div>
+                                </div>
+                                <div class="admin-mensajes__item">
+                                    <div class="admin-mensajes__item-checkbox">
+                                        <input type="checkbox" id="msg4" class="admin-mensajes__checkbox">
+                                    </div>
+                                    <div class="admin-mensajes__item-star">
+                                        <i class="far fa-star"></i>
+                                    </div>
+                                    <div class="admin-mensajes__item-remitente">
+                                        <img src="https://randomuser.me/api/portraits/women/26.jpg" alt="Remitente"
+                                            class="admin-mensajes__item-remitente-img">
+                                        <span
+                                            class="admin-mensajes__item-remitente-nombre admin-mensajes__item-remitente-nombre--normal">Laura
+                                            Méndez</span>
+                                    </div>
+                                    <div class="admin-mensajes__item-content">
+                                        <div class="admin-mensajes__item-title admin-mensajes__item-title--normal">
+                                            Problema
+                                            en la integración de la API</div>
+                                        <div class="admin-mensajes__item-snippet">
+                                            Estamos teniendo problemas con la integración de la API de pagos. Los
+                                            usuarios
+                                            están reportando errores al...
+                                        </div>
+                                    </div>
+                                    <div class="admin-mensajes__item-clip admin-mensajes__item-clip--empty"></div>
+                                    <div class="admin-mensajes__item-fecha">Ayer</div>
+                                </div>
+                                <div class="admin-mensajes__item admin-mensajes__item--unread">
+                                    <div class="admin-mensajes__item-checkbox">
+                                        <input type="checkbox" id="msg5" class="admin-mensajes__checkbox">
+                                    </div>
+                                    <div class="admin-mensajes__item-star admin-mensajes__item-star--active">
+                                        <i class="fas fa-star"></i>
+                                    </div>
+                                    <div class="admin-mensajes__item-remitente">
+                                        <img src="https://randomuser.me/api/portraits/men/22.jpg" alt="Remitente"
+                                            class="admin-mensajes__item-remitente-img">
+                                        <span class="admin-mensajes__item-remitente-nombre">Pedro Ramírez</span>
+                                    </div>
+                                    <div class="admin-mensajes__item-content">
+                                        <div class="admin-mensajes__item-title">Nueva oportunidad de proyecto</div>
+                                        <div class="admin-mensajes__item-snippet">
+                                            He estado hablando con un cliente potencial que está interesado en nuestros
+                                            servicios de desarrollo móvil...
+                                        </div>
+                                    </div>
+                                    <div class="admin-mensajes__item-clip admin-mensajes__item-clip--empty"></div>
+                                    <div class="admin-mensajes__item-fecha">3 Abr</div>
+                                </div>
+                                <div class="admin-mensajes__item">
+                                    <div class="admin-mensajes__item-checkbox">
+                                        <input type="checkbox" id="msg6" class="admin-mensajes__checkbox">
+                                    </div>
+                                    <div class="admin-mensajes__item-star">
+                                        <i class="far fa-star"></i>
+                                    </div>
+                                    <div class="admin-mensajes__item-remitente">
+                                        <img src="https://randomuser.me/api/portraits/women/28.jpg" alt="Remitente"
+                                            class="admin-mensajes__item-remitente-img">
+                                        <span
+                                            class="admin-mensajes__item-remitente-nombre admin-mensajes__item-remitente-nombre--normal">Carla
+                                            Jiménez</span>
+                                    </div>
+                                    <div class="admin-mensajes__item-content">
+                                        <div class="admin-mensajes__item-title admin-mensajes__item-title--normal">
+                                            Solicitud
+                                            de cambios en la plataforma</div>
+                                        <div class="admin-mensajes__item-snippet">
+                                            Necesitamos realizar algunos cambios en la plataforma antes del lanzamiento.
+                                            Te
+                                            adjunto el documento con...
+                                        </div>
+                                    </div>
+                                    <div class="admin-mensajes__item-clip">
+                                        <i class="fas fa-paperclip"></i>
+                                    </div>
+                                    <div class="admin-mensajes__item-fecha">2 Abr</div>
+                                </div>
+                                <div class="admin-mensajes__item">
+                                    <div class="admin-mensajes__item-checkbox">
+                                        <input type="checkbox" id="msg7" class="admin-mensajes__checkbox">
+                                    </div>
+                                    <div class="admin-mensajes__item-star admin-mensajes__item-star--active">
+                                        <i class="fas fa-star"></i>
+                                    </div>
+                                    <div class="admin-mensajes__item-remitente">
+                                        <img src="https://randomuser.me/api/portraits/men/45.jpg" alt="Remitente"
+                                            class="admin-mensajes__item-remitente-img">
+                                        <span
+                                            class="admin-mensajes__item-remitente-nombre admin-mensajes__item-remitente-nombre--normal">Alejandro
+                                            Ruiz</span>
+                                    </div>
+                                    <div class="admin-mensajes__item-content">
+                                        <div class="admin-mensajes__item-title admin-mensajes__item-title--normal">
+                                            Propuesta
+                                            de colaboración</div>
+                                        <div class="admin-mensajes__item-snippet">
+                                            Me gustaría proponerte una colaboración para el proyecto de blockchain que
+                                            estamos desarrollando. Creo que...
+                                        </div>
+                                    </div>
+                                    <div class="admin-mensajes__item-clip admin-mensajes__item-clip--empty"></div>
+                                    <div class="admin-mensajes__item-fecha">28 Mar</div>
+                                </div>
+                            </div>
+                            <div class="admin-mensajes__footer">
+                                <span class="admin-mensajes__footer-info">Mostrando 1-7 de 18 mensajes</span>
+                                <div class="admin-mensajes__footer-paginacion">
+                                    <button
+                                        class="admin-mensajes__footer-paginacion-btn admin-mensajes__footer-paginacion-btn--disabled"><i
+                                            class="fas fa-chevron-left"></i></button>
+                                    <button
+                                        class="admin-mensajes__footer-paginacion-btn admin-mensajes__footer-paginacion-btn--active">1</button>
+                                    <button class="admin-mensajes__footer-paginacion-btn">2</button>
+                                    <button class="admin-mensajes__footer-paginacion-btn">3</button>
+                                    <button class="admin-mensajes__footer-paginacion-btn"><i
+                                            class="fas fa-chevron-right"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+    </div>
+
+    <div id="composeModal" class="admin-mensajes__modal">
+        <div class="admin-mensajes__modal-content">
+            <div class="admin-mensajes__modal-header">
+                <h2 class="admin-mensajes__modal-title">Nuevo mensaje</h2>
+                <button class="btn-close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="admin-mensajes__modal-body">
+                <form id="composeForm">
+                    <div class="admin-mensajes__modal-group">
+                        <label class="admin-mensajes__modal-label">Para</label>
+                        <input type="text" id="messageTo" placeholder="Ingresa destinatarios"
+                            class="admin-mensajes__modal-input">
+                    </div>
+                    <div class="admin-mensajes__modal-grid">
+                        <div>
+                            <label class="admin-mensajes__modal-label">CC</label>
+                            <input type="text" id="messageCc" placeholder="Copia a" class="admin-mensajes__modal-input">
+                        </div>
+                        <div>
+                            <label class="admin-mensajes__modal-label">CCO</label>
+                            <input type="text" id="messageBcc" placeholder="Copia oculta a"
+                                class="admin-mensajes__modal-input">
+                        </div>
+                    </div>
+                    <div class="admin-mensajes__modal-group">
+                        <label class="admin-mensajes__modal-label">Asunto</label>
+                        <input type="text" id="messageSubject" placeholder="Asunto del mensaje"
+                            class="admin-mensajes__modal-input">
+                    </div>
+                    <div class="admin-mensajes__modal-group">
+                        <label class="admin-mensajes__modal-label">Mensaje</label>
+                        <textarea id="messageBody" rows="10" placeholder="Escribe tu mensaje aquí"
+                            class="admin-mensajes__modal-input admin-mensajes__modal-textarea"></textarea>
+                    </div>
+                    <div class="admin-mensajes__modal-group">
+                        <label class="admin-mensajes__modal-label">Adjuntos</label>
+                        <div class="admin-mensajes__modal-upload-wrapper">
+                            <input type="file" id="messageAttachments" class="admin-mensajes__modal-file-input"
+                                multiple>
+                            <div class="admin-mensajes__modal-upload-box">
+                                <i class="fas fa-paperclip"></i>
+                                <span>Arrastra archivos o haz clic para seleccionar</span>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="admin-mensajes__modal-footer">
+                <button class="btn-outline" data-dismiss="modal">Descartar</button>
+                <button class="btn-primary" id="sendMessage">Enviar mensaje</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="..//js/admin/admin-common.js"></script>
+    <script src="..//js/admin/admin-mensajes.js"></script>
+</body>
+
+</html>

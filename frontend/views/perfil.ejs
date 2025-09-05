@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mi Perfil | Servitech</title>
+  <link rel="stylesheet" href="/assets/css/base.css" />
+  <link rel="stylesheet" href="/assets/css/perfil.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+
+<body>
+  <main class="container">
+    <% if (typeof error !=='undefined' && error) { %>
+      <div class="alert alert-danger" style="margin-bottom: 1rem;">
+        <%= error %>
+      </div>
+      <% } %>
+        <section class="perfil-section">
+          <h1 class="perfil-title">Mi Perfil</h1>
+          <div class="perfil-card">
+            <div class="perfil-avatar">
+              <img src="<%= user && user.avatar ? user.avatar : '/assets/img/default-avatar.png' %>"
+                alt="Avatar de Usuario" id="profileAvatar">
+              <button class="change-avatar-btn">
+                <i class="fas fa-camera"></i>
+              </button>
+            </div>
+            <div class="perfil-info">
+              <h2 id="userName">
+                <%= user ? (user.nombre || 'Sin nombre' ) : 'No autenticado' %>
+              </h2>
+              <p id="userEmail">
+                <%= user ? (user.email || 'Sin email' ) : '' %>
+              </p>
+              <div class="perfil-actions">
+                <a href="/editarExperto" id="btnEditarPerfil" class="btn btn-primary">
+                  <i class="fas fa-edit"></i> Editar perfil
+                </a>
+                <a href="/misAsesorias.html" class="btn btn-outline">
+                  <i class="fas fa-calendar-alt"></i> Mis asesorías
+                </a>
+                <a href="/" class="btn btn-secondary" style="margin-left: 1rem;">
+                  <i class="fas fa-arrow-left"></i> Volver al inicio
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div class="profile-main">
+            <div class="profile-tab" id="personalInfo">
+              <h2>Información personal</h2>
+              <form class="profile-form">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="firstName">Nombre</label>
+                    <input type="text" id="firstName" value="<%= user ? user.nombre : '' %>" placeholder="Tu nombre"
+                      disabled>
+                  </div>
+                  <div class="form-group">
+                    <label for="lastName">Apellido</label>
+                    <input type="text" id="lastName" value="<%= user ? user.apellido : '' %>" placeholder="Tu apellido"
+                      disabled>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="formEmail">Email</label>
+                  <input type="email" id="formEmail" value="<%= user ? user.email : '' %>"
+                    placeholder="tucorreo@ejemplo.com" disabled>
+                </div>
+              </form>
+            </div>
+
+            <% if (user && user.roles && user.roles.includes('experto') && user.infoExperto) { %>
+              <div class="profile-tab" id="expertInfo">
+                <h2>Información de Experto</h2>
+                <div class="expert-info-grid">
+                  <!-- Sección de descripción y tarifas -->
+                  <div class="expert-info-section">
+                    <h3><i class="fas fa-user-tie"></i> Perfil Profesional</h3>
+                    <div class="info-item">
+                      <strong>Descripción:</strong>
+                      <p>
+                        <%= user.infoExperto.descripcion %>
+                      </p>
+                    </div>
+                    <div class="info-item">
+                      <strong>Precio por hora:</strong>
+                      <p>$<%= user.infoExperto.precioPorHora %> USD</p>
+                    </div>
+                    <div class="info-item">
+                      <strong>Días disponibles:</strong>
+                      <div class="days-display">
+                        <% const dias=user.infoExperto.diasDisponibles || []; %>
+                          <span class="day-pill <%= dias.includes('Lunes') ? 'active' : '' %>">L</span>
+                          <span class="day-pill <%= dias.includes('Martes') ? 'active' : '' %>">M</span>
+                          <span class="day-pill <%= dias.includes('Miércoles') ? 'active' : '' %>">X</span>
+                          <span class="day-pill <%= dias.includes('Jueves') ? 'active' : '' %>">J</span>
+                          <span class="day-pill <%= dias.includes('Viernes') ? 'active' : '' %>">V</span>
+                          <span class="day-pill <%= dias.includes('Sábado') ? 'active' : '' %>">S</span>
+                          <span class="day-pill <%= dias.includes('Domingo') ? 'active' : '' %>">D</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Sección de especialización -->
+                  <div class="expert-info-section">
+                    <h3><i class="fas fa-star"></i> Especialización</h3>
+                    <div class="info-item">
+                      <strong>Especialidad:</strong>
+                      <p>
+                        <%= user.infoExperto.especialidad %>
+                      </p>
+                    </div>
+                    <div class="info-item">
+                      <strong>Categorías:</strong>
+                      <div class="tags-container">
+                        <% (user.infoExperto.categorias || []).forEach(function(categoria) { %>
+                          <span class="tag">
+                            <%= categoria %>
+                          </span>
+                          <% }); %>
+                      </div>
+                    </div>
+                    <div class="info-item">
+                      <strong>Habilidades:</strong>
+                      <div class="tags-container">
+                        <% (user.infoExperto.skills || []).forEach(function(skill) { %>
+                          <span class="tag">
+                            <%= skill %>
+                          </span>
+                          <% }); %>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Sección de datos bancarios -->
+                  <div class="expert-info-section">
+                    <h3><i class="fas fa-university"></i> Datos Bancarios</h3>
+                    <div class="info-item">
+                      <strong>Banco:</strong>
+                      <p>
+                        <%= user.infoExperto.banco %>
+                      </p>
+                    </div>
+                    <div class="info-item">
+                      <strong>Tipo de cuenta:</strong>
+                      <p>
+                        <%= user.infoExperto.tipoCuenta %>
+                      </p>
+                    </div>
+                    <div class="info-item">
+                      <strong>Número de cuenta:</strong>
+                      <p class="account-number" data-number="<%= user.infoExperto.numeroCuenta %>">
+                        <span class="account-value">••••••••••••••••</span>
+                        <button class="btn-show-account"><i class="fas fa-eye"></i></button>
+                      </p>
+                    </div>
+                    <div class="info-item">
+                      <strong>Titular:</strong>
+                      <p>
+                        <%= user.infoExperto.titular %>
+                      </p>
+                    </div>
+                    <div class="info-item">
+                      <strong>Tipo de documento:</strong>
+                      <p>
+                        <%= user.infoExperto.tipoDocumento %>
+                      </p>
+                    </div>
+                    <div class="info-item">
+                      <strong>Número de documento:</strong>
+                      <p>
+                        <%= user.infoExperto.numeroDocumento %>
+                      </p>
+                    </div>
+                    <% if (user.infoExperto.telefonoContacto) { %>
+                      <div class="info-item">
+                        <strong>Teléfono de contacto:</strong>
+                        <p>
+                          <%= user.infoExperto.telefonoContacto %>
+                        </p>
+                      </div>
+                      <% } %>
+                  </div>
+                </div>
+              </div>
+              <% } else if (user && user.roles && user.roles.includes('experto') && !user.infoExperto) { %>
+                <div class="profile-tab" id="expertInfo">
+                  <div class="alert alert-warning">
+                    <strong>¡Atención!</strong> Tu perfil de experto está incompleto.
+                    <a href="/registroExperto">Completa tu información aquí</a>.
+                  </div>
+                </div>
+                <% } else if (user && user.roles && !user.roles.includes('experto')) { %>
+                  <div class="profile-tab" id="expertInfo">
+                    <div class="alert alert-info">
+                      ¿Quieres convertirte en experto?
+                      <a href="/registroExperto">Regístrate como experto aquí</a>.
+                    </div>
+                  </div>
+                  <% } %>
+          </div>
+        </section>
+  </main>
+
+  <!-- Estilos adicionales para la nueva estructura -->
+  <style>
+
+  </style>
+
+  <!-- Scripts -->
+  <script src="/assets/js/common.js"></script>
+  <script src="/assets/js/test-auth.js"></script>
+  <script src="/assets/js/index.js"></script>
+  <script src="/assets/js/perfil.js"></script>
+</body>
+
+</html>

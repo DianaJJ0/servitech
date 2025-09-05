@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<!-- Declaración del tipo de documento HTML5 -->
+
+<html lang="es">
+<!-- Inicio del documento HTML en español -->
+
+<head>
+    <!-- Metadatos y enlaces a recursos externos -->
+    <meta charset="UTF-8">
+    <!-- Codificación de caracteres UTF-8 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Diseño responsivo para dispositivos móviles -->
+    <title>Contacto - ServiTech</title>
+    <!-- Título de la pestaña del navegador -->
+    <link rel="stylesheet" href="/assets/css/base.css">
+    <!-- Estilos base de la aplicación -->
+    <link rel="stylesheet" href="/assets/css/contacto.css">
+    <!-- Estilos específicos para la página de contacto -->
+    <link rel="stylesheet" href="/assets/css/componentes.css">
+    <!-- Estilos para componentes reutilizables -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Iconos de Font Awesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Fuente Inter para mejorar la tipografía -->
+</head>
+
+<body>
+    <!-- Header -->
+    <%- include('componentes/header') %>
+        <!-- Inclusión del encabezado principal -->
+
+        <main class="container">
+            <!-- Contenedor principal de la página -->
+
+            <div class="card animate-fade">
+                <h3 class="card-title"><i class="fas fa-envelope"></i> Contacto</h3>
+                <!-- Título principal de la sección de contacto -->
+                <p>Estamos aquí para ayudarte. Completa el formulario y nos pondremos en contacto contigo lo antes
+                    posible.</p>
+                <!-- Descripción de la sección de contacto -->
+
+                <form class="contact-form" id="contactForm">
+                    <!-- Formulario de contacto -->
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="fullName" class="form-label">Nombre completo</label>
+                            <!-- Etiqueta para el campo de nombre -->
+                            <input type="text" id="fullName" class="form-control" placeholder="Tu nombre" required>
+                            <!-- Campo para ingresar el nombre -->
+                            <div class="form-feedback"></div>
+                            <!-- Mensaje de retroalimentación -->
+                        </div>
+                        <div class="form-group">
+                            <label for="email" class="form-label">Correo electrónico</label>
+                            <!-- Etiqueta para el campo de email -->
+                            <input type="email" id="email" class="form-control" placeholder="tucorreo@ejemplo.com"
+                                required>
+                            <!-- Campo para ingresar el correo electrónico -->
+                            <div class="form-feedback"></div>
+                            <!-- Mensaje de retroalimentación -->
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="subject" class="form-label">Asunto</label>
+                        <!-- Etiqueta para el campo de asunto -->
+                        <input type="text" id="subject" class="form-control" placeholder="Asunto del mensaje" required>
+                        <!-- Campo para ingresar el asunto -->
+                        <div class="form-feedback"></div>
+                        <!-- Mensaje de retroalimentación -->
+                    </div>
+                    <div class="form-group">
+                        <label for="message" class="form-label">Mensaje</label>
+                        <!-- Etiqueta para el campo de mensaje -->
+                        <textarea id="message" class="form-control" rows="5" placeholder="Escribe tu mensaje aquí..."
+                            required></textarea>
+                        <!-- Campo para ingresar el mensaje -->
+                        <div class="form-feedback"></div>
+                        <!-- Mensaje de retroalimentación -->
+                    </div>
+                    <button type="submit" class="btn btn-primary send-btn">
+                        <span class="btn-text"><i class="fas fa-paper-plane"></i> Enviar mensaje</span>
+                        <!-- Texto y icono del botón de envío -->
+                        <span class="btn-loading" style="display: none;">
+                            <i class="fas fa-spinner fa-spin"></i> Enviando...
+                        </span>
+                        <!-- Indicador de carga al enviar el mensaje -->
+                    </button>
+                </form>
+            </div>
+
+            <div class="card animate-fade">
+                <h3 class="card-title"><i class="fas fa-map-marker-alt"></i> Información de contacto</h3>
+                <!-- Título de la sección de información de contacto -->
+
+                <div class="contact-info-grid">
+                    <!-- Grid con información de contacto -->
+                    <div>
+                        <div class="contact-item">
+                            <i class="fas fa-envelope contact-icon"></i>
+                            <div class="contact-text">
+                                <h4>Correo electrónico</h4>
+                                <a href="mailto:contacto@servitech.com" class="contact-link">servitech.app.correo@gmail.com</a>
+                                <!-- Enlace de correo electrónico -->
+                            </div>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-phone contact-icon"></i>
+                            <div class="contact-text">
+                                <h4>Teléfono</h4>
+                                <a href="tel:+573001234567" class="contact-link">+57 300 123 4567</a>
+                                <!-- Enlace de teléfono -->
+                            </div>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-clock contact-icon"></i>
+                            <div class="contact-text">
+                                <h4>Horario de atención</h4>
+                                <p>Lunes a Viernes 8:00 AM - 6:00 PM</p>
+                                <!-- Horario de atención -->
+                            </div>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-share-alt contact-icon"></i>
+                            <div class="contact-text">
+                                <h4>¿Tienes alguna sugerencia?</h4>
+                                <p>Comparte tus sugerencias por aquí, ¡las tendremos en cuenta!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <!-- Footer -->
+        <%- include('componentes/footer') %>
+            <!-- Inclusión del pie de página principal -->
+            <script src="/assets/js/common.js"></script>
+            <!-- Script común para funcionalidades generales -->
+            <script src="/assets/js/contacto.js"></script>
+            <!-- Script específico para la página de contacto -->
+</body>
+
+</html>

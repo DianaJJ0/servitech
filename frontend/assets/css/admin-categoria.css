@@ -1,0 +1,301 @@
+/* --- Modal Categoría (para editar, ver, eliminar) --- */
+.modal-categoria {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+.modal-categoria__content {
+  width: 37.5rem;
+  max-width: 95%;
+  background-color: var(--admin-card-bg);
+  border-radius: 0.75rem;
+  box-shadow: var(--admin-shadow);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.modal-categoria__header {
+  padding: 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 0.0625rem solid var(--admin-border-color);
+}
+.modal-categoria__title {
+  margin: 0;
+  font-size: 1.125rem;
+  color: var(--admin-text-primary);
+}
+.modal-categoria__body {
+  padding: 1.25rem;
+}
+.modal-categoria__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.9375rem;
+  margin-bottom: 0.9375rem;
+}
+.modal-categoria__label {
+  display: block;
+  font-size: 0.875rem;
+  color: var(--admin-text-secondary);
+  margin-bottom: 0.375rem;
+}
+.modal-categoria__input {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 0.0625rem solid var(--admin-border-color);
+  border-radius: 0.375rem;
+  color: var(--admin-text-primary);
+  font-size: 0.875rem;
+}
+.modal-categoria__textarea {
+  resize: vertical;
+}
+.modal-categoria__footer {
+  padding: 1.25rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.625rem;
+  border-top: 0.0625rem solid var(--admin-border-color);
+}
+
+/* Utilidades para modales de categorías */
+.modal-categoria__nombre-destacado {
+  font-weight: bold;
+  margin-bottom: 0.625rem;
+}
+
+.modal-categoria__texto-secundario {
+  color: var(--admin-text-secondary);
+  font-size: 0.875rem;
+}
+
+/* --- Categorías Grid Layout --- */
+.categorias-grid {
+  display: grid;
+  grid-template-columns: 1fr 3fr;
+  gap: 1.25rem;
+  margin-bottom: 1.5625rem;
+}
+.categorias-grid__filters {
+  padding: 1.25rem;
+}
+
+/* --- Filtros Categorías --- */
+.categorias-filtros__title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--admin-text-primary);
+  margin-bottom: 0.9375rem;
+}
+.categorias-filtros__group {
+  margin-bottom: 0.9375rem;
+}
+.categorias-filtros__label {
+  display: block;
+  font-size: 0.875rem;
+  color: var(--admin-text-secondary);
+  margin-bottom: 0.375rem;
+}
+.categorias-filtros__select {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 0.0625rem solid var(--admin-border-color);
+  border-radius: 0.375rem;
+  color: var(--admin-text-primary);
+  font-size: 0.875rem;
+}
+.categorias-filtros__btn {
+  width: 100%;
+  margin-top: 0.625rem;
+}
+
+/* Select personalizado para categorías */
+.categorias-filtros__select,
+.modal-categoria__input[type="select"],
+select.categorias-filtros__select,
+select.modal-categoria__input,
+select.modal-categoria__input option {
+  background-color: #181c23;
+  color: #fff;
+}
+select.categorias-filtros__select option,
+select.modal-categoria__input option {
+  background-color: #181c23;
+  color: #fff;
+}
+
+/* --- Estadísticas Categorías --- */
+.categorias-estadisticas {
+  margin-top: 1.875rem;
+}
+.categorias-estadisticas__title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--admin-text-primary);
+  margin-bottom: 0.9375rem;
+}
+.categorias-estadisticas__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9375rem;
+}
+.categorias-estadisticas__item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  color: var(--admin-text-primary);
+}
+.categorias-estadisticas__item--total {
+  background-color: rgba(58, 142, 255, 0.1);
+}
+.categorias-estadisticas__item--activas {
+  background-color: rgba(40, 167, 69, 0.1);
+}
+.categorias-estadisticas__item--publicaciones {
+  background-color: rgba(255, 193, 7, 0.1);
+}
+.categorias-estadisticas__item--subcategorias {
+  background-color: rgba(18, 216, 250, 0.1);
+}
+.categorias-estadisticas__item-info {
+  display: flex;
+  align-items: center;
+}
+.categorias-estadisticas__icon {
+  font-size: 1.25rem;
+  margin-right: 0.75rem;
+}
+.categorias-estadisticas__icon--total {
+  color: var(--admin-accent-color);
+}
+.categorias-estadisticas__icon--activas {
+  color: #28a745;
+}
+.categorias-estadisticas__icon--publicaciones {
+  color: #ffc107;
+}
+.categorias-estadisticas__icon--subcategorias {
+  color: var(--admin-accent-secondary);
+}
+.categorias-estadisticas__value {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+/* --- Tabla Categorías --- */
+.categorias-table__icon-row {
+  display: flex;
+  align-items: center;
+}
+.categorias-table__icon {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.375rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.625rem;
+}
+.categorias-table__icon--web {
+  background-color: rgba(58, 142, 255, 0.1);
+}
+.categorias-table__icon--movil {
+  background-color: rgba(40, 167, 69, 0.1);
+}
+.categorias-table__icon--uxui {
+  background-color: rgba(255, 193, 7, 0.1);
+}
+.categorias-table__icon--datos {
+  background-color: rgba(220, 53, 69, 0.1);
+}
+.categorias-table__icon--devops {
+  background-color: rgba(23, 162, 184, 0.1);
+}
+.categorias-table__icon--blockchain {
+  background-color: rgba(108, 117, 125, 0.1);
+}
+.categorias-table__icon--cloud {
+  background-color: rgba(18, 216, 250, 0.1);
+}
+.categorias-table__icon--web i {
+  color: #3a8eff;
+}
+.categorias-table__icon--movil i {
+  color: #28a745;
+}
+.categorias-table__icon--uxui i {
+  color: #ffc107;
+}
+.categorias-table__icon--datos i {
+  color: #dc3545;
+}
+.categorias-table__icon--devops i {
+  color: #17a2b8;
+}
+.categorias-table__icon--blockchain i {
+  color: #6c757d;
+}
+.categorias-table__icon--cloud i {
+  color: #12d8fa;
+}
+
+/* Checkbox color para categorías */
+.categorias-checkbox {
+  accent-color: var(--admin-accent-color);
+}
+
+/* --- Paginación Categorías --- */
+.categorias-paginacion {
+  padding: 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 0.0625rem solid var(--admin-border-color);
+}
+.categorias-paginacion__info {
+  color: var(--admin-text-secondary);
+  font-size: 0.875rem;
+}
+.categorias-paginacion__controles {
+  display: flex;
+  gap: 0.3125rem;
+}
+.categorias-paginacion__btn {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0.0625rem solid var(--admin-border-color);
+  border-radius: 0.375rem;
+  background: none;
+  color: var(--admin-text-primary);
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background 0.2s, color 0.2s;
+}
+.categorias-paginacion__btn--active {
+  background: var(--admin-accent-color);
+  color: #fff;
+  border: none;
+}
+.categorias-paginacion__btn--disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  color: var(--admin-text-secondary);
+  background: none;
+  border: 0.0625rem solid var(--admin-border-color);
+}
