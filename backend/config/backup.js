@@ -17,18 +17,12 @@ exports.backupDatabase = async () => {
     console.log(`Respaldo completado con éxito ${stdout}`);
   });
 };
-// Programar el backup cada 3 dias a las 2:00 AM
 
-// cron.schedule("0 2 */3 * *", async () => {
-//   console.log("Realizando Backup de la Base de datos");
-//   exports.backupDatabase();
-// });
-
-// COMENTAR ESTA LÍNEA PARA DETENER LOS BACKUPS CADA MINUTO
-cron.schedule("* * * * *", async () => {
-  console.log("[TESTING] Realizando backup básico de la base de datos...");
-  exports.backupDatabase();
-});
+// COMENTAR ESTA LÍNEA (solo para pruebas)
+//cron.schedule("* * * * *", async () => {
+  //console.log("[TESTING] Realizando backup básico de la base de datos...");
+  //exports.backupDatabase();
+//});
 
 // MANTENER SOLO EL BACKUP PROGRAMADO CADA 3 DÍAS
 cron.schedule("0 2 */3 * *", async () => {
