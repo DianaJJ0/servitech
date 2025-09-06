@@ -16,6 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
       devBtn.setAttribute("aria-busy", "true");
       devBtn.innerHTML = "<span>Entrando...</span>";
       try {
+        
         const payload = {
           usuario: {
             roles: ["admin"],

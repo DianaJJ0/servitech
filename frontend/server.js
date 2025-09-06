@@ -138,9 +138,14 @@ app.use("/api", async (req, res) => {
     console.log(`Proxy manual: ${req.method} ${req.url} -> ${targetUrl}`);
 
     // Enforce CSRF for state-changing requests (POST/PUT/DELETE/PATCH)
+    // Skip CSRF check if DISABLE_CSRF=true in development
     try {
       const mutating = ["POST", "PUT", "DELETE", "PATCH"].includes(req.method);
-      if (mutating) {
+      const disableCSRF =
+        process.env.DISABLE_CSRF === "true" &&
+        process.env.NODE_ENV !== "production";
+
+      if (mutating && !disableCSRF) {
         const sent = req.headers["x-csrf-token"] || req.headers["csrf-token"];
         const sess = req.session && req.session.csrfToken;
         if (!sess || !sent || String(sent) !== String(sess)) {
