@@ -1,5 +1,7 @@
 <!-- Encabezado principal -->
 <header class="header">
+    <!-- Asegurar carga de estilos del bloque admin -->
+    <link rel="stylesheet" href="/assets/css/admin-access.css">
     <!-- Barra de navegación principal -->
     <nav class="navbar">
         <!-- Logo -->
@@ -50,12 +52,21 @@
                 </div>
             </div>
             <!-- Botón rápido para acceder al panel de administradores -->
-            <div class="admin-access" id="adminAccess">
-                <a href="/admin/adminExpertos" target="_blank" class="btn btn-admin"
-                    title="Abrir panel de administradores">Admin</a>
+
+            <div class="admin-access" id="adminAccess" role="region" aria-label="Acceso administradores">
+                <a href="/admin/adminExpertos" target="_blank" rel="noopener noreferrer" class="btn btn-admin"
+                    id="adminPanelBtn" title="Abrir panel de administradores">
+                    <i class="fas fa-tools" aria-hidden="true"></i>
+                    <span class="btn-text">Admin</span>
+                </a>
+
                 <!-- Botón dev: solo renderiza si el servidor lo permite -->
                 <% if (typeof showDevAdmin !=='undefined' && showDevAdmin) { %>
-                    <button id="devAdminBtn" class="btn btn-outline">Entrar como admin (dev)</button>
+                    <button id="devAdminBtn" class="btn btn-outline"
+                        aria-label="Entrar como administrador (desarrollo)">
+                        <i class="fas fa-user-shield" aria-hidden="true"></i>
+                        <span class="sr-only">Entrar como admin (dev)</span>
+                    </button>
                     <% } %>
             </div>
         </div>
