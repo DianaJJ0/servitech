@@ -102,6 +102,21 @@ app.use((req, res, next) => {
   next();
 });
 
+// Expose a flag to views that indicates whether to show dev-only admin helpers.
+app.use((req, res, next) => {
+  try {
+    const explicit = String(process.env.SHOW_DEV_ADMIN || "").toLowerCase();
+    const isExplicitTrue = explicit === "true";
+    const isExplicitFalse = explicit === "false";
+    const isDevEnv =
+      String(process.env.NODE_ENV || "").toLowerCase() === "development";
+    res.locals.showDevAdmin = isExplicitTrue || (isDevEnv && !isExplicitFalse);
+  } catch (e) {
+    res.locals.showDevAdmin = false;
+  }
+  next();
+});
+
 // Simple endpoint to obtain CSRF token for fetch-based clients
 app.get("/csrf-token", (req, res) => {
   if (!req.session) return res.status(401).json({ mensaje: "No session" });
@@ -475,9 +490,81 @@ app.post("/set-session", (req, res) => {
           }
         }
 
+        // If we have an email but no password, and we're running in development,
+        // try to create/ensure a dev admin via backend dev route and obtain a valid token.
+        if (
+          usuario.email &&
+          !usuario.password &&
+          process.env.NODE_ENV !== "production"
+        ) {
+          try {
+            const fetch = (...args) =>
+              import("node-fetch").then(({ default: fetch }) => fetch(...args));
+            const devRes = await fetch(
+              "http://localhost:3000/api/dev/create-admin",
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: usuario.email }),
+              }
+            );
+            if (devRes.ok) {
+              const devBody = await devRes.json().catch(() => null);
+              if (
+                devBody &&
+                (devBody.token || (devBody.usuario && devBody.usuario.token))
+              ) {
+                const token =
+                  devBody.token ||
+                  (devBody.usuario && devBody.usuario.token) ||
+                  null;
+                req.session.user = Object.assign({}, usuario, {
+                  roles: usuario.roles ||
+                    (devBody.usuario && devBody.usuario.roles) || ["admin"],
+                  token,
+                });
+                console.log(
+                  "set-session: created/ensured dev admin and saved token for",
+                  usuario.email
+                );
+                return res.json({ ok: true, token, user: req.session.user });
+              }
+            } else {
+              console.warn("dev.create-admin failed", devRes.status);
+            }
+          } catch (e) {
+            console.warn("Error calling dev.create-admin:", e && e.message);
+          }
+        }
+
         // Fallback: store provided usuario object as-is (may include token)
+        // ONLY allow storing a raw usuario object without credentials when
+        // the server explicitly permits dev helpers (res.locals.showDevAdmin)
+        // or when env ALLOW_DEV_SET_SESSION=true. Otherwise reject to avoid
+        // allowing arbitrary session creation.
+        const allowDevSet =
+          (res &&
+            typeof res.locals !== "undefined" &&
+            res.locals.showDevAdmin) ||
+          String(process.env.ALLOW_DEV_SET_SESSION || "").toLowerCase() ===
+            "true";
+        if (!allowDevSet) {
+          console.warn(
+            "Blocked attempt to set raw session.usuario - dev helpers disabled"
+          );
+          return res
+            .status(403)
+            .json({ ok: false, mensaje: "Operación no permitida" });
+        }
+
         req.session.user = req.body.usuario;
-        return res.json({ ok: true });
+        try {
+          console.log("set-session: session established (fallback)", {
+            email: req.session.user && req.session.user.email,
+            roles: req.session.user && req.session.user.roles,
+          });
+        } catch (e) {}
+        return res.json({ ok: true, user: req.session.user });
       }
       res.status(400).json({ ok: false, mensaje: "Usuario no recibido" });
     } catch (err) {

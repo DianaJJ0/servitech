@@ -49,6 +49,15 @@
                             </button>
                 </div>
             </div>
+            <!-- Botón rápido para acceder al panel de administradores -->
+            <div class="admin-access" id="adminAccess">
+                <a href="/admin/adminExpertos" target="_blank" class="btn btn-admin"
+                    title="Abrir panel de administradores">Admin</a>
+                <!-- Botón dev: solo renderiza si el servidor lo permite -->
+                <% if (typeof showDevAdmin !=='undefined' && showDevAdmin) { %>
+                    <button id="devAdminBtn" class="btn btn-outline">Entrar como admin (dev)</button>
+                    <% } %>
+            </div>
         </div>
 
         <!-- Botón para mostrar/ocultar menú en móvil -->
