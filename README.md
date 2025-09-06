@@ -1,202 +1,212 @@
-# Servitech — Guía rápida: acceder al panel de administradores (admin)
+# SERVITECH 🔧
 
-Este documento explica, de forma clara y didáctica, los pasos necesarios para crear una sesión de administrador en un entorno de desarrollo local y abrir el panel de administración de expertos. Está pensado para usarse cuando tengas el backend en `:3000` y el frontend en `:3001`.
+> **Plataforma web para conectar usuarios con expertos en tecnología**
 
-Checklist rápido antes de empezar
+ServiTech es una aplicación full-stack que facilita la conexión entre usuarios que necesitan asesoría técnica y expertos calificados en tecnología. Permite agendar citas, gestionar perfiles, procesar pagos y administrar servicios de manera integral.
 
-Pasos para acceder (recomendado: en el navegador)
+[![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-brightgreen.svg)](https://www.mongodb.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-1. Arrancar los servidores
+---
 
-En dos terminales separados ejecuta:
+## 🎯 ¿Qué hace ServiTech?
+
+- **Conecta** usuarios con expertos en tecnología
+- **Facilita** el agendamiento de asesorías técnicas
+- **Gestiona** perfiles de usuarios y especialistas
+- **Procesa** pagos de forma segura
+- **Administra** servicios a través de panel web
+
+---
+
+## 🚀 Características
+
+### Para Usuarios
+- ✅ Registro y login seguro
+- 🔍 Búsqueda de expertos por especialidad
+- 📅 Agendamiento de citas en tiempo real
+- 💳 Pagos integrados y seguros
+- 📧 Notificaciones automáticas por email
+
+### Para Expertos
+- 📋 Gestión de perfil profesional
+- ⏰ Control de disponibilidad
+- 💼 Administración de servicios
+- 📊 Dashboard de citas y ganancias
+
+### Para Administradores
+- 🎛️ Panel de control completo
+- 👥 Gestión de usuarios y expertos
+- 📈 Estadísticas y reportes
+- ⚙️ Configuración del sistema
+
+---
+
+## 🛠️ Stack Tecnológico
+
+| Componente | Tecnología |
+|------------|------------|
+| **Backend** | Node.js + Express.js |
+| **Base de Datos** | MongoDB (Atlas) |
+| **Frontend** | EJS + CSS3 + JavaScript |
+| **Autenticación** | JWT + bcrypt |
+| **Emails** | Nodemailer |
+| **UI Framework** | Bootstrap |
+
+---
+
+## ⚡ Inicio Rápido
+
+### Prerrequisitos
+- Node.js 18+ y npm 9+
+- Git
+- Cuenta MongoDB Atlas (gratuita)
+
+### Instalación en 5 pasos
 
 ```bash
-# backend
-cd backend
-NODE_ENV=development node app.js
+# 1. Clonar repositorio
+git clone https://github.com/DianaJJ0/servitech.git
+cd servitech
 
-# frontend (IMPORTANTE: arrancar con API_KEY en el entorno para que el proxy inyecte x-api-key)
-cd frontend
-API_KEY=tu_api_key node server.js
+# 2. Instalar dependencias del backend
+cd backend && npm install
+
+# 3. Instalar dependencias del frontend
+cd ../frontend && npm install
+
+# 4. Configurar variables de entorno (ver INSTALL.md)
+# Crear backend/.env con tus datos de MongoDB y email
+
+# 5. Ejecutar aplicación
+cd ../backend && npm start
+# para admin:
+cd ../frontend && API_KEY=8g-X4JgECIPNcQ59tMN node server.js
 ```
 
-Nota: reemplaza `tu_api_key` por el valor correcto definido en tu `.env` o el que uses localmente.
+### Acceso
+- **🌐 Aplicación:** http://localhost:3001
+- **🔐 Panel Admin:** http://localhost:3001/admin
+- **📡 API:** http://localhost:3000
 
-# ServiTech — Guía de instalación y puesta en marcha
+> 📖 **¿Necesitas ayuda?** Ver [Manual de Instalación Completo](./INSTALL.md)
 
-Este README describe cómo instalar, configurar y ejecutar ServiTech en local. Contiene pasos para poner en marcha tanto el backend (API) como el frontend (servidor de vistas EJS), cómo crear una sesión admin de desarrollo y consejos de seguridad.
+---
 
-Índice
-
-## Resumen
-
-ServiTech está dividido en dos componentes principales:
-
-El frontend usa `express-session` para sesiones y el proxy reenvía Authorization y (si procede) inyecta `x-api-key` desde el servidor.
-
-## Requisitos
-
-## Estructura relevante del repo
+## 📁 Estructura del Proyecto
 
 ```
 servitech/
-  backend/
-    app.js
-    package.json
-    config/database.js
-    routes/
-    ...
-  frontend/
-    server.js
-    package.json
-    views/
-    assets/
-  .gitignore
-  README.md
+├── 🔧 backend/              # API REST + Lógica de negocio
+│   ├── app.js              # Servidor principal
+│   ├── controllers/        # Controladores MVC
+│   ├── models/            # Esquemas MongoDB
+│   ├── routes/            # Rutas API
+│   └── middleware/        # Autenticación & validación
+├── 🖥️ frontend/            # Interface de usuario
+│   ├── server.js          # Servidor frontend
+│   ├── views/             # Plantillas EJS
+│   └── assets/            # CSS, JS, imágenes
+├── 📋 INSTALL.md          # Manual técnico detallado
+└── 📄 README.md           # Este archivo
 ```
 
-## Variables de entorno
+---
 
-Coloca variables sensibles en `backend/.env` (no lo subas). Ejemplo mínimo:
+## 🔄 Flujo de Trabajo
 
-`backend/.env`:
+```mermaid
+graph TD
+    A[Usuario se registra] --> B[Busca expertos]
+    B --> C[Selecciona especialista]
+    C --> D[Agenda cita]
+    D --> E[Confirma pago]
+    E --> F[Recibe notificaciones]
+    F --> G[Realiza asesoría]
 
+    H[Experto se registra] --> I[Configura perfil]
+    I --> J[Define servicios]
+    J --> K[Gestiona agenda]
+    K --> L[Recibe solicitudes]
+    L --> G
 ```
-MONGO_URI=mongodb://localhost:27017/servitech
-JWT_SECRET=mi_jwt_secreto_dev
-PORT=3000
-NODE_ENV=development
-```
 
-`frontend` (opcional, puedes exportar la variable antes de arrancar):
+---
 
-```
-PORT=3001
-API_KEY=mi_api_key_secreta
-```
+## 🎮 Uso Básico
 
-## Instalación
+### Como Usuario
+1. **Registrarse** en http://localhost:3001/register
+2. **Explorar** expertos disponibles
+3. **Agendar** cita con el especialista
+4. **Pagar** y recibir confirmación
+5. **Conectar** en el horario acordado
 
-Instala dependencias por separado en `backend` y `frontend`:
+### Como Experto
+1. **Registrarse** como especialista
+2. **Completar** perfil profesional
+3. **Configurar** servicios y tarifas
+4. **Gestionar** disponibilidad
+5. **Atender** clientes agendados
 
+### Como Administrador
+1. **Acceder** al panel admin
+2. **Supervisar** usuarios y expertos
+3. **Gestionar** servicios y categorías
+4. **Monitorear** estadísticas
+5. **Configurar** parámetros del sistema
+
+---
+
+## 🚀 Deployment
+
+### Desarrollo Local
 ```bash
-# Backend
-cd /home/pc/Documentos/servitech/backend
-npm install
-
-# Frontend
-cd /home/pc/Documentos/servitech/frontend
-npm install
+npm run dev  # Si existe script de desarrollo
 ```
 
-## Ejecutar el backend
-
-Por defecto el backend usa `dotenv` y leerá `backend/.env`.
-
+### Producción
 ```bash
-cd /home/pc/Documentos/servitech/backend
-# modo desarrollo (si tienes nodemon)
-npm run dev
-# o producción / simple
+npm run build  # Si existe script de build
 npm start
 ```
 
-El backend escuchará en `http://localhost:3000` a menos que cambies `PORT`.
+> 🔧 **Configuración avanzada:** Ver [INSTALL.md](./INSTALL.md) para deployment en Windows/Linux
 
-## Ejecutar el frontend
+---
 
-El frontend sirve vistas EJS y el proxy para `/api`.
+## 🤝 Contribuir
 
-```bash
-cd /home/pc/Documentos/servitech/frontend
-# modo desarrollo
-npm run dev
-# o
-npm start
-```
+1. **Fork** el repositorio
+2. **Crear** rama feature (`git checkout -b feature/nueva-funcionalidad`)
+3. **Commit** cambios (`git commit -m 'Añadir nueva funcionalidad'`)
+4. **Push** a la rama (`git push origin feature/nueva-funcionalidad`)
+5. **Abrir** Pull Request
 
-Por defecto escucha en `http://localhost:3001`.
+---
 
-## Crear admin de desarrollo y obtener JWT
+## 📞 Soporte
 
-El proyecto puede incluir una ruta de desarrollo para crear un admin (en `backend/routes/dev.routes.js`) o un script en `backend/scripts`.
+| Canal | Enlace |
+|-------|--------|
+| 🐛 **Issues** | [GitHub Issues](https://github.com/DianaJJ0/servitech/issues) |
+| 📧 **Email** | servitech.app.correo@gmail.com |
+| 📚 **Documentación** | [Manual Completo](./INSTALL.md) |
+| 👩‍💻 **Autor** | [@DianaJJ0](https://github.com/DianaJJ0) |
 
-Ejemplo usando curl (si la ruta existe):
+---
 
-```bash
-curl -s -X POST http://localhost:3000/api/dev/create-admin \
-  -H "Content-Type: application/json" \
-  -d '{"email":"admin@test.com","password":"Password123!","nombre":"Admin Dev"}'
-```
+## 📄 Licencia
 
-Dependiendo de la implementación, el endpoint puede devolver el token en JSON o escribirlo en `/tmp/admin_token.txt`.
+Este proyecto está bajo la [Licencia MIT](LICENSE) - consulta el archivo LICENSE para más detalles.
 
-## Establecer sesión admin en el frontend
+---
 
-El frontend expone `/set-session` para establecer `req.session.user` durante desarrollo. Úsalo para simular sesión admin.
+<div align="center">
 
-Ejemplo con curl (constructor de sesión):
+**¿Necesitas ayuda técnica? ¡ServiTech te conecta con los mejores expertos! 🚀**
 
-```bash
-# Usando un JWT obtenido (opcional)
-curl -X POST http://localhost:3001/set-session \
-  -H "Content-Type: application/json" \
-  -d '{"usuario":{"roles":["admin"],"token":"TU_JWT_AQUI","email":"admin@test.com"}}'
-```
+[🌟 Dar una estrella](https://github.com/DianaJJ0/servitech) | [🐛 Reportar bug](https://github.com/DianaJJ0/servitech/issues) | [💡 Sugerir feature](https://github.com/DianaJJ0/servitech/issues)
 
-Alternativa: desde la consola del navegador (sitio en http://localhost:3001):
-
-```javascript
-fetch("/set-session", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ usuario: { roles: ["admin"], token: "TU_JWT_AQUI" } }),
-})
-  .then((r) => r.json())
-  .then(console.log);
-```
-
-Después abre la ruta del panel de admin:
-
-```
-http://localhost:3001/admin/adminExpertos
-```
-
-## Probar el proxy
-
-El frontend reenvía `/api/*` a `http://localhost:3000/api/*`. Hay una ruta de prueba:
-
-```bash
-curl http://localhost:3001/test-proxy
-# debe devolver {"message":"Proxy test route working"}
-```
-
-## Problemas comunes
-
-## Buenas prácticas de seguridad
-
-## Crear un `backend/.env.example` sugerido
-
-```
-# /backend/.env.example
-MONGO_URI=
-JWT_SECRET=
-PORT=3000
-NODE_ENV=development
-```
-
-## Consejos para desarrollo rápido
-
-```bash
-export MONGO_URI='mongodb://localhost:27017/servitech'
-export JWT_SECRET='mi_jwt_secreto_dev'
-export API_KEY='mi_api_key_local'   # si lo necesitas
-```
-
-## Contribuir
-
-Si quieres que cree `backend/.env.example` y lo añada al repo, o que prepare un pequeño script para automatizar la creación de la sesión admin en local, indícalo y lo implemento.
-
-Documentación generada para el repositorio ServiTech.
-
-# servitech
+</div>
