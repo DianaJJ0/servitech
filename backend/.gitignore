@@ -1,0 +1,7 @@
+# Excluir carpeta de backups (no subir al repositorio)
+backup/
+
+# Excluir archivos temporales de backup
+*.zip
+*.gz
+backup_*

@@ -8,6 +8,8 @@ const conectarDB = require("./config/database.js");
 const multer = require("multer");
 const upload = multer();
 const path = require("path");
+const backup = require("./config/backup.js"); // Importar el módulo de backup
+const cron = require("node-cron"); // Importar cron para programar tareas
 
 // se llaman todas las rutas
 const usuarioRoutes = require("./routes/usuario.routes.js");
