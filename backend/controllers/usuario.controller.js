@@ -12,6 +12,7 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const { enviarCorreo } = require("../services/email.service.js");
 const mongoose = require("mongoose");
+const { generateLog } = require("../services/logService.js"); // logs
 
 /**
  * Genera un token JWT para el usuario
@@ -146,6 +147,13 @@ const registrarUsuario = async (req, res) => {
     }
 
     await nuevoUsuario.save();
+
+    // Generar log de usuario registrado
+    generateLog(
+      "../logs/usuarios.log",
+      `${new Date().toISOString()} - Usuario registrado: ${email} (${nombre} ${apellido})\n`
+    );
+
     res.status(201).json({
       mensaje: "Usuario registrado exitosamente.",
       token: generarToken(nuevoUsuario._id),
@@ -161,6 +169,9 @@ const registrarUsuario = async (req, res) => {
   }
 };
 
+// Iniciar sesión
+// Si es exitoso, devuelve token JWT y datos básicos del usuario
+// El frontend usará el token para autenticación en futuras peticiones
 const iniciarSesion = async (req, res) => {
   const { email, password } = req.body;
   try {
