@@ -132,6 +132,7 @@ function setupUserInterface() {
   const authButtons = document.querySelector(".auth-buttons");
   const userMenu = document.getElementById("userMenuContainer");
   const navContainer = document.getElementById("navContainer");
+  const adminAccess = document.getElementById("adminAccess");
 
   if (usuarioRaw && token) {
     // Oculta login/registro
@@ -147,10 +148,11 @@ function setupUserInterface() {
       navContainer.classList.add("logged-in");
     }
   } else {
-    // Muestra login/registro, oculta menú usuario
+    // Muestra login/registro, oculta menú usuario y botón admin
     if (authButtons) authButtons.style.display = "flex";
     if (userMenu) userMenu.style.display = "none";
     if (navContainer) navContainer.classList.remove("logged-in");
+    if (adminAccess) adminAccess.style.display = "none";
   }
 }
 
@@ -244,12 +246,99 @@ function mostrarInfoUsuario() {
       userAvatar.textContent = iniciales;
     }
   }
+
+  // Mostrar/ocultar botón de admin según el rol del usuario
+  mostrarBotonAdmin(usuario);
+}
+
+// Función para mostrar/ocultar el botón de admin
+function mostrarBotonAdmin(usuario) {
+  const adminAccess = document.getElementById("adminAccess");
+  if (!adminAccess) return;
+
+  // Verificar si el usuario tiene rol de admin
+  const esAdmin =
+    usuario && Array.isArray(usuario.roles) && usuario.roles.includes("admin");
+
+  if (esAdmin) {
+    adminAccess.style.display = "block";
+    // Agregar event listener al botón de admin para verificar sesión antes de abrir
+    const adminPanelBtn = document.getElementById("adminPanelBtn");
+    if (adminPanelBtn && !adminPanelBtn.hasAttribute("data-listener")) {
+      adminPanelBtn.setAttribute("data-listener", "true");
+      adminPanelBtn.addEventListener("click", async function (e) {
+        e.preventDefault();
+        await verificarSesionYAbrirAdmin();
+      });
+    }
+  } else {
+    adminAccess.style.display = "none";
+  }
+}
+
+// Función para verificar la sesión del servidor antes de abrir el panel de admin
+async function verificarSesionYAbrirAdmin() {
+  try {
+    const token = localStorage.getItem("token");
+    const usuario = JSON.parse(localStorage.getItem("usuario") || "{}");
+
+    if (!token || !usuario.roles || !usuario.roles.includes("admin")) {
+      alert("No tienes permisos de administrador o tu sesión ha expirado.");
+      return;
+    }
+
+    // Establecer sesión en el servidor antes de navegar
+    try {
+      const response = await fetch("/set-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          usuario: {
+            _id: usuario._id,
+            email: usuario.email,
+            nombre: usuario.nombre,
+            apellido: usuario.apellido,
+            roles: usuario.roles,
+            token: token,
+          },
+        }),
+        credentials: "include",
+      });
+
+      const result = await response.json();
+      if (response.ok && result.ok) {
+        console.log("Sesión de admin establecida correctamente");
+        // Navegar al panel de admin
+        window.location.href = "/admin/adminExpertos";
+      } else {
+        console.error("Error al establecer sesión:", result);
+        alert(
+          "Error al establecer la sesión de administrador. Inicia sesión nuevamente."
+        );
+        window.location.href = "/login.html";
+      }
+    } catch (error) {
+      console.error("Error al establecer sesión:", error);
+      alert("Error de conexión. Inténtalo de nuevo.");
+    }
+  } catch (error) {
+    console.error("Error al verificar sesión de admin:", error);
+    alert("Error al verificar la sesión. Inicia sesión nuevamente.");
+    window.location.href = "/login.html";
+  }
 }
 
 // Cierra la sesión del usuario
 function logout() {
   localStorage.removeItem("token");
   localStorage.removeItem("usuario");
+
+  // Ocultar botón de admin al cerrar sesión
+  const adminAccess = document.getElementById("adminAccess");
+  if (adminAccess) adminAccess.style.display = "none";
+
   // Llama al backend para destruir la sesión
   fetch("/logout", { method: "POST", credentials: "include" }).finally(() => {
     window.location.href = "/";

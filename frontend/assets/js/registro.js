@@ -110,7 +110,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-
   function validarConfirmPassword() {
     if (!confirmPasswordInput.value.trim()) {
       confirmPasswordError.textContent = "Debes confirmar la contraseña.";
@@ -196,14 +195,23 @@ document.addEventListener("DOMContentLoaded", () => {
       '<i class="fas fa-spinner fa-spin"></i> Registrando...';
 
     try {
-      const response = await fetch(
-        "http://localhost:3000/api/usuarios/registro",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(datosRegistro),
-        }
-      );
+      // Obtener token CSRF
+      const csrfResponse = await fetch("/csrf-token", {
+        credentials: "include",
+      });
+      const csrfData = await csrfResponse.json();
+      const csrfToken = csrfData.csrfToken;
+
+      const headers = { "Content-Type": "application/json" };
+      if (csrfToken) {
+        headers["x-csrf-token"] = csrfToken;
+      }
+
+      const response = await fetch("/api/usuarios/registro", {
+        method: "POST",
+        headers: headers,
+        body: JSON.stringify(datosRegistro),
+      });
       const result = await response.json();
 
       if (!response.ok) {

@@ -34,14 +34,23 @@ document.addEventListener("DOMContentLoaded", function () {
       submitBtn.innerHTML =
         '<i class="fas fa-spinner fa-spin"></i> Enviando...';
       try {
-        const response = await fetch(
-          "http://localhost:3000/api/usuarios/recuperar-password",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email }),
-          }
-        );
+        // Obtener token CSRF
+        const csrfResponse = await fetch("/csrf-token", {
+          credentials: "include",
+        });
+        const csrfData = await csrfResponse.json();
+        const csrfToken = csrfData.csrfToken;
+
+        const headers = { "Content-Type": "application/json" };
+        if (csrfToken) {
+          headers["x-csrf-token"] = csrfToken;
+        }
+
+        const response = await fetch("/api/usuarios/recuperar-password", {
+          method: "POST",
+          headers: headers,
+          body: JSON.stringify({ email }),
+        });
         const result = await response.json();
         if (!response.ok)
           throw new Error(result.mensaje || "Error en el envío.");
@@ -83,14 +92,23 @@ document.addEventListener("DOMContentLoaded", function () {
       submitBtn.innerHTML =
         '<i class="fas fa-spinner fa-spin"></i> Actualizando...';
       try {
-        const response = await fetch(
-          "http://localhost:3000/api/usuarios/reset-password",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ token, newPassword }),
-          }
-        );
+        // Obtener token CSRF
+        const csrfResponse = await fetch("/csrf-token", {
+          credentials: "include",
+        });
+        const csrfData = await csrfResponse.json();
+        const csrfToken = csrfData.csrfToken;
+
+        const headers = { "Content-Type": "application/json" };
+        if (csrfToken) {
+          headers["x-csrf-token"] = csrfToken;
+        }
+
+        const response = await fetch("/api/usuarios/reset-password", {
+          method: "POST",
+          headers: headers,
+          body: JSON.stringify({ token, newPassword }),
+        });
         const result = await response.json();
         if (!response.ok)
           throw new Error(result.mensaje || "Error al actualizar.");
