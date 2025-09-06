@@ -10,8 +10,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // El servidor decide si debe mostrarse el botón; si llegó aquí, lo dejamos activo
     devBtn.style.display = "";
     devBtn.addEventListener("click", async () => {
+      // Preserve original content (icon + accessible text) so we don't remove it
+      const originalContent = devBtn.innerHTML;
       devBtn.disabled = true;
-      devBtn.textContent = "Entrando...";
+      devBtn.setAttribute("aria-busy", "true");
+      devBtn.innerHTML = "<span>Entrando...</span>";
       try {
         const payload = {
           usuario: {
@@ -73,7 +76,13 @@ document.addEventListener("DOMContentLoaded", () => {
         alert("Error al intentar iniciar sesión como admin. Revisa consola.");
       } finally {
         devBtn.disabled = false;
-        devBtn.textContent = "Entrar como admin (dev)";
+        devBtn.removeAttribute("aria-busy");
+        // restore original content (icon + sr-only text)
+        try {
+          devBtn.innerHTML = originalContent;
+        } catch (e) {
+          devBtn.textContent = "Entrar como admin (dev)";
+        }
       }
     });
   } catch (e) {
