@@ -19,10 +19,14 @@
     <!-- Estilos para componentes reutilizables en todo el sitio -->
     <link rel="stylesheet" href="/assets/css/base.css">
     <script src="/assets/js/index.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Iconos vectoriales para mejorar la interfaz visual -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Fuente Inter para una mejor legibilidad y estética -->
+    <% if (typeof showDevAdmin !=='undefined' && showDevAdmin) { %>
+        <script src="/assets/js/admin-button.js"></script>
+        <% } %>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+            <!-- Iconos vectoriales para mejorar la interfaz visual -->
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+                rel="stylesheet">
+            <!-- Fuente Inter para una mejor legibilidad y estética -->
 </head>
 
 <body>
@@ -77,10 +81,12 @@
                                 <span>
                                     Editar perfil
                                     <% if (user && user.nombre) { %>
-                                        — <strong><%= user.nombre %></strong>
-                                    <% } %>
+                                        — <strong>
+                                            <%= user.nombre %>
+                                        </strong>
+                                        <% } %>
                                 </span>
-                                </a>
+                            </a>
                             <% } else { %>
                                 <a href="/registroExperto.html" class="btn btn-secondary">
                                     <i class="fas fa-user-plus"></i> Registrarse como experto
