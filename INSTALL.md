@@ -1,35 +1,115 @@
-# Manual de Instalación y Puesta en Marcha – SERVITECH
+# 📋 Manual de Instalación Técnica - SERVITECH
+
+> **Guía completa para instalación, configuración y resolución de problemas**
+
+Este manual detalla paso a paso cómo instalar, configurar y poner en funcionamiento ServiTech en diferentes entornos, incluyendo solución de problemas comunes.
 
 ---
 
-## 1. Descripción General
+## 📋 Tabla de Contenidos
 
-ServiTech es una plataforma web para conectar usuarios con expertos en tecnología, permitiendo agendar asesorías, gestionar perfiles y realizar pagos seguros.
-Este manual detalla cómo preparar el entorno, instalar dependencias y activar el proyecto desde cero.
-
----
-
-## 2. Requisitos Previos
-
-### Hardware y Software
-
-- PC con Windows 10/11 o Linux (Ubuntu/Debian recomendado)
-- Al menos 2 GB de RAM, 1 GB libre en disco
-- Acceso a Internet (para dependencias y MongoDB Atlas)
-
-### Dependencias
-
-- **Node.js** >= 18.x
-- **npm** >= 9.x
-- **Git** >= 2.x
-- **MongoDB** (puede ser local o MongoDB Atlas)
+1. [Requisitos del Sistema](#-requisitos-del-sistema)
+2. [Instalación por SO](#-instalación-por-sistema-operativo)
+3. [Configuración de Base de Datos](#-configuración-de-base-de-datos)
+4. [Variables de Entorno](#-configuración-de-variables-de-entorno)
+5. [Inicialización de Servicios](#-inicialización-de-servicios)
+6. [Verificación de Instalación](#-verificación-de-instalación)
+7. [Configuración de Producción](#-configuración-de-producción)
+8. [Troubleshooting](#-solución-de-problemas)
+9. [Mantenimiento](#-mantenimiento)
 
 ---
 
-## 3. Clonación del Repositorio
+## 🔧 Requisitos del Sistema
 
-Abre la terminal/PowerShell y ejecuta:
+### Hardware Mínimo
+| Componente | Mínimo | Recomendado |
+|------------|--------|-------------|
+| **RAM** | 2 GB | 4 GB |
+| **Disco** | 1 GB libre | 5 GB libre |
+| **CPU** | Dual Core | Quad Core |
+| **Red** | 10 Mbps | 50 Mbps |
 
+### Software Requerido
+- **Node.js**: >= 18.0.0
+- **npm**: >= 9.0.0
+- **Git**: >= 2.30.0
+- **MongoDB**: Atlas (recomendado) o local >= 5.0
+
+### Verificar Versiones
+```bash
+node --version    # Debe mostrar v18.x.x o superior
+npm --version     # Debe mostrar 9.x.x o superior
+git --version     # Debe mostrar 2.x.x o superior
+```
+
+---
+
+## 🖥️ Instalación por Sistema Operativo
+
+### Windows 10/11
+
+#### 1. Instalar Node.js
+```powershell
+# Opción 1: Descargar desde nodejs.org
+# Opción 2: Usar winget
+winget install OpenJS.NodeJS
+
+# Opción 3: Usar Chocolatey
+choco install nodejs
+```
+
+#### 2. Instalar Git
+```powershell
+# Opción 1: Descargar desde git-scm.com
+# Opción 2: Usar winget
+winget install Git.Git
+```
+
+#### 3. Clonar Repositorio
+```powershell
+# Abrir PowerShell como administrador
+git clone https://github.com/DianaJJ0/servitech.git
+cd servitech
+```
+
+### Ubuntu/Debian Linux
+
+#### 1. Actualizar Sistema
+```bash
+sudo apt update && sudo apt upgrade -y
+```
+
+#### 2. Instalar Node.js (via NodeSource)
+```bash
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt-get install -y nodejs
+```
+
+#### 3. Instalar Git
+```bash
+sudo apt install git -y
+```
+
+#### 4. Clonar Repositorio
+```bash
+git clone https://github.com/DianaJJ0/servitech.git
+cd servitech
+```
+
+### CentOS/RHEL/Fedora
+
+#### 1. Instalar Node.js
+```bash
+# CentOS/RHEL
+curl -fsSL https://rpm.nodesource.com/setup_18.x | sudo bash -
+sudo yum install -y nodejs
+
+# Fedora
+sudo dnf install nodejs npm git -y
+```
+
+#### 2. Clonar Repositorio
 ```bash
 git clone https://github.com/DianaJJ0/servitech.git
 cd servitech
@@ -37,192 +117,149 @@ cd servitech
 
 ---
 
-## 4. Instalación de Dependencias
+## 🗄️ Configuración de Base de Datos
 
-### Backend
+### Opción 1: MongoDB Atlas (Recomendado)
 
-```bash
-cd backend
-npm install
+#### 1. Crear Cuenta
+1. Ir a [MongoDB Atlas](https://cloud.mongodb.com)
+2. Registrarse con email
+3. Crear cluster gratuito (M0)
+
+#### 2. Configurar Acceso
+1. **Database Access**: Crear usuario con permisos de lectura/escritura
+2. **Network Access**: Añadir `0.0.0.0/0` (para desarrollo) o IP específica
+3. **Connect**: Copiar URI de conexión
+
+#### 3. Obtener URI de Conexión
+```
+mongodb+srv://<usuario>:<contraseña>@cluster0.xxxxx.mongodb.net/servitech?retryWrites=true&w=majority
 ```
 
-### Frontend
+### Opción 2: MongoDB Local
 
+#### Windows
+```powershell
+# Descargar MongoDB Community desde mongodb.com
+# Instalar como servicio
+# URI de conexión: mongodb://localhost:27017/servitech
+```
+
+#### Linux
 ```bash
-cd ../frontend
-npm install
+# Ubuntu/Debian
+sudo apt install mongodb -y
+sudo systemctl start mongodb
+sudo systemctl enable mongodb
+
+# CentOS/RHEL
+sudo yum install mongodb-org -y
+sudo systemctl start mongod
+sudo systemctl enable mongod
 ```
 
 ---
 
-## 5. Configuración de la Base de Datos y Variables de Entorno
+## ⚙️ Configuración de Variables de Entorno
 
-### MongoDB
+### 1. Crear Archivo `.env`
 
-- Puedes usar **MongoDB Atlas** (recomendado) o local.
-- Si usas Atlas, crea una cuenta en [mongodb.com](https://cloud.mongodb.com).
-- Copia tu URI de conexión. Ejemplo:
-  ```
-  mongodb+srv://usuario:contraseña@cluster.mongodb.net/servitech
-  ```
-
-### Archivo `.env` en `backend/`
-
-Copia el archivo de ejemplo si existe:
+En la carpeta `backend/`, crear archivo `.env`:
 
 ```bash
-copy .env.example .env
+cd backend
+touch .env  # Linux/Mac
+echo. > .env  # Windows
 ```
 
-Edita el archivo `.env` en `backend/` con tus datos:
+### 2. Configurar Variables
+
+Editar `backend/.env` con tu editor favorito:
 
 ```ini
-# Puerto del backend
+# === CONFIGURACIÓN DEL SERVIDOR ===
 PORT=3000
-
-# URI de MongoDB (Atlas o local)
-MONGO_URI=mongodb+srv://usuario:contraseña@cluster.mongodb.net/servitech
-
-# Clave secreta JWT
-JWT_SECRET=TU_CLAVE_SECRETA_MUY_SEGURA
-
-# Entorno de ejecución
 NODE_ENV=development
 
-# Configuración de correo (Nodemailer)
+# === BASE DE DATOS ===
+MONGO_URI=mongodb+srv://usuario:contraseña@cluster.mongodb.net/servitech
+
+# === AUTENTICACIÓN ===
+JWT_SECRET=tu_clave_super_secreta_de_al_menos_32_caracteres
+JWT_EXPIRES_IN=7d
+
+# === CONFIGURACIÓN DE EMAIL ===
 EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=465
+EMAIL_SECURE=true
 EMAIL_USER=servitech.app.correo@gmail.com
-EMAIL_PASS=tu_contraseña_de_aplicacion
+EMAIL_PASS=tu_contraseña_de_aplicacion_gmail
 
-# URLs de la aplicación
+# === URLS DE LA APLICACIÓN ===
 APP_URL=http://localhost:3000
 FRONTEND_URL=http://localhost:3001
 
-# API Key (para rutas protegidas)
+# === SEGURIDAD ===
 API_KEY=8g-X4JgECIPNcQ59tMN
+BCRYPT_ROUNDS=12
+
+# === CONFIGURACIÓN DE ARCHIVOS ===
+UPLOAD_PATH=uploads
+MAX_FILE_SIZE=5242880
+
+# === CONFIGURACIÓN DE PAGOS (si aplica) ===
+STRIPE_SECRET_KEY=sk_test_xxxxx
+STRIPE_PUBLISHABLE_KEY=pk_test_xxxxx
 ```
 
-> **Nota:** Nunca subas tus datos sensibles al repositorio público.
+### 3. Configurar Gmail para Emails
+
+#### Habilitar Autenticación de 2 Factores
+1. Ir a [Cuenta de Google](https://myaccount.google.com)
+2. Seguridad → Verificación en 2 pasos → Activar
+
+#### Generar Contraseña de Aplicación
+1. Seguridad → Contraseñas de aplicaciones
+2. Seleccionar "Correo" y "Otro"
+3. Generar contraseña de 16 caracteres
+4. Usar esta contraseña en `EMAIL_PASS`
 
 ---
 
-## 6. Inicialización y Ejecución
+## 🚀 Inicialización de Servicios
 
-### 1. Iniciar el Backend
+### 1. Instalar Dependencias
 
+#### Backend
 ```bash
 cd backend
-npm start
+npm install
+
+# Verificar instalación
+npm ls --depth=0
 ```
 
-El backend corre por defecto en el puerto **3000**.
-
-### 2. Iniciar el Frontend
-
-Abre otra terminal:
-
+#### Frontend
 ```bash
-cd frontend
-node server.js
+cd ../frontend
+npm install
+
+# Verificar instalación
+npm ls --depth=0
 ```
 
-El frontend corre por defecto en el puerto **3001**.
+### 2. Verificar Archivos de Configuración
 
-> Importante (desarrollo local): para que el proxy del frontend inyecte la cabecera
-> `x-api-key` en las solicitudes hacia el backend (necesario para las operaciones
-> administrativas) debes iniciar el proceso del frontend con la variable de entorno
-> `API_KEY` definida. Ejemplo:
-
-```bash
-# desde la carpeta raíz del repo
-API_KEY=8g-X4JgECIPNcQ59tMN PORT=3001 node frontend/server.js
-```
-
-Si usas un servicio o systemd, añade `API_KEY` al env del servicio para producción.
-
----
-
-## 7. Acceso a la Aplicación
-
-- **Frontend (vistas EJS):** [http://localhost:3001](http://localhost:3001)
-- **Backend (API):** [http://localhost:3000](http://localhost:3000)
-
-Abre tu navegador y visita [http://localhost:3001](http://localhost:3001).
-
----
-
-## 8. Estructura de Carpetas
-
+#### Estructura esperada:
 ```
 servitech/
 ├── backend/
-│   ├── app.js
-│   ├── config/
-│   ├── controllers/
-│   ├── middleware/
-│   ├── models/
-│   ├── routes/
-│   ├── services/
-│   ├── package.json
-│   └── .env
+│   ├── .env ✅
+│   ├── package.json ✅
+│   ├── app.js ✅
+│   └── node_modules/ ✅
 ├── frontend/
-│   ├── server.js
-│   ├── assets/
-│   ├── views/
-│   ├── package.json
-├── install.md
-└── README.md
+│   ├── package.json ✅
+│   ├── server.js ✅
+│   └── node_modules/ ✅
 ```
-
----
-
-## 9. Versiones Recomendadas
-
-Verifica que tienes las versiones correctas:
-
-```bash
-node --version
-npm --version
-git --version
-```
-
----
-
-## 10. Problemas Frecuentes y Soluciones
-
-- **MongoDB no conecta:** Verifica la URI y que el servicio esté activo.
-- **Error de dependencias:** Ejecuta `npm install` en cada carpeta.
-- **Puerto ocupado:** Libera el puerto (Windows: `netstat -ano | findstr :3000` y `taskkill /PID <PID_NUMBER> /F`)
-- **Variables de entorno:** Revisa `.env` y que los datos estén correctos.
-- **Correo no se envía:** Verifica credenciales Gmail (EMAIL_USER y EMAIL_PASS).
-- **CORS:** Backend permite origen `http://localhost:3001` por defecto.
-
----
-
-## 11. Inicialización de Datos de Ejemplo (opcional)
-
-Si tienes un script de inicialización (por ejemplo, para datos de prueba):
-
-```bash
-cd backend
-node inicializar.js
-```
-
----
-
-## 12. Referencia de Arquitectura
-
-- **Backend:** Node.js + Express + MongoDB, estructura MVC, autenticación JWT.
-- **Frontend:** Express + EJS, vistas organizadas y componentes reutilizables.
-- **Servicios:** Email (Nodemailer) y API protegida por API Key.
-- **Seguridad:** Contraseñas cifradas (bcrypt), rutas protegidas, manejo de sesiones.
-
----
-
-## 13. Créditos y Licencia
-
-- Desarrollado por Diana Jiménez (@DianaJJ0)
-- Licencia: MIT
-
----
