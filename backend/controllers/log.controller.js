@@ -5,18 +5,21 @@
 const Log = require("../models/log.model.js");
 const Usuario = require("../models/usuario.model.js");
 
-// Crear log
+/**
+ * Registra un nuevo log en el sistema
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const crearLog = async (req, res) => {
   try {
     const datos = req.body;
     // Validar campos obligatorios
     if (!datos.usuarioId || !datos.email || !datos.tipo || !datos.descripcion) {
-      return res
-        .status(400)
-        .json({
-          mensaje:
-            "Faltan datos obligatorios: usuarioId, email, tipo, descripcion.",
-        });
+      return res.status(400).json({
+        mensaje:
+          "Faltan datos obligatorios: usuarioId, email, tipo, descripcion.",
+      });
     }
     // Verificar usuario real
     const usuario = await Usuario.findById(datos.usuarioId);
@@ -35,7 +38,12 @@ const crearLog = async (req, res) => {
   }
 };
 
-// Listar todos (solo admin)
+/**
+ * Lista todos los logs del sistema (solo admin)
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const obtenerLogs = async (req, res) => {
   try {
     const logs = await Log.find().sort({ createdAt: -1 });
@@ -47,7 +55,12 @@ const obtenerLogs = async (req, res) => {
   }
 };
 
-// Obtener log por ID
+/**
+ * Obtiene un log específico por ID
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const obtenerLogPorId = async (req, res) => {
   try {
     const log = await Log.findById(req.params.id);

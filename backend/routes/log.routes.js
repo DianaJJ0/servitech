@@ -8,10 +8,65 @@ const logController = require("../controllers/log.controller.js");
 const authMiddleware = require("../middleware/auth.middleware.js");
 const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
 
-// Registrar log (solo usuario autenticado, no requiere apikey)
+/**
+ * @swagger
+ * tags:
+ *   - name: Logs
+ *     description: Sistema de registro de eventos
+ */
+
+/**
+ * @swagger
+ * /api/logs:
+ *   post:
+ *     summary: Registrar log
+ *     tags: [Logs]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - usuarioId
+ *               - email
+ *               - tipo
+ *               - descripcion
+ *             properties:
+ *               usuarioId:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               tipo:
+ *                 type: string
+ *               descripcion:
+ *                 type: string
+ *               entidad:
+ *                 type: string
+ *               referenciaId:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Log registrado
+ *       400:
+ *         description: Datos faltantes
+ */
 router.post("/", authMiddleware.protect, logController.crearLog);
 
-// Listar todos los logs (admin + API Key)
+/**
+ * @swagger
+ * /api/logs:
+ *   get:
+ *     summary: Listar logs (admin)
+ *     tags: [Logs]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de logs
+ */
 router.get(
   "/",
   apiKeyMiddleware,
@@ -20,7 +75,26 @@ router.get(
   logController.obtenerLogs
 );
 
-// Obtener log por ID (admin + API Key)
+/**
+ * @swagger
+ * /api/logs/{id}:
+ *   get:
+ *     summary: Obtener log por ID (admin)
+ *     tags: [Logs]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Datos del log
+ *       404:
+ *         description: Log no encontrado
+ */
 router.get(
   "/:id",
   apiKeyMiddleware,

@@ -4,7 +4,12 @@
  */
 const Especialidad = require("../models/especialidad.model");
 
-// Listar todas las especialidades (GET público)
+/**
+ * Lista todas las especialidades
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const getAll = async (req, res) => {
   try {
     const especialidades = await Especialidad.find({});
@@ -14,7 +19,12 @@ const getAll = async (req, res) => {
   }
 };
 
-// Registrar nueva especialidad (POST protegido)
+/**
+ * Crea una nueva especialidad
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const create = async (req, res) => {
   try {
     const { nombre, descripcion } = req.body;
@@ -33,18 +43,21 @@ const create = async (req, res) => {
       descripcion: descripcion ? descripcion.trim() : "",
     });
     await nuevaEspecialidad.save();
-    res
-      .status(201)
-      .json({
-        mensaje: "Especialidad creada.",
-        especialidad: nuevaEspecialidad,
-      });
+    res.status(201).json({
+      mensaje: "Especialidad creada.",
+      especialidad: nuevaEspecialidad,
+    });
   } catch (err) {
     res.status(500).json({ mensaje: "Error al crear especialidad." });
   }
 };
 
-// Editar especialidad (PUT protegido)
+/**
+ * Actualiza una especialidad existente
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const update = async (req, res) => {
   try {
     const { nombre, descripcion } = req.body;
@@ -68,7 +81,12 @@ const update = async (req, res) => {
   }
 };
 
-// Eliminar especialidad (DELETE protegido)
+/**
+ * Elimina una especialidad por ID
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const remove = async (req, res) => {
   try {
     const especialidad = await Especialidad.findByIdAndDelete(req.params.id);

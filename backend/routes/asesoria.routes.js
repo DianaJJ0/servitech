@@ -8,17 +8,81 @@ const asesoriaController = require("../controllers/asesoria.controller.js");
 const authMiddleware = require("../middleware/auth.middleware.js");
 const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
 
-// Crear asesoría (protegido, solo usuario autenticado)
+/**
+ * @swagger
+ * tags:
+ *   - name: Asesorías
+ *     description: Gestión de asesorías y flujo de pagos
+ */
+
+/**
+ * @swagger
+ * /api/asesorias:
+ *   post:
+ *     summary: Crear nueva asesoría
+ *     tags: [Asesorías]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - titulo
+ *               - cliente
+ *               - experto
+ *               - categoria
+ *               - fechaHoraInicio
+ *               - duracionMinutos
+ *               - pago
+ *     responses:
+ *       201:
+ *         description: Asesoría creada exitosamente
+ *       400:
+ *         description: Datos faltantes o inválidos
+ */
 router.post("/", authMiddleware.protect, asesoriaController.crearAsesoria);
 
-// Finalizar asesoría y liberar pago (cliente autenticado)
+/**
+ * @swagger
+ * /api/asesorias/{id}/finalizar:
+ *   put:
+ *     summary: Finalizar asesoría y liberar pago
+ *     tags: [Asesorías]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Asesoría finalizada y pago liberado
+ *       404:
+ *         description: Asesoría no encontrada
+ */
 router.put(
   "/:id/finalizar",
   authMiddleware.protect,
   asesoriaController.finalizarAsesoria
 );
 
-// Listar todas (admin + API Key)
+/**
+ * @swagger
+ * /api/asesorias:
+ *   get:
+ *     summary: Listar todas las asesorías (admin)
+ *     tags: [Asesorías]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de asesorías
+ */
 router.get(
   "/",
   apiKeyMiddleware,
@@ -27,7 +91,24 @@ router.get(
   asesoriaController.listarAsesorias
 );
 
-// Listar por cliente (admin + API Key)
+/**
+ * @swagger
+ * /api/asesorias/cliente/{email}:
+ *   get:
+ *     summary: Listar asesorías por cliente (admin)
+ *     tags: [Asesorías]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: email
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Asesorías del cliente
+ */
 router.get(
   "/cliente/:email",
   apiKeyMiddleware,
@@ -36,7 +117,24 @@ router.get(
   asesoriaController.listarPorCliente
 );
 
-// Listar por experto (admin + API Key)
+/**
+ * @swagger
+ * /api/asesorias/experto/{email}:
+ *   get:
+ *     summary: Listar asesorías por experto (admin)
+ *     tags: [Asesorías]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: email
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Asesorías del experto
+ */
 router.get(
   "/experto/:email",
   apiKeyMiddleware,
@@ -45,7 +143,26 @@ router.get(
   asesoriaController.listarPorExperto
 );
 
-// Obtener por ID (admin + API Key)
+/**
+ * @swagger
+ * /api/asesorias/{id}:
+ *   get:
+ *     summary: Obtener asesoría por ID (admin)
+ *     tags: [Asesorías]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Datos de la asesoría
+ *       404:
+ *         description: Asesoría no encontrada
+ */
 router.get(
   "/:id",
   apiKeyMiddleware,
@@ -54,7 +171,18 @@ router.get(
   asesoriaController.obtenerAsesoriaPorId
 );
 
-// Estadísticas de reseñas (admin + API Key)
+/**
+ * @swagger
+ * /api/asesorias/estadisticas/resenas:
+ *   get:
+ *     summary: Estadísticas de reseñas (admin)
+ *     tags: [Asesorías]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Estadísticas de reseñas por experto
+ */
 router.get(
   "/estadisticas/resenas",
   apiKeyMiddleware,
@@ -63,7 +191,26 @@ router.get(
   asesoriaController.estadisticasResenas
 );
 
-// Actualizar por ID (admin + API Key)
+/**
+ * @swagger
+ * /api/asesorias/{id}:
+ *   put:
+ *     summary: Actualizar asesoría (admin)
+ *     tags: [Asesorías]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Asesoría actualizada
+ *       404:
+ *         description: Asesoría no encontrada
+ */
 router.put(
   "/:id",
   apiKeyMiddleware,
@@ -72,7 +219,24 @@ router.put(
   asesoriaController.actualizarAsesoria
 );
 
-// Recalcular promedio para un experto por email (admin + API Key)
+/**
+ * @swagger
+ * /api/asesorias/recalcular/{email}:
+ *   post:
+ *     summary: Recalcular promedio de calificaciones por experto (admin)
+ *     tags: [Asesorías]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: email
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Recálculo iniciado
+ */
 router.post(
   "/recalcular/:email",
   apiKeyMiddleware,
@@ -81,7 +245,26 @@ router.post(
   asesoriaController.recalcularPromedioEndpoint
 );
 
-// Eliminar por ID (admin + API Key)
+/**
+ * @swagger
+ * /api/asesorias/{id}:
+ *   delete:
+ *     summary: Eliminar asesoría (admin)
+ *     tags: [Asesorías]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Asesoría eliminada
+ *       404:
+ *         description: Asesoría no encontrada
+ */
 router.delete(
   "/:id",
   apiKeyMiddleware,

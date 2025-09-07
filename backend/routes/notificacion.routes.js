@@ -8,14 +8,66 @@ const notificacionController = require("../controllers/notificacion.controller.j
 const authMiddleware = require("../middleware/auth.middleware.js");
 const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
 
-// Registrar notificación (solo usuario autenticado, no requiere apikey)
+/**
+ * @swagger
+ * tags:
+ *   - name: Notificaciones
+ *     description: Sistema de notificaciones a usuarios
+ */
+
+/**
+ * @swagger
+ * /api/notificaciones:
+ *   post:
+ *     summary: Registrar notificación
+ *     tags: [Notificaciones]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - usuarioId
+ *               - email
+ *               - tipo
+ *             properties:
+ *               usuarioId:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               tipo:
+ *                 type: string
+ *               asunto:
+ *                 type: string
+ *               mensaje:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Notificación registrada
+ *       400:
+ *         description: Datos faltantes
+ */
 router.post(
   "/",
   authMiddleware.protect,
   notificacionController.crearNotificacion
 );
 
-// Listar notificaciones (admin + API Key)
+/**
+ * @swagger
+ * /api/notificaciones:
+ *   get:
+ *     summary: Listar notificaciones (admin)
+ *     tags: [Notificaciones]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de notificaciones
+ */
 router.get(
   "/",
   apiKeyMiddleware,
@@ -24,7 +76,26 @@ router.get(
   notificacionController.obtenerNotificaciones
 );
 
-// Obtener notificación por ID (admin + API Key)
+/**
+ * @swagger
+ * /api/notificaciones/{id}:
+ *   get:
+ *     summary: Obtener notificación por ID (admin)
+ *     tags: [Notificaciones]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Datos de la notificación
+ *       404:
+ *         description: Notificación no encontrada
+ */
 router.get(
   "/:id",
   apiKeyMiddleware,

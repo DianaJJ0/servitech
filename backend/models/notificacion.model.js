@@ -1,9 +1,22 @@
 /**
- * MODELO DE NOTIFICACIÓN - SERVITECH
- * Registra emails, alertas y notificaciones enviadas a los usuarios.
+ * @file Modelo de Notificación
+ * @module models/notificacion
+ * @description Define el esquema para registrar notificaciones enviadas a usuarios
  */
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
+
+/**
+ * @typedef {Object} Notificacion
+ * @property {ObjectId} usuarioId - ID del usuario destinatario
+ * @property {string} email - Email del destinatario
+ * @property {string} tipo - Tipo de notificación: email, sms, push
+ * @property {string} asunto - Asunto del mensaje
+ * @property {string} mensaje - Contenido del mensaje
+ * @property {Object} relacionadoCon - Referencia a entidad relacionada
+ * @property {string} estado - Estado: pendiente, enviado, fallido
+ * @property {Date} fechaEnvio - Fecha de envío de la notificación
+ */
 
 const notificacionSchema = new Schema(
   {

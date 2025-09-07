@@ -23,6 +23,12 @@ const generarToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "2d" });
 };
 
+/**
+ * Registra un nuevo usuario en el sistema
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const registrarUsuario = async (req, res) => {
   const { nombre, apellido, email, password, roles, infoExperto } = req.body;
   try {
@@ -169,9 +175,12 @@ const registrarUsuario = async (req, res) => {
   }
 };
 
-// Iniciar sesión
-// Si es exitoso, devuelve token JWT y datos básicos del usuario
-// El frontend usará el token para autenticación en futuras peticiones
+/**
+ * Autentica un usuario y genera sesión
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const iniciarSesion = async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -221,6 +230,12 @@ const iniciarSesion = async (req, res) => {
   }
 };
 
+/**
+ * Obtiene el perfil del usuario autenticado
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const obtenerPerfilUsuario = async (req, res) => {
   try {
     const usuario = await Usuario.findById(req.usuario._id).select(
@@ -297,6 +312,12 @@ const obtenerPerfilUsuario = async (req, res) => {
   }
 };
 
+/**
+ * Lista usuarios con filtros y paginación (solo admin)
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const obtenerUsuarios = async (req, res) => {
   try {
     const {
@@ -344,6 +365,12 @@ const obtenerUsuarios = async (req, res) => {
   }
 };
 
+/**
+ * Solicita recuperación de contraseña por email
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const solicitarRecuperacionPassword = async (req, res) => {
   const { email } = req.body;
   try {
@@ -377,6 +404,12 @@ const solicitarRecuperacionPassword = async (req, res) => {
   }
 };
 
+/**
+ * Restablece contraseña usando token de recuperación
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const resetearPassword = async (req, res) => {
   const { token, newPassword } = req.body;
   try {
@@ -399,6 +432,12 @@ const resetearPassword = async (req, res) => {
   }
 };
 
+/**
+ * Actualiza perfil del usuario autenticado
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const actualizarPerfilUsuario = async (req, res) => {
   try {
     const datos = req.body;
@@ -496,7 +535,12 @@ const actualizarPerfilUsuario = async (req, res) => {
   }
 };
 
-// Eliminar usuario propio
+/**
+ * Desactiva cuenta del usuario autenticado
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const eliminarUsuarioPropio = async (req, res) => {
   try {
     const usuarioId = req.usuario._id;
@@ -515,6 +559,12 @@ const eliminarUsuarioPropio = async (req, res) => {
   }
 };
 
+/**
+ * Desactiva usuario por admin
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const eliminarUsuarioPorAdmin = async (req, res) => {
   try {
     const usuarioId = req.params.id;
@@ -533,6 +583,12 @@ const eliminarUsuarioPorAdmin = async (req, res) => {
   }
 };
 
+/**
+ * Actualiza usuario por email (solo admin)
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const actualizarUsuarioPorEmailAdmin = async (req, res) => {
   try {
     const email = req.params.email;
@@ -694,6 +750,12 @@ const actualizarUsuarioPorEmailAdmin = async (req, res) => {
   }
 };
 
+/**
+ * Obtiene usuario por email (solo admin)
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const obtenerUsuarioPorEmailAdmin = async (req, res) => {
   try {
     const email = req.params.email;

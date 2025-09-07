@@ -1,9 +1,15 @@
 /**
- * Modelo Habilidad Tecnológica
- * Representa una habilidad específica dentro del sector tecnológico (ej: JavaScript, Python, TensorFlow, etc.)
- * Usado para el registro de expertos y gestión de perfiles.
+ * @file Modelo de Habilidad Tecnológica
+ * @module models/habilidad
+ * @description Define el esquema para habilidades específicas del sector tecnológico
  */
 const mongoose = require("mongoose");
+
+/**
+ * @typedef {Object} Habilidad
+ * @property {string} nombre - Nombre único de la habilidad (ej: JavaScript, Python, TensorFlow)
+ * @property {string} descripcion - Descripción opcional de la habilidad
+ */
 
 const HabilidadSchema = new mongoose.Schema({
   nombre: {
