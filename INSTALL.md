@@ -23,20 +23,23 @@ Este manual detalla paso a paso cómo instalar, configurar y poner en funcionami
 ## 🔧 Requisitos del Sistema
 
 ### Hardware Mínimo
-| Componente | Mínimo | Recomendado |
-|------------|--------|-------------|
-| **RAM** | 2 GB | 4 GB |
-| **Disco** | 1 GB libre | 5 GB libre |
-| **CPU** | Dual Core | Quad Core |
-| **Red** | 10 Mbps | 50 Mbps |
+
+| Componente | Mínimo     | Recomendado |
+| ---------- | ---------- | ----------- |
+| **RAM**    | 2 GB       | 4 GB        |
+| **Disco**  | 1 GB libre | 5 GB libre  |
+| **CPU**    | Dual Core  | Quad Core   |
+| **Red**    | 10 Mbps    | 50 Mbps     |
 
 ### Software Requerido
+
 - **Node.js**: >= 18.0.0
 - **npm**: >= 9.0.0
 - **Git**: >= 2.30.0
 - **MongoDB**: Atlas (recomendado) o local >= 5.0
 
 ### Verificar Versiones
+
 ```bash
 node --version    # Debe mostrar v18.x.x o superior
 npm --version     # Debe mostrar 9.x.x o superior
@@ -50,6 +53,7 @@ git --version     # Debe mostrar 2.x.x o superior
 ### Windows 10/11
 
 #### 1. Instalar Node.js
+
 ```powershell
 # Opción 1: Descargar desde nodejs.org
 # Opción 2: Usar winget
@@ -60,6 +64,7 @@ choco install nodejs
 ```
 
 #### 2. Instalar Git
+
 ```powershell
 # Opción 1: Descargar desde git-scm.com
 # Opción 2: Usar winget
@@ -67,6 +72,7 @@ winget install Git.Git
 ```
 
 #### 3. Clonar Repositorio
+
 ```powershell
 # Abrir PowerShell como administrador
 git clone https://github.com/DianaJJ0/servitech.git
@@ -76,22 +82,26 @@ cd servitech
 ### Ubuntu/Debian Linux
 
 #### 1. Actualizar Sistema
+
 ```bash
 sudo apt update && sudo apt upgrade -y
 ```
 
 #### 2. Instalar Node.js (via NodeSource)
+
 ```bash
 curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
 sudo apt-get install -y nodejs
 ```
 
 #### 3. Instalar Git
+
 ```bash
 sudo apt install git -y
 ```
 
 #### 4. Clonar Repositorio
+
 ```bash
 git clone https://github.com/DianaJJ0/servitech.git
 cd servitech
@@ -100,6 +110,7 @@ cd servitech
 ### CentOS/RHEL/Fedora
 
 #### 1. Instalar Node.js
+
 ```bash
 # CentOS/RHEL
 curl -fsSL https://rpm.nodesource.com/setup_18.x | sudo bash -
@@ -110,6 +121,7 @@ sudo dnf install nodejs npm git -y
 ```
 
 #### 2. Clonar Repositorio
+
 ```bash
 git clone https://github.com/DianaJJ0/servitech.git
 cd servitech
@@ -122,16 +134,19 @@ cd servitech
 ### Opción 1: MongoDB Atlas (Recomendado)
 
 #### 1. Crear Cuenta
+
 1. Ir a [MongoDB Atlas](https://cloud.mongodb.com)
 2. Registrarse con email
 3. Crear cluster gratuito (M0)
 
 #### 2. Configurar Acceso
+
 1. **Database Access**: Crear usuario con permisos de lectura/escritura
 2. **Network Access**: Añadir `0.0.0.0/0` (para desarrollo) o IP específica
 3. **Connect**: Copiar URI de conexión
 
 #### 3. Obtener URI de Conexión
+
 ```
 mongodb+srv://<usuario>:<contraseña>@cluster0.xxxxx.mongodb.net/servitech?retryWrites=true&w=majority
 ```
@@ -139,6 +154,7 @@ mongodb+srv://<usuario>:<contraseña>@cluster0.xxxxx.mongodb.net/servitech?retry
 ### Opción 2: MongoDB Local
 
 #### Windows
+
 ```powershell
 # Descargar MongoDB Community desde mongodb.com
 # Instalar como servicio
@@ -146,6 +162,7 @@ mongodb+srv://<usuario>:<contraseña>@cluster0.xxxxx.mongodb.net/servitech?retry
 ```
 
 #### Linux
+
 ```bash
 # Ubuntu/Debian
 sudo apt install mongodb -y
@@ -215,10 +232,12 @@ STRIPE_PUBLISHABLE_KEY=pk_test_xxxxx
 ### 3. Configurar Gmail para Emails
 
 #### Habilitar Autenticación de 2 Factores
+
 1. Ir a [Cuenta de Google](https://myaccount.google.com)
 2. Seguridad → Verificación en 2 pasos → Activar
 
 #### Generar Contraseña de Aplicación
+
 1. Seguridad → Contraseñas de aplicaciones
 2. Seleccionar "Correo" y "Otro"
 3. Generar contraseña de 16 caracteres
@@ -231,6 +250,7 @@ STRIPE_PUBLISHABLE_KEY=pk_test_xxxxx
 ### 1. Instalar Dependencias
 
 #### Backend
+
 ```bash
 cd backend
 npm install
@@ -240,6 +260,7 @@ npm ls --depth=0
 ```
 
 #### Frontend
+
 ```bash
 cd ../frontend
 npm install
@@ -251,6 +272,7 @@ npm ls --depth=0
 ### 2. Verificar Archivos de Configuración
 
 #### Estructura esperada:
+
 ```
 servitech/
 ├── backend/
