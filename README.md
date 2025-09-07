@@ -23,6 +23,7 @@ ServiTech es una aplicación full-stack que facilita la conexión entre usuarios
 ## 🚀 Características
 
 ### Para Usuarios
+
 - ✅ Registro y login seguro
 - 🔍 Búsqueda de expertos por especialidad
 - 📅 Agendamiento de citas en tiempo real
@@ -30,12 +31,14 @@ ServiTech es una aplicación full-stack que facilita la conexión entre usuarios
 - 📧 Notificaciones automáticas por email
 
 ### Para Expertos
+
 - 📋 Gestión de perfil profesional
 - ⏰ Control de disponibilidad
 - 💼 Administración de servicios
 - 📊 Dashboard de citas y ganancias
 
 ### Para Administradores
+
 - 🎛️ Panel de control completo
 - 👥 Gestión de usuarios y expertos
 - 📈 Estadísticas y reportes
@@ -45,20 +48,21 @@ ServiTech es una aplicación full-stack que facilita la conexión entre usuarios
 
 ## 🛠️ Stack Tecnológico
 
-| Componente | Tecnología |
-|------------|------------|
-| **Backend** | Node.js + Express.js |
-| **Base de Datos** | MongoDB (Atlas) |
-| **Frontend** | EJS + CSS3 + JavaScript |
-| **Autenticación** | JWT + bcrypt |
-| **Emails** | Nodemailer |
-| **UI Framework** | Bootstrap |
+| Componente        | Tecnología              |
+| ----------------- | ----------------------- |
+| **Backend**       | Node.js + Express.js    |
+| **Base de Datos** | MongoDB (Atlas)         |
+| **Frontend**      | EJS + CSS3 + JavaScript |
+| **Autenticación** | JWT + bcrypt            |
+| **Emails**        | Nodemailer              |
+| **UI Framework**  | Bootstrap               |
 
 ---
 
 ## ⚡ Inicio Rápido
 
 ### Prerrequisitos
+
 - Node.js 18+ y npm 9+
 - Git
 - Cuenta MongoDB Atlas (gratuita)
@@ -86,6 +90,7 @@ cd ../frontend && API_KEY=8g-X4JgECIPNcQ59tMN node server.js
 ```
 
 ### Acceso
+
 - **🌐 Aplicación:** http://localhost:3001
 - **🔐 Panel Admin:** http://localhost:3001/admin
 - **📡 API:** http://localhost:3000
@@ -137,6 +142,7 @@ graph TD
 ## 🎮 Uso Básico
 
 ### Como Usuario
+
 1. **Registrarse** en http://localhost:3001/register
 2. **Explorar** expertos disponibles
 3. **Agendar** cita con el especialista
@@ -144,6 +150,7 @@ graph TD
 5. **Conectar** en el horario acordado
 
 ### Como Experto
+
 1. **Registrarse** como especialista
 2. **Completar** perfil profesional
 3. **Configurar** servicios y tarifas
@@ -151,6 +158,7 @@ graph TD
 5. **Atender** clientes agendados
 
 ### Como Administrador
+
 1. **Acceder** al panel admin
 2. **Supervisar** usuarios y expertos
 3. **Gestionar** servicios y categorías
@@ -162,11 +170,13 @@ graph TD
 ## 🚀 Deployment
 
 ### Desarrollo Local
+
 ```bash
 npm run dev  # Si existe script de desarrollo
 ```
 
 ### Producción
+
 ```bash
 npm run build  # Si existe script de build
 npm start
@@ -188,12 +198,12 @@ npm start
 
 ## 📞 Soporte
 
-| Canal | Enlace |
-|-------|--------|
-| 🐛 **Issues** | [GitHub Issues](https://github.com/DianaJJ0/servitech/issues) |
-| 📧 **Email** | servitech.app.correo@gmail.com |
-| 📚 **Documentación** | [Manual Completo](./INSTALL.md) |
-| 👩‍💻 **Autor** | [@DianaJJ0](https://github.com/DianaJJ0) |
+| Canal                | Enlace                                                        |
+| -------------------- | ------------------------------------------------------------- |
+| 🐛 **Issues**        | [GitHub Issues](https://github.com/DianaJJ0/servitech/issues) |
+| 📧 **Email**         | servitech.app.correo@gmail.com                                |
+| 📚 **Documentación** | [Manual Completo](./INSTALL.md)                               |
+| 👩‍💻 **Autor**         | [@DianaJJ0](https://github.com/DianaJJ0)                      |
 
 ---
 
