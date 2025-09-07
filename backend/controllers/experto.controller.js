@@ -6,7 +6,12 @@ const Usuario = require("../models/usuario.model.js");
 const Especialidad = require("../models/especialidad.model.js");
 const mongoose = require("mongoose");
 
-// Listar expertos con paginación y filtros
+/**
+ * Lista expertos con paginación y filtros avanzados
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const listarExpertos = async (req, res) => {
   try {
     // parsear y normalizar parámetros de paginación y filtros
@@ -156,7 +161,12 @@ const listarExpertos = async (req, res) => {
   }
 };
 
-// Obtener experto individual por email (solo para admin)
+/**
+ * Obtiene un experto individual por email (solo admin)
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const obtenerExpertoPorEmail = async (req, res) => {
   try {
     const email = req.params.email;
@@ -173,7 +183,12 @@ const obtenerExpertoPorEmail = async (req, res) => {
   }
 };
 
-// Eliminar experto por email (solo para admin)
+/**
+ * Elimina un experto por email (solo admin)
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const eliminarExpertoPorEmail = async (req, res) => {
   try {
     const email = req.params.email;
@@ -189,7 +204,12 @@ const eliminarExpertoPorEmail = async (req, res) => {
   }
 };
 
-// Editar perfil de experto autenticado
+/**
+ * Actualiza el perfil de experto autenticado
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const actualizarPerfilExperto = async (req, res) => {
   try {
     // Verificar autenticación

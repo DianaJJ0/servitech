@@ -1,9 +1,25 @@
 /**
- * MODELO DE PAGO - SERVITECH
- * Registra los pagos asociados a asesorías, clientes y expertos.
+ * @file Modelo de Pago
+ * @module models/pago
+ * @description Define el esquema para registrar pagos asociados a asesorías
  */
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
+
+/**
+ * @typedef {Object} Pago
+ * @property {ObjectId} asesoriaId - ID de la asesoría asociada
+ * @property {ObjectId} clienteId - ID del cliente que paga
+ * @property {ObjectId} expertoId - ID del experto que recibe el pago
+ * @property {number} monto - Cantidad pagada
+ * @property {string} moneda - Moneda del pago (default: COP)
+ * @property {string} metodo - Método de pago utilizado
+ * @property {string} estado - Estado del pago: pendiente, retenido, liberado, reembolsado, fallido
+ * @property {Date} fechaPago - Fecha en que se realizó el pago
+ * @property {Date} fechaLiberacion - Fecha en que se liberó el pago al experto
+ * @property {string} transaccionId - ID de transacción externa
+ * @property {Object} detalles - Información adicional de la pasarela de pago
+ */
 
 const pagoSchema = new Schema(
   {

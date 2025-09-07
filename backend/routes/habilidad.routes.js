@@ -9,10 +9,52 @@ const habilidadController = require("../controllers/habilidad.controller");
 const authMiddleware = require("../middleware/auth.middleware.js");
 const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
 
-// GET público (listar habilidades)
+/**
+ * @swagger
+ * tags:
+ *   - name: Habilidades
+ *     description: Gestión de habilidades tecnológicas
+ */
+
+/**
+ * @swagger
+ * /api/habilidades:
+ *   get:
+ *     summary: Listar habilidades
+ *     tags: [Habilidades]
+ *     responses:
+ *       200:
+ *         description: Lista de habilidades
+ */
 router.get("/", habilidadController.getAll);
 
-// POST - crear habilidad (admin, API Key)
+/**
+ * @swagger
+ * /api/habilidades:
+ *   post:
+ *     summary: Crear habilidad (admin)
+ *     tags: [Habilidades]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - nombre
+ *             properties:
+ *               nombre:
+ *                 type: string
+ *               descripcion:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Habilidad creada
+ *       409:
+ *         description: Habilidad ya existe
+ */
 router.post(
   "/",
   apiKeyMiddleware,
@@ -21,7 +63,26 @@ router.post(
   habilidadController.create
 );
 
-// PUT - editar habilidad (admin, API Key)
+/**
+ * @swagger
+ * /api/habilidades/{id}:
+ *   put:
+ *     summary: Actualizar habilidad (admin)
+ *     tags: [Habilidades]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Habilidad actualizada
+ *       404:
+ *         description: Habilidad no encontrada
+ */
 router.put(
   "/:id",
   apiKeyMiddleware,
@@ -30,7 +91,26 @@ router.put(
   habilidadController.update
 );
 
-// DELETE - eliminar habilidad (admin, API Key)
+/**
+ * @swagger
+ * /api/habilidades/{id}:
+ *   delete:
+ *     summary: Eliminar habilidad (admin)
+ *     tags: [Habilidades]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Habilidad eliminada
+ *       404:
+ *         description: Habilidad no encontrada
+ */
 router.delete(
   "/:id",
   apiKeyMiddleware,

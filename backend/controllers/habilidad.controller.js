@@ -4,7 +4,12 @@
  */
 const Habilidad = require("../models/habilidad.model");
 
-// Listar todas las habilidades (GET público)
+/**
+ * Lista todas las habilidades
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const getAll = async (req, res) => {
   try {
     const habilidades = await Habilidad.find({});
@@ -14,7 +19,12 @@ const getAll = async (req, res) => {
   }
 };
 
-// Registrar nueva habilidad (POST protegido)
+/**
+ * Crea una nueva habilidad
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const create = async (req, res) => {
   try {
     const { nombre, descripcion } = req.body;
@@ -41,7 +51,12 @@ const create = async (req, res) => {
   }
 };
 
-// Editar habilidad (PUT protegido)
+/**
+ * Actualiza una habilidad existente
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const update = async (req, res) => {
   try {
     const { nombre, descripcion } = req.body;
@@ -63,7 +78,12 @@ const update = async (req, res) => {
   }
 };
 
-// Eliminar habilidad (DELETE protegido)
+/**
+ * Elimina una habilidad por ID
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const remove = async (req, res) => {
   try {
     const habilidad = await Habilidad.findByIdAndDelete(req.params.id);

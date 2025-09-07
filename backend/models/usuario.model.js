@@ -1,11 +1,29 @@
 /**
- * MODELO DE USUARIO - SERVITECH
- * Define el esquema de Mongoose para los usuarios, incluyendo la lógica
- * de encriptación y comparación de contraseñas mediante un campo VIRTUAL.
+ * @file Modelo de Usuario
+ * @module models/usuario
+ * @description Define el esquema de Mongoose para usuarios con roles, autenticación y perfil de experto
  */
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const { Schema } = mongoose;
+
+/**
+ * @typedef {Object} InfoExperto
+ * @property {string} especialidad - Especialidad tecnológica del experto
+ * @property {string} descripcion - Descripción del perfil profesional
+ * @property {Array<ObjectId>} categorias - Referencias a categorías de especialización
+ * @property {number} precioPorHora - Tarifa por hora en COP
+ * @property {Array<string>} skills - Habilidades técnicas
+ * @property {Object} horario - Horario de disponibilidad flexible
+ * @property {string} banco - Entidad bancaria
+ * @property {string} tipoCuenta - Tipo de cuenta bancaria
+ * @property {string} numeroCuenta - Número de cuenta bancaria
+ * @property {string} titular - Titular de la cuenta
+ * @property {string} tipoDocumento - Tipo de documento de identidad
+ * @property {string} numeroDocumento - Número de documento
+ * @property {string} telefonoContacto - Teléfono de contacto
+ * @property {Array<string>} diasDisponibles - Días disponibles para asesorías
+ */
 
 // Sub-esquema para la información específica de un experto.
 const expertoSubSchema = new Schema({
@@ -28,6 +46,22 @@ const expertoSubSchema = new Schema({
   telefonoContacto: { type: String, trim: true },
   diasDisponibles: [{ type: String, trim: true }],
 });
+
+/**
+ * @typedef {Object} Usuario
+ * @property {string} email - Email único del usuario
+ * @property {string} nombre - Nombre del usuario
+ * @property {string} apellido - Apellido del usuario
+ * @property {string} passwordHash - Contraseña hasheada (no accesible directamente)
+ * @property {string} avatarUrl - URL del avatar del usuario
+ * @property {Array<string>} roles - Roles del usuario: cliente, experto, admin
+ * @property {string} estado - Estado de la cuenta: activo, inactivo, suspendido, pendiente-verificacion
+ * @property {InfoExperto} infoExperto - Información adicional si es experto
+ * @property {number} calificacion - Promedio de calificaciones (0-5)
+ * @property {number} calificacionesCount - Cantidad de reseñas
+ * @property {string} passwordResetToken - Token para recuperación de contraseña
+ * @property {Date} passwordResetExpires - Expiración del token de recuperación
+ */
 
 // Esquema principal del usuario.
 const usuarioSchema = new Schema(
@@ -114,14 +148,25 @@ usuarioSchema
     this.passwordHash = bcrypt.hashSync(password, salt);
   });
 
-// --- MÉTODO DE INSTANCIA PARA COMPARAR CONTRASEÑAS ---
-// Se añade un método personalizado a cada documento de usuario.
+/**
+ * Compara una contraseña en texto plano con el hash almacenado
+ * @async
+ * @method matchPassword
+ * @param {string} enteredPassword - Contraseña en texto plano a verificar
+ * @returns {Promise<boolean>} True si la contraseña coincide
+ * @example
+ * const isValid = await usuario.matchPassword('miPassword123');
+ */
 usuarioSchema.methods.matchPassword = async function (enteredPassword) {
   // bcrypt.compare se encarga de forma segura de comparar el texto plano con el hash.
   return await bcrypt.compare(enteredPassword, this.passwordHash);
 };
 
-// Middleware para asegurar que si el rol 'experto' no está, infoExperto sea null.
+/**
+ * Middleware pre-save que limpia infoExperto si no tiene rol de experto
+ * @function
+ * @param {Function} next - Callback para continuar
+ */
 usuarioSchema.pre("save", function (next) {
   if (this.roles && !this.roles.includes("experto")) {
     this.infoExperto = undefined;

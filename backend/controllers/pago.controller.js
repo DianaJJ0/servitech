@@ -7,6 +7,12 @@ const Usuario = require("../models/usuario.model.js");
 const Notificacion = require("../models/notificacion.model.js");
 const Log = require("../models/log.model.js");
 
+/**
+ * Registra un nuevo pago en el sistema
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const crearPago = async (req, res) => {
   try {
     const datosPago = req.body;
@@ -128,6 +134,12 @@ const crearPago = async (req, res) => {
   }
 };
 
+/**
+ * Lista todos los pagos (solo admin)
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const obtenerPagos = async (req, res) => {
   try {
     const pagos = await Pago.find().sort({ createdAt: -1 });
@@ -139,6 +151,12 @@ const obtenerPagos = async (req, res) => {
   }
 };
 
+/**
+ * Obtiene un pago específico por ID
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const obtenerPagoPorId = async (req, res) => {
   try {
     const pago = await Pago.findById(req.params.id);
@@ -151,6 +169,12 @@ const obtenerPagoPorId = async (req, res) => {
   }
 };
 
+/**
+ * Actualiza el estado de un pago (solo admin)
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const actualizarEstadoPago = async (req, res) => {
   try {
     const { estado } = req.body;

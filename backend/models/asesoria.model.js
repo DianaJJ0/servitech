@@ -1,8 +1,18 @@
 /**
- * MODELO DE ASESORÍA - SERVITECH
- * Contiene toda la información necesaria para una asesoría en un solo documento */
+ * @file Modelo de Asesoría
+ * @module models/asesoria
+ * @description Define el esquema para asesorías tecnológicas con información completa
+ */
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
+
+/**
+ * @typedef {Object} InfoParticipante
+ * @property {string} email - Email del participante (cliente o experto)
+ * @property {string} nombre - Nombre del participante
+ * @property {string} apellido - Apellido del participante
+ * @property {string} avatarUrl - URL del avatar
+ */
 
 /**
  * Define la estructura para la información de un participante (cliente o experto).
@@ -17,6 +27,21 @@ const infoParticipanteSchema = new Schema(
   },
   { _id: false } // Indicamos que este sub-objeto no necesita su propio _id de MongoDB.
 );
+
+/**
+ * @typedef {Object} Asesoria
+ * @property {string} codigoAsesoria - Código único identificador
+ * @property {string} titulo - Título de la asesoría
+ * @property {InfoParticipante} cliente - Información del cliente
+ * @property {InfoParticipante} experto - Información del experto
+ * @property {string} categoria - Categoría de la asesoría
+ * @property {string} estado - Estado: pendiente-pago, confirmada, completada, cancelada
+ * @property {Date} fechaHoraInicio - Fecha y hora de inicio
+ * @property {number} duracionMinutos - Duración en minutos (30, 60, 90)
+ * @property {Object} pago - Información del pago
+ * @property {Object} videollamada - Información de la videollamada
+ * @property {Object} reseña - Reseña y calificación
+ */
 
 const asesoriaSchema = new Schema(
   {
@@ -55,12 +80,7 @@ const asesoriaSchema = new Schema(
     },
     estado: {
       type: String,
-      enum: [
-        "pendiente-pago",
-        "confirmada",
-        "completada",
-        "cancelada",
-      ],
+      enum: ["pendiente-pago", "confirmada", "completada", "cancelada"],
       default: "pendiente-pago",
     },
     fechaHoraInicio: {
@@ -88,7 +108,7 @@ const asesoriaSchema = new Schema(
       iniciadaEn: Date,
       finalizadaEn: Date,
     },
-    // La reseña asociada a esta asesoría 
+    // La reseña asociada a esta asesoría
     reseña: {
       calificacion: { type: Number, min: 1, max: 5 },
       comentario: String,

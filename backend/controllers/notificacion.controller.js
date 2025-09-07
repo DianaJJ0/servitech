@@ -5,17 +5,20 @@
 const Notificacion = require("../models/notificacion.model.js");
 const Usuario = require("../models/usuario.model.js");
 
-// Crear notificación
+/**
+ * Registra una nueva notificación
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const crearNotificacion = async (req, res) => {
   try {
     const datos = req.body;
     // Validar datos obligatorios
     if (!datos.usuarioId || !datos.email || !datos.tipo) {
-      return res
-        .status(400)
-        .json({
-          mensaje: "Faltan datos obligatorios: usuarioId, email, tipo.",
-        });
+      return res.status(400).json({
+        mensaje: "Faltan datos obligatorios: usuarioId, email, tipo.",
+      });
     }
     // Verificar usuario real
     const usuario = await Usuario.findById(datos.usuarioId);
@@ -28,31 +31,37 @@ const crearNotificacion = async (req, res) => {
     await notificacion.save();
     res.status(201).json({ mensaje: "Notificación registrada.", notificacion });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        mensaje: "Error al registrar notificación.",
-        error: error.message,
-      });
+    res.status(500).json({
+      mensaje: "Error al registrar notificación.",
+      error: error.message,
+    });
   }
 };
 
-// Listar todas (solo admin)
+/**
+ * Lista todas las notificaciones (solo admin)
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const obtenerNotificaciones = async (req, res) => {
   try {
     const notificaciones = await Notificacion.find().sort({ createdAt: -1 });
     res.status(200).json(notificaciones);
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        mensaje: "Error al listar notificaciones.",
-        error: error.message,
-      });
+    res.status(500).json({
+      mensaje: "Error al listar notificaciones.",
+      error: error.message,
+    });
   }
 };
 
-// Obtener por ID
+/**
+ * Obtiene una notificación específica por ID
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const obtenerNotificacionPorId = async (req, res) => {
   try {
     const notificacion = await Notificacion.findById(req.params.id);

@@ -4,7 +4,12 @@
  */
 const Categoria = require("../models/categoria.model.js");
 
-// Crear una nueva categoría
+/**
+ * Crea una nueva categoría
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const crearCategoria = async (req, res) => {
   try {
     const { nombre, descripcion } = req.body;
@@ -33,12 +38,17 @@ const crearCategoria = async (req, res) => {
   }
 };
 
-// Obtener todas las categorías o filtrar por nombre
+/**
+ * Obtiene todas las categorías con filtro opcional por nombre
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const obtenerCategorias = async (req, res) => {
   try {
     const { nombre } = req.query;
     let filtro = {};
-    if (nombre && typeof nombre === "string" && nombre.trim() !== "") {  
+    if (nombre && typeof nombre === "string" && nombre.trim() !== "") {
       // Busca por nombre parcial, insensible a mayúsculas y minúsculas
       filtro.nombre = { $regex: nombre.trim(), $options: "i" };
     }
@@ -51,7 +61,12 @@ const obtenerCategorias = async (req, res) => {
   }
 };
 
-// Actualizar una categoría existente
+/**
+ * Actualiza una categoría existente
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const actualizarCategoria = async (req, res) => {
   try {
     const { nombre, descripcion } = req.body;
@@ -76,7 +91,12 @@ const actualizarCategoria = async (req, res) => {
   }
 };
 
-// Eliminar una categoría existente
+/**
+ * Elimina una categoría por ID
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const eliminarCategoria = async (req, res) => {
   try {
     // Validar que se proporciona un ID de categoría

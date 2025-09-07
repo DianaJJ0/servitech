@@ -9,7 +9,11 @@ const Notificacion = require("../models/notificacion.model.js");
 const Log = require("../models/log.model.js");
 const { enviarCorreo } = require("../services/email.service.js");
 
-// Helper: recalcula promedio de calificaciones para un experto (por email)
+/**
+ * Recalcula el promedio de calificaciones para un experto
+ * @param {string} expertoEmail - Email del experto
+ * @returns {Promise<void>}
+ */
 const recalcularPromedioExperto = async (expertoEmail) => {
   try {
     // Traer todas las asesorías completadas del experto con reseña válida
@@ -43,7 +47,12 @@ const recalcularPromedioExperto = async (expertoEmail) => {
   }
 };
 
-// Crear una nueva asesoría (requiere objeto de pago ya creado y exitoso)
+/**
+ * Crea una nueva asesoría con pago asociado
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const crearAsesoria = async (req, res) => {
   try {
     const datos = req.body;
@@ -169,7 +178,12 @@ const crearAsesoria = async (req, res) => {
   }
 };
 
-// Endpoint para finalizar asesoría y liberar pago
+/**
+ * Finaliza una asesoría y libera el pago al experto
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const finalizarAsesoria = async (req, res) => {
   try {
     const id = req.params.id;
@@ -273,7 +287,12 @@ const finalizarAsesoria = async (req, res) => {
   }
 };
 
-// Después de actualizar una asesoría, si viene una reseña con calificación, recalcular promedio
+/**
+ * Actualiza una asesoría existente
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const actualizarAsesoria = async (req, res) => {
   try {
     const id = req.params.id;
@@ -299,7 +318,12 @@ const actualizarAsesoria = async (req, res) => {
   }
 };
 
-// Endpoint admin para recalcular promedio por email
+/**
+ * Endpoint administrativo para recalcular promedio de experto
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const recalcularPromedioEndpoint = async (req, res) => {
   try {
     const email = req.params.email;
@@ -312,7 +336,12 @@ const recalcularPromedioEndpoint = async (req, res) => {
   }
 };
 
-// Estadísticas de reseñas: total y agrupado por experto
+/**
+ * Genera estadísticas de reseñas agrupadas por experto
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const estadisticasResenas = async (req, res) => {
   try {
     // Pipeline: contar reseñas y agrupar por experto
@@ -338,6 +367,12 @@ const estadisticasResenas = async (req, res) => {
   }
 };
 
+/**
+ * Lista todas las asesorías (solo admin)
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const listarAsesorias = async (req, res) => {
   try {
     const asesorias = await Asesoria.find();
@@ -347,6 +382,12 @@ const listarAsesorias = async (req, res) => {
   }
 };
 
+/**
+ * Lista asesorías por email de cliente
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const listarPorCliente = async (req, res) => {
   try {
     const email = req.params.email;
@@ -357,6 +398,12 @@ const listarPorCliente = async (req, res) => {
   }
 };
 
+/**
+ * Lista asesorías por email de experto
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const listarPorExperto = async (req, res) => {
   try {
     const email = req.params.email;
@@ -367,6 +414,12 @@ const listarPorExperto = async (req, res) => {
   }
 };
 
+/**
+ * Obtiene una asesoría por su ID
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const obtenerAsesoriaPorId = async (req, res) => {
   try {
     const id = req.params.id;
@@ -379,8 +432,12 @@ const obtenerAsesoriaPorId = async (req, res) => {
   }
 };
 
-// ...existing code...
-
+/**
+ * Elimina una asesoría por ID
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
 const eliminarAsesoria = async (req, res) => {
   try {
     const id = req.params.id;

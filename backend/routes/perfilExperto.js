@@ -7,7 +7,62 @@ const {
 } = require("../controllers/experto.controller.js");
 const { protect } = require("../middleware/auth.middleware.js");
 
-// Ruta POST para registro de experto protegida
+/**
+ * @swagger
+ * tags:
+ *   - name: Perfil Experto
+ *     description: Gestión de perfil de experto y vistas
+ */
+
+/**
+ * @swagger
+ * /api/perfil-experto/perfil:
+ *   post:
+ *     summary: Actualizar perfil de experto
+ *     tags: [Perfil Experto]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               descripcion:
+ *                 type: string
+ *               precioPorHora:
+ *                 type: number
+ *               categorias:
+ *                 type: array
+ *               especialidad:
+ *                 type: string
+ *               skills:
+ *                 type: array
+ *               banco:
+ *                 type: string
+ *               tipoCuenta:
+ *                 type: string
+ *               numeroCuenta:
+ *                 type: string
+ *               titular:
+ *                 type: string
+ *               tipoDocumento:
+ *                 type: string
+ *               numeroDocumento:
+ *                 type: string
+ *               telefonoContacto:
+ *                 type: string
+ *               diasDisponibles:
+ *                 type: array
+ *     responses:
+ *       200:
+ *         description: Perfil actualizado correctamente
+ *       400:
+ *         description: Datos faltantes o inválidos
+ *       401:
+ *         description: No autenticado
+ */
 router.post("/perfil", protect, actualizarPerfilExperto);
 
 // Define una ruta GET para "/editarExperto"
@@ -17,6 +72,23 @@ const Especialidad = require("../models/especialidad.model.js");
 const Habilidad = require("../models/habilidad.model.js");
 const Usuario = require("../models/usuario.model.js");
 
+/**
+ * @swagger
+ * /api/perfil-experto/editarExperto:
+ *   get:
+ *     summary: Cargar vista de edición de perfil de experto
+ *     tags: [Perfil Experto]
+ *     description: Endpoint para cargar la vista con datos necesarios para editar perfil de experto
+ *     responses:
+ *       200:
+ *         description: Vista renderizada con datos de categorías, especialidades y habilidades
+ *         content:
+ *           text/html:
+ *             schema:
+ *               type: string
+ *       500:
+ *         description: Error al cargar los datos
+ */
 router.get("/editarExperto", async (req, res) => {
   try {
     // Obtén el usuario actual (ajusta según tu lógica de sesión)
