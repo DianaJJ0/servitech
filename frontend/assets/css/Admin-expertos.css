@@ -1,3 +1,53 @@
+/* --- Especialidad y Estado en modal de expertos --- */
+.modal-expert__grid {
+  margin-top: 1.5rem;
+  gap: 1rem;
+}
+
+.modal-expert__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.input-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--admin-card-bg, #0f1724);
+  border: 1px solid var(--admin-border-color, #2b3240);
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+}
+
+.input-with-icon i.fas.fa-briefcase,
+.input-with-icon i.fas.fa-toggle-on {
+  color: var(--admin-accent-color, #5e81ff);
+  min-width: 20px;
+  text-align: center;
+}
+
+.input-with-icon select.modal-expert__input.modal-expert__select {
+  flex: 1;
+  background: transparent;
+  border: 0;
+  color: var(--admin-text-primary, #fff);
+  padding: 0;
+  margin: 0;
+  height: 34px;
+  appearance: none;
+}
+
+.input-with-icon i.fas.fa-chevron-down {
+  color: var(--admin-text-secondary, #9aa0a6);
+  font-size: 0.85rem;
+}
+
+.modal-expert__hint {
+  color: var(--admin-text-secondary, #9aa0a6);
+  font-size: 0.8rem;
+}
 /* -------------------------
    Small scoped adjustments for the "Precio por hora" block
    Scoped under .modal-expert so modal sizing is respected. No !important used.
@@ -2535,4 +2585,173 @@
   #expertModal.modal-expert .days-selector .day-option {
     font-size: var(--modal-hint-size);
   }
+}
+
+.bank-section {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent);
+  border: 1px solid var(--admin-border-color);
+  padding: 1rem;
+  border-radius: 10px;
+  color: var(--admin-text-primary);
+  box-sizing: border-box;
+  margin-top: 1rem;
+  box-shadow: var(--admin-shadow);
+  background-color: var(--admin-card-bg);
+}
+
+.bank-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 1rem;
+  margin: 0 0 0.25rem 0;
+  color: var(--admin-text-primary);
+}
+.bank-title i {
+  color: var(--admin-accent-color);
+  font-size: 1.05rem;
+}
+
+.bank-sub {
+  margin: 0 0 0.75rem 0;
+  color: var(--admin-text-secondary);
+  font-size: 0.9rem;
+}
+
+.row.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+@media (max-width: 640px) {
+  .row.two-col {
+    grid-template-columns: 1fr;
+  }
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.group-sm {
+  padding: 0;
+}
+
+.bank-section label {
+  font-size: 0.88rem;
+  color: var(--admin-text-primary);
+  font-weight: 600;
+}
+
+.bank-section select,
+.bank-section input[type="text"],
+.bank-section input[type="tel"],
+.bank-section input[type="password"],
+.bank-section input[type="email"] {
+  background: transparent;
+  border: 1px solid var(--admin-border-color);
+  color: var(--admin-text-primary);
+  padding: 0.5rem 0.6rem;
+  border-radius: 8px;
+  outline: none;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+}
+.bank-section select:focus,
+.bank-section input:focus {
+  box-shadow: 0 0 0 3px rgba(58, 142, 255, 0.09);
+  border-color: var(--admin-accent-color);
+}
+
+.acct-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.acct-input {
+  width: 100%;
+  padding-right: 2.6rem;
+  font-family: inherit;
+  letter-spacing: 0.02em;
+  background: transparent;
+  color: var(--admin-text-primary);
+  border: none;
+  outline: none;
+}
+.acct-toggle {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: var(--admin-text-secondary);
+  padding: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.acct-toggle:hover {
+  color: var(--admin-text-primary);
+  background: var(--admin-hover-bg);
+}
+
+.hint {
+  margin: 0.25rem 0 0 0;
+  color: var(--admin-text-secondary);
+  font-size: 0.85rem;
+}
+
+.info-box {
+  margin-top: 0.75rem;
+  background: linear-gradient(180deg, rgba(58, 142, 255, 0.04), transparent);
+  border: 1px solid rgba(58, 142, 255, 0.08);
+  padding: 0.75rem;
+  border-radius: 8px;
+  color: var(--admin-text-primary);
+  background-color: rgba(26, 32, 44, 0.6);
+}
+.info-box.info-sm {
+  padding: 0.6rem;
+  font-size: 0.95rem;
+}
+
+.info-header {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  color: var(--admin-text-primary);
+}
+.info-header i {
+  color: var(--admin-accent-color);
+}
+
+.info-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--admin-text-secondary);
+}
+.info-list li {
+  margin: 0.35rem 0;
+  list-style: none;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  color: var(--admin-text-secondary);
+}
+.info-list li i {
+  color: var(--admin-accent-secondary);
+  min-width: 18px;
+  text-align: center;
+}
+
+/* Small helpers */
+.acct-input::placeholder {
+  color: var(--admin-text-secondary);
+}
+.bank-section select option {
+  background: var(--admin-card-bg);
+  color: var(--admin-text-primary);
 }
