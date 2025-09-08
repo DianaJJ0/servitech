@@ -524,9 +524,40 @@
         border-color: var(--admin-border-color, #333) !important;
       }
 
-      /* ensure remove button icon contrast */
+      /* ensure remove button icon contrast and proper visual icon (hide textual content but keep aria-label) */
       #expertModal .choices__button {
-        color: var(--admin-text-primary, #fff) !important;
+        /* keep accessible label for screen readers (aria-label on the button), visually hide text */
+        color: transparent !important;
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+        width: 28px !important;
+        height: 28px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        overflow: visible !important;
+        text-indent: -9999px !important; /* hide "Remove item" text visually */
+        position: relative !important;
+        cursor: pointer !important;
+      }
+
+      /* show a lightweight SVG "times" icon centered inside the remove button (no dependencias de font icons) */
+      #expertModal .choices__button::before {
+        content: "" !important;
+        position: absolute !important;
+        left: 50% !important;
+        top: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        pointer-events: none !important;
+        display: block !important;
+        width: 14px !important;
+        height: 14px !important;
+        background-repeat: no-repeat !important;
+        background-size: 14px 14px !important;
+        /* SVG inline para la "X" (stroke color en hex para visibilidad). Se puede ajustar si necesita otro color. */
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><line x1='18' y1='6' x2='6' y2='18'/><line x1='6' y1='6' x2='18' y2='18'/></svg>") !important;
+        line-height: 1 !important;
       }
 
       /* Icon next to placeholder: use pseudo-element, but hide it if multiple selected items exist */
@@ -595,23 +626,26 @@
         -webkit-appearance: none;
         appearance: none;
       }
-
       /* Icono de flecha personalizado (no intrusivo) */
       #expertModal #banco-wrapper {
         position: relative;
       }
 
       #expertModal #banco-wrapper::after {
-        content: "\f078";
-        font-family: "Font Awesome 5 Free";
-        font-weight: 900;
+        content: "" ;
         position: absolute;
         right: 12px;
         top: 50%;
         transform: translateY(-50%);
         pointer-events: none;
-        color: var(--admin-text-secondary, #9aa0a6);
-        font-size: 0.85rem;
+        display: block;
+        width: 12px;
+        height: 12px;
+        background-repeat: no-repeat;
+        background-size: 12px 12px;
+        /* Inline SVG para la flecha hacia abajo (color similar al texto secundario por defecto) */
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239aa0a6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+      }
       }
 
       /* Opciones del select en tema oscuro */
@@ -631,10 +665,6 @@
       /* ==============================
          Mismas mejoras aplicadas a Tipo de cuenta y Tipo de documento
          - wrapper con ícono de flecha
-         - padding y border consistente
-         - opciones con fondo en tema oscuro
-         - mantener espacio interior en la grid
-         ============================== */
       /* Wrapper arrows */
       #expertModal #tipoCuenta-wrapper,
       #expertModal #tipoDocumento-wrapper {
@@ -643,13 +673,20 @@
 
       #expertModal #tipoCuenta-wrapper::after,
       #expertModal #tipoDocumento-wrapper::after {
-        content: "\f078";
-        font-family: "Font Awesome 5 Free";
-        font-weight: 900;
+        content: "" ;
         position: absolute;
         right: 12px;
         top: 50%;
         transform: translateY(-50%);
+        pointer-events: none;
+        display: block;
+        width: 12px;
+        height: 12px;
+        background-repeat: no-repeat;
+        background-size: 12px 12px;
+        /* Inline SVG para la flecha hacia abajo (color similar al texto secundario por defecto) */
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239aa0a6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+      }
         pointer-events: none;
         color: var(--admin-text-secondary, #9aa0a6);
         font-size: 0.85rem;
@@ -805,7 +842,7 @@
 
             <!-- Categorías (full width) -->
             <div class="full-width">
-              <label class="modal-expert__label">
+              <label class="modal-expert__label"></label>
                 <i class="fas fa-tags modal-expert__icon" aria-hidden="true"></i>
                 Categorías
               </label>
@@ -893,7 +930,7 @@
                     <% const val=(h && (h.nombre || h.name || h.label)) ? (h.nombre || h.name || h.label) : (h && h._id
                       ? String(h._id) : '' ); %>
                       <% if (val) { %>
-                        <option value="<%= val %>">
+                        <option value="<%= val %>"></option>
                           <%= val %>
                         </option>
                         <% } %>
@@ -922,7 +959,7 @@
 
             <!-- Biografía -->
             <div class="full-width">
-              <label class="modal-expert__label" for="bio">
+              <label class="modal-expert__label" for="bio"></label>
                 <i class="fas fa-file-alt modal-expert__icon" aria-hidden="true"></i>
                 Biografía profesional
               </label>
@@ -963,7 +1000,7 @@
                 <div class="bank-grid">
                   <div>
                     <label for="banco">Banco *</label>
-                    <div id="banco-wrapper">
+                    <div id="banco-wrapper"></div>
                       <select id="banco" name="banco" required class="modal-expert__input">
                         <option value="">Selecciona tu banco</option>
                         <option value="Banco de Bogotá">Banco de Bogotá</option>
