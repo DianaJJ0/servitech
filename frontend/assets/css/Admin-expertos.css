@@ -1568,144 +1568,8 @@
       gap: 6px;
     }
 
-    /* Botón de eliminar en los elementos seleccionados - Clases correctas de Choices.js */
-    .modal-expert .choices__item--selectable .choices__button,
-    .modal-expert .choices__button {
-      background: var(--admin-text-secondary);
-      background: var(--admin-text-secondary);
-      color: var(--admin-text-primary);
-      width: 14px;
-      width: 14px;
-      height: 14px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 10px;
-      cursor: pointer;
-      margin-left: 6px;
-      padding: 0;
-      line-height: 1;
-      min-width: 14px;
-      min-height: 14px;
-      position: relative;
-      opacity: 1;
-      visibility: visible;
-      flex-shrink: 0;
-    }
-
-    .modal-expert .choices__item--selectable .choices__button:hover,
-    .modal-expert .choices__button:hover {
-      background: var(--admin-text-secondary);
-      transform: scale(1.05);
-    }
-
-    /* Force restore of ::after glyph inside modal to ensure × is visible (overrides content:none) */
-    #expertModal .modal-expert .choices__button,
-    #expertModal .modal-expert button[data-button] {
-      position: relative;
-      overflow: visible;
-    }
-
-    #expertModal .modal-expert .choices__button::after,
-    #expertModal .modal-expert button[data-button]::after {
-      content: "×";
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--admin-text-primary);
-      opacity: 1;
-      visibility: visible;
-      line-height: 1;
-    }
-
-    /* Ultra-specific enforced rules for the exact button element seen in DOM (use attribute selectors)
-   This will override any content: none on generic .choices__item::after rules */
-    #expertModal button.choices__button[data-button]::after,
-    #expertModal button.choices__button[aria-label^="Remove"]::after {
-      content: "×";
-      color: var(--admin-text-primary);
-      font-size: 11px;
-      font-weight: 700;
-      opacity: 1;
-      visibility: visible;
-    }
-
-    /* Botón de eliminar - Estilo simple y directo (unificado) */
-    .modal-expert .choices__button,
-    .modal-expert [class*="choices__button"],
-    .modal-expert button[data-button] {
-      background: var(--admin-text-secondary);
-      color: var(--admin-text-primary);
-      border-radius: 50%;
-      width: 14px;
-      height: 14px;
-      border: none;
-      cursor: pointer;
-      margin-left: 6px;
-      font-size: 10px;
-      font-weight: 600;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 1;
-      visibility: visible;
-      text-align: center;
-      font-family: Arial, sans-serif;
-      line-height: 1;
-      min-width: 14px;
-      min-height: 14px;
-      flex-shrink: 0;
-    }
-
-    .modal-expert .choices__button:hover,
-    .modal-expert [class*="choices__button"]:hover,
-    .modal-expert button[data-button]:hover {
-      background: var(--admin-text-secondary);
-      transform: scale(1.05);
-    }
-
-    /* Mostrar la × centrada en el botón */
-    .modal-expert button[data-button] {
-      text-indent: 0;
-      overflow: visible;
-      position: relative;
-    }
-
-    .modal-expert .choices__button:after,
-    .modal-expert button[data-button]:after {
-      content: "×";
-      text-indent: 0;
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 10px;
-      font-weight: 700;
-      color: var(--admin-text-primary);
-      line-height: 1;
-    }
-
-    /* Modal-scoped strong override: asegurar que la X de eliminar sea visible y no transparente
-   Usa la variable de tema --admin-text-secondary (por ejemplo #a0a0a0) */
-    #expertModal .modal-expert button[data-button],
-    #expertModal .modal-expert .choices__button {
-      background: transparent;
-      border: none;
-      opacity: 1;
-      visibility: visible;
-      padding: 0;
-    }
-
-    #expertModal .modal-expert button[data-button]:after,
-    #expertModal .modal-expert .choices__button:after {
-      color: var(--admin-text-secondary);
-      opacity: 1;
-      visibility: visible;
-      text-indent: 0;
-    }
+  /* Choices remove-button rules consolidated elsewhere (canonical block at file end).
+     Removed duplicate block to avoid cascade conflicts. */
     .modal-expert .choices__list[role="listbox"] {
       max-height: 160px;
       overflow-y: auto;
@@ -2174,7 +2038,7 @@
         margin: 0.125rem 0.25rem 0.125rem 0;
       }
 
-      .choices__button {
+      .modal-expert .choices__button {
         width: 16px;
         height: 16px;
         padding: 0;
@@ -2199,7 +2063,7 @@
         margin: 0.125rem 0.1875rem 0.125rem 0;
       }
 
-      .choices__button {
+      .modal-expert .choices__button {
         width: 14px;
         height: 14px;
         font-size: 10px;
@@ -2270,6 +2134,55 @@
     .modal-expert .choices__item--selectable .choices__button,
     .modal-expert .choices__button {
       margin-left: 6px;
+    }
+
+    /* Canonical override for Choices remove button inside expert modal
+       Ensures a circular background and renders the × via ::after with theme color.
+       This block is intentionally very specific and placed near the end of the file
+       so it wins over earlier, broader rules without deleting them (safer). */
+    #expertModal .modal-expert .choices__button,
+    #expertModal button.choices__button[data-button],
+    #expertModal .modal-expert__full-row .choices__button,
+    #expertModal .modal-expert .choices__item--selectable .choices__button {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      width: 22px !important;
+      height: 22px !important;
+      padding: 0 !important;
+      margin-left: 6px !important;
+      border-radius: 50% !important;
+      background: var(--admin-text-secondary, #2b2f36) !important;
+      border: 0 !important;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.12) !important;
+      position: relative !important;
+      overflow: visible !important;
+    }
+
+    #expertModal .modal-expert .choices__button svg,
+    #expertModal .modal-expert .choices__button > svg {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+      visibility: hidden !important;
+    }
+
+    #expertModal .modal-expert .choices__button::after {
+      content: "\00d7" !important;
+      font-weight: 700 !important;
+      color: var(--admin-text-primary) !important;
+      font-size: 14px !important;
+      line-height: 1 !important;
+      position: absolute !important;
+      top: 50% !important;
+      left: 50% !important;
+      transform: translate(-50%, -50%) !important;
+      pointer-events: none !important;
+    }
+
+    #expertModal .modal-expert .choices__button:hover,
+    #expertModal .modal-expert .choices__button:focus {
+      background: var(--admin-hover-bg, #ff2e2e) !important;
     }
 
     /* Paleta unificada para Categorías y Habilidades */
