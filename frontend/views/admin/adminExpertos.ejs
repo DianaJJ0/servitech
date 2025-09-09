@@ -542,7 +542,6 @@
         pointer-events: none;
       }
 
-      /* Phone input full width */
       #expertModal .bank-section .full-width input {
         width: 100%;
       }
@@ -552,6 +551,114 @@
         #expertModal .bank-grid > div:first-child {
           padding-left: 0.5rem;
           padding-right: 0.5rem;
+        }
+      }
+
+      /* ============================
+         Improved profile image upload styles
+         ============================ */
+
+      /* wrapper stretches full width in grid cell */
+      #expertModal .modal-expert__upload-wrapper {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 0.75rem;
+        align-items: center;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      /* Make the upload area a clear clickable label */
+      #expertModal .modal-expert__upload-box {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.6rem 0.8rem;
+        border-radius: 8px;
+        border: 1px dashed var(--admin-border-color, #333);
+        background: linear-gradient(180deg, rgba(255,255,255,0.01), transparent);
+        cursor: pointer;
+        color: var(--admin-text-secondary, #9aa0a6);
+        min-height: 48px;
+        width: 100%;
+      }
+
+      /* Hide native file input but keep accessible */
+      #expertModal .modal-expert__file-input {
+        position: absolute !important;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        clip-path: inset(50%);
+        border: 0;
+        white-space: nowrap;
+      }
+
+      /* preview container: square thumbnail, hidden by default */
+      #expertModal #profilePreview {
+        width: 96px;
+        height: 96px;
+        border-radius: 8px;
+        overflow: hidden;
+        background: rgba(255,255,255,0.02);
+        border: 1px solid var(--admin-border-color, #333);
+        display: none;
+        position: relative;
+        box-sizing: border-box;
+        flex: 0 0 96px;
+      }
+
+      /* show when has image */
+      #expertModal #profilePreview.visible {
+        display: block;
+      }
+
+      #expertModal #profilePreview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+
+      /* overlay remove button */
+      #expertModal #removeProfileBtn {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        background: rgba(0,0,0,0.45);
+        border: 1px solid rgba(255,255,255,0.06);
+        color: #fff;
+        padding: 4px 6px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.85rem;
+      }
+
+      /* filename and error text under upload */
+      #expertModal .upload-meta {
+        grid-column: 1 / -1;
+        font-size: 0.9rem;
+        color: var(--admin-text-secondary, #9aa0a6);
+      }
+
+      #expertModal .upload-error {
+        color: #ff6b6b;
+        font-size: 0.85rem;
+        margin-top: 0.3rem;
+      }
+
+      /* responsive: stack vertically on small screens */
+      @media (max-width: 640px) {
+        #expertModal .modal-expert__upload-wrapper {
+          grid-template-columns: 1fr;
+        }
+        #expertModal #profilePreview {
+          width: 72px;
+          height: 72px;
+          margin-left: 0;
         }
       }
     </style>
@@ -797,21 +904,33 @@
             </div>
 
             <!-- Imagen de perfil -->
-            <div>
+            <div class="full-width">
               <label class="modal-expert__label" for="profileImage">
                 <i class="fas fa-image modal-expert__icon" aria-hidden="true"></i>
                 Imagen de perfil
               </label>
+
               <div class="modal-expert__upload-wrapper">
+                <!-- hidden but accessible -->
                 <input type="file" id="profileImage" class="modal-expert__file-input"
-                  aria-label="Seleccionar imagen de perfil" />
-                <div class="modal-expert__upload-box">
+                  aria-label="Seleccionar imagen de perfil" accept="image/*" />
+
+                <!-- visual upload box (acts as label) -->
+                <label for="profileImage" class="modal-expert__upload-box" role="button" aria-haspopup="dialog">
                   <i class="fas fa-upload" aria-hidden="true"></i>
-                  <span>Seleccionar imagen</span>
+                  <span id="uploadLabel">Seleccionar imagen (png, jpg) · Máx 2MB</span>
+                </label>
+
+                <!-- preview thumbnail -->
+                <div id="profilePreview" aria-hidden="true" role="img" aria-label="Vista previa de imagen">
+                  <button id="removeProfileBtn" type="button" title="Eliminar imagen" aria-label="Eliminar imagen" style="display:none;">
+                    <i class="fas fa-times"></i>
+                  </button>
+                  <img src="" alt="Preview" />
                 </div>
-                <div id="profilePreview" aria-hidden="true">
-                  <img src="" alt="Preview" style="width:100%;height:100%;object-fit:cover;">
-                </div>
+
+                <div class="upload-meta" id="uploadMeta" aria-live="polite" style="display:none;"></div>
+                <div class="upload-error" id="profileImageError" role="alert" style="display:none;"></div>
               </div>
             </div>
 
@@ -951,6 +1070,85 @@
       <button type="button" class="btn-primary" id="saveExpert">Guardar experto</button>
     </div>
   </div>
+
+  <script>
+    (function profileImagePreview() {
+      var input = document.getElementById('profileImage');
+      var preview = document.getElementById('profilePreview');
+      var img = preview ? preview.querySelector('img') : null;
+      var removeBtn = document.getElementById('removeProfileBtn');
+      var meta = document.getElementById('uploadMeta');
+      var err = document.getElementById('profileImageError');
+      var label = document.getElementById('uploadLabel');
+
+      function reset() {
+        if (input) input.value = '';
+        if (img) img.src = '';
+        if (preview) preview.classList.remove('visible');
+        if (removeBtn) removeBtn.style.display = 'none';
+        if (meta) { meta.style.display = 'none'; meta.textContent = ''; }
+        if (err) { err.style.display = 'none'; err.textContent = ''; }
+      }
+
+      function showError(message) {
+        if (err) { err.textContent = message; err.style.display = 'block'; }
+      }
+
+      function setFileInfo(file) {
+        if (!meta) return;
+        meta.style.display = 'block';
+        meta.textContent = file.name + ' · ' + Math.round(file.size / 1024) + 'KB';
+      }
+
+      if (!input) return;
+
+      input.addEventListener('change', function (e) {
+        var f = input.files && input.files[0];
+        if (!f) { reset(); return; }
+        // basic validation
+        var allowed = /^image\/(png|jpe?g|gif|webp)$/i;
+        if (!allowed.test(f.type)) {
+          showError('Formato no soportado. Usa png, jpg, gif o webp.');
+          input.value = '';
+          return;
+        }
+        var max = 2 * 1024 * 1024; // 2MB
+        if (f.size > max) {
+          showError('Archivo muy grande. Máx 2MB.');
+          input.value = '';
+          return;
+        }
+        // show preview
+        var reader = new FileReader();
+        reader.onload = function (ev) {
+          if (img) img.src = ev.target.result;
+          if (preview) preview.classList.add('visible');
+          if (removeBtn) removeBtn.style.display = 'inline-flex';
+          if (err) { err.style.display = 'none'; err.textContent = ''; }
+          setFileInfo(f);
+        };
+        reader.readAsDataURL(f);
+      });
+
+      if (removeBtn) {
+        removeBtn.addEventListener('click', function () {
+          reset();
+        });
+      }
+
+      // provide keyboard accessible remove from upload meta area
+      if (meta) {
+        meta.addEventListener('keydown', function (ev) {
+          if (ev.key === 'Delete' || ev.key === 'Backspace') reset();
+        });
+      }
+
+      // hide preview initial (fixes "Preview" text showing)
+      document.addEventListener('DOMContentLoaded', function () {
+        reset();
+      });
+    })();
+  </script>
 
 
   <!--modal editar experto-->
