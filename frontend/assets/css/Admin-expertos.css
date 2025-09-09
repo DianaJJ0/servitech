@@ -142,9 +142,7 @@
 }
 
 /* Ensure days labels are visually consistent */
-.modal-expert .srv-day {
-  font-size: 0.9rem; /* keep slightly bolder for legibility */
-}
+/* Day sizing consolidated later under #expertModal .modal-expert__price-days .srv-day */
 
 /* keep modal title and header larger and untouched */
 .modal-expert .modal-expert__title {
@@ -242,19 +240,7 @@
   border: 1px solid var(--admin-border-color);
 }
 
-.modal-expert .choices__button,
-.modal-expert .choices__item--selectable .choices__button {
-  background: var(--admin-text-secondary);
-  color: var(--admin-text-primary);
-  width: 14px;
-  height: 14px;
-  padding: 0;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-}
+/* Consolidated choices button rules kept in the modal-scoped block below; duplicated small blocks removed */
 
 /* Forzar que el input dentro del widget mantenga fondo transparente sobre el blanco */
 .modal-expert .choices__inner .choices__input {
@@ -314,6 +300,399 @@
   gap: 8px;
   transition: background 0.2s;
   white-space: nowrap;
+}
+
+/* ==================================================
+   Styles moved from inline <style> in adminExpertos.ejs
+   These rules are scoped to #expertModal (add-expert modal)
+   Consolidated here to avoid inline duplication.
+   ================================================== */
+
+#expertModal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  box-sizing: border-box;
+  z-index: 1100;
+  color: var(--admin-text-primary, #ffffff);
+  --expert-text-secondary: var(--admin-text-secondary, #9aa0a6);
+  pointer-events: auto;
+}
+
+#expertModal .modal-expert__container {
+  width: 100%;
+  max-width: 980px;
+  max-height: calc(100vh - 2.5rem);
+  overflow: hidden;
+  margin: 0 auto;
+  padding: 1rem;
+  box-sizing: border-box;
+  border-radius: 10px;
+  background: var(--admin-card-bg, #0f1720);
+  border: 1px solid var(--admin-border-color, #333);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+}
+
+#expertModal .modal-expert__body {
+  overflow: auto;
+  flex: 1 1 auto;
+  padding-bottom: 1rem;
+}
+
+#expertModal .modal-expert__title,
+#expertModal label,
+#expertModal .modal-expert__hint,
+#expertModal .hint,
+#expertModal .info-list,
+#expertModal .bank-sub,
+#expertModal .srv-days-display,
+#expertModal .srv-note,
+#expertModal .info-header,
+#expertModal .bank-title {
+  color: var(--admin-text-primary, #ffffff) !important;
+}
+
+#expertModal .modal-expert__hint,
+#expertModal .hint,
+#expertModal .bank-sub,
+#expertModal .info-list,
+#expertModal .srv-days-display {
+  color: var(--expert-text-secondary) !important;
+}
+
+#expertModal input,
+#expertModal select,
+#expertModal textarea,
+#expertModal .acct-input,
+#expertModal .modal-expert__file-input {
+  color: var(--admin-text-primary, #ffffff) !important;
+  background: transparent !important;
+  border: 1px solid var(--admin-border-color, #333) !important;
+  box-sizing: border-box;
+  font-family: inherit !important;
+  padding: 0.5rem !important;
+  border-radius: 8px !important;
+}
+
+/* Choices remove button */
+#expertModal .choices__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin-left: 6px;
+  border: none;
+  background: #23272f !important;
+  color: var(--admin-text-primary, #f5f5f5) !important;
+  font-size: 1.2em;
+  line-height: 1;
+  cursor: pointer;
+  vertical-align: middle;
+  transition: color 0.2s, background 0.2s;
+  position: relative;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  overflow: visible !important;
+  padding: 0;
+}
+
+#expertModal .choices__button svg {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  visibility: hidden !important;
+}
+
+#expertModal .choices__button {
+  color: transparent !important;
+  text-indent: -9999px;
+}
+
+#expertModal .choices__button::after,
+#expertModal .choices__button::before {
+  content: "\00d7";
+  font-weight: 700;
+  color: var(--admin-text-primary, #f5f5f5) !important;
+  font-size: 14px;
+  line-height: 1;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 3 !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#expertModal .choices__button:hover,
+#expertModal .choices__button:focus {
+  color: #fff !important;
+  background: #ff2e2e !important;
+}
+
+#expertModal input::placeholder,
+#expertModal textarea::placeholder {
+  color: var(--expert-text-secondary) !important;
+  -webkit-text-fill-color: var(--expert-text-secondary) !important;
+}
+
+#expertModal .modal-expert__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
+#expertModal .modal-expert__grid > div {
+  min-width: 0;
+}
+
+#expertModal .modal-expert__grid .full-width {
+  grid-column: 1 / -1;
+}
+
+#expertModal .srv-price-input.price-input {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+#expertModal .srv-currency.currency-symbol {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 36px;
+  color: var(--admin-text-primary, #fff) !important;
+}
+
+#expertModal .srv-input.price-field {
+  flex: 1;
+  min-width: 0;
+  color: var(--admin-text-primary, #fff) !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 0.45rem 0.5rem !important;
+}
+
+#expertModal .srv-note.price-note {
+  margin: 0.4rem 0 0;
+  color: var(--admin-text-secondary, #9aa0a6);
+  font-size: 0.9rem;
+}
+
+#expertModal #precio-feedback.srv-feedback.price-feedback {
+  margin-top: 0.25rem;
+}
+
+#expertModal .srv-days-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#expertModal .srv-days {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+/* Visual specifics for day buttons are consolidated later in this file */
+
+#expertModal .srv-days-display {
+  width: 100%;
+  white-space: normal;
+  word-break: break-word;
+  color: var(--admin-text-secondary, #9aa0a6);
+  font-size: 0.9rem;
+}
+
+#expertModal .input-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+#expertModal .input-with-icon select {
+  flex: 1;
+  color: var(--admin-text-primary, #fff) !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 0.45rem 0.5rem !important;
+}
+
+#expertModal .choices,
+#expertModal .choices__inner,
+#expertModal .choices__list--multiple {
+  background: transparent !important;
+  color: var(--admin-text-primary, #ffffff) !important;
+  border: 1px solid var(--admin-border-color, #333) !important;
+  font-family: inherit !important;
+}
+
+#expertModal .hint {
+  margin: 0.25rem 0 0 0.25rem;
+  color: var(--admin-text-secondary, #9aa0a6);
+}
+
+#expertModal .info-box.info-sm {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+#expertModal .info-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+#expertModal .info-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--admin-text-secondary, #9aa0a6);
+}
+
+#expertModal .modal-expert__footer {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  padding: 1rem 1rem 1.25rem;
+  flex-shrink: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.03);
+  margin-top: 0.5rem;
+}
+
+#expertModal .bank-section {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--admin-border-color, #333);
+  background: var(--admin-card-bg, #121212);
+  box-sizing: border-box;
+}
+
+#expertModal .bank-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+}
+
+#expertModal .bank-sub {
+  margin: 0 0 0.75rem 0;
+  color: var(--admin-text-secondary, #9aa0a6);
+  font-size: 0.95rem;
+}
+
+/* upload / profile preview */
+#expertModal .modal-expert__upload-wrapper {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#expertModal .modal-expert__upload-box {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  border: 1px dashed var(--admin-border-color, #333);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.01), transparent);
+  cursor: pointer;
+  color: var(--admin-text-secondary, #9aa0a6);
+  min-height: 48px;
+  width: 100%;
+}
+
+#expertModal .modal-expert__file-input {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  border: 0;
+  white-space: nowrap;
+}
+
+#expertModal #profilePreview {
+  width: 96px;
+  height: 96px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--admin-border-color, #333);
+  display: none;
+  position: relative;
+  box-sizing: border-box;
+  flex: 0 0 96px;
+}
+
+#expertModal #profilePreview.visible {
+  display: block;
+}
+
+#expertModal #profilePreview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+#expertModal #removeProfileBtn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #fff;
+  padding: 4px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+#expertModal .upload-meta {
+  grid-column: 1 / -1;
+  font-size: 0.9rem;
+  color: var(--admin-text-secondary, #9aa0a6);
+}
+
+#expertModal .upload-error {
+  color: #ff6b6b;
+  font-size: 0.85rem;
+  margin-top: 0.3rem;
+}
+
+@media (max-width: 640px) {
+  #expertModal .modal-expert__upload-wrapper {
+    grid-template-columns: 1fr;
+  }
+  #expertModal #profilePreview {
+    width: 72px;
+    height: 72px;
+    margin-left: 0;
+  }
 }
 
 /* Responsive design para modal */
@@ -2520,28 +2899,9 @@
   outline: none;
 }
 
-/* FROM adminExpertos.ejs - compact modal tweaks (moved here) */
-#expertModal .choices__button {
-  width: 16px;
-  height: 16px;
-}
-
-#expertModal .srv-day {
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
-  font-size: 0.75rem;
-  line-height: 1;
-  border-radius: 50%;
-}
-
-#expertModal .modal-expert__grid {
-  gap: 0.5rem;
-}
-
-#expertModal .modal-expert__body {
-  padding-top: 0.5rem;
-}
+/* Compact modal tweaks were moved here originally from the template.
+  Actual sizes and spacing for .choices__button and .srv-day are
+  defined in the canonical blocks further below to avoid duplicates. */
 
 /* Final override: force DAYS text sizing to modal baseline
    Highly-specific selectors placed at file end to beat prior rules.
@@ -2616,6 +2976,100 @@
   margin: 0 0 0.75rem 0;
   color: var(--admin-text-secondary);
   font-size: 0.9rem;
+}
+
+/* Grid limpio y específico para la sección bancaria dentro del modal */
+#expertModal .bank-section .bank-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.75rem;
+  align-items: start;
+}
+
+/* Forzar que los hijos ocupen el espacio correcto y evitar overflow */
+#expertModal .bank-section .bank-grid > div {
+  min-width: 0;
+}
+
+/* Cuando un elemento requiere ancho completo (ej: teléfono) */
+#expertModal .bank-section .bank-grid .full-width {
+  grid-column: 1 / -1;
+}
+
+/* Etiquetas y controles dentro de bank-grid respetan tamaños del modal */
+#expertModal .bank-section .bank-grid label {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--admin-text-secondary);
+  font-size: var(--modal-label-size);
+  font-weight: 600;
+}
+
+/* Inputs/selects dentro de la sección bancaria deben compartir apariencia con el modal */
+#expertModal .bank-section .bank-grid select,
+#expertModal .bank-section .bank-grid input[type="text"],
+#expertModal .bank-section .bank-grid input[type="tel"],
+#expertModal .bank-section .bank-grid input[type="password"] {
+  width: 100%;
+  padding: 0.5rem 0.6rem;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid var(--admin-border-color);
+  color: var(--admin-text-primary);
+  box-sizing: border-box;
+  font-size: 0.95rem;
+}
+
+/* Ajuste específico para el input de cuenta (acct-input) dentro del modal bank-section */
+#expertModal .bank-section .acct-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+#expertModal .bank-section .acct-input {
+  width: 100%;
+  padding: 0.5rem 2.6rem 0.5rem 0.6rem; /* dejar espacio para el toggle */
+  background: transparent;
+  color: var(--admin-text-primary);
+  border: 1px solid var(--admin-border-color);
+  border-radius: 8px;
+  box-sizing: border-box;
+  outline: none;
+}
+
+#expertModal .bank-section .acct-toggle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: var(--admin-text-secondary);
+  padding: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+#expertModal .bank-section .acct-toggle:hover {
+  color: var(--admin-text-primary);
+  background: var(--admin-hover-bg, rgba(255, 255, 255, 0.02));
+}
+
+/* Hint y mensajes dentro de la bank-section: pequeño ajuste de separación */
+#expertModal .bank-section .hint {
+  margin-top: 0.35rem;
+  margin-left: 0;
+}
+
+/* Responsive: apilar columnas en pantallas pequeñas */
+@media (max-width: 720px) {
+  #expertModal .bank-section .bank-grid {
+    grid-template-columns: 1fr;
+  }
+  #expertModal .bank-section .acct-input {
+    padding-right: 2.6rem;
+  }
 }
 
 .row.two-col {
@@ -2754,4 +3208,83 @@
 .bank-section select option {
   background: var(--admin-card-bg);
   color: var(--admin-text-primary);
+}
+
+/* ------------------------------------------------------------------
+   Canonical override: Choices remove button inside the expert modal
+   - Alta especificidad y !important solo aquí para garantizar visibilidad
+   - Muestra la × usando pseudo-elemento con color de tema (--admin-text-primary)
+   - Fondo circular con --admin-text-secondary para buen contraste
+   - Mantener comportamiento responsive y accesible
+   ------------------------------------------------------------------ */
+#expertModal .modal-expert .choices__button,
+#expertModal button.choices__button[data-button],
+#expertModal .modal-expert__full-row .choices__button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 22px !important;
+  height: 22px !important;
+  min-width: 22px !important;
+  min-height: 22px !important;
+  margin-left: 6px !important;
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 50% !important;
+  background: var(--admin-text-secondary, #2b2f36) !important; /* bola */
+  position: relative !important;
+  overflow: visible !important;
+  cursor: pointer !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12) !important;
+}
+
+/* Hide any injected SVGs to avoid double glyphs */
+#expertModal .modal-expert .choices__button svg {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  visibility: hidden !important;
+}
+
+/* Ensure original button text is hidden but keep accessible label
+   and draw the visible × via ::after */
+#expertModal .modal-expert .choices__button {
+  color: transparent !important;
+  text-indent: -9999px !important;
+}
+
+#expertModal .modal-expert .choices__button::after,
+#expertModal button.choices__button[data-button]::after {
+  content: "\00d7" !important;
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  font-size: 13px !important;
+  line-height: 1 !important;
+  font-weight: 700 !important;
+  color: var(--admin-text-primary, #f5f5f5) !important; /* X color requested */
+  pointer-events: none !important;
+  -webkit-font-smoothing: antialiased !important;
+}
+
+/* Hover/focus polish */
+#expertModal .modal-expert .choices__button:hover,
+#expertModal button.choices__button[data-button]:hover,
+#expertModal .modal-expert .choices__button:focus {
+  transform: scale(1.03) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+
+@media (max-width: 720px) {
+  #expertModal .modal-expert .choices__button,
+  #expertModal button.choices__button[data-button] {
+    width: 18px !important;
+    height: 18px !important;
+    min-width: 18px !important;
+    min-height: 18px !important;
+  }
+  #expertModal .modal-expert .choices__button::after {
+    font-size: 11px !important;
+  }
 }
