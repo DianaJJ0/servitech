@@ -1,4 +1,12 @@
-/* --- Especialidad y Estado en modal de expertos --- */
+/* ------------------------------------------------------------------
+  Archivo: Admin-expertos.css
+  Propósito: estilos del modal "Agregar/Editar experto" (categorías,
+  habilidades, días, sección bancaria y ajustes responsive).
+  Estructura: Normalización | Choices | Bank | Días | Responsive | Overrides
+  Comentarios cortos en español; no se alteraron reglas.
+  ------------------------------------------------------------------ */
+
+/* --- Normalización y layout base del modal --- */
 .modal-expert__grid {
   margin-top: 1.5rem;
   gap: 1rem;
@@ -10,67 +18,7 @@
   gap: 0.5rem;
 }
 
-.input-with-icon {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: var(--admin-card-bg, #0f1724);
-  border: 1px solid var(--admin-border-color, #2b3240);
-  padding: 0.45rem 0.6rem;
-  border-radius: 8px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
-}
-
-.input-with-icon i.fas.fa-briefcase,
-.input-with-icon i.fas.fa-toggle-on {
-  color: var(--admin-accent-color, #5e81ff);
-  min-width: 20px;
-  text-align: center;
-}
-
-.input-with-icon select.modal-expert__input.modal-expert__select {
-  flex: 1;
-  background: transparent;
-  border: 0;
-  color: var(--admin-text-primary, #fff);
-  padding: 0;
-  margin: 0;
-  height: 34px;
-  appearance: none;
-}
-
-.input-with-icon i.fas.fa-chevron-down {
-  color: var(--admin-text-secondary, #9aa0a6);
-  font-size: 0.85rem;
-}
-
-.modal-expert__hint {
-  color: var(--admin-text-secondary, #9aa0a6);
-  font-size: 0.8rem;
-}
-/* -------------------------
-   Small scoped adjustments for the "Precio por hora" block
-   Scoped under .modal-expert so modal sizing is respected. No !important used.
-   ------------------------- */
-.modal-expert .modal-expert__price-days .price-row {
-  font-size: 0.95rem; /* slightly smaller than modal base */
-  padding: 0; /* remove extra vertical padding inside the row */
-  margin: 0;
-  box-sizing: border-box;
-}
-
-.modal-expert .modal-expert__price-days .price-label {
-  display: block;
-  font-size: 0.8125rem; /* match .modal-expert__label */
-  margin-bottom: 0.125rem;
-  font-weight: 600;
-}
-
-.modal-expert .modal-expert__price-days .price-input,
-.modal-expert .modal-expert__price-days .srv-price-input {
-  max-width: 100%;
-  align-items: center;
-}
+/* --- Nota: bank-section consolidada (ver reglas con #expertModal .bank-section) --- */
 
 .modal-expert .modal-expert__price-days .currency-symbol,
 .modal-expert .modal-expert__price-days .srv-currency {
@@ -93,7 +41,7 @@
   font-size: 0.78rem;
   margin-top: 0.25rem;
 
-  /* Highly-specific overrides to ensure days text matches modal baseline */
+  /* --- Override específico: ajustar tamaño de texto de días --- */
   #expertModal
     .modal-expert__container
     .modal-expert__body
@@ -141,10 +89,9 @@
   font-size: var(--modal-hint-size);
 }
 
-/* Ensure days labels are visually consistent */
-/* Day sizing consolidated later under #expertModal .modal-expert__price-days .srv-day */
+/* --- Días: etiquetas y tamaños --- */
 
-/* keep modal title and header larger and untouched */
+/* --- Título del modal --- */
 .modal-expert .modal-expert__title {
   font-size: 1.125rem;
 }
@@ -212,7 +159,7 @@
   color: var(--admin-text-secondary); /* placeholder color via variable */
 }
 
-/* Very high-specificity overrides for the Add Expert modal to beat Choices default CSS */
+/* --- Override prioridad alta para modal (compatibilidad con Choices) --- */
 #expertModal .modal-expert__full-row .choices__inner,
 #expertModal .modal-expert__full-row .choices__list--multiple,
 #expertModal .modal-expert__full-row .choices__container {
@@ -240,7 +187,22 @@
   border: 1px solid var(--admin-border-color);
 }
 
-/* Consolidated choices button rules kept in the modal-scoped block below; duplicated small blocks removed */
+/* Consolidación: evitar duplicados y dejar una base neutral.
+  El bloque canónico al final del archivo aplica el estilo completo
+  del botón "remove" (círculo con ×). Esta regla aquí garantiza una
+  base consistente para evitar que estilos externos oculten el botón. */
+#expertModal .modal-expert .choices__button,
+#expertModal button.choices__button[data-button] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  box-sizing: border-box;
+  cursor: pointer;
+}
 
 /* Forzar que el input dentro del widget mantenga fondo transparente sobre el blanco */
 .modal-expert .choices__inner .choices__input {
@@ -303,10 +265,10 @@
 }
 
 /* ==================================================
-   Styles moved from inline <style> in adminExpertos.ejs
-   These rules are scoped to #expertModal (add-expert modal)
-   Consolidated here to avoid inline duplication.
-   ================================================== */
+  Reglas movidas desde <style> inline en adminExpertos.ejs
+  Estas normas están scopeadas a #expertModal (modal agregar experto)
+  Consolidado aquí para evitar duplicados inline.
+  ================================================== */
 
 #expertModal {
   position: fixed;
@@ -379,63 +341,7 @@
   border-radius: 8px !important;
 }
 
-/* Choices remove button */
-#expertModal .choices__button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  margin-left: 6px;
-  border: none;
-  background: #23272f !important;
-  color: var(--admin-text-primary, #f5f5f5) !important;
-  font-size: 1.2em;
-  line-height: 1;
-  cursor: pointer;
-  vertical-align: middle;
-  transition: color 0.2s, background 0.2s;
-  position: relative;
-  border-radius: 50%;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
-  overflow: visible !important;
-  padding: 0;
-}
-
-#expertModal .choices__button svg {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
-  visibility: hidden !important;
-}
-
-#expertModal .choices__button {
-  color: transparent !important;
-  text-indent: -9999px;
-}
-
-#expertModal .choices__button::after,
-#expertModal .choices__button::before {
-  content: "\00d7";
-  font-weight: 700;
-  color: var(--admin-text-primary, #f5f5f5) !important;
-  font-size: 14px;
-  line-height: 1;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  z-index: 3 !important;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-#expertModal .choices__button:hover,
-#expertModal .choices__button:focus {
-  color: #fff !important;
-  background: #ff2e2e !important;
-}
+/* --- Nota: botón eliminar de Choices consolidado al final del archivo --- */
 
 #expertModal input::placeholder,
 #expertModal textarea::placeholder {
@@ -1039,12 +945,10 @@
   text-align: left;
 }
 
-/* Botón eliminar - mantener color del texto del tema incluso en hover */
-#expertModal .modal-expert__full-row .choices__button,
-#expertModal .modal-expert__full-row .choices__button:hover,
-#expertModal .modal-expert__full-row .choices__button:focus {
-  color: var(--admin-text-primary);
-}
+/* Botón eliminar (full-row): las reglas de color han sido consolidadas en el
+  override canónico al final del archivo. Mantener reglas aquí puede causar
+  duplicados; ver el bloque con "#expertModal .modal-expert .choices__button"
+  al final de `Admin-expertos.css`. */
 
 /* Evitar que el hover del contenedor cambie el placeholder a blanco */
 #expertModal
@@ -1245,23 +1149,15 @@
 }
 
 .modal-expert__grid .choices__item--selectable .choices__button {
+  /* Minimal, non-conflicting baseline for chip remove button; final sizing/color
+     is controlled by the canonical override at the end of the file. */
   background: var(--admin-text-secondary);
-  color: var(--admin-text-primary);
-  border-radius: 50%;
   width: 14px;
   height: 14px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
-  cursor: pointer;
   margin-left: 6px;
-  border: none;
-  opacity: 1;
-  transition: transform 0.12s ease;
-}
-.modal-expert__grid .choices__item--selectable .choices__button:hover {
-  transform: scale(1.05);
 }
 /* Elimina estilos directos a select en el modal para evitar conflicto con Choices.js */
 /* Los estilos de Choices.js se aplican en la sección correspondiente más abajo */
@@ -1528,9 +1424,6 @@
     .modal-expert .choices-container {
       background: transparent;
       border: none;
-      width: 100%;
-      box-sizing: border-box;
-      margin: 0;
     }
     .modal-expert .choices__inner {
       min-height: 44px;
@@ -3123,13 +3016,7 @@
   color: var(--admin-text-primary);
 }
 
-/* ------------------------------------------------------------------
-   Canonical override: Choices remove button inside the expert modal
-   - Alta especificidad y !important solo aquí para garantizar visibilidad
-   - Muestra la × usando pseudo-elemento con color de tema (--admin-text-primary)
-   - Fondo circular con --admin-text-secondary para buen contraste
-   - Mantener comportamiento responsive y accesible
-   ------------------------------------------------------------------ */
+/* --- Override canónico: botón eliminar (Choices) --- */
 #expertModal .modal-expert .choices__button,
 #expertModal button.choices__button[data-button],
 #expertModal .modal-expert__full-row .choices__button {
@@ -3151,7 +3038,7 @@
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12) !important;
 }
 
-/* Hide any injected SVGs to avoid double glyphs */
+/* --- Ocultar SVGs inyectados (evita doble símbolo) --- */
 #expertModal .modal-expert .choices__button svg {
   display: none !important;
   width: 0 !important;
