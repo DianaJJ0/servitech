@@ -1568,7 +1568,7 @@
       gap: 6px;
     }
 
-  /* Choices remove-button rules consolidated elsewhere (canonical block at file end).
+    /* Choices remove-button rules consolidated elsewhere (canonical block at file end).
      Removed duplicate block to avoid cascade conflicts. */
     .modal-expert .choices__list[role="listbox"] {
       max-height: 160px;
@@ -2154,7 +2154,7 @@
       border-radius: 50% !important;
       background: var(--admin-text-secondary, #2b2f36) !important;
       border: 0 !important;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.12) !important;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12) !important;
       position: relative !important;
       overflow: visible !important;
     }
