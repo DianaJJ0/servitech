@@ -189,8 +189,7 @@
             </div>
           </div>
         </div>
-  </div>
-  </main>
+      </main>
   </div>
 
   <!-- Modal para agregar experto -->
@@ -205,13 +204,10 @@
         align-items: center;
         justify-content: center;
         padding: 1.25rem;
-        /* espacio desde los bordes de la ventana (márgenes top/right/bottom/left) */
         box-sizing: border-box;
         z-index: 1100;
         color: var(--admin-text-primary, #ffffff);
         --expert-text-secondary: var(--admin-text-secondary, #9aa0a6);
-        /* opcional: semitransparente si quieres un backdrop visual (quita si ya tienes backdrop global) */
-        /* background: rgba(0,0,0,0.35); */
         pointer-events: auto;
       }
 
@@ -220,7 +216,6 @@
         width: 100%;
         max-width: 980px;
         max-height: calc(100vh - 2.5rem);
-        /* deja espacio arriba/abajo según padding del modal */
         overflow: auto;
         margin: 0 auto;
         padding: 1rem;
@@ -261,9 +256,11 @@
       #expertModal .modal-expert__file-input {
         color: var(--admin-text-primary, #ffffff) !important;
         background: transparent !important;
-        border-color: var(--admin-border-color, #333) !important;
+        border: 1px solid var(--admin-border-color, #333) !important;
         box-sizing: border-box;
         font-family: inherit !important;
+        padding: 0.5rem !important;
+        border-radius: 8px !important;
       }
 
       /* Placeholder color to match secondary text */
@@ -281,13 +278,11 @@
         align-items: start;
       }
 
-      /* ensure grid children can shrink */
-      #expertModal .modal-expert__grid>div {
+      #expertModal .modal-expert__grid > div {
         min-width: 0;
       }
 
-      /* full width rows inside the grid */
-      #expertModal .modal-expert__grid>.full-width {
+      #expertModal .modal-expert__grid .full-width {
         grid-column: 1 / -1;
       }
 
@@ -311,6 +306,9 @@
         flex: 1;
         min-width: 0;
         color: var(--admin-text-primary, #fff) !important;
+        background: transparent !important;
+        border: none !important;
+        padding: 0.45rem 0.5rem !important;
       }
 
       #expertModal .srv-note.price-note {
@@ -374,79 +372,18 @@
         flex: 1;
         color: var(--admin-text-primary, #fff) !important;
         background: transparent !important;
+        border: none !important;
+        padding: 0.45rem 0.5rem !important;
       }
 
-      /* Selects and multi-selects width */
-      #expertModal #categorias,
-      #expertModal #skills,
-      #expertModal #bio {
-        width: 100%;
-      }
-
-      /* Upload area */
-      #expertModal .modal-expert__upload-wrapper {
-        display: flex;
-        gap: .75rem;
-        align-items: center;
-      }
-
-      #expertModal .modal-expert__upload-box {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: .5rem;
-        border-radius: .5rem;
-        border: 1px dashed var(--admin-border-color, #333);
-        min-width: 140px;
-        color: var(--admin-text-primary, #fff) !important;
-      }
-
-      #expertModal #profilePreview {
-        width: 56px;
-        height: 56px;
-        border-radius: 6px;
-        overflow: hidden;
-        background: #222;
-        display: none;
-      }
-
-      /* Bank section */
-      #expertModal .bank-section {
-        padding: 1rem;
-        border-radius: .5rem;
-        border: 1px solid var(--admin-border-color, #333);
-        background: var(--admin-card-bg, #121212);
-      }
-
-      #expertModal .bank-title {
-        display: flex;
-        align-items: center;
-        gap: .5rem;
-        margin: 0 0 .5rem 0;
-      }
-
-      #expertModal .bank-sub {
-        margin: 0 0 .75rem .25rem;
-        color: var(--admin-text-secondary, #9aa0a6);
-      }
-
-      #expertModal .bank-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 1rem;
-      }
-
-      /* Account input */
-      #expertModal .acct-wrap {
-        display: flex;
-        align-items: center;
-        gap: .5rem;
-      }
-
-      #expertModal .acct-wrap .acct-input {
-        flex: 1;
-        min-width: 0;
+      /* Choices areas */
+      #expertModal .choices,
+      #expertModal .choices__inner,
+      #expertModal .choices__list--multiple {
+        background: transparent !important;
+        color: var(--admin-text-primary, #ffffff) !important;
+        border: 1px solid var(--admin-border-color, #333) !important;
+        font-family: inherit !important;
       }
 
       /* Small hints and info */
@@ -484,196 +421,64 @@
       }
 
       /* ============================
-         Choices.js visual fixes (override white backgrounds)
-         Make the cloned and internal inputs match admin theme
+         Bank section improvements: responsive grid, consistent spacing and arrow icons
          ============================ */
-      #expertModal .choices,
-      #expertModal .choices__inner,
-      #expertModal .choices__list--multiple {
-        background: transparent !important;
-        color: var(--admin-text-primary, #ffffff) !important;
-        border: 1px solid var(--admin-border-color, #333) !important;
-        font-family: inherit !important;
-      }
 
-      /* the actual input shown/created by Choices (cloned or not) */
-      #expertModal .choices__input,
-      #expertModal .choices__input--cloned,
-      #expertModal input.choices__input--cloned[placeholder="Selecciona categorías"],
-      #expertModal input.choices__input[placeholder="Selecciona categorías"],
-      #expertModal input.choices__input--cloned[aria-label="Selecciona categorías"],
-      #expertModal input.choices__input[aria-label="Selecciona categorías"] {
-        background: transparent !important;
-        color: var(--admin-text-primary, #ffffff) !important;
-        -webkit-text-fill-color: var(--admin-text-primary, #ffffff) !important;
-        caret-color: var(--admin-accent-color, #5e81ff) !important;
-        border: none !important;
-        outline: none !important;
-        width: auto !important;
-        min-width: 22ch !important;
-        font-family: inherit !important;
-        padding-left: 42px !important;
-      }
-
-      /* dropdown list items also must match theme */
-      #expertModal .choices__list--dropdown,
-      #expertModal .choices__list--dropdown .choices__Item,
-      #expertModal .choices__list--dropdown .choices__item {
-        background: var(--admin-card-bg, #121212) !important;
-        color: var(--admin-text-primary, #fff) !important;
-        border-color: var(--admin-border-color, #333) !important;
-      }
-
-      /* ensure remove button icon contrast and proper visual icon (hide textual content but keep aria-label) */
-      #expertModal .choices__button {
-        /* keep accessible label for screen readers (aria-label on the button), visually hide text */
-        color: transparent !important;
-        background: transparent !important;
-        border: none !important;
-        padding: 0 !important;
-        width: 28px !important;
-        height: 28px !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        overflow: visible !important;
-        text-indent: -9999px !important; /* hide "Remove item" text visually */
-        position: relative !important;
-        cursor: pointer !important;
-      }
-
-      /* show a lightweight SVG "times" icon centered inside the remove button (no dependencias de font icons) */
-      #expertModal .choices__button::before {
-        content: "" !important;
-        position: absolute !important;
-        left: 50% !important;
-        top: 50% !important;
-        transform: translate(-50%, -50%) !important;
-        pointer-events: none !important;
-        display: block !important;
-        width: 14px !important;
-        height: 14px !important;
-        background-repeat: no-repeat !important;
-        background-size: 14px 14px !important;
-        /* SVG inline para la "X" (stroke color en hex para visibilidad). Se puede ajustar si necesita otro color. */
-        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><line x1='18' y1='6' x2='6' y2='18'/><line x1='6' y1='6' x2='18' y2='18'/></svg>") !important;
-        line-height: 1 !important;
-      }
-
-      /* Icon next to placeholder: use pseudo-element, but hide it if multiple selected items exist */
-      #expertModal .choices__inner {
-        position: relative;
-        padding-left: 42px !important;
+      #expertModal .bank-section {
+        padding: 1rem;
+        border-radius: .5rem;
+        border: 1px solid var(--admin-border-color, #333);
+        background: var(--admin-card-bg, #121212);
         box-sizing: border-box;
       }
 
-      #expertModal .choices__inner::before {
-        content: "";
-        position: absolute;
-        left: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 18px;
-        height: 18px;
-        background-repeat: no-repeat;
-        background-size: 18px 18px;
-        pointer-events: none;
-        opacity: 0.95;
-        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5f5f5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M20.59 13.41L11 3.83a2 2 0 0 0-2.83 0L3.41 9.59a2 2 0 0 0 0 2.83l9.76 9.76a2 2 0 0 0 2.83 0l4.59-4.59a2 2 0 0 0 0-2.83z'></path><circle cx='7.5' cy='7.5' r='1.5'></circle></svg>");
+      #expertModal .bank-title {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        margin: 0 0 .5rem 0;
+        font-size: 1rem;
       }
 
-      /* Hide the pseudo-icon when the inner contains a multiple list (covers most modern browsers) */
-      #expertModal .choices__inner:has(.choices__list--multiple)::before,
-      #expertModal .choices__inner.no-icon::before {
-        display: none !important;
-        content: none !important;
+      #expertModal .bank-sub {
+        margin: 0 0 .75rem 0;
+        color: var(--admin-text-secondary, #9aa0a6);
+        font-size: 0.95rem;
       }
 
-      /* fallback: if :has is not supported, JS adds .no-icon to inner when there are multiple choices */
-      /* When the choices container contains selected items, keep spacing for tags */
-      #expertModal .choices__list--single .choices__item,
-      #expertModal .choices__list--multiple .choices__item {
-        margin-left: 12px !important;
+      /* Responsive grid for bank fields */
+      #expertModal .bank-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+        align-items: start;
       }
 
-      /* ============================
-         Bank section spacing tweaks (mejoras solicitadas)
-         Añadir espacios alrededor del select 'banco' para que no se vea pegado
-         ============================ */
-      #expertModal .bank-grid>div {
-        padding: 0.6rem 0.6rem;
-        /* espacio interior para cada celda */
+      /* Ensure label + control spacing */
+      #expertModal .bank-grid > div,
+      #expertModal .bank-section > div:not(.info-box) {
+        padding: 0;
       }
 
-      /* Asegura que las etiquetas no estén pegadas al control */
-      #expertModal .bank-grid>div label {
+      #expertModal .bank-grid label,
+      #expertModal .bank-section label {
         display: block;
-        margin-bottom: 0.4rem;
+        margin-bottom: 0.45rem;
         font-weight: 600;
         color: var(--admin-text-primary, #fff) !important;
       }
 
-      /* Estilos específicos para el select 'banco' para dar más separación visual */
-      #expertModal #banco {
-        display: block;
-        width: 100%;
-        padding: 0.55rem 0.75rem;
-        border-radius: 8px;
-        border: 1px solid var(--admin-border-color, #333);
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.01), transparent);
-        color: var(--admin-text-primary, #fff);
-        box-sizing: border-box;
-        -webkit-appearance: none;
-        appearance: none;
-      }
-      /* Icono de flecha personalizado (no intrusivo) */
-      #expertModal #banco-wrapper {
-        position: relative;
-      }
-
-      #expertModal #banco-wrapper::after {
-        content: "" ;
-        position: absolute;
-        right: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-        pointer-events: none;
-        display: block;
-        width: 12px;
-        height: 12px;
-        background-repeat: no-repeat;
-        background-size: 12px 12px;
-        /* Inline SVG para la flecha hacia abajo (color similar al texto secundario por defecto) */
-        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239aa0a6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
-      }
-      }
-
-      /* Opciones del select en tema oscuro */
-      #expertModal #banco option {
-        background: var(--admin-card-bg, #121212);
-        color: var(--admin-text-primary, #fff);
-      }
-
-      /* Si el select ocupa toda la fila en pantallas anchas, agregar margen extra */
-      @media (min-width: 900px) {
-        #expertModal .bank-grid>div:first-child {
-          padding-left: 0.75rem;
-          padding-right: 0.75rem;
-        }
-      }
-
-      /* ==============================
-         Mismas mejoras aplicadas a Tipo de cuenta y Tipo de documento
-         - wrapper con ícono de flecha
-      /* Wrapper arrows */
+      /* Wrapper with arrow for selects */
+      #expertModal #banco-wrapper,
       #expertModal #tipoCuenta-wrapper,
       #expertModal #tipoDocumento-wrapper {
         position: relative;
       }
 
+      #expertModal #banco-wrapper::after,
       #expertModal #tipoCuenta-wrapper::after,
       #expertModal #tipoDocumento-wrapper::after {
-        content: "" ;
+        content: "";
         position: absolute;
         right: 12px;
         top: 50%;
@@ -684,15 +489,12 @@
         height: 12px;
         background-repeat: no-repeat;
         background-size: 12px 12px;
-        /* Inline SVG para la flecha hacia abajo (color similar al texto secundario por defecto) */
         background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239aa0a6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
-      }
-        pointer-events: none;
-        color: var(--admin-text-secondary, #9aa0a6);
-        font-size: 0.85rem;
+        opacity: 0.95;
       }
 
-      /* Select visual parity with 'banco' */
+      /* Select visual parity */
+      #expertModal #banco,
       #expertModal #tipoCuenta,
       #expertModal #tipoDocumento {
         display: block;
@@ -707,17 +509,50 @@
         appearance: none;
       }
 
-      /* Opciones en tema oscuro */
+      #expertModal #banco option,
       #expertModal #tipoCuenta option,
       #expertModal #tipoDocumento option {
         background: var(--admin-card-bg, #121212);
         color: var(--admin-text-primary, #fff);
       }
 
-      /* Más espacio interior para cada celda de la grid bancaria (refuerzo) */
-      #expertModal .bank-grid>div {
-        padding-top: 0.55rem;
-        padding-bottom: 0.55rem;
+      /* Account input and toggle */
+      #expertModal .acct-wrap {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+      }
+
+      #expertModal .acct-wrap .acct-input {
+        flex: 1;
+        min-width: 0;
+        padding: 0.5rem !important;
+      }
+
+      #expertModal .acct-toggle {
+        background: transparent;
+        border: 1px solid var(--admin-border-color, #333);
+        color: var(--admin-text-secondary, #9aa0a6);
+        padding: 0.45rem;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+
+      #expertModal .acct-toggle i {
+        pointer-events: none;
+      }
+
+      /* Phone input full width */
+      #expertModal .bank-section .full-width input {
+        width: 100%;
+      }
+
+      /* Small responsive tweak for larger screens */
+      @media (min-width: 900px) {
+        #expertModal .bank-grid > div:first-child {
+          padding-left: 0.5rem;
+          padding-right: 0.5rem;
+        }
       }
     </style>
 
@@ -842,7 +677,7 @@
 
             <!-- Categorías (full width) -->
             <div class="full-width">
-              <label class="modal-expert__label"></label>
+              <label class="modal-expert__label" for="categorias">
                 <i class="fas fa-tags modal-expert__icon" aria-hidden="true"></i>
                 Categorías
               </label>
@@ -888,9 +723,7 @@
 
                   // Try to style existing inputs immediately and observe future clones
                   function processAll() {
-                    // Targets: choices inputs inside this modal and any cloned inputs with the placeholder/aria-label
                     document.querySelectorAll('#expertModal .choices__input, #expertModal .choices__input--cloned, input[placeholder="Selecciona categorías"], input[aria-label="Selecciona categorías"]').forEach(applyInputFix);
-                    // keep dropdown and list themed
                     document.querySelectorAll('#expertModal .choices__list--dropdown, #expertModal .choices__list--dropdown .choices__item').forEach(function (el) {
                       try {
                         el.style.setProperty('background', getComputedStyle(document.documentElement).getPropertyValue('--admin-card-bg') || '#121212', 'important');
@@ -899,7 +732,6 @@
                       } catch (e) { }
                     });
 
-                    // Hide the pseudo-icon when the inner container contains a multiple list (prevents the icon showing over .choices__list--multiple)
                     document.querySelectorAll('#expertModal .choices__inner').forEach(function (inner) {
                       try {
                         if (inner.querySelector('.choices__list--multiple')) inner.classList.add('no-icon');
@@ -920,22 +752,19 @@
 
             <!-- Habilidades (full width) -->
             <div class="full-width">
-              <label class="modal-expert__label">
+              <label class="modal-expert__label" for="skills">
                 <i class="fas fa-tools modal-expert__icon" aria-hidden="true"></i>
                 Habilidades
               </label>
               <select id="skills" class="modal-expert__input" multiple size="6">
                 <% if (typeof habilidades !=='undefined' && Array.isArray(habilidades) && habilidades.length> 0) { %>
                   <% habilidades.forEach(function(h) { %>
-                    <% const val=(h && (h.nombre || h.name || h.label)) ? (h.nombre || h.name || h.label) : (h && h._id
-                      ? String(h._id) : '' ); %>
-                      <% if (val) { %>
-                        <option value="<%= val %>"></option>
-                          <%= val %>
-                        </option>
-                        <% } %>
-                          <% }); %>
-                            <% } %>
+                    <% const val=(h && (h.nombre || h.name || h.label)) ? (h.nombre || h.name || h.label) : (h && h._id ? String(h._id) : '' ); %>
+                    <% if (val) { %>
+                      <option value="<%= val %>"><%= val %></option>
+                    <% } %>
+                  <% }); %>
+                <% } %>
               </select>
               <script>
                 document.addEventListener('DOMContentLoaded', function () {
@@ -959,7 +788,7 @@
 
             <!-- Biografía -->
             <div class="full-width">
-              <label class="modal-expert__label" for="bio"></label>
+              <label class="modal-expert__label" for="bio">
                 <i class="fas fa-file-alt modal-expert__icon" aria-hidden="true"></i>
                 Biografía profesional
               </label>
@@ -1000,7 +829,7 @@
                 <div class="bank-grid">
                   <div>
                     <label for="banco">Banco *</label>
-                    <div id="banco-wrapper"></div>
+                    <div id="banco-wrapper">
                       <select id="banco" name="banco" required class="modal-expert__input">
                         <option value="">Selecciona tu banco</option>
                         <option value="Banco de Bogotá">Banco de Bogotá</option>
@@ -1053,9 +882,8 @@
                   <div>
                     <label for="numeroCuenta">Número de cuenta *</label>
                     <div class="acct-wrap">
-                      <input type="password" id="numeroCuenta" name="numeroCuenta" required
-                        placeholder="Número de cuenta" pattern="[0-9\-]*" title="Solo números y guiones"
-                        class="acct-input">
+                      <input type="password" id="numeroCuenta" name="numeroCuenta" required placeholder="Número de cuenta"
+                        pattern="[0-9\-]*" title="Solo números y guiones" class="acct-input">
                       <button type="button" id="toggleAccountNumber" class="acct-toggle"
                         aria-label="Mostrar número de cuenta">
                         <i class="fas fa-eye"></i>
@@ -1111,20 +939,19 @@
                     <li><i class="fas fa-check"></i> Seguridad garantizada</li>
                   </ul>
                 </div>
-
               </div>
             </div>
-
           </div>
-        </form>
       </div>
+      </form>
+    </div>
 
-      <div class="modal-expert__footer">
-        <button class="btn-outline" data-dismiss="modal" type="button">Cancelar</button>
-        <button type="button" class="btn-primary" id="saveExpert">Guardar experto</button>
-      </div>
+    <div class="modal-expert__footer">
+      <button class="btn-outline" data-dismiss="modal" type="button">Cancelar</button>
+      <button type="button" class="btn-primary" id="saveExpert">Guardar experto</button>
     </div>
   </div>
+
 
   <!--modal editar experto-->
   <div id="editarExperto" class="modal-expert">
