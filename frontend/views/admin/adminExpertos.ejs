@@ -216,7 +216,7 @@
         width: 100%;
         max-width: 980px;
         max-height: calc(100vh - 2.5rem);
-        overflow: auto;
+        overflow: hidden; /* controlamos scroll en el body */
         margin: 0 auto;
         padding: 1rem;
         box-sizing: border-box;
@@ -224,6 +224,17 @@
         background: var(--admin-card-bg, #0f1720);
         border: 1px solid var(--admin-border-color, #333);
         box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+
+        /* Ensure footer stays visually inside the modal and body scrolls */
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Ensure body is scrollable while footer stays fixed at bottom of modal */
+      #expertModal .modal-expert__body {
+        overflow: auto;
+        flex: 1 1 auto;
+        padding-bottom: 1rem; /* space so last inputs are not hidden behind footer */
       }
 
       /* Ensure headings and small text use theme colors */
@@ -278,7 +289,7 @@
         align-items: start;
       }
 
-      #expertModal .modal-expert__grid > div {
+      #expertModal .modal-expert__grid>div {
         min-width: 0;
       }
 
@@ -418,6 +429,9 @@
         gap: .75rem;
         justify-content: flex-end;
         padding: 1rem 1rem 1.25rem;
+        flex-shrink: 0; /* don't let footer collapse when container is flex */
+        border-top: 1px solid rgba(255,255,255,0.03);
+        margin-top: 0.5rem;
       }
 
       /* ============================
@@ -455,8 +469,8 @@
       }
 
       /* Ensure label + control spacing */
-      #expertModal .bank-grid > div,
-      #expertModal .bank-section > div:not(.info-box) {
+      #expertModal .bank-grid>div,
+      #expertModal .bank-section>div:not(.info-box) {
         padding: 0;
       }
 
@@ -548,7 +562,7 @@
 
       /* Small responsive tweak for larger screens */
       @media (min-width: 900px) {
-        #expertModal .bank-grid > div:first-child {
+        #expertModal .bank-grid>div:first-child {
           padding-left: 0.5rem;
           padding-right: 0.5rem;
         }
@@ -576,7 +590,7 @@
         padding: 0.6rem 0.8rem;
         border-radius: 8px;
         border: 1px dashed var(--admin-border-color, #333);
-        background: linear-gradient(180deg, rgba(255,255,255,0.01), transparent);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.01), transparent);
         cursor: pointer;
         color: var(--admin-text-secondary, #9aa0a6);
         min-height: 48px;
@@ -603,7 +617,7 @@
         height: 96px;
         border-radius: 8px;
         overflow: hidden;
-        background: rgba(255,255,255,0.02);
+        background: rgba(255, 255, 255, 0.02);
         border: 1px solid var(--admin-border-color, #333);
         display: none;
         position: relative;
@@ -628,8 +642,8 @@
         position: absolute;
         top: 6px;
         right: 6px;
-        background: rgba(0,0,0,0.45);
-        border: 1px solid rgba(255,255,255,0.06);
+        background: rgba(0, 0, 0, 0.45);
+        border: 1px solid rgba(255, 255, 255, 0.06);
         color: #fff;
         padding: 4px 6px;
         border-radius: 6px;
@@ -655,6 +669,7 @@
         #expertModal .modal-expert__upload-wrapper {
           grid-template-columns: 1fr;
         }
+
         #expertModal #profilePreview {
           width: 72px;
           height: 72px;
@@ -866,12 +881,15 @@
               <select id="skills" class="modal-expert__input" multiple size="6">
                 <% if (typeof habilidades !=='undefined' && Array.isArray(habilidades) && habilidades.length> 0) { %>
                   <% habilidades.forEach(function(h) { %>
-                    <% const val=(h && (h.nombre || h.name || h.label)) ? (h.nombre || h.name || h.label) : (h && h._id ? String(h._id) : '' ); %>
-                    <% if (val) { %>
-                      <option value="<%= val %>"><%= val %></option>
-                    <% } %>
-                  <% }); %>
-                <% } %>
+                    <% const val=(h && (h.nombre || h.name || h.label)) ? (h.nombre || h.name || h.label) : (h && h._id
+                      ? String(h._id) : '' ); %>
+                      <% if (val) { %>
+                        <option value="<%= val %>">
+                          <%= val %>
+                        </option>
+                        <% } %>
+                          <% }); %>
+                            <% } %>
               </select>
               <script>
                 document.addEventListener('DOMContentLoaded', function () {
@@ -923,7 +941,8 @@
 
                 <!-- preview thumbnail -->
                 <div id="profilePreview" aria-hidden="true" role="img" aria-label="Vista previa de imagen">
-                  <button id="removeProfileBtn" type="button" title="Eliminar imagen" aria-label="Eliminar imagen" style="display:none;">
+                  <button id="removeProfileBtn" type="button" title="Eliminar imagen" aria-label="Eliminar imagen"
+                    style="display:none;">
                     <i class="fas fa-times"></i>
                   </button>
                   <img src="" alt="Preview" />
@@ -937,7 +956,7 @@
             <!-- Espacio reservado para mantener la columna alineada -->
             <div aria-hidden="true"></div>
 
-            <!-- Bank section (full width card) -->
+            <!-- Sección bancaria (tarjeta de ancho completo) -->
             <div class="full-width">
               <div class="bank-section">
                 <h3 class="bank-title">
@@ -1001,8 +1020,9 @@
                   <div>
                     <label for="numeroCuenta">Número de cuenta *</label>
                     <div class="acct-wrap">
-                      <input type="password" id="numeroCuenta" name="numeroCuenta" required placeholder="Número de cuenta"
-                        pattern="[0-9\-]*" title="Solo números y guiones" class="acct-input">
+                      <input type="password" id="numeroCuenta" name="numeroCuenta" required
+                        placeholder="Número de cuenta" pattern="[0-9\-]*" title="Solo números y guiones"
+                        class="acct-input">
                       <button type="button" id="toggleAccountNumber" class="acct-toggle"
                         aria-label="Mostrar número de cuenta">
                         <i class="fas fa-eye"></i>
@@ -1061,13 +1081,15 @@
               </div>
             </div>
           </div>
+        </form>
       </div>
-      </form>
-    </div>
 
-    <div class="modal-expert__footer">
-      <button class="btn-outline" data-dismiss="modal" type="button">Cancelar</button>
-      <button type="button" class="btn-primary" id="saveExpert">Guardar experto</button>
+      <!-- Moved footer inside container so it remains visually part of the modal.
+           The container is a column-flex so the body scrolls while footer stays at bottom. -->
+      <div class="modal-expert__footer">
+        <button class="btn-outline" data-dismiss="modal" type="button">Cancelar</button>
+        <button type="button" class="btn-primary" id="saveExpert">Guardar experto</button>
+      </div>
     </div>
   </div>
 
