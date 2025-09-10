@@ -47,378 +47,399 @@
               </div>
 
               <form id="registroExpertoForm" class="registroExperto-form">
-                <!-- Primera fila horizontal -->
-                <div class="form-row triple">
-                  <!-- Email -->
-                  <div class="form-group compact email-group">
-                    <label for="email">
-                      <i class="fas fa-envelope"></i>
-                      Email registrado
-                    </label>
-                    <div class="email-field">
-                      <%- experto && experto.email ? experto.email : '' %>
+                <% // fallback helpers: prefer experto.infoExperto fields, then root experto const info=(typeof experto
+                  !=='undefined' && experto && experto.infoExperto) ? experto.infoExperto : {}; const dias=(info &&
+                  Array.isArray(info.diasDisponibles) && info.diasDisponibles.length) ? info.diasDisponibles : (experto
+                  && Array.isArray(experto.horario) ? experto.horario : (experto && experto.horario ? experto.horario :
+                  [])); const precioVal=(info && (info.precioPorHora || info.precio)) || (experto && experto.precio) ||
+                  0; %>
+                  <!-- Primera fila horizontal -->
+                  <div class="form-row triple">
+                    <!-- Email -->
+                    <div class="form-group compact email-group">
+                      <label for="email">
+                        <i class="fas fa-envelope"></i>
+                        Email registrado
+                      </label>
+                      <div class="email-field">
+                        <%- experto && experto.email ? experto.email : '' %>
+                      </div>
+                      <p class="form-hint">
+                        Email de tu cuenta (no editable)
+                      </p>
                     </div>
-                    <p class="form-hint">
-                      Email de tu cuenta (no editable)
-                    </p>
+
+                    <div class="form-group compact price-group">
+                      <label for="precio">
+                        Precio por hora (COP)
+                        <span class="price-tooltip" title="Ejemplo recomendado: $30.000 - $200.000 COP">
+                          <i class="fas fa-info-circle"></i>
+                        </span>
+                      </label>
+                      <div class="price-input">
+                        <span class="currency">$</span>
+                        <input type="number" id="precio" name="precio" min="10000" step="100" required
+                          value="<%- typeof precioVal !== 'undefined' ? precioVal : 0 %>" placeholder="Ej: 50000">
+                      </div>
+                      <p class="form-hint">Tarifa por hora de asesoría (Recomendado: $30.000 - $200.000 COP)</p>
+                      <div id="precio-feedback"></div>
+                    </div>
+
+
+                    <div class="form-group compact days-group">
+                      <label>Días disponibles</label>
+                      <div class="days-selector">
+                        <div class="day-option <%= dias && dias.includes('Lunes') ? 'selected' : '' %>"
+                          data-day="Lunes">L</div>
+                        <div class="day-option <%= dias && dias.includes('Martes') ? 'selected' : '' %>"
+                          data-day="Martes">M</div>
+                        <div class="day-option <%= dias && dias.includes('Miércoles') ? 'selected' : '' %>"
+                          data-day="Miércoles">X</div>
+                        <div class="day-option <%= dias && dias.includes('Jueves') ? 'selected' : '' %>"
+                          data-day="Jueves">J</div>
+                        <div class="day-option <%= dias && dias.includes('Viernes') ? 'selected' : '' %>"
+                          data-day="Viernes">V</div>
+                        <div class="day-option <%= dias && dias.includes('Sábado') ? 'selected' : '' %>"
+                          data-day="Sábado">S</div>
+                        <div class="day-option <%= dias && dias.includes('Domingo') ? 'selected' : '' %>"
+                          data-day="Domingo">D</div>
+                      </div>
+                      <div class="days-selected-display">
+                        <%- dias && dias.length ? dias.join(', ') : ' Ningún día seleccionado' %>
+                      </div>
+                      <input type="hidden" id="diasDisponibles" name="diasDisponibles"
+                        value="<%- dias && dias.length ? dias.join(',') : '' %>">
+                    </div>
                   </div>
 
-                  <div class="form-group compact price-group">
-                    <label for="precio">
-                      Precio por hora (COP)
-                      <span class="price-tooltip" title="Ejemplo recomendado: $30.000 - $200.000 COP">
+                  <!-- Descripción -->
+                  <div class="form-group full-width">
+                    <label for="descripcion">Descripción profesional</label>
+                    <textarea id="descripcion" name="descripcion" required rows="3"
+                      placeholder="Tu experiencia y enfoque profesional"><%- info && info.descripcion ? info.descripcion : '' %></textarea>
+                  </div>
+
+                  <!-- Segunda fila horizontal: Categorías, Especialidad y Habilidades distribuidos en columnas -->
+                  <div class="form-row triple">
+                    <div class="form-group compact">
+                      <!-- Categorías -->
+                      <label for="categorias"></label>
+                      <i class="fas fa-layer-group"></i> <span class="categorias-label-text">Categorías</span>
+                      <span class="form-tooltip"
+                        title="Selecciona las áreas tecnológicas en las que tienes experiencia"></span>
+                      <i class="fas fa-info-circle"></i>
+                      </span>
+                      </label>
+                      <select id="categorias" name="categorias" multiple class="select-multiple categorias-modern">
+                        <% if (categorias && categorias.length) { categorias.forEach(function(categoria) { var
+                          isSelected=false; if (info && Array.isArray(info.categorias)) { // info.categorias may contain
+                          ids or nombres depending on backend normalization const catValues=info.categorias.map(String);
+                          const catId=String(categoria.id || categoria._id); const catNombre=String(categoria.nombre);
+                          isSelected=catValues.includes(catId) || catValues.includes(catNombre); } %>
+                          <option value="<%= categoria.id || categoria._id %>" <%=isSelected ? 'selected' : '' %>><%-
+                              categoria.nombre %></option>
+                          <% }); } %>
+                      </select>
+                      <div id="categoriasTags" class="tags-container"></div>
+                      <p class="form-hint">Selecciona una o más categorías tecnológicas</p>
+                    </div>
+
+                    <!-- Especialidad -->
+                    <div class="form-group compact">
+                      <label for="especialidad"></label>
+                      <i class="fas fa-star"></i> <span class="especialidad-label-text">Especialidad</span>
+                      <span class="form-tooltip" title="Tu principal área de especialización">
                         <i class="fas fa-info-circle"></i>
                       </span>
-                    </label>
-                    <div class="price-input">
-                      <span class="currency">$</span>
-                      <input type="number" id="precio" name="precio" min="10000" step="100" required
-                        value="<%- experto && experto.precio ? experto.precio : '0' %>" placeholder="Ej: 50000">
+                      </label>
+                      <div class="especialidad-select-container">
+                        <% // Normalizar posibles formatos de info.especialidad (string, objeto, JSON en string) var
+                          espCandidate='' ; if (info && typeof info.especialidad !=='undefined' && info.especialidad
+                          !==null) { try { if (typeof info.especialidad==='object' ) {
+                          espCandidate=info.especialidad._id || info.especialidad.id || info.especialidad.nombre ||
+                          JSON.stringify(info.especialidad); } else { var tmp=String(info.especialidad).trim(); try {
+                          var parsed=JSON.parse(tmp); if (parsed && typeof parsed==='object' ) { espCandidate=parsed._id
+                          || parsed.id || parsed.nombre || tmp; } else { espCandidate=tmp; } } catch (e) { // no es
+                          JSON: extraer primer token razonable (letras, números, espacios, guiones) var
+                          m=tmp.match(/[_\-\.\w\s]+/); espCandidate=m ? m[0].trim() : tmp; } } } catch (e) {
+                          espCandidate=String(info.especialidad || '' ).trim(); }
+                          espCandidate=String(espCandidate).trim().toLowerCase(); } %>
+                          <select id="especialidad" name="especialidad" required class="especialidad-modern">
+                            <option value="">Selecciona especialidad</option>
+                            <% especialidades.forEach(function(especialidad) { var isSelected=false; var
+                              espId=String(especialidad.id || especialidad._id || '' ).trim().toLowerCase(); var
+                              espNombre=String(especialidad.nombre || '' ).trim().toLowerCase(); if (espCandidate) {
+                              isSelected=(espCandidate===espId) || (espCandidate===espNombre) ||
+                              (espId.indexOf(espCandidate) !==-1) || (espNombre.indexOf(espCandidate) !==-1) ||
+                              (espCandidate.indexOf(espNombre) !==-1); } %>
+                              <option value="<%= especialidad.id || especialidad._id %>" <%=isSelected ? 'selected' : ''
+                                %>><%= especialidad.nombre %>
+                              </option>
+                              <% }); %>
+                          </select>
+                          <i class="fas fa-chevron-down select-arrow"></i>
+                      </div>
                     </div>
-                    <p class="form-hint">Tarifa por hora de asesoría (Recomendado: $30.000 - $200.000 COP)</p>
-                    <div id="precio-feedback"></div>
-                  </div>
 
-
-                  <div class="form-group compact days-group">
-                    <label>Días disponibles</label>
-                    <div class="days-selector">
-                      <div
-                        class="day-option <%= (experto && experto.horario && experto.horario.includes('Lunes')) ? 'selected' : '' %>"
-                        data-day="Lunes">L</div>
-                      <div
-                        class="day-option <%= (experto && experto.horario && experto.horario.includes('Martes')) ? 'selected' : '' %>"
-                        data-day="Martes">M</div>
-                      <div
-                        class="day-option <%= (experto && experto.horario && experto.horario.includes('Miércoles')) ? 'selected' : '' %>"
-                        data-day="Miércoles">X</div>
-                      <div
-                        class="day-option <%= (experto && experto.horario && experto.horario.includes('Jueves')) ? 'selected' : '' %>"
-                        data-day="Jueves">J</div>
-                      <div
-                        class="day-option <%= (experto && experto.horario && experto.horario.includes('Viernes')) ? 'selected' : '' %>"
-                        data-day="Viernes">V</div>
-                      <div
-                        class="day-option <%= (experto && experto.horario && experto.horario.includes('Sábado')) ? 'selected' : '' %>"
-                        data-day="Sábado">S</div>
-                      <div
-                        class="day-option <%= (experto && experto.horario && experto.horario.includes('Domingo')) ? 'selected' : '' %>"
-                        data-day="Domingo">D</div>
-                    </div>
-                    <div class="days-selected-display">
-                      <%- experto && experto.horario ? experto.horario.join(', ') : ' Ningún día seleccionado' %>
-                    </div>
-                    <input type="hidden" id="diasDisponibles" name="diasDisponibles"
-                      value="<%- experto && experto.horario ? experto.horario.join(',') : '' %>">
-                  </div>
-                </div>
-
-                <!-- Descripción -->
-                <div class="form-group full-width">
-                  <label for="descripcion">Descripción profesional</label>
-                  <textarea id="descripcion" name="descripcion" required rows="3"
-                    placeholder="Tu experiencia y enfoque profesional"><%- experto && experto.infoExperto && experto.infoExperto.descripcion ? experto.infoExperto.descripcion : '' %></textarea>
-                </div>
-
-                <!-- Segunda fila horizontal: Categorías, Especialidad y Habilidades distribuidos en columnas -->
-                <div class="form-row triple">
-                  <div class="form-group compact">
-                    <!-- Categorías -->
-                    <label for="categorias"></label>
-                    <i class="fas fa-layer-group"></i> <span class="categorias-label-text">Categorías</span>
-                    <span class="form-tooltip"
-                      title="Selecciona las áreas tecnológicas en las que tienes experiencia"></span>
-                    <i class="fas fa-info-circle"></i>
-                    </span>
-                    </label>
-                    <select id="categorias" name="categorias" multiple class="select-multiple categorias-modern">
-                      <% if (categorias && categorias.length) { categorias.forEach(function(categoria) { var
-                        isSelected=false; if (experto && experto.infoExperto &&
-                        Array.isArray(experto.infoExperto.categorias)) {
-                        isSelected=experto.infoExperto.categorias.map(String).includes(String(categoria.id ||
-                        categoria._id)); } %>
-                        <option value="<%= categoria.id || categoria._id %>" <%=isSelected ? 'selected' : '' %>><%-
-                            categoria.nombre %>
-                        </option>
-                        <% }); } %>
-                    </select>
-                    <div id="categoriasTags" class="tags-container"></div>
-                    <p class="form-hint">Selecciona una o más categorías tecnológicas</p>
-                  </div>
-
-                  <!-- Especialidad -->
-                  <div class="form-group compact">
-                    <label for="especialidad"></label>
-                    <i class="fas fa-star"></i> <span class="especialidad-label-text">Especialidad</span>
-                    <span class="form-tooltip" title="Tu principal área de especialización">
-                      <i class="fas fa-info-circle"></i>
-                    </span>
-                    </label>
-                    <div class="especialidad-select-container">
-                      <select id="especialidad" name="especialidad" required class="especialidad-modern">
-                        <option value="">Selecciona especialidad</option>
-                        <% especialidades.forEach(function(especialidad) { var isSelected=false; if (experto &&
-                          experto.infoExperto && experto.infoExperto.especialidad==especialidad.id) { isSelected=true; }
-                          %>
-                          <option value="<%= especialidad.id || especialidad._id %>" <%=isSelected ? 'selected' : '' %>>
-                            <%= especialidad.nombre %>
+                    <!-- Habilidades -->
+                    <div class="form-group compact">
+                      <label for="skills">
+                        <i class="fas fa-bolt"></i> <span class="skills-label-text">Habilidades</span>
+                        <span class="form-tooltip" title="Selecciona habilidades tecnológicas">
+                          <i class="fas fa-info-circle"></i>
+                        </span>
+                      </label>
+                      <select id="skills" name="skills" multiple class="select-multiple skills-modern">
+                        <% habilidades.forEach(function(habilidad) { var isSelected=false; if (info &&
+                          Array.isArray(info.skills)) { const skillValues=info.skills.map(String); const
+                          skillId=String(habilidad.id || habilidad._id); const skillNombre=String(habilidad.nombre);
+                          isSelected=skillValues.includes(skillId) || skillValues.includes(skillNombre); } %>
+                          <option value="<%= habilidad.id || habilidad._id %>" <%=isSelected ? 'selected' : '' %>><%=
+                              habilidad.nombre %>
                           </option>
                           <% }); %>
                       </select>
-                      <i class="fas fa-chevron-down select-arrow"></i>
+                      <div id="skillsTags" class="tags-container"></div>
+                      <p class="form-hint">Selecciona habilidades tecnológicas</p>
                     </div>
                   </div>
 
-                  <!-- Habilidades -->
-                  <div class="form-group compact">
-                    <label for="skills">
-                      <i class="fas fa-bolt"></i> <span class="skills-label-text">Habilidades</span>
-                      <span class="form-tooltip" title="Selecciona habilidades tecnológicas">
+                  <!-- Sección de subida y vista previa de imagen de perfil -->
+                  <div class="form-group ep-section" id="fotoPerfilSection">
+                    <!-- Fieldset para semántica y mejor estructura -->
+                    <fieldset class="ep-fieldset">
+                      <legend class="ep-legend">
+                        <i class="fas fa-image ep-icon" aria-hidden="true"></i>
+                        Foto de perfil
+                      </legend>
+
+                      <!-- Texto de ayuda -->
+                      <p class="ep-help">Sube una foto clara para tu perfil (JPG/PNG). Tamaño máximo recomendado: 5MB.
+                      </p>
+
+                      <!-- Contenedor principal del uploader -->
+                      <div class="ep-uploader">
+                        <!-- Input de archivo oculto (accesible por el label) -->
+                        <input type="file" accept="image/*" id="fotoPerfil" name="fotoPerfil" class="ep-file"
+                          aria-describedby="fotoMeta">
+                        <input type="hidden" id="avatarUrl" name="avatarUrl"
+                          value="<%- experto && experto.avatarUrl ? experto.avatarUrl : '' %>">
+
+                        <!-- Label que funciona como botón visual para seleccionar archivo -->
+                        <label for="fotoPerfil" class="ep-box" tabindex="0">
+                          <i class="fas fa-upload" aria-hidden="true"></i>
+                          Seleccionar imagen
+                        </label>
+
+                        <!-- Vista previa de la imagen seleccionada -->
+                        <div class="ep-preview <%= experto && experto.avatarUrl ? 'show' : '' %>" id="epPreview"
+                          aria-hidden="false">
+                          <img src="<%- experto && experto.avatarUrl ? experto.avatarUrl : '' %>"
+                            alt="Vista previa de la foto de perfil" class="ep-img" id="epImg">
+                          <button type="button" class="ep-remove" id="epRemove" title="Eliminar imagen"
+                            aria-label="Eliminar imagen">
+                            <i class="fas fa-times"></i>
+                          </button>
+                        </div>
+
+                        <!-- Meta (nombre de archivo, tamaño) -->
+                        <div class="ep-meta" id="fotoMeta" aria-live="polite" hidden>
+                          <div id="fotoNombre"></div>
+                          <div id="fotoTamano" style="font-size:0.85rem;color:var(--text-light)"></div>
+                        </div>
+                      </div>
+
+                      <!-- Mensaje de error de subida -->
+                      <div class="ep-error" id="fotoError" hidden></div>
+                    </fieldset>
+                  </div>
+
+                  <!-- Datos Bancarios -->
+                  <div class="form-section">
+                    <h3 class="section-title">
+                      <i class="fas fa-university"></i>
+                      Editar Datos Bancarios para Pagos
+                    </h3>
+                    <p class="section-subtitle">Información necesaria para recibir pagos por tus asesorías</p>
+
+                    <!-- Primera fila bancos -->
+                    <div class="form-row double">
+                      <div class="form-group compact">
+                        <label for="banco">Banco *</label>
+                        <select id="banco" name="banco" required>
+                          <% var banco=(experto && experto.infoExperto && experto.infoExperto.banco) || (experto &&
+                            experto.banco) || '' ; %>
+                            <option value="">Selecciona tu banco</option>
+                            <option value="Banco de Bogotá" <%=banco==='Banco de Bogotá' ? 'selected' : '' %>>Banco de
+                              Bogotá</option>
+                            <option value="Bancolombia" <%=banco==='Bancolombia' ? 'selected' : '' %>>Bancolombia
+                            </option>
+                            <option value="Banco Popular" <%=banco==='Banco Popular' ? 'selected' : '' %>>Banco Popular
+                            </option>
+                            <option value="Banco AV Villas" <%=banco==='Banco AV Villas' ? 'selected' : '' %>>Banco AV
+                              Villas</option>
+                            <option value="Banco Caja Social" <%=banco==='Banco Caja Social' ? 'selected' : '' %>>Banco
+                              Caja Social</option>
+                            <option value="Banco de Occidente" <%=banco==='Banco de Occidente' ? 'selected' : '' %>
+                              >Banco
+                              de Occidente</option>
+                            <option value="Banco GNB Sudameris" <%=banco==='Banco GNB Sudameris' ? 'selected' : '' %>
+                              >Banco GNB Sudameris</option>
+                            <option value="Banco Itaú" <%=banco==='Banco Itaú' ? 'selected' : '' %>>Banco Itaú</option>
+                            <option value="Banco Pichincha" <%=banco==='Banco Pichincha' ? 'selected' : '' %>>Banco
+                              Pichincha</option>
+                            <option value="Banco Santander" <%=banco==='Banco Santander' ? 'selected' : '' %>>Banco
+                              Santander</option>
+                            <option value="Banco Scotiabank Colpatria" <%=banco==='Banco Scotiabank Colpatria'
+                              ? 'selected' : '' %>>Banco Scotiabank Colpatria</option>
+                            <option value="Davivienda" <%=banco==='Davivienda' ? 'selected' : '' %>>Davivienda</option>
+                            <option value="Banco Agrario" <%=banco==='Banco Agrario' ? 'selected' : '' %>>Banco Agrario
+                            </option>
+                            <option value="Banco Falabella" <%=banco==='Banco Falabella' ? 'selected' : '' %>>Banco
+                              Falabella</option>
+                            <option value="Banco Finandina" <%=banco==='Banco Finandina' ? 'selected' : '' %>>Banco
+                              Finandina</option>
+                            <option value="Banco W" <%=banco==='Banco W' ? 'selected' : '' %>>Banco W</option>
+                            <option value="Banco Serfinanza" <%=banco==='Banco Serfinanza' ? 'selected' : '' %>>Banco
+                              Serfinanza</option>
+                            <option value="Banco Cooperativo Coopcentral" <%=banco==='Banco Cooperativo Coopcentral'
+                              ? 'selected' : '' %>>Banco Cooperativo Coopcentral</option>
+                            <option value="Banco BBVA" <%=banco==='Banco BBVA' ? 'selected' : '' %>>Banco BBVA</option>
+                            <option value="Nequi" <%=banco==='Nequi' ? 'selected' : '' %>>Nequi</option>
+                            <option value="Daviplata" <%=banco==='Daviplata' ? 'selected' : '' %>>Daviplata</option>
+                            <option value="Movii" <%=banco==='Movii' ? 'selected' : '' %>>Movii</option>
+                            <option value="Banco de Vivienda" <%=banco==='Banco de Vivienda' ? 'selected' : '' %>>Banco
+                              de
+                              Vivienda</option>
+                            <option value="Banco ProCredit" <%=banco==='Banco ProCredit' ? 'selected' : '' %>>Banco
+                              ProCredit</option>
+                            <option value="Banco Multibank" <%=banco==='Banco Multibank' ? 'selected' : '' %>>Banco
+                              Multibank</option>
+                            <option value="Banco Coopcentral" <%=banco==='Banco Coopcentral' ? 'selected' : '' %>>Banco
+                              Coopcentral</option>
+                            <option value="Banco Credifinanciera" <%=banco==='Banco Credifinanciera' ? 'selected' : ''
+                              %>
+                              >Banco Credifinanciera</option>
+                            <option value="Banco Mundo Mujer" <%=banco==='Banco Mundo Mujer' ? 'selected' : '' %>>Banco
+                              Mundo Mujer</option>
+                            <option value="Banco Ripley" <%=banco==='Banco Ripley' ? 'selected' : '' %>>Banco Ripley
+                            </option>
+                            <option value="Banco CrediScotia" <%=banco==='Banco CrediScotia' ? 'selected' : '' %>>Banco
+                              CrediScotia</option>
+                        </select>
+                      </div>
+
+                      <div class="form-group compact">
+                        <label for="tipoCuenta">Tipo de cuenta *</label>
+                        <select id="tipoCuenta" name="tipoCuenta" required>
+                          <% var tipoCuenta=(experto && experto.infoExperto && experto.infoExperto.tipoCuenta) ||
+                            (experto && experto.tipoCuenta) || '' ; %>
+                            <option value="">Selecciona el tipo</option>
+                            <option value="Cuenta de Ahorros" <%=tipoCuenta==='Cuenta de Ahorros' ? 'selected' : '' %>
+                              >Cuenta de Ahorros</option>
+                            <option value="Cuenta Corriente" <%=tipoCuenta==='Cuenta Corriente' ? 'selected' : '' %>
+                              >Cuenta Corriente</option>
+                            <option value="Cuenta de Nómina" <%=tipoCuenta==='Cuenta de Nómina' ? 'selected' : '' %>
+                              >Cuenta de Nómina</option>
+                            <option value="Cuenta Digital" <%=tipoCuenta==='Cuenta Digital' ? 'selected' : '' %>>Cuenta
+                              Digital</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <!-- Segunda fila bancos -->
+                    <div class="form-row double">
+                      <div class="form-group compact">
+                        <label for="numeroCuenta">Número de cuenta *</label>
+                        <div class="cuenta-container">
+                          <input type="password" id="numeroCuenta" name="numeroCuenta" required
+                            placeholder="Número de cuenta" pattern="[0-9\-]*" title="Solo números y guiones"
+                            class="input-cuenta" value="<%- info && info.numeroCuenta ? info.numeroCuenta : '' %>">
+                          <button type="button" id="toggleAccountNumber" class="btn-toggle-cuenta">
+                            <i class="fas fa-eye"></i>
+                          </button>
+                        </div>
+                        <p class="form-hint">Número completo de tu cuenta</p>
+                      </div>
+
+                      <div class="form-group compact">
+                        <label for="titular">Titular de la cuenta *</label>
+                        <input type="text" id="titular" name="titular" required
+                          value="<%- info && info.titular ? info.titular : '' %>"
+                          placeholder="Nombre completo del titular">
+                        <p class="form-hint">Debe coincidir con el nombre en la cuenta</p>
+                      </div>
+                    </div>
+
+
+                    <!-- Tercera fila bancos -->
+                    <div class="form-row double">
+                      <div class="form-group compact">
+                        <label for="tipoDocumento">Tipo de documento *</label>
+                        <select id="tipoDocumento" name="tipoDocumento" required>
+                          <% var tipoDocumento=(info && info.tipoDocumento) || (experto && experto.tipoDocumento) || ''
+                            ; %>
+                            <option value="">Selecciona el tipo</option>
+                            <option value="Cédula de Ciudadanía" <%=tipoDocumento==='Cédula de Ciudadanía' ? 'selected'
+                              : '' %>>Cédula de
+                              Ciudadanía</option>
+                            <option value="Cédula de Extranjería" <%=tipoDocumento==='Cédula de Extranjería'
+                              ? 'selected' : '' %>>Cédula de
+                              Extranjería</option>
+                            <option value="Pasaporte" <%=tipoDocumento==='Pasaporte' ? 'selected' : '' %>>Pasaporte
+                            </option>
+                            <option value="NIT" <%=tipoDocumento==='NIT' ? 'selected' : '' %>>NIT (Persona Jurídica)
+                            </option>
+                        </select>
+                      </div>
+
+                      <div class="form-group compact">
+                        <label for="numeroDocumento">Número de documento *</label>
+                        <input type="text" id="numeroDocumento" name="numeroDocumento" required
+                          placeholder="Número de identificación" pattern="[0-9\-]*"
+                          value="<%- info && info.numeroDocumento ? info.numeroDocumento : '' %>">
+                        <p class="form-hint">Documento del titular</p>
+                      </div>
+                    </div>
+
+
+                    <!-- Contacto -->
+                    <div class="form-group">
+                      <label for="telefonoContacto">Teléfono de contacto</label>
+                      <input type="tel" id="telefonoContacto" name="telefonoContacto"
+                        value="<%- info && info.telefonoContacto ? info.telefonoContacto : '' %>"
+                        placeholder="+57 300 123 4567">
+                      <p class="form-hint">Opcional: Teléfono para contacto sobre pagos</p>
+                    </div>
+
+                    <!-- Info card -->
+                    <div class="info-card compact">
+                      <div class="info-card-header">
                         <i class="fas fa-info-circle"></i>
-                      </span>
-                    </label>
-                    <select id="skills" name="skills" multiple class="select-multiple skills-modern">
-                      <% habilidades.forEach(function(habilidad) { var isSelected=false; if (experto &&
-                        experto.infoExperto && Array.isArray(experto.infoExperto.skills)) {
-                        isSelected=experto.infoExperto.skills.map(String).includes(String(habilidad.id ||
-                        habilidad._id)); } %>
-                        <option value="<%= habilidad.id || habilidad._id %>" <%=isSelected ? 'selected' : '' %>><%=
-                            habilidad.nombre %>
-                        </option>
-                        <% }); %>
-                    </select>
-                    <div id="skillsTags" class="tags-container"></div>
-                    <p class="form-hint">Selecciona habilidades tecnológicas</p>
-                  </div>
-                </div>
-
-                <!-- Sección de subida y vista previa de imagen de perfil -->
-                <div class="form-group ep-section" id="fotoPerfilSection">
-                  <!-- Fieldset para semántica y mejor estructura -->
-                  <fieldset class="ep-fieldset">
-                    <legend class="ep-legend">
-                      <i class="fas fa-image ep-icon" aria-hidden="true"></i>
-                      Foto de perfil
-                    </legend>
-
-                    <!-- Texto de ayuda -->
-                    <p class="ep-help">Sube una foto clara para tu perfil (JPG/PNG). Tamaño máximo recomendado: 5MB.</p>
-
-                    <!-- Contenedor principal del uploader -->
-                    <div class="ep-uploader">
-                      <!-- Input de archivo oculto (accesible por el label) -->
-                      <input type="file" accept="image/*" id="fotoPerfil" name="fotoPerfil" class="ep-file" aria-describedby="fotoMeta">
-                      <input type="hidden" id="avatarUrl" name="avatarUrl">
-
-                      <!-- Label que funciona como botón visual para seleccionar archivo -->
-                      <label for="fotoPerfil" class="ep-box" tabindex="0">
-                        <i class="fas fa-upload" aria-hidden="true"></i>
-                        Seleccionar imagen
-                      </label>
-
-                      <!-- Vista previa de la imagen seleccionada -->
-                      <div class="ep-preview" id="epPreview" aria-hidden="true">
-                        <img src="" alt="Vista previa de la foto de perfil" class="ep-img" id="epImg">
-                        <button type="button" class="ep-remove" id="epRemove" title="Eliminar imagen" aria-label="Eliminar imagen">
-                          <i class="fas fa-times"></i>
-                        </button>
+                        <strong>Información importante sobre pagos</strong>
                       </div>
-
-                      <!-- Meta (nombre de archivo, tamaño) -->
-                      <div class="ep-meta" id="fotoMeta" aria-live="polite" hidden>
-                        <div id="fotoNombre"></div>
-                        <div id="fotoTamano" style="font-size:0.85rem;color:var(--text-light)"></div>
-                      </div>
-                    </div>
-
-                    <!-- Mensaje de error de subida -->
-                    <div class="ep-error" id="fotoError" hidden></div>
-                  </fieldset>
-                </div>
-
-                <!-- Datos Bancarios -->
-                <div class="form-section">
-                  <h3 class="section-title">
-                    <i class="fas fa-university"></i>
-                    Editar Datos Bancarios para Pagos
-                  </h3>
-                  <p class="section-subtitle">Información necesaria para recibir pagos por tus asesorías</p>
-
-                  <!-- Primera fila bancos -->
-                  <div class="form-row double">
-                    <div class="form-group compact">
-                      <label for="banco">Banco *</label>
-                      <select id="banco" name="banco" required>
-                        <% var banco=(experto && experto.infoExperto && experto.infoExperto.banco) || (experto &&
-                          experto.banco) || '' ; %>
-                          <option value="">Selecciona tu banco</option>
-                          <option value="Banco de Bogotá" <%=banco==='Banco de Bogotá' ? 'selected' : '' %>>Banco de
-                            Bogotá</option>
-                          <option value="Bancolombia" <%=banco==='Bancolombia' ? 'selected' : '' %>>Bancolombia</option>
-                          <option value="Banco Popular" <%=banco==='Banco Popular' ? 'selected' : '' %>>Banco Popular
-                          </option>
-                          <option value="Banco AV Villas" <%=banco==='Banco AV Villas' ? 'selected' : '' %>>Banco AV
-                            Villas</option>
-                          <option value="Banco Caja Social" <%=banco==='Banco Caja Social' ? 'selected' : '' %>>Banco
-                            Caja Social</option>
-                          <option value="Banco de Occidente" <%=banco==='Banco de Occidente' ? 'selected' : '' %>>Banco
-                            de Occidente</option>
-                          <option value="Banco GNB Sudameris" <%=banco==='Banco GNB Sudameris' ? 'selected' : '' %>
-                            >Banco GNB Sudameris</option>
-                          <option value="Banco Itaú" <%=banco==='Banco Itaú' ? 'selected' : '' %>>Banco Itaú</option>
-                          <option value="Banco Pichincha" <%=banco==='Banco Pichincha' ? 'selected' : '' %>>Banco
-                            Pichincha</option>
-                          <option value="Banco Santander" <%=banco==='Banco Santander' ? 'selected' : '' %>>Banco
-                            Santander</option>
-                          <option value="Banco Scotiabank Colpatria" <%=banco==='Banco Scotiabank Colpatria'
-                            ? 'selected' : '' %>>Banco Scotiabank Colpatria</option>
-                          <option value="Davivienda" <%=banco==='Davivienda' ? 'selected' : '' %>>Davivienda</option>
-                          <option value="Banco Agrario" <%=banco==='Banco Agrario' ? 'selected' : '' %>>Banco Agrario
-                          </option>
-                          <option value="Banco Falabella" <%=banco==='Banco Falabella' ? 'selected' : '' %>>Banco
-                            Falabella</option>
-                          <option value="Banco Finandina" <%=banco==='Banco Finandina' ? 'selected' : '' %>>Banco
-                            Finandina</option>
-                          <option value="Banco W" <%=banco==='Banco W' ? 'selected' : '' %>>Banco W</option>
-                          <option value="Banco Serfinanza" <%=banco==='Banco Serfinanza' ? 'selected' : '' %>>Banco
-                            Serfinanza</option>
-                          <option value="Banco Cooperativo Coopcentral" <%=banco==='Banco Cooperativo Coopcentral'
-                            ? 'selected' : '' %>>Banco Cooperativo Coopcentral</option>
-                          <option value="Banco BBVA" <%=banco==='Banco BBVA' ? 'selected' : '' %>>Banco BBVA</option>
-                          <option value="Nequi" <%=banco==='Nequi' ? 'selected' : '' %>>Nequi</option>
-                          <option value="Daviplata" <%=banco==='Daviplata' ? 'selected' : '' %>>Daviplata</option>
-                          <option value="Movii" <%=banco==='Movii' ? 'selected' : '' %>>Movii</option>
-                          <option value="Banco de Vivienda" <%=banco==='Banco de Vivienda' ? 'selected' : '' %>>Banco de
-                            Vivienda</option>
-                          <option value="Banco ProCredit" <%=banco==='Banco ProCredit' ? 'selected' : '' %>>Banco
-                            ProCredit</option>
-                          <option value="Banco Multibank" <%=banco==='Banco Multibank' ? 'selected' : '' %>>Banco
-                            Multibank</option>
-                          <option value="Banco Coopcentral" <%=banco==='Banco Coopcentral' ? 'selected' : '' %>>Banco
-                            Coopcentral</option>
-                          <option value="Banco Credifinanciera" <%=banco==='Banco Credifinanciera' ? 'selected' : '' %>
-                            >Banco Credifinanciera</option>
-                          <option value="Banco Mundo Mujer" <%=banco==='Banco Mundo Mujer' ? 'selected' : '' %>>Banco
-                            Mundo Mujer</option>
-                          <option value="Banco Ripley" <%=banco==='Banco Ripley' ? 'selected' : '' %>>Banco Ripley
-                          </option>
-                          <option value="Banco CrediScotia" <%=banco==='Banco CrediScotia' ? 'selected' : '' %>>Banco
-                            CrediScotia</option>
-                      </select>
-                    </div>
-
-                    <div class="form-group compact">
-                      <label for="tipoCuenta">Tipo de cuenta *</label>
-                      <select id="tipoCuenta" name="tipoCuenta" required>
-                        <% var tipoCuenta=(experto && experto.infoExperto && experto.infoExperto.tipoCuenta) || (experto
-                          && experto.tipoCuenta) || '' ; %>
-                          <option value="">Selecciona el tipo</option>
-                          <option value="Cuenta de Ahorros" <%=tipoCuenta==='Cuenta de Ahorros' ? 'selected' : '' %>
-                            >Cuenta de Ahorros</option>
-                          <option value="Cuenta Corriente" <%=tipoCuenta==='Cuenta Corriente' ? 'selected' : '' %>
-                            >Cuenta Corriente</option>
-                          <option value="Cuenta de Nómina" <%=tipoCuenta==='Cuenta de Nómina' ? 'selected' : '' %>
-                            >Cuenta de Nómina</option>
-                          <option value="Cuenta Digital" <%=tipoCuenta==='Cuenta Digital' ? 'selected' : '' %>>Cuenta
-                            Digital</option>
-                      </select>
+                      <ul class="info-list">
+                        <li><i class="fas fa-check"></i> Los pagos se procesan cada 15 días</li>
+                        <li><i class="fas fa-check"></i> Se requiere verificación de cuenta</li>
+                        <li><i class="fas fa-check"></i> Datos editables desde tu perfil</li>
+                        <li><i class="fas fa-check"></i> Seguridad garantizada</li>
+                      </ul>
                     </div>
                   </div>
 
-                  <!-- Segunda fila bancos -->
-                  <div class="form-row double">
-                    <div class="form-group compact">
-                      <label for="numeroCuenta">Número de cuenta *</label>
-                      <div class="cuenta-container">
-                        <input type="password" id="numeroCuenta" name="numeroCuenta" required
-                          placeholder="Número de cuenta" pattern="[0-9\-]*" title="Solo números y guiones"
-                          class="input-cuenta"
-                          value="<%- experto && experto.infoExperto && experto.infoExperto.numeroCuenta ? experto.infoExperto.numeroCuenta : '' %>">
-                        <button type="button" id="toggleAccountNumber" class="btn-toggle-cuenta">
-                          <i class="fas fa-eye"></i>
-                        </button>
-                      </div>
-                      <p class="form-hint">Número completo de tu cuenta</p>
-                    </div>
-
-                    <div class="form-group compact">
-                      <label for="titular">Titular de la cuenta *</label>
-                      <input type="text" id="titular" name="titular" required
-                        value="<%- experto && experto.infoExperto && experto.infoExperto.titular ? experto.infoExperto.titular : '' %>"
-                        placeholder="Nombre completo del titular">
-                      <p class="form-hint">Debe coincidir con el nombre en la cuenta</p>
-                    </div>
+                  <!-- Botones de acción -->
+                  <div class="form-footer">
+                    <button type="submit" id="guardarCambios" class="btn btn-primary">
+                      <span>Guardar cambios</span>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2"
+                          stroke-linecap="round" stroke-linejoin="round" />
+                      </svg>
+                    </button>
+                    <button type="button" id="cancelarEdicion" class="btn btn-secondary" style="margin-top: 1rem;">
+                      <span>Cancelar</span>
+                    </button>
                   </div>
-
-
-                  <!-- Tercera fila bancos -->
-                  <div class="form-row double">
-                    <div class="form-group compact">
-                      <label for="tipoDocumento">Tipo de documento *</label>
-                      <select id="tipoDocumento" name="tipoDocumento" required>
-                        <% var tipoDocumento=(experto && experto.infoExperto && experto.infoExperto.tipoDocumento) ||
-                          (experto && experto.tipoDocumento) || '' ; %>
-                          <option value="">Selecciona el tipo</option>
-                          <option value="Cédula de Ciudadanía" <%=tipoDocumento==='Cédula de Ciudadanía' ? 'selected'
-                            : '' %>>Cédula de
-                            Ciudadanía</option>
-                          <option value="Cédula de Extranjería" <%=tipoDocumento==='Cédula de Extranjería' ? 'selected'
-                            : '' %>>Cédula de
-                            Extranjería</option>
-                          <option value="Pasaporte" <%=tipoDocumento==='Pasaporte' ? 'selected' : '' %>>Pasaporte
-                          </option>
-                          <option value="NIT" <%=tipoDocumento==='NIT' ? 'selected' : '' %>>NIT (Persona Jurídica)
-                          </option>
-                      </select>
-                    </div>
-
-                    <div class="form-group compact">
-                      <label for="numeroDocumento">Número de documento *</label>
-                      <input type="text" id="numeroDocumento" name="numeroDocumento" required
-                        placeholder="Número de identificación" pattern="[0-9\-]*"
-                        value="<%- experto && experto.infoExperto && experto.infoExperto.numeroDocumento ? experto.infoExperto.numeroDocumento : '' %>">
-                      <p class="form-hint">Documento del titular</p>
-                    </div>
-                  </div>
-
-
-                  <!-- Contacto -->
-                  <div class="form-group">
-                    <label for="telefonoContacto">Teléfono de contacto</label>
-                    <input type="tel" id="telefonoContacto" name="telefonoContacto"
-                      value="<%- experto && experto.infoExperto && experto.infoExperto.telefonoContacto ? experto.infoExperto.telefonoContacto : '' %>"
-                      placeholder="+57 300 123 4567">
-                    <p class="form-hint">Opcional: Teléfono para contacto sobre pagos</p>
-                  </div>
-
-                  <!-- Info card -->
-                  <div class="info-card compact">
-                    <div class="info-card-header">
-                      <i class="fas fa-info-circle"></i>
-                      <strong>Información importante sobre pagos</strong>
-                    </div>
-                    <ul class="info-list">
-                      <li><i class="fas fa-check"></i> Los pagos se procesan cada 15 días</li>
-                      <li><i class="fas fa-check"></i> Se requiere verificación de cuenta</li>
-                      <li><i class="fas fa-check"></i> Datos editables desde tu perfil</li>
-                      <li><i class="fas fa-check"></i> Seguridad garantizada</li>
-                    </ul>
-                  </div>
-                </div>
-
-                <!-- Botones de acción -->
-                <div class="form-footer">
-                  <button type="submit" id="guardarCambios" class="btn btn-primary">
-                    <span>Guardar cambios</span>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
-                  </button>
-                  <button type="button" id="cancelarEdicion" class="btn btn-secondary" style="margin-top: 1rem;">
-                    <span>Cancelar</span>
-                  </button>
-                </div>
               </form>
     </section>
   </main>
