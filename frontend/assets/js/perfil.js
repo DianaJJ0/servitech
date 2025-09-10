@@ -50,7 +50,22 @@ document.addEventListener("DOMContentLoaded", async () => {
       userName.textContent = `${usuario.nombre} ${usuario.apellido}`;
     if (userEmail) userEmail.textContent = usuario.email;
     if (profileAvatar) {
-      profileAvatar.src = `https://ui-avatars.com/api/?name=${usuario.nombre}+${usuario.apellido}&background=3a8eff&color=fff&size=128`;
+      // Preferir la URL del avatar provista por el backend (usuario.avatarUrl).
+      // Si no existe, usar el generador de UI Avatars como fallback.
+      try {
+        if (
+          usuario &&
+          usuario.avatarUrl &&
+          typeof usuario.avatarUrl === "string" &&
+          usuario.avatarUrl.trim() !== ""
+        ) {
+          profileAvatar.src = usuario.avatarUrl;
+        } else {
+          profileAvatar.src = `https://ui-avatars.com/api/?name=${usuario.nombre}+${usuario.apellido}&background=3a8eff&color=fff&size=128`;
+        }
+      } catch (e) {
+        profileAvatar.src = `https://ui-avatars.com/api/?name=${usuario.nombre}+${usuario.apellido}&background=3a8eff&color=fff&size=128`;
+      }
     }
     const firstNameInput = document.getElementById("firstName");
     const lastNameInput = document.getElementById("lastName");

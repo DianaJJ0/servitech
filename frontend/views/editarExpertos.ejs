@@ -192,6 +192,50 @@
                   </div>
                 </div>
 
+                <!-- Sección de subida y vista previa de imagen de perfil -->
+                <div class="form-group ep-section" id="fotoPerfilSection">
+                  <!-- Fieldset para semántica y mejor estructura -->
+                  <fieldset class="ep-fieldset">
+                    <legend class="ep-legend">
+                      <i class="fas fa-image ep-icon" aria-hidden="true"></i>
+                      Foto de perfil
+                    </legend>
+
+                    <!-- Texto de ayuda -->
+                    <p class="ep-help">Sube una foto clara para tu perfil (JPG/PNG). Tamaño máximo recomendado: 5MB.</p>
+
+                    <!-- Contenedor principal del uploader -->
+                    <div class="ep-uploader">
+                      <!-- Input de archivo oculto (accesible por el label) -->
+                      <input type="file" accept="image/*" id="fotoPerfil" name="fotoPerfil" class="ep-file" aria-describedby="fotoMeta">
+                      <input type="hidden" id="avatarUrl" name="avatarUrl">
+
+                      <!-- Label que funciona como botón visual para seleccionar archivo -->
+                      <label for="fotoPerfil" class="ep-box" tabindex="0">
+                        <i class="fas fa-upload" aria-hidden="true"></i>
+                        Seleccionar imagen
+                      </label>
+
+                      <!-- Vista previa de la imagen seleccionada -->
+                      <div class="ep-preview" id="epPreview" aria-hidden="true">
+                        <img src="" alt="Vista previa de la foto de perfil" class="ep-img" id="epImg">
+                        <button type="button" class="ep-remove" id="epRemove" title="Eliminar imagen" aria-label="Eliminar imagen">
+                          <i class="fas fa-times"></i>
+                        </button>
+                      </div>
+
+                      <!-- Meta (nombre de archivo, tamaño) -->
+                      <div class="ep-meta" id="fotoMeta" aria-live="polite" hidden>
+                        <div id="fotoNombre"></div>
+                        <div id="fotoTamano" style="font-size:0.85rem;color:var(--text-light)"></div>
+                      </div>
+                    </div>
+
+                    <!-- Mensaje de error de subida -->
+                    <div class="ep-error" id="fotoError" hidden></div>
+                  </fieldset>
+                </div>
+
                 <!-- Datos Bancarios -->
                 <div class="form-section">
                   <h3 class="section-title">

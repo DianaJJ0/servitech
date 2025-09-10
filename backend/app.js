@@ -6,7 +6,6 @@ const express = require("express");
 const cors = require("cors");
 const conectarDB = require("./config/database.js");
 const multer = require("multer");
-const upload = multer();
 const path = require("path");
 const backup = require("./config/backup.js"); // Importar el módulo de backup
 const cron = require("node-cron"); // Importar cron para programar tareas
@@ -85,7 +84,17 @@ app.set("views", path.join(__dirname, "../frontend/views"));
 app.set("view engine", "ejs");
 // Limitar tamaño del body y manejar JSON malformado de forma explícita
 app.use(express.json({ limit: "100kb" }));
-app.use(upload.none());
+
+// Servir archivos subidos (avatars) desde backend/uploads
+const uploadsPath = process.env.UPLOAD_PATH || "uploads";
+const uploadsFullPath = path.join(__dirname, uploadsPath);
+try {
+  // Ensure directory exists
+  const fs = require("fs");
+  if (!fs.existsSync(uploadsFullPath))
+    fs.mkdirSync(uploadsFullPath, { recursive: true });
+} catch (e) {}
+app.use("/uploads", express.static(uploadsFullPath));
 
 // Middleware para interceptar SyntaxError de body-parser (JSON inválido)
 app.use((err, req, res, next) => {
