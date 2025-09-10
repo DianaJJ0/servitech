@@ -27,3 +27,53 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
+// Paginación: manejar clicks en botones .pag-btn
+document.addEventListener("DOMContentLoaded", () => {
+  const pagContainer = document.querySelector(".pagination");
+  if (!pagContainer) return;
+
+  // Parámetros iniciales que la plantilla inyecta en data-attributes
+  const pageEl = pagContainer.querySelector(".pag-info");
+
+  function buildUrl(newPage) {
+    const url = new URL(window.location.href);
+    const params = url.searchParams;
+    params.set("page", String(newPage));
+    // mantener limit si existe
+    return `${url.pathname}?${params.toString()}`;
+  }
+
+  pagContainer.addEventListener("click", function (e) {
+    const btn = e.target.closest(".pag-btn");
+    if (!btn) return;
+    if (btn.classList.contains("disabled")) return;
+
+    // prev / next / page
+    if (btn.classList.contains("prev")) {
+      // calcular página actual
+      const url = new URL(window.location.href);
+      const cur = parseInt(url.searchParams.get("page") || "1", 10);
+      const next = Math.max(1, cur - 1);
+      window.location.href = buildUrl(next);
+      return;
+    }
+    if (btn.classList.contains("next")) {
+      const url = new URL(window.location.href);
+      const cur = parseInt(url.searchParams.get("page") || "1", 10);
+      const next = cur + 1;
+      window.location.href = buildUrl(next);
+      return;
+    }
+    if (btn.classList.contains("page")) {
+      const targetPage = parseInt(
+        btn.textContent.trim().replace(/[^0-9]/g, ""),
+        10
+      );
+      if (!isNaN(targetPage)) {
+        window.location.href = buildUrl(targetPage);
+      }
+      return;
+    }
+  });
+});
