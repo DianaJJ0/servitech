@@ -158,11 +158,11 @@ app.use("/api", async (req, res) => {
     } catch (e) {}
 
     // Construir headers para la petición al backend.
-    // Copiamos los encabezados recibidos, forzamos content-type,
-    // añadimos la x-api-key desde el servidor solo si la sesión es admin
-    // y reenviamos Authorization si la sesión contiene un token.
+    // Copiamos los encabezados recibidos. No forzamos content-type aquí porque
+    // las peticiones multipart/form-data (uploads) necesitan conservar el
+    // boundary que viene en el header original. Para solicitudes JSON se
+    // serializa el body más abajo.
     const outboundHeaders = Object.assign({}, req.headers);
-    outboundHeaders["content-type"] = "application/json";
     try {
       if (
         req.session &&
@@ -312,10 +312,38 @@ app.use("/api", async (req, res) => {
     }
 
     // Default proxy behaviour for all other requests
+    // Detectar si la petición es multipart (por ejemplo uploads desde el navegador)
+    const reqContentType = (req.headers["content-type"] || "").toLowerCase();
+    let fetchBody;
+    if (
+      req.method !== "GET" &&
+      reqContentType &&
+      reqContentType.includes("multipart")
+    ) {
+      // Forward the raw request stream so multer on the backend can parse it
+      fetchBody = req;
+      // Remove content-length if present because streaming may change it
+      // (node-fetch can handle chunked bodies)
+      if (outboundHeaders["content-length"])
+        delete outboundHeaders["content-length"];
+    } else if (req.method !== "GET") {
+      // For JSON / urlencoded payloads, stringify the parsed body
+      try {
+        fetchBody =
+          req.body && Object.keys(req.body).length
+            ? JSON.stringify(req.body)
+            : undefined;
+        // Ensure correct content-type for JSON
+        outboundHeaders["content-type"] = "application/json";
+      } catch (e) {
+        fetchBody = undefined;
+      }
+    }
+
     const response = await fetch(targetUrl, {
       method: req.method,
       headers: outboundHeaders,
-      body: req.method !== "GET" ? JSON.stringify(req.body) : undefined,
+      body: fetchBody,
     });
 
     // Leer la respuesta del backend como texto e intentar parsear JSON.
@@ -355,6 +383,27 @@ app.use("/api", async (req, res) => {
     res.status(500).json({ error: "Error en proxy" });
   }
 });
+
+// Proxy para servir archivos de uploads desde el backend
+// Esto permite que URLs como http://localhost:3001/uploads/... funcionen
+// Debug logger for uploads requests (temporary)
+app.use("/uploads", (req, res, next) => {
+  try {
+    console.log("[frontend] /uploads request ->", req.method, req.originalUrl);
+  } catch (e) {}
+  next();
+});
+// In development it's simpler and more reliable to serve the backend's
+// uploads directory directly from the frontend server so URLs at
+// http://localhost:3001/uploads/<file> work without depending on the
+// proxy. This avoids subtle proxy/connectivity issues during local dev.
+const backendUploads = path.join(__dirname, "..", "backend", "uploads");
+try {
+  const fs = require("fs");
+  if (!fs.existsSync(backendUploads))
+    fs.mkdirSync(backendUploads, { recursive: true });
+} catch (e) {}
+app.use("/uploads", express.static(backendUploads));
 
 // Ruta de prueba para verificar que el proxy funcione
 app.get("/test-proxy", (req, res) => {
@@ -619,6 +668,28 @@ app.get("/perfil", async (req, res) => {
       );
       if (perfilRes.ok) {
         const user = await perfilRes.json();
+        // Normalizar avatarUrl que pudiera apuntar al proxy (localhost:3001)
+        try {
+          if (
+            user &&
+            user.avatarUrl &&
+            typeof user.avatarUrl === "string" &&
+            user.avatarUrl.indexOf("http://localhost:3001/uploads") === 0
+          ) {
+            user.avatarUrl = user.avatarUrl.replace(
+              "http://localhost:3001",
+              "http://localhost:3000"
+            );
+          }
+        } catch (e) {}
+        // Preserve existing session token (if any) to avoid losing auth on page reloads
+        try {
+          const existingToken =
+            req.session && req.session.user && req.session.user.token;
+          if (existingToken && user && typeof user === "object") {
+            user.token = existingToken;
+          }
+        } catch (e) {}
         req.session.user = user;
         return res.render("perfil", { user });
       } else {

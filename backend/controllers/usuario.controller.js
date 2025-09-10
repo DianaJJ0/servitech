@@ -536,6 +536,47 @@ const actualizarPerfilUsuario = async (req, res) => {
 };
 
 /**
+ * Sube un avatar para el usuario autenticado (campo 'avatar')
+ */
+const subirAvatar = async (req, res) => {
+  try {
+    const usuario = await Usuario.findById(req.usuario._id);
+    if (!usuario)
+      return res.status(404).json({ mensaje: "Usuario no encontrado." });
+
+    if (!req.file) {
+      return res.status(400).json({ mensaje: "Archivo no recibido." });
+    }
+
+    // Construir URL pública absoluta para que el frontend (puerto 3001)
+    // pueda cargar la imagen directamente desde el backend.
+    const filename = req.file.filename;
+    const uploadsPath = process.env.UPLOAD_PATH || "uploads";
+    // Preferir BACKEND_URL si está configurado (ej: http://localhost:3000)
+    const configured = (process.env.BACKEND_URL || "").trim();
+    // Forzar BACKEND_URL si está presente, sino usar el backend local por defecto.
+    // Evitar inferir el host desde X-Forwarded o req.host para que las URLs
+    // devueltas siempre apunten al servidor que sirve los archivos estáticos.
+    const base = configured || "http://localhost:3000";
+    const avatarUrl = `${base.replace(/\/$/, "")}/${uploadsPath.replace(
+      /^\//,
+      ""
+    )}/${filename}`;
+    usuario.avatarUrl = avatarUrl;
+    await usuario.save();
+
+    return res.json({
+      mensaje: "Avatar subido correctamente.",
+      avatarUrl,
+      usuario,
+    });
+  } catch (error) {
+    console.error("Error al subir avatar:", error);
+    return res.status(500).json({ mensaje: "Error al subir avatar." });
+  }
+};
+
+/**
  * Desactiva cuenta del usuario autenticado
  * @param {Object} req - Request object
  * @param {Object} res - Response object
@@ -781,4 +822,5 @@ module.exports = {
   eliminarUsuarioPorAdmin,
   actualizarUsuarioPorEmailAdmin,
   obtenerUsuarioPorEmailAdmin,
+  subirAvatar,
 };

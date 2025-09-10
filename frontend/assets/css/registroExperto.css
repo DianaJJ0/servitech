@@ -148,6 +148,11 @@
   border: 1px solid var(--border-light);
 }
 
+/* Ensure flex children can shrink so contents (like long emails) don't overflow */
+.form-row .form-group {
+  min-width: 0; /* allows flex items to shrink below their content width */
+}
+
 /* Grupos de campos */
 .form-group {
   margin-bottom: 1rem;
@@ -190,8 +195,10 @@ input[type="email"],
 input[type="password"],
 input[type="number"],
 input[type="tel"],
-/* Aislar select solo dentro de registro-experto */
+/* Aislar select solo dentro de registro-experto / registroExperto */
 .registro-experto select,
+.registroExperto select,
+.registroExperto-form select,
 textarea {
   width: 100%;
   padding: 0.75rem;
@@ -222,17 +229,27 @@ textarea {
 }
 
 /* Selectores múltiples */
-.registro-experto .select-multiple {
+.select-multiple,
+.registro-experto .select-multiple,
+.registroExperto .select-multiple,
+.registroExperto-form .select-multiple {
   min-height: 100px;
   padding: 0.5rem !important;
   overflow-y: auto;
+  background: var(--input-bg);
+  color: var(--text-color);
 }
 
-.registro-experto .select-multiple option {
+.select-multiple option,
+.registro-experto .select-multiple option,
+.registroExperto .select-multiple option,
+.registroExperto-form .select-multiple option {
   padding: 0.5rem;
   margin: 0.1rem 0;
   white-space: normal;
   word-break: break-word;
+  background: var(--input-bg);
+  color: var(--text-color);
 }
 
 /* Input de precio */
@@ -258,18 +275,28 @@ textarea {
   padding-left: 1.75rem;
 }
 
-/* Días disponibles */
-.registro-experto .days-selector {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
+/* Días disponibles - responsive: use flex-wrap on small screens to avoid overflow,
+   switch back to 7-column grid on wider viewports. */
+.days-selector,
+.registro-experto .days-selector,
+.registroExperto .days-selector,
+.registroExperto-form .days-selector,
+.registroExperto-section .days-selector,
+.registroExperto-main .days-selector {
+  display: flex;
+  flex-wrap: wrap;
   gap: 0.4rem;
   margin-top: 0.5rem;
+  align-items: center;
+  /* prevent the container from forcing wider than its parent */
+  max-width: 100%;
 }
 
 .day-option {
+  flex: 0 0 32px; /* fixed visual size */
   width: 32px;
   height: 32px;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   background: var(--input-bg);
@@ -278,9 +305,64 @@ textarea {
   font-weight: 600;
   font-size: 0.8rem;
   border: 1px solid transparent;
+  box-sizing: border-box;
 }
 
-.registro-experto .day-option.selected {
+/* Medium screens (tablet): show days in 2 rows (4 + 3) to avoid overflow */
+@media (min-width: 600px) and (max-width: 991px) {
+  .days-selector,
+  .registro-experto .days-selector,
+  .registroExperto .days-selector,
+  .registroExperto-form .days-selector,
+  .registroExperto-section .days-selector,
+  .registroExperto-main .days-selector {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.35rem;
+    align-items: center;
+    justify-items: center;
+  }
+  /* Make the last item span to keep two rows visually balanced if needed */
+  .days-selector .day-option:nth-child(7) {
+    /* in a 4-column grid the 7th item will naturally be on the second row; keep it centered */
+    justify-self: center;
+  }
+  .day-option {
+    width: 30px;
+    height: 30px;
+    font-size: 0.78rem;
+  }
+}
+
+/* On wider screens (desktop) restore a neat 7-column grid */
+@media (min-width: 992px) {
+  .days-selector,
+  .registro-experto .days-selector,
+  .registroExperto .days-selector,
+  .registroExperto-form .days-selector,
+  .registroExperto-section .days-selector,
+  .registroExperto-main .days-selector {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.4rem;
+  }
+  .day-option {
+    margin: 0 auto; /* center within the grid cell */
+  }
+}
+
+/* Ensure the days-group doesn't push layout horizontally */
+.form-group.compact.days-group {
+  overflow: hidden;
+  min-width: 0;
+}
+
+.day-option.selected,
+.registro-experto .day-option.selected,
+.registroExperto .day-option.selected,
+.registroExperto-form .day-option.selected,
+.registroExperto-section .day-option.selected,
+.registroExperto-main .day-option.selected {
   background: var(--primary-color);
   color: white;
 }
@@ -387,11 +469,15 @@ textarea {
   }
 
   .form-row.double {
-    grid-template-columns: repeat(2, 1fr);
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
   }
 
   .form-row.triple {
-    grid-template-columns: repeat(3, 1fr);
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;
   }
 
   .form-group.compact {
@@ -400,6 +486,14 @@ textarea {
 
   textarea {
     min-height: 120px;
+  }
+}
+
+/* Reduce the email group's minimum width slightly on narrower desktops/tablets to avoid forcing overflow */
+@media (max-width: 991px) {
+  .form-group.compact.email-group {
+    min-width: 160px; /* was 220px; allow smaller so triple columns fit at ~960px */
+    padding: 10px 8px;
   }
 }
 
@@ -516,7 +610,9 @@ textarea {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
-.registro-experto .especialidad-select-container {
+.registro-experto .especialidad-select-container,
+.registroExperto .especialidad-select-container,
+.registroExperto-form .especialidad-select-container {
   position: relative;
   display: flex;
   align-items: center;
@@ -525,13 +621,16 @@ textarea {
 .especialidad-modern,
 .skills-modern {
   width: 100%;
-  padding-right: 28px;
+  padding-right: 36px; /* make room for custom chevron */
   border-radius: var(--input-radius);
   border: 1px solid var(--border-color);
   font-size: 15px;
   background: var(--input-bg);
   color: var(--text-color);
   transition: border-color 0.2s;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
 }
 
 .especialidad-modern:focus,
@@ -540,11 +639,13 @@ textarea {
   outline: none;
 }
 
-.registro-experto .select-arrow {
+.registro-experto .select-arrow,
+.registroExperto .select-arrow,
+.registroExperto-form .select-arrow {
   position: absolute;
   right: 10px;
   pointer-events: none;
-  color: var(--accent-color);
+  color: var(--text-light);
   font-size: 16px;
 }
 
@@ -560,36 +661,47 @@ textarea {
   font-weight: 600;
 }
 
-/* Ajuste visual para Choices.js en modo oscuro - scoped to registro-experto to avoid !important */
+/* Ajuste visual para Choices.js en modo oscuro - scoped to registro-experto/registroExperto to avoid !important */
 .registro-experto .choices__list--dropdown,
-.registro-experto .choices__list[role="listbox"] {
+.registroExperto .choices__list--dropdown,
+.registro-experto .choices__list[role="listbox"],
+.registroExperto .choices__list[role="listbox"] {
   background-color: var(--card-bg);
 }
 .registro-experto .choices__item,
-.registro-experto .choices__item--selectable {
+.registroExperto .choices__item,
+.registro-experto .choices__item--selectable,
+.registroExperto .choices__item--selectable {
   color: var(--text-color);
 }
-.registro-experto .choices__item--disabled {
+.registro-experto .choices__item--disabled,
+.registroExperto .choices__item--disabled {
   color: var(--text-light);
 }
-.registro-experto .choices__input {
+.registro-experto .choices__input,
+.registroExperto .choices__input {
   background-color: var(--input-bg);
   color: var(--text-color);
 }
-.registro-experto .choices__inner {
+.registro-experto .choices__inner,
+.registroExperto .choices__inner {
   background-color: var(--input-bg);
   color: var(--text-color);
   border-radius: var(--input-radius);
 }
-.registro-experto .choices__placeholder {
+.registro-experto .choices__placeholder,
+.registroExperto .choices__placeholder {
   color: var(--text-light);
 }
 
 /* Fondo y texto usando variables para opción seleccionada y hover en Choices.js */
 .registro-experto .choices__item--selectable.is-highlighted,
-.registro-experto .choices__item--selectable:hover {
+.registroExperto .choices__item--selectable.is-highlighted,
+.registro-experto .choices__item--selectable:hover,
+.registroExperto .choices__item--selectable:hover {
   background-color: var(--accent-color);
-  color: var(--text-color);
+  /* use a dark color for text on the light accent background for better contrast */
+  color: var(--background);
 }
 
 .skills-label-text {
@@ -636,6 +748,16 @@ textarea {
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
   margin-bottom: 4px;
   border: 1px solid var(--border-color);
+}
+
+/* Prevent long emails from expanding the layout: truncate with ellipsis and keep tooltip */
+.form-group.compact.email-group .email-field {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  box-sizing: border-box;
 }
 
 .form-group.compact.email-group .form-hint {
@@ -690,4 +812,309 @@ textarea {
     margin: 2.5rem auto;
     padding: 2rem 2.5rem;
   }
+}
+
+/* -----------------------------------------------------------
+                     Estilos para la sección de subida y vista previa de imagen
+                     Comentarios en español y estructura ordenada
+                     ----------------------------------------------------------- */
+
+/* Contenedor principal del bloque */
+.ep-section {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.01), transparent);
+  border-radius: calc(var(--border-radius) * 0.5);
+  padding: 1rem;
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--border-light);
+  margin-bottom: 1.25rem;
+  color: var(--text-color);
+}
+
+/* Fieldset para mejor semántica visual */
+.ep-fieldset {
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Leyenda con icono */
+.ep-legend {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+}
+.ep-icon {
+  color: var(--accent-color);
+  font-size: 1.125rem;
+}
+
+/* Texto de ayuda debajo de la leyenda */
+.ep-help {
+  margin: 0 0 0.75rem 0;
+  color: var(--text-light);
+  font-size: 0.9rem;
+}
+
+/* Contenedor del uploader (flex para disposición) */
+.ep-uploader {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Input de archivo oculto (se usa el label como botón) */
+.ep-file {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+}
+
+/* Caja actuable para seleccionar imagen */
+.ep-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.02),
+    rgba(255, 255, 255, 0.01)
+  );
+  color: var(--text-secondary);
+  border: 1px dashed var(--border-color);
+  padding: 0.75rem 1rem;
+  border-radius: var(--input-radius);
+  cursor: pointer;
+  transition: var(--transition);
+  user-select: none;
+  min-width: 12rem;
+  justify-content: center;
+}
+.ep-box i {
+  color: var(--primary-color);
+}
+.ep-box:hover {
+  border-color: var(--primary-color);
+  color: var(--text-color);
+  box-shadow: var(--hover-shadow);
+}
+.ep-box:focus {
+  outline: none;
+  box-shadow: var(--focus-shadow);
+  border-color: var(--primary-color);
+}
+
+/* Vista previa de imagen */
+.ep-preview {
+  display: none;
+  position: relative;
+  width: 7.5rem;
+  height: 7.5rem;
+  min-width: 7.5rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background: linear-gradient(180deg, #111, #151515);
+  border: 1px solid var(--border-color);
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+.ep-preview.show {
+  display: flex;
+}
+.ep-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Botón para eliminar la imagen seleccionada */
+.ep-remove {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid var(--border-light);
+  color: var(--text-color);
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-items: center;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.12s ease;
+  opacity: 0;
+  transform: translateY(-6px);
+}
+.ep-remove.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+.ep-remove i {
+  font-size: 0.85rem;
+}
+.ep-remove:hover {
+  background: var(--primary-color);
+  color: var(--text-color);
+  transform: scale(1.03);
+}
+
+/* Información del archivo (nombre, tamaño) */
+.ep-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  color: var(--text-light);
+  font-size: 0.85rem;
+  margin-left: 0.5rem;
+  min-width: 10rem;
+}
+#fotoNombre {
+  color: var(--text-secondary);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#fotoTamano {
+  color: var(--text-light);
+  font-size: 0.8rem;
+}
+
+/* Mensaje de error en subida */
+.ep-error {
+  color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.06);
+  border: 1px solid rgba(255, 107, 107, 0.12);
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+
+/* Adaptaciones responsive */
+@media (max-width: 640px) {
+  .ep-uploader {
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+  .ep-meta {
+    min-width: 0;
+  }
+  .ep-box {
+    width: 100%;
+    justify-content: center;
+  }
+  .ep-preview {
+    width: 5.5rem;
+    height: 5.5rem;
+    min-width: 5.5rem;
+  }
+}
+
+/* High-specificity fixes for registroExperto selects and Choices.js elements
+   These selectors have higher specificity than plugin defaults and avoid !important */
+.registroExperto-main .form-row .form-group.compact select#categorias,
+.registroExperto-main .form-row .form-group.compact select#skills,
+.registroExperto-main .form-row .form-group.compact .categorias-modern,
+.registroExperto-main .form-row .form-group.compact .skills-modern,
+.registroExperto-main .form-row .form-group.compact .select-multiple {
+  background: var(--input-bg);
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+
+.registroExperto-main .form-row .form-group.compact select#categorias option,
+.registroExperto-main .form-row .form-group.compact select#skills option,
+.registroExperto-main .form-row .form-group.compact .select-multiple option {
+  background: var(--input-bg);
+  color: var(--text-color);
+}
+
+/* More specific Choices.js overrides under registroExperto-main */
+.registroExperto-main .choices__inner,
+.registroExperto-main .choices__list--dropdown,
+.registroExperto-main .choices__list[role="listbox"],
+.registroExperto-main .choices__item,
+.registroExperto-main .choices__item--selectable,
+.registroExperto-main .choices__input,
+.registroExperto-main .choices__placeholder {
+  background: var(--input-bg);
+  color: var(--text-color);
+}
+
+.registroExperto-main .choices__item--selectable.is-highlighted,
+.registroExperto-main .choices__item--selectable:hover {
+  background-color: var(--accent-color);
+  /* ensure highlighted item text contrasts with accent background */
+  color: var(--background);
+}
+
+/* Add a colored line on hover different from the text color using inset box-shadow
+   This provides a colored accent 'line' while keeping the text readable */
+.registroExperto-main .choices__item--selectable:hover,
+.registroExperto-main .choices__item--selectable.is-highlighted {
+  /* right-side accent line, slightly thicker for visibility */
+  box-shadow: inset -4px 0 0 0 var(--accent-color);
+}
+
+/* Native select / modern select hover: change border to primary and keep text readable */
+.registroExperto-main .categorias-modern:hover,
+.registroExperto-main .skills-modern:hover,
+.registroExperto-main .select-multiple:hover {
+  border-color: var(--primary-color);
+  color: var(--text-color);
+}
+
+/* Tags in the tags-container: add left accent on hover */
+.registroExperto-main .tags-container .tag:hover {
+  /* right-side accent for tags too */
+  box-shadow: inset -4px 0 0 0 var(--accent-color);
+  transform: translateY(-1px);
+}
+
+/* Overrides for Choices.js scoped to this page. Placed after choices.min.css so it wins without !important */
+.registroExperto-main .choices__inner,
+.registroExperto-main .choices__list--dropdown,
+.registroExperto-main .choices__list[role="listbox"] {
+  background-color: var(--input-bg);
+  color: var(--text-color);
+}
+
+.registroExperto-main .choices__item,
+.registroExperto-main .choices__item--selectable {
+  color: var(--text-color);
+  background: var(--input-bg);
+}
+
+.registroExperto-main .choices__item--disabled {
+  color: var(--text-light);
+}
+
+.registroExperto-main .choices__input,
+.registroExperto-main .choices__placeholder {
+  color: var(--text-light);
+  background: var(--input-bg);
+}
+
+.registroExperto-main .choices__item--selectable.is-highlighted,
+.registroExperto-main .choices__item--selectable:hover {
+  background-color: var(--accent-color);
+  /* ensure highlighted item text contrasts with accent background */
+  color: var(--background);
+}
+
+/* Ensure native select fallback is readable */
+.registroExperto-main select,
+.registroExperto-main .select-multiple,
+.registroExperto-main .select-multiple option {
+  background: var(--input-bg);
+  color: var(--text-color);
 }

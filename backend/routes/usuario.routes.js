@@ -10,6 +10,25 @@ const router = express.Router();
 const usuarioController = require("../controllers/usuario.controller.js");
 const authMiddleware = require("../middleware/auth.middleware.js");
 const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
+const multer = require("multer");
+const path = require("path");
+
+// configurar storage para avatars (ruta backend/uploads)
+const uploadsPath = process.env.UPLOAD_PATH || "uploads";
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, "../", uploadsPath));
+  },
+  filename: function (req, file, cb) {
+    const ext = path.extname(file.originalname) || ".png";
+    const name = `avatar_${Date.now()}${ext}`;
+    cb(null, name);
+  },
+});
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: Number(process.env.MAX_FILE_SIZE || 5242880) },
+});
 
 /**
  * @swagger
@@ -146,7 +165,7 @@ router.post("/reset-password", usuarioController.resetearPassword);
  *     summary: Obtiene el perfil del usuario autenticado
  *     tags: [Usuarios]
  *     security:
- *       - bearerAuth: [] 
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Perfil de usuario obtenido
@@ -183,6 +202,14 @@ router.put(
   "/perfil",
   authMiddleware.protect,
   usuarioController.actualizarPerfilUsuario
+);
+
+// Ruta para subir avatar: multiparte (file 'avatar')
+router.post(
+  "/avatar",
+  authMiddleware.protect,
+  upload.single("avatar"),
+  usuarioController.subirAvatar
 );
 
 /**

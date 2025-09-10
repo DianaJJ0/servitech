@@ -21,13 +21,20 @@
         <section class="perfil-section">
           <h1 class="perfil-title">Mi Perfil</h1>
           <div class="perfil-card">
+
+            <!-- imagen de perfil -->
             <div class="perfil-avatar">
-              <img src="<%= user && user.avatar ? user.avatar : '/assets/img/default-avatar.png' %>"
-                alt="Avatar de Usuario" id="profileAvatar">
-              <button class="change-avatar-btn">
-                <i class="fas fa-camera"></i>
-              </button>
+              <% // Ensure avatar URL points to backend uploads (avoid proxy 404). let
+                avatarSrc='/assets/img/default-avatar.png' ; if (user && (user.avatar || user.avatarUrl)) {
+                avatarSrc=user.avatar || user.avatarUrl; try { if (typeof avatarSrc==='string' &&
+                avatarSrc.indexOf('http://localhost:3001/uploads')===0) {
+                avatarSrc=avatarSrc.replace('http://localhost:3001','http://localhost:3000'); } } catch (e) {} } %>
+                <img src="<%= avatarSrc %>" alt="Avatar de Usuario" id="profileAvatar">
+                <button class="change-avatar-btn">
+                  <i class="fas fa-camera"></i>
+                </button>
             </div>
+            <!-- Información básica y acciones -->
             <div class="perfil-info">
               <h2 id="userName">
                 <%= user ? (user.nombre || 'Sin nombre' ) : 'No autenticado' %>
