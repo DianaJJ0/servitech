@@ -26,6 +26,7 @@
       <script id="initial-expertos" type="application/json"><%= JSON.stringify(initialExpertos || []) %></script>
 
       <main class="admin-main">
+        <!-- Contenido principal -->
         <header class="admin-header">
           <div class="admin-content-wrapper">
             <div class="header-search">
@@ -50,6 +51,8 @@
         </header>
 
         <div class="admin-content">
+
+          <!-- Título y acciones principales -->
           <div class="page-header">
             <h1>Gestión de Expertos</h1>
             <div class="page-actions">
@@ -64,130 +67,420 @@
             </div>
           </div>
 
-          <div class="expertos-grid">
-            <div class="table-container expertos-grid__filters">
+            <!-- Modernized filtros, estadísticas, tabla y paginación -->
+            <style>
+              /* Scoped modern styles for expertos section using only provided variables */
+              .expertos-grid {
+              display: grid;
+              grid-template-columns: 320px 1fr;
+              gap: 1.5rem;
+              align-items: start;
+              margin-top: 1rem;
+              }
+
+              .expertos-card {
+              background: var(--admin-card-bg);
+              border: 1px solid var(--admin-border-color);
+              color: var(--admin-text-primary);
+              border-radius: 12px;
+              padding: 1rem;
+              box-shadow: var(--admin-shadow);
+              }
+
+              .expertos-filtros__title,
+              .expertos-estadisticas__title {
+              margin: 0 0 0.6rem 0;
+              font-size: 0.95rem;
+              font-weight: 600;
+              color: var(--admin-text-primary);
+              }
+
+              .expertos-filtros__group {
+              display: flex;
+              flex-direction: column;
+              gap: 0.35rem;
+              margin-bottom: 0.8rem;
+              }
+
+              .expertos-filtros__label {
+              font-size: 0.78rem;
+              color: var(--admin-text-secondary);
+              }
+
+              .expertos-filtros__select {
+              appearance: none;
+              background: linear-gradient(180deg, var(--admin-card-bg), transparent);
+              border: 1px solid var(--admin-border-color);
+              color: inherit;
+              padding: 0.55rem 0.75rem;
+              border-radius: 8px;
+              font-size: 0.92rem;
+              outline: none;
+              }
+
+              .expertos-filtros__btn {
+              width: 100%;
+              display: inline-flex;
+              gap: 0.6rem;
+              align-items: center;
+              justify-content: center;
+              padding: 0.6rem;
+              border-radius: 10px;
+              font-weight: 600;
+              margin-top: 0.6rem;
+              background: linear-gradient(90deg, var(--admin-accent-color), var(--admin-accent-secondary));
+              color: var(--admin-text-primary);
+              border: 1px solid var(--admin-border-color);
+              box-shadow: var(--admin-shadow);
+              }
+
+              .expertos-estadisticas__list {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 0.6rem;
+              margin-top: 0.6rem;
+              }
+
+              .expertos-estadisticas__item {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              gap: 0.75rem;
+              padding: 0.7rem;
+              border-radius: 10px;
+              background: linear-gradient(180deg, var(--admin-card-bg), transparent);
+              border: 1px solid var(--admin-border-color);
+              }
+
+              .expertos-estadisticas__icon {
+              display: inline-flex;
+              width: 42px;
+              height: 42px;
+              align-items: center;
+              justify-content: center;
+              border-radius: 8px;
+              font-size: 1.05rem;
+              color: var(--admin-card-bg);
+              background: var(--admin-accent-color);
+              }
+
+              .expertos-estadisticas__value {
+              font-weight: 700;
+              font-size: 1.05rem;
+              color: var(--admin-text-primary);
+              }
+
+              /* Table container */
+              .expertos-grid__tabla .admin-table {
+              width: 100%;
+              border-collapse: collapse;
+              background: transparent;
+              overflow: hidden;
+              border-radius: 12px;
+              }
+
+              .admin-table thead tr {
+              background: linear-gradient(180deg, var(--admin-card-bg), transparent);
+              }
+
+              .admin-table th,
+              .admin-table td {
+              padding: 0.9rem 0.8rem;
+              text-align: left;
+              font-size: 0.92rem;
+              border-bottom: 1px dashed var(--admin-border-color);
+              color: var(--admin-text-primary);
+              }
+
+              .admin-table tbody tr:hover {
+              background: var(--admin-hover-bg);
+              }
+
+              .admin-table tbody tr.placeholder-row td {
+              color: var(--admin-text-secondary);
+              font-style: italic;
+              background: transparent;
+              }
+
+              .experto-info {
+              display: flex;
+              gap: 0.75rem;
+              align-items: center;
+              }
+
+              .experto-avatar {
+              width: 42px;
+              height: 42px;
+              border-radius: 8px;
+              object-fit: cover;
+              border: 1px solid var(--admin-border-color);
+              }
+
+              .experto-name {
+              display: flex;
+              flex-direction: column;
+              }
+
+              .experto-name .name {
+              font-weight: 600;
+              color: var(--admin-text-primary);
+              }
+
+              .experto-name .email {
+              font-size: 0.8rem;
+              color: var(--admin-text-secondary);
+              }
+
+              .chip {
+              display: inline-flex;
+              align-items: center;
+              gap: 0.4rem;
+              background: var(--admin-card-bg);
+              color: var(--admin-text-secondary);
+              padding: 0.28rem 0.55rem;
+              border-radius: 999px;
+              font-size: 0.8rem;
+              border: 1px solid var(--admin-border-color);
+              }
+
+              .estado-badge {
+              padding: 0.36rem 0.6rem;
+              border-radius: 999px;
+              font-weight: 700;
+              font-size: 0.85rem;
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              }
+
+              .estado-badge.active {
+              background: color-mix(in srgb, var(--admin-accent-secondary) 8%, transparent);
+              color: var(--admin-accent-secondary);
+              border: 1px solid color-mix(in srgb, var(--admin-accent-secondary) 8%, transparent);
+              }
+              .estado-badge.pending {
+              background: color-mix(in srgb, var(--admin-accent-color) 6%, transparent);
+              color: var(--admin-accent-color);
+              border: 1px solid color-mix(in srgb, var(--admin-accent-color) 6%, transparent);
+              }
+              .estado-badge.inactive {
+              background: color-mix(in srgb, #ef4444 6%, transparent);
+              color: #ef4444;
+              border: 1px solid color-mix(in srgb, #ef4444 6%, transparent);
+              }
+
+              .acciones-cell {
+              display: flex;
+              gap: 0.5rem;
+              justify-content: flex-end;
+              }
+
+              .btn-ghost {
+              background: transparent;
+              border: 1px solid var(--admin-border-color);
+              color: var(--admin-text-secondary);
+              padding: 0.45rem 0.6rem;
+              border-radius: 8px;
+              cursor: pointer;
+              }
+
+              .btn-ghost:hover {
+              color: var(--admin-text-primary);
+              border-color: var(--admin-accent-color);
+              background: var(--admin-hover-bg);
+              }
+
+              /* Pagination */
+              .expertos-paginacion {
+              display: flex;
+              flex-direction: column;
+              gap: 0.6rem;
+              margin-top: 1rem;
+              align-items: flex-start; /* moved to left */
+              }
+
+              .expertos-paginacion__info {
+              font-size: 0.85rem;
+              color: var(--admin-text-secondary);
+              }
+
+              .expertos-paginacion__controles {
+              display: flex;
+              gap: 0.45rem;
+              align-items: center;
+              justify-content: flex-start; /* ensure controls align left */
+              }
+
+              .expertos-paginacion__btn {
+              min-width: 40px;
+              height: 40px;
+              padding: 0 0.65rem;
+              border-radius: 10px;
+              border: none;
+              background: var(--admin-card-bg);
+              color: var(--admin-text-primary);
+              cursor: pointer;
+              font-weight: 600;
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              border: 1px solid var(--admin-border-color);
+              }
+
+              .expertos-paginacion__btn--active {
+              background: linear-gradient(90deg, var(--admin-accent-color), var(--admin-accent-secondary));
+              color: var(--admin-text-primary);
+              box-shadow: var(--admin-shadow);
+              }
+
+              .expertos-paginacion__btn--disabled {
+              opacity: 0.45;
+              cursor: default;
+              }
+
+              .expertos-paginacion__ellipsis {
+              color: var(--admin-text-secondary);
+              font-weight: 700;
+              padding: 0 0.25rem;
+              }
+
+              /* Responsive adjustments */
+              @media (max-width: 920px) {
+              .expertos-grid {
+              grid-template-columns: 1fr;
+              }
+              .expertos-paginacion { align-items: flex-start; }
+              }
+            </style>
+
+            <div class="expertos-grid">
+              <aside class="expertos-card expertos-grid__filters" aria-label="Filtros y estadísticas">
               <div class="expertos-filtros">
-                <h3 class="expertos-filtros__title">Filtros</h3>
-                <div class="expertos-filtros__group">
-                  <label class="expertos-filtros__label">Estado</label>
-                  <select class="expertos-filtros__select" id="filterEstado">
-                    <option value="">Todos los estados</option>
-                    <option value="active">Activos</option>
-                    <option value="pending">Pendientes</option>
-                    <option value="inactive">Inactivos</option>
-                  </select>
-                </div>
-                <div class="expertos-filtros__group">
-                  <label class="expertos-filtros__label">Categoría</label>
-                  <select class="expertos-filtros__select" id="filterCategoria">
-                    <option value="">Todas las categorías</option>
-                    <% if (typeof categorias !=='undefined' && Array.isArray(categorias)) { %>
-                      <% categorias.forEach(function(c){ %>
-                        <option value="<%= c._id %>">
-                          <%= c.nombre || c.name %>
-                        </option>
-                        <% }) %>
-                          <% } %>
-                  </select>
-                </div>
-                <div class="expertos-filtros__group">
-                  <label class="expertos-filtros__label">Calificación mínima</label>
-                  <select class="expertos-filtros__select" id="filterRating">
-                    <option value="">Todas las calificaciones</option>
-                    <option value="5">5 estrellas</option>
-                    <option value="4">4+ estrellas</option>
-                    <option value="3">3+ estrellas</option>
-                    <option value="2">2+ estrellas</option>
-                  </select>
-                </div>
-                <button class="btn-primary expertos-filtros__btn expertos-filtros__btn--center">
-                  <i class="fas fa-filter"></i>
-                  <span>Aplicar filtros</span>
-                </button>
+              <h3 class="expertos-filtros__title">Filtros</h3>
+
+              <div class="expertos-filtros__group">
+              <label class="expertos-filtros__label" for="filterEstado">Estado</label>
+              <select class="expertos-filtros__select" id="filterEstado">
+                <option value="">Todos los estados</option>
+                <option value="active">Activos</option>
+                <option value="pending">Pendientes</option>
+                <option value="inactive">Inactivos</option>
+              </select>
               </div>
 
-              <div class="expertos-estadisticas">
-                <h3 class="expertos-estadisticas__title">Estadísticas</h3>
-                <div class="expertos-estadisticas__list">
-                  <div class="expertos-estadisticas__item expertos-estadisticas__item--total">
-                    <div class="expertos-estadisticas__item-info">
-                      <i class="fas fa-user-tie expertos-estadisticas__icon expertos-estadisticas__icon--total"></i>
-                      <span>Total Expertos</span>
-                    </div>
-                    <span class="expertos-estadisticas__value">128</span>
-                  </div>
-                  <div class="expertos-estadisticas__item expertos-estadisticas__item--activos">
-                    <div class="expertos-estadisticas__item-info">
-                      <i
-                        class="fas fa-check-circle expertos-estadisticas__icon expertos-estadisticas__icon--activos"></i>
-                      <span>Expertos Activos</span>
-                    </div>
-                    <span class="expertos-estadisticas__value">98</span>
-                  </div>
-                  <div class="expertos-estadisticas__item expertos-estadisticas__item--pendientes">
-                    <div class="expertos-estadisticas__item-info">
-                      <i class="fas fa-clock expertos-estadisticas__icon expertos-estadisticas__icon--pendientes"></i>
-                      <span>Pendientes</span>
-                    </div>
-                    <span class="expertos-estadisticas__value">22</span>
-                  </div>
-                  <div class="expertos-estadisticas__item expertos-estadisticas__item--promedio">
-                    <div class="expertos-estadisticas__item-info">
-                      <i class="fas fa-star expertos-estadisticas__icon expertos-estadisticas__icon--promedio"></i>
-                      <span>Calificación Promedio</span>
-                    </div>
-                    <span class="expertos-estadisticas__value">4.7</span>
-                  </div>
-                </div>
+              <div class="expertos-filtros__group">
+              <label class="expertos-filtros__label" for="filterCategoria">Categoría</label>
+              <select class="expertos-filtros__select" id="filterCategoria">
+                <option value="">Todas las categorías</option>
+                <% if (typeof categorias !=='undefined' && Array.isArray(categorias)) { %>
+                <% categorias.forEach(function(c){ %>
+                <option value="<%= c._id %>"><%= c.nombre || c.name %></option>
+                <% }) %>
+                <% } %>
+              </select>
               </div>
-            </div>
 
-            <div class="table-container expertos-grid__tabla">
-              <table class="admin-table">
-                <thead>
-                  <tr>
-                    <th style="width:40px;">
-                      <input type="checkbox" id="selectAll" class="expertos-checkbox" />
-                    </th>
-                    <th>Experto</th>
-                    <th>Categorías</th>
-                    <th>Especialidad</th>
-                    <th>Registro</th>
-                    <th>Sesiones</th>
-                    <th>Calificación</th>
-                    <th>Estado</th>
-                    <th style="width:160px;">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr class="placeholder-row">
-                    <td colspan="9" style="text-align:center;padding:24px;color:#9aa0a6;">
-                      Cargando expertos...
-                    </td>
-                  </tr>
-                </tbody>
+              <div class="expertos-filtros__group">
+              <label class="expertos-filtros__label" for="filterRating">Calificación mínima</label>
+              <select class="expertos-filtros__select" id="filterRating">
+                <option value="">Todas las calificaciones</option>
+                <option value="5">5 estrellas</option>
+                <option value="4">4+ estrellas</option>
+                <option value="3">3+ estrellas</option>
+                <option value="2">2+ estrellas</option>
+              </select>
+              </div>
+
+              <button class="btn-primary expertos-filtros__btn" id="applyFiltersBtn">
+              <i class="fas fa-filter" aria-hidden="true"></i>
+              <span>Aplicar filtros</span>
+              </button>
+              </div>
+
+              <div class="expertos-estadisticas" style="margin-top:1rem;">
+              <h3 class="expertos-estadisticas__title">Estadísticas</h3>
+              <div class="expertos-estadisticas__list">
+              <div class="expertos-estadisticas__item">
+                <div class="expertos-estadisticas__item-info">
+                <i class="fas fa-user-tie expertos-estadisticas__icon" aria-hidden="true"></i>
+                <span>Total Expertos</span>
+                </div>
+                <span class="expertos-estadisticas__value">128</span>
+              </div>
+
+              <div class="expertos-estadisticas__item">
+                <div class="expertos-estadisticas__item-info">
+                <i class="fas fa-check-circle expertos-estadisticas__icon" aria-hidden="true"></i>
+                <span>Activos</span>
+                </div>
+                <span class="expertos-estadisticas__value">98</span>
+              </div>
+
+              <div class="expertos-estadisticas__item">
+                <div class="expertos-estadisticas__item-info">
+                <i class="fas fa-clock expertos-estadisticas__icon" aria-hidden="true"></i>
+                <span>Pendientes</span>
+                </div>
+                <span class="expertos-estadisticas__value">22</span>
+              </div>
+
+              <div class="expertos-estadisticas__item">
+                <div class="expertos-estadisticas__item-info">
+                <i class="fas fa-star expertos-estadisticas__icon" aria-hidden="true"></i>
+                <span>Promedio</span>
+                </div>
+                <span class="expertos-estadisticas__value">4.7</span>
+              </div>
+              </div>
+              </div>
+              </aside>
+
+              <section class="expertos-card expertos-grid__tabla" aria-label="Tabla de expertos">
+              <table class="admin-table" role="table" aria-label="Lista de expertos">
+              <thead>
+              <tr>
+                <th style="width:40px;">
+                <input type="checkbox" id="selectAll" class="expertos-checkbox" />
+                </th>
+                <th>Experto</th>
+                <th>Categorías</th>
+                <th>Especialidad</th>
+                <th>Registro</th>
+                <th>Sesiones</th>
+                <th>Calificación</th>
+                <th>Estado</th>
+                <th style="width:160px;">Acciones</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr class="placeholder-row">
+                <td colspan="9" style="text-align:center;padding:24px;color:var(--admin-text-secondary);">
+                Cargando expertos...
+                </td>
+              </tr>
+              </tbody>
               </table>
-            </div>
 
-            <div class="expertos-paginacion">
+              <!-- Paginación (ubicada directamente bajo la tabla para asociación semántica y visual) -->
+              <div class="expertos-paginacion" role="navigation" aria-label="Paginación de expertos">
               <span class="expertos-paginacion__info">Mostrando 1-7 de 128 expertos</span>
-              <div class="expertos-paginacion__controles">
-                <button class="expertos-paginacion__btn expertos-paginacion__btn--disabled">
-                  <i class="fas fa-chevron-left"></i>
-                </button>
-                <button class="expertos-paginacion__btn expertos-paginacion__btn--active">
-                  1
-                </button>
-                <button class="expertos-paginacion__btn">2</button>
-                <button class="expertos-paginacion__btn">3</button>
-                <span class="expertos-paginacion__ellipsis">...</span>
-                <button class="expertos-paginacion__btn">18</button>
-                <button class="expertos-paginacion__btn">
-                  <i class="fas fa-chevron-right"></i>
-                </button>
+              <div class="expertos-paginacion__controles" aria-hidden="false">
+              <button class="expertos-paginacion__btn expertos-paginacion__btn--disabled" aria-disabled="true">
+                <i class="fas fa-chevron-left" aria-hidden="true"></i>
+              </button>
+              <button class="expertos-paginacion__btn expertos-paginacion__btn--active" aria-current="page">1</button>
+              <button class="expertos-paginacion__btn">2</button>
+              <button class="expertos-paginacion__btn">3</button>
+              <span class="expertos-paginacion__ellipsis">…</span>
+              <button class="expertos-paginacion__btn">18</button>
+              <button class="expertos-paginacion__btn">
+                <i class="fas fa-chevron-right" aria-hidden="true"></i>
+              </button>
               </div>
-            </div>
-          </div>
+              </div>
+              </section>
+            </div></div>
+
         </div>
       </main>
   </div>

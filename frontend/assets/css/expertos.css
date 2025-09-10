@@ -303,7 +303,8 @@
 /* Tarjetas de expertos mejoradas */
 .expert-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  /* Mostrar exactamente 2 columnas en la vista de escritorio para que las tarjetas queden lado a lado */
+  grid-template-columns: repeat(2, 1fr);
   gap: 1.5rem;
   z-index: 0;
 }
@@ -396,6 +397,117 @@
 
 .rating-stars {
   color: #ffd700;
+}
+
+/* Paginación moderna y accesible */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding: 0.8rem 1rem;
+  background: transparent;
+}
+
+.pag-info {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.pag-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--card-bg);
+  border-radius: 999px;
+  padding: 4px;
+  box-shadow: 0 6px 18px rgba(17, 24, 39, 0.06);
+  border: 1px solid var(--border-light);
+}
+
+.pag-btn {
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  border: none;
+  padding: 0.5rem 0.75rem;
+  margin: 0;
+  border-radius: 999px;
+  color: var(--text-color);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pag-btn:hover:not(.disabled):not(.active) {
+  background: rgba(58, 142, 255, 0.08);
+  transform: translateY(-2px);
+}
+
+.pag-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(58, 142, 255, 0.12);
+}
+
+.pag-btn.page {
+  min-width: 40px;
+  height: 40px;
+  font-size: 0.95rem;
+}
+
+.pag-btn.page.active {
+  background: linear-gradient(
+    180deg,
+    var(--primary-color),
+    rgba(58, 142, 255, 0.9)
+  );
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(58, 142, 255, 0.16);
+  transform: none;
+}
+
+.pag-btn.prev,
+.pag-btn.next {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.pag-btn.prev.disabled,
+.pag-btn.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.pag-ellipsis {
+  padding: 0 6px;
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+@media (max-width: 576px) {
+  .pagination {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  .pag-controls {
+    width: 100%;
+    justify-content: flex-start;
+    padding: 6px;
+  }
+  .pag-btn.page {
+    min-width: 36px;
+    height: 36px;
+    padding: 0 8px;
+  }
 }
 
 .rating-value {

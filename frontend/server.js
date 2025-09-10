@@ -711,14 +711,26 @@ app.get("/expertos.html", async (req, res) => {
     import("node-fetch").then(({ default: fetch }) => fetch(...args));
   let categorias = [],
     expertos = [];
+  // variables de paginación en scope superior para poder usarlas en res.render
+  // Forzamos un límite fijo de 6 items por página para esta vista
+  let page = 1,
+    limit = 6,
+    total = 0,
+    totalPages = 1,
+    baseQuery = "";
   try {
     const catRes = await fetch("http://localhost:3000/api/categorias");
     categorias = catRes.ok ? await catRes.json() : [];
     // Pedimos la lista de expertos al endpoint correcto (/api/usuarios/expertos)
     // que devuelve { expertos: [...], total }.
-    // Use the public experts endpoint (no auth required) so the public
-    // page can render experts created by admins without needing a session.
-    const expRes = await fetch("http://localhost:3000/api/expertos?limit=50");
+    // Leer parámetros de paginación desde la querystring del cliente
+    page = parseInt(req.query.page, 10) || 1;
+    // Forzar limit a 6 independientemente de lo que envíe el cliente.
+    // Si querés permitir override, cambiar aquí para leer de req.query.limit con límites razonables.
+    limit = 6;
+    // Construir URL del API pasando página y límite
+    const apiUrl = `http://localhost:3000/api/expertos?page=${page}&limit=${limit}`;
+    const expRes = await fetch(apiUrl);
     if (expRes && expRes.ok) {
       const tmp = await expRes.json().catch(() => null);
       expertos = Array.isArray(tmp)
@@ -726,9 +738,24 @@ app.get("/expertos.html", async (req, res) => {
         : tmp && tmp.expertos
         ? tmp.expertos
         : [];
+      total = tmp && tmp.total ? Number(tmp.total) : expertos.length;
+      // Defensive: ensure we never pass more than `limit` items to the view
+      if (Array.isArray(expertos) && typeof limit === "number") {
+        expertos = expertos.slice(0, limit);
+      }
     } else {
       expertos = [];
     }
+    // Preparar datos de paginación para la vista
+    totalPages = Math.max(1, Math.ceil((total || 0) / limit));
+    // Construir baseQuery (query string con todos los parámetros excepto page y limit)
+    const qp = Object.keys(req.query || {})
+      .filter((k) => k !== "page" && k !== "limit")
+      .map(
+        (k) => `${encodeURIComponent(k)}=${encodeURIComponent(req.query[k])}`
+      )
+      .join("&");
+    baseQuery = qp; // la plantilla añadirá & si es necesario
   } catch {
     categorias = [];
     expertos = [];
@@ -737,6 +764,12 @@ app.get("/expertos.html", async (req, res) => {
     user: req.session.user || null,
     categorias,
     expertos,
+    // Paginación
+    page: Number(page),
+    limit: Number(limit),
+    total: Number(total || 0),
+    totalPages: Number(totalPages),
+    baseQuery: baseQuery || "",
   });
 });
 

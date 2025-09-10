@@ -16,18 +16,13 @@
   <%- include('componentes/header') %>
 
     <% // Helper local para formatear precio sin depender de locales del sistema %>
-      <% function formatPrice(n){
-           if (n === undefined || n === null) return null;
-           // Aceptar strings numéricos
-           var num = Number(n);
-           if (Number.isNaN(num)) return null;
-           try {
-             return Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-           } catch (e) { return String(n); }
-         }
-      %>
+      <% function formatPrice(n) { if (n===undefined || n===null) return null; var num=Number(n); if (Number.isNaN(num))
+        return null; try { return Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.' ); } catch (e) {
+        return String(n); } } %>
 
         <main class="container">
+
+          <!-- Sección principal con título y subtítulo -->
           <section class="hero-section">
             <h1 class="hero-title">Encuentra tu Experto</h1>
             <p class="hero-subtitle">Filtra entre nuestros profesionales certificados para encontrar el que mejor se
@@ -35,13 +30,14 @@
               a tus necesidades</p>
           </section>
 
-          <!-- banner DEBUG eliminado -->
 
           <div class="expert-layout">
             <aside class="filter-sidebar">
+              <!-- Formulario de filtros y ordenamiento -->
               <div class="filter-card">
                 <h3 class="filter-title">Filtrar Expertos</h3>
                 <form class="filter-form" id="filterForm">
+
                   <div class="filter-group">
                     <label class="filter-label">Por nombre o especialización</label>
                     <!-- El atributo 'name' es 'busqueda' -->
@@ -75,9 +71,12 @@
               </div>
             </aside>
 
+            <!-- Sección principal con listado de expertos -->
             <section class="expert-list-section">
+
+              <!--Expertos disponibles-->
               <div class="expert-list-header">
-                <h2 class="expert-list-title">Expertos disponibles <span class="expert-count">(<%= expertos.length %>
+                <h2 class="expert-list-title">Expertos disponibles <span class="expert-count">(<%= total %>
                       resultados)</span></h2>
                 <div class="sort-options">
                   <!-- El atributo 'name' es 'sortBy' y se envía con el formulario -->
@@ -90,92 +89,78 @@
                 </div>
               </div>
 
+              <!-- Listado de expertos en formato grid -->
               <div class="expert-grid">
                 <% if (expertos && expertos.length> 0) { %>
-                  <% expertos.forEach(function(experto) { %>
+                  <% (expertos.slice ? expertos.slice(0, limit) : expertos).forEach(function(experto) { %>
                     <article class="expert-card">
+
+                      <!-- Encabezado de la tarjeta con foto, nombre, especialidad y puntuación -->
                       <div class="expert-card-header">
                         <img
                           src="https://ui-avatars.com/api/?name=<%= experto.nombre %>+<%= experto.apellido %>&background=3a8eff&color=fff&size=96"
                           alt="Foto de <%= experto.nombre %>" class="expert-photo">
+
+                        <!-- Información básica: nombre, especialidad, puntuación -->
                         <div class="expert-info">
                           <h3 class="expert-name">
                             <%= experto.nombre %>
                               <%= experto.apellido %>
                           </h3>
-                          <%
-                            // Resolver especialidad desde varias posibles ubicaciones
-                            var espDisplay = null;
-                            try {
-                              var _esp = null;
-                              if (experto && experto.infoExperto && experto.infoExperto.especialidad) {
-                                _esp = experto.infoExperto.especialidad;
-                              } else if (experto && experto.especialidad) {
-                                _esp = experto.especialidad;
-                              }
-                              if (_esp) {
-                                if (typeof _esp === 'object') {
-                                  // Extraer nombre de objeto de especialidad
-                                  espDisplay = _esp.nombre || _esp.nombreEspecialidad || _esp.descripcion || null;
-                                } else {
-                                  // Convertir a string si no es objeto
-                                  espDisplay = String(_esp);
-                                }
-                                // Limpiar y normalizar el texto
-                                if (espDisplay) {
-                                  espDisplay = espDisplay.toString().trim().replace(/\s+/g, ' ');
-                                }
-                              }
-                              // Si no hay especialidad, intentar derivarla desde la primera categoría del experto
-                              if (
-                                !espDisplay &&
-                                experto &&
-                                experto.infoExperto &&
-                                Array.isArray(experto.infoExperto.categorias) &&
-                                experto.infoExperto.categorias.length > 0 &&
-                                Array.isArray(categorias)
-                              ) {
-                                var catRef = experto.infoExperto.categorias[0];
-                                if (catRef) {
-                                  var foundCat = categorias.find(function(c) {
-                                    if (!c) return false;
-                                    // Comparar por ID (diferentes formatos posibles)
-                                    if (catRef._id && c._id && String(c._id) === String(catRef._id)) return true;
-                                    if (catRef.id && c._id && String(c._id) === String(catRef.id)) return true;
-                                    // Comparar por nombre (case insensitive)
-                                    if (catRef.nombre && c.nombre) {
-                                      var refNombre = String(catRef.nombre).trim().toLowerCase();
-                                      var catNombre = String(c.nombre).trim().toLowerCase();
-                                      if (refNombre === catNombre) return true;
-                                    }
-                                    return false;
-                                  });
-                                  if (foundCat && Array.isArray(foundCat.especialidades) && foundCat.especialidades.length > 0) {
-                                    var primeraEspecialidad = foundCat.especialidades.find(function(esp) { return esp && esp.nombre; });
-                                    if (primeraEspecialidad) {
-                                      espDisplay = primeraEspecialidad.nombre.trim();
-                                    }
-                                  }
-                                }
-                              }
-                            } catch (e) {
-                              espDisplay = null;
+                          <% // Resolver especialidad desde varias posibles ubicaciones (implementación segura) var
+                            espDisplay=null; try { var _esp=null; if (experto && experto.infoExperto &&
+                            experto.infoExperto.especialidad) { _esp=experto.infoExperto.especialidad; } else if
+                            (experto && experto.especialidad) { _esp=experto.especialidad; } if (_esp) { if (typeof
+                            _esp==='object' ) { espDisplay=_esp.nombre || _esp.nombreEspecialidad || _esp.descripcion ||
+                            null; } else { espDisplay=String(_esp); } if (espDisplay)
+                            espDisplay=espDisplay.toString().trim().replace(/\s+/g, ' ' ); } if (!espDisplay && experto
+                            && experto.infoExperto && Array.isArray(experto.infoExperto.categorias) &&
+                            experto.infoExperto.categorias.length> 0 && Array.isArray(categorias)) {
+                            var catRef = experto.infoExperto.categorias[0];
+                            if (catRef) {
+                            var foundCat = categorias.find(function(c) {
+                            if (!c) return false;
+                            if (catRef._id && c._id && String(c._id) === String(catRef._id)) return true;
+                            if (catRef.id && c._id && String(c._id) === String(catRef.id)) return true;
+                            if (catRef.nombre && c.nombre) {
+                            var refNombre = String(catRef.nombre).trim().toLowerCase();
+                            var catNombre = String(c.nombre).trim().toLowerCase();
+                            if (refNombre === catNombre) return true;
                             }
-                            // Valor por defecto si todo falla
+                            return false;
+                            });
+
+                            if (foundCat && Array.isArray(foundCat.especialidades) && foundCat.especialidades.length >
+                            0) {
+                            var primeraEspecialidad = foundCat.especialidades.find(function(esp) { return esp &&
+                            esp.nombre; });
+                            if (primeraEspecialidad) espDisplay = String(primeraEspecialidad.nombre).trim();
+                            }
+                            }
+                            }
+                            } catch (e) {
+                            espDisplay = null;
+                            }
+
                             if (!espDisplay) espDisplay = '';
-                          %>
+                            %>
+                            <!-- Especialidad-->
                             <div class="expert-specialty-block">
                               <div class="tag-group-title">Especialidad</div>
                               <p class="expert-specialty <%= espDisplay ? '' : 'placeholder' %>">
                                 <%= espDisplay ? espDisplay : 'Sin especificar' %>
                               </p>
                             </div>
+                            <!-- Puntuación fija por ahora -->
                             <div class="expert-rating"><span class="rating-stars">⭐⭐⭐⭐⭐</span> <span
                                 class="rating-value">5.0</span></div>
                         </div>
                       </div>
 
+                      <!-- Cuerpo de la tarjeta con biografía y etiquetas -->
                       <div class="expert-card-body">
+
+                        <!-- Biografía profesional -->
                         <div class="expert-bio-block">
                           <div class="tag-group-title">Biografía profesional</div>
                           <% if (experto.infoExperto && experto.infoExperto.descripcion) { %>
@@ -189,6 +174,7 @@
                               <% } %>
                         </div>
 
+                        <!-- Etiquetas de categorías y habilidades -->
                         <div class="expert-tags">
                           <% /* Grupos separados: Categorías y Habilidades */ %>
                             <% if (experto.infoExperto && experto.infoExperto.categorias &&
@@ -220,6 +206,7 @@
                                   <% } %>
                         </div>
 
+                        <!-- Información de contacto y disponibilidad -->
                         <% if (experto.infoExperto && (experto.infoExperto.telefonoContacto ||
                           (Array.isArray(experto.infoExperto.diasDisponibles) &&
                           experto.infoExperto.diasDisponibles.length>0))) { %>
@@ -230,67 +217,116 @@
                                 <% if (Array.isArray(experto.infoExperto.diasDisponibles) &&
                                   experto.infoExperto.diasDisponibles.length>0) { %>
                                   <small style="margin-left:0.5rem;">🗓 <%= experto.infoExperto.diasDisponibles.join(', ') %></small>
-                            <% } %>
-                          </div>
-                        <% } %>
+                <% } %>
+              </div>
+            <% } %>
                       </div>
 
-                  <div class="expert-card-footer">
-                    <% if (experto.infoExperto || experto) {
-                         // Buscar precio por hora en varios lugares posibles
-                         var rawPrecio = null;
-                         if (experto && experto.infoExperto && typeof experto.infoExperto.precioPorHora !== 'undefined') {
-                           rawPrecio = experto.infoExperto.precioPorHora;
-                         } else if (typeof experto.precioPorHora !== 'undefined') {
-                           rawPrecio = experto.precioPorHora;
-                         } else if (typeof experto.precio !== 'undefined') {
-                           rawPrecio = experto.precio;
-                         }
-                         var _fp = formatPrice(rawPrecio);
-                    %>
-                      <% if (_fp) { %>
-                        <div class="expert-price">$<%= _fp %>/h</div>
+                       <!-- Pie de la tarjeta con precio y botón -->
+                      <div class="expert-card-footer">
+              <% if (experto.infoExperto || experto) { %>
+                <% // Buscar precio por hora en varios lugares posibles (implementación segura) %>
+                <%
+                  var rawPrecio = null;
+                  try {
+                    if (experto && experto.infoExperto && typeof experto.infoExperto.precioPorHora !== ' undefined') {
+                                      rawPrecio=experto.infoExperto.precioPorHora; } else if (typeof
+                                      experto.precioPorHora !=='undefined' ) { rawPrecio=experto.precioPorHora; } else
+                                      if (typeof experto.precio !=='undefined' ) { rawPrecio=experto.precio; } } catch
+                                      (e) { rawPrecio=null; } var _fp=formatPrice(rawPrecio); %>
+                                      <% if (_fp) { %>
+                                        <div class="expert-price">$<%= _fp %>/h</div>
+                                        <% } else { %>
+                                          <div class="expert-price">Consultar precio</div>
+                                          <% } %>
+                                            <% } else { %>
+                                              <div class="expert-price">Consultar precio</div>
+                                              <% } %>
+                                                <a href="/expertos/<%= experto._id %>/calendario"
+                                                  class="btn btn-primary btn-profile"><i
+                                                    class="fas fa-calendar-alt"></i> Ver disponibilidad</a>
+                          </div>
+
+                    </article>
+                    <% }); %>
                       <% } else { %>
-                        <div class="expert-price">Consultar precio</div>
-                      <% } %>
-                    <% } else { %>
-                      <div class="expert-price">Consultar precio</div>
-                    <% } %>
-                      <a href="/expertos/<%= experto._id %>/calendario" class="btn btn-primary btn-profile"><i
-                                  class="fas fa-calendar-alt"></i> Ver disponibilidad</a>
-                  </div>
-                </article>
-                <% }); %>
-                  <% } else { %>
-                    <div class="no-experts-found">
-                      <h3>No se encontraron expertos</h3>
-                      <p>No hay expertos que coincidan con tus criterios de búsqueda. Intenta con otros filtros.</p>
-                    </div>
-                    <% } %>
+                        <div class="no-experts-found">
+                          <h3>No se encontraron expertos</h3>
+                          <p>No hay expertos que coincidan con tus criterios de búsqueda. Intenta con otros filtros.</p>
+                        </div>
+                        <% } %>
+              </div>
+
+              <!-- PAGINACIÓN dinámica: debe ir justo después del listado (expert-grid) y dentro de la sección .expert-list-section -->
+              <div class="pagination" role="navigation" aria-label="Paginación de expertos">
+                <% /* Información: mostrando X-Y de total */ %>
+                  <% var showingStart=(page - 1) * limit + 1; %>
+                    <% var showingEnd=Math.min(total, page * limit); %>
+                      <span class="pag-info">Mostrando <%= showingStart %>-<%= showingEnd %> de <%= total %>
+                              expertos</span>
+                      <div class="pag-controls" aria-hidden="false">
+                        <% // Botón anterior (prev) - sólo habilitado si page>1 %>
+                          <button class="pag-btn prev <%= page<=1 ? 'disabled' : '' %>" aria-disabled="<%= page<=1 %>">
+                            <i class="fas fa-chevron-left" aria-hidden="true"></i>
+                          </button>
+
+                          <% // Generar rango de páginas compacto: mostrar 1, previo, +/-2, último %>
+                            <% var startPage=Math.max(1, page - 2); %>
+                              <% var endPage=Math.min(totalPages, page + 2); %>
+                                <% if (startPage> 1) { %>
+                                  <button class="pag-btn page">1</button>
+                                  <% if (startPage> 2) { %>
+                                    <span class="pag-ellipsis">…</span>
+                                    <% } %>
+                                      <% } %>
+
+                                        <% for (var p=startPage; p <=endPage; p++) { %>
+                                          <button class="pag-btn page <%= p===page ? 'active' : '' %>" <%=p===page
+                                            ? 'aria-current="page"' : '' %>><%= p %></button>
+                                          <% } %>
+
+                                            <% if (endPage < totalPages) { %>
+                                              <% if (endPage < totalPages - 1) { %>
+                                                <span class="pag-ellipsis">…</span>
+                                                <% } %>
+                                                  <button class="pag-btn page">
+                                                    <%= totalPages %>
+                                                  </button>
+                                                  <% } %>
+
+                                                    <% // Botón siguiente (next) - sólo habilitado si page<totalPages %>
+                                                      <button
+                                                        class="pag-btn next <%= page>=totalPages ? 'disabled' : '' %>"
+                                                        aria-disabled="<%= page>=totalPages %>">
+                                                        <i class="fas fa-chevron-right" aria-hidden="true"></i>
+                                                      </button>
+                      </div>
+              </div>
+
+            </section>
           </div>
-        </section>
-      </div>
-  </main>
-  <%- include('componentes/footer') %>
-                                      <script src="/assets/js/common.js"></script>
-                                      <script src="/assets/js/expertos.js"></script>
-                                      <script>
-                                        // SSE listener: recarga la página cuando el servidor notifica cambios en usuarios/experts
-                                        (function () {
-                                          try {
-                                            var es = new EventSource('/sse/stream');
-                                            es.addEventListener('usuarios:update', function (e) {
-                                              try {
-                                                // simple reload to reflect new expert
-                                                console.info('SSE usuarios:update received, reloading page');
-                                                window.location.reload();
-                                              } catch (err) { }
-                                            });
-                                          } catch (e) {
-                                            // ignore if SSE not supported
-                                          }
-                                        })();
-                                      </script>
+
+        </main>
+        <%- include('componentes/footer') %>
+          <script src="/assets/js/common.js"></script>
+          <script src="/assets/js/expertos.js"></script>
+          <script>
+            // SSE listener: recarga la página cuando el servidor notifica cambios en usuarios/experts
+            (function () {
+              try {
+                var es = new EventSource('/sse/stream');
+                es.addEventListener('usuarios:update', function (e) {
+                  try {
+                    // simple reload to reflect new expert
+                    console.info('SSE usuarios:update received, reloading page');
+                    window.location.reload();
+                  } catch (err) { }
+                });
+              } catch (e) {
+                // ignore if SSE not supported
+              }
+            })();
+          </script>
 
 </body>
 
