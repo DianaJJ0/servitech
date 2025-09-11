@@ -501,66 +501,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-document.addEventListener("DOMContentLoaded", () => {
-  // Modal ver perfil experto
-  const modalVer = document.getElementById("verPerfilExperto");
-  const closeBtnVer = modalVer ? modalVer.querySelector(".btn-close") : null;
-  const cerrarBtnVer = modalVer
-    ? modalVer.querySelector(".modal-ver-cerrar")
-    : null;
-
-  const verNombreInput = document.getElementById("verNombreExperto");
-  const verCorreoInput = document.getElementById("verCorreoExperto");
-  const verEspecialidadInput = document.getElementById(
-    "verEspecialidadExperto"
-  );
-  const verEstadoInput = document.getElementById("verEstadoExperto");
-  const verFechaRegistroInput = document.getElementById(
-    "verFechaRegistroExperto"
-  );
-  const verSesionesInput = document.getElementById("verSesionesExperto");
-  const verCalificacionInput = document.getElementById(
-    "verCalificacionExperto"
-  );
-
-  document
-    .querySelectorAll(".btn-icon[title='Ver perfil']")
-    .forEach((button) => {
-      button.addEventListener("click", () => {
-        const row = button.closest("tr");
-        verNombreInput.value = row.querySelector("h4").textContent.trim();
-        verCorreoInput.value = row.querySelector("span").textContent.trim();
-        const tds = row ? Array.from(row.querySelectorAll("td")) : [];
-        verEspecialidadInput.value = tds[3] ? tds[3].textContent.trim() : "";
-        verEstadoInput.value = row.querySelector(".status")
-          ? row.querySelector(".status").textContent.trim()
-          : "";
-        verFechaRegistroInput.value = tds[4] ? tds[4].textContent.trim() : "";
-        verSesionesInput.value = tds[5] ? tds[5].textContent.trim() : "";
-        verCalificacionInput.value = tds[6] ? tds[6].textContent.trim() : "";
-
-        modalVer.style.display = "flex";
-      });
-    });
-
-  if (closeBtnVer) {
-    closeBtnVer.addEventListener(
-      "click",
-      () => (modalVer.style.display = "none")
-    );
-  }
-  if (cerrarBtnVer) {
-    cerrarBtnVer.addEventListener(
-      "click",
-      () => (modalVer.style.display = "none")
-    );
-  }
-  if (modalVer) {
-    window.addEventListener("click", (e) => {
-      if (e.target === modalVer) modalVer.style.display = "none";
-    });
-  }
-});
+// The delegated handler in setupDelegatedActions() covers 'Ver perfil' actions
+// and fills the #verPerfilExperto modal using scoped queries. No duplicate
+// initialization is necessary here.
 
 document.addEventListener("DOMContentLoaded", () => {
   // Modal inactivar experto
@@ -1840,11 +1783,27 @@ function setupDelegatedActions() {
       const ex = expertos.find((x) => String(x._id) === String(id));
       if (!ex) return showMessage("Experto no encontrado", "error");
 
-      // Mapear datos del experto a los campos del modal #verPerfilExperto
+      // find modal root first so we can scope queries and avoid duplicate ID conflicts
+      const modalVer = document.getElementById("verPerfilExperto");
+
+      // Mapear datos del experto a los campos dentro de `modalVer`
       try {
         const setIf = (idSel, val) => {
           try {
-            const el = document.getElementById(idSel);
+            // preferir elementos dentro del modal (ids renombrados con ver_ prefix)
+            const prefixed = `ver_${idSel}`;
+            let el = null;
+            if (modalVer) {
+              // dentro del modal: probar prefixed, luego fallback a idSinPrefijo dentro del mismo modal
+              el =
+                modalVer.querySelector(`#${prefixed}`) ||
+                modalVer.querySelector(`#${idSel}`);
+            } else {
+              // fuera del modal: probar prefixed globalmente, luego id sin prefijo
+              el =
+                document.getElementById(prefixed) ||
+                document.getElementById(idSel);
+            }
             if (!el) return;
             if (typeof val === "undefined" || val === null) val = "";
             if ("value" in el) el.value = val;
@@ -1863,7 +1822,7 @@ function setupDelegatedActions() {
           "";
         setIf("precio", precioVal);
 
-        // Días disponibles: oculto + botones visuales
+        // Días disponibles: oculto + botones visuales (scoped)
         try {
           const dias =
             (ex.infoExperto &&
@@ -1871,30 +1830,32 @@ function setupDelegatedActions() {
               ex.infoExperto.diasDisponibles) ||
             (Array.isArray(ex.diasDisponibles) && ex.diasDisponibles) ||
             [];
-          const diasInput = document.getElementById("diasDisponibles");
+          const diasInput = modalVer
+            ? modalVer.querySelector("#ver_diasDisponibles")
+            : document.getElementById("ver_diasDisponibles") ||
+              document.getElementById("diasDisponibles");
           if (diasInput)
             diasInput.value = Array.isArray(dias) ? dias.join(",") : dias || "";
-          const display = document.querySelector(
-            "#verPerfilExperto .srv-days-display"
-          );
+          const display = modalVer
+            ? modalVer.querySelector(".srv-days-display")
+            : document.querySelector("#verPerfilExperto .srv-days-display");
           if (display)
             display.textContent =
               Array.isArray(dias) && dias.length > 0
                 ? dias.join(", ")
                 : "Ningún día seleccionado";
-          document
-            .querySelectorAll("#verPerfilExperto .srv-day")
-            .forEach((b) => {
-              try {
-                const d = b.dataset.day;
-                b.setAttribute(
-                  "aria-pressed",
-                  Array.isArray(dias) && dias.indexOf(d) !== -1
-                    ? "true"
-                    : "false"
-                );
-              } catch (e) {}
-            });
+          const dayButtons = modalVer
+            ? modalVer.querySelectorAll(".srv-day")
+            : document.querySelectorAll("#verPerfilExperto .srv-day");
+          Array.from(dayButtons || []).forEach((b) => {
+            try {
+              const d = b.dataset.day;
+              b.setAttribute(
+                "aria-pressed",
+                Array.isArray(dias) && dias.indexOf(d) !== -1 ? "true" : "false"
+              );
+            } catch (e) {}
+          });
         } catch (e) {}
 
         // Especialidad y estado
@@ -1909,13 +1870,19 @@ function setupDelegatedActions() {
         // Biografía
         setIf("bio", (ex.infoExperto && ex.infoExperto.descripcion) || "");
 
-        // Perfil / imagen
+        // Perfil / imagen (scoped)
         try {
-          const preview = document.getElementById("profilePreview");
+          const preview = modalVer
+            ? modalVer.querySelector("#ver_profilePreview")
+            : document.getElementById("ver_profilePreview") ||
+              document.getElementById("profilePreview");
           if (preview) {
             const img = preview.querySelector("img");
             if (img) img.src = ex.avatarUrl || ex.avatar || "";
-            const removeBtn = document.getElementById("removeProfileBtn");
+            const removeBtn = modalVer
+              ? modalVer.querySelector("#ver_removeProfileBtn")
+              : document.getElementById("ver_removeProfileBtn") ||
+                document.getElementById("removeProfileBtn");
             if (removeBtn)
               removeBtn.style.display =
                 img && img.src ? "inline-block" : "none";
@@ -1923,7 +1890,7 @@ function setupDelegatedActions() {
           }
         } catch (e) {}
 
-        // Datos bancarios (si existen)
+        // Datos bancarios (si existen) (scoped) — preferir campos con prefijo 'ver_'
         try {
           const bankFields = [
             "banco",
@@ -1936,7 +1903,15 @@ function setupDelegatedActions() {
           ];
           bankFields.forEach((k) => {
             try {
-              const el = document.getElementById(k);
+              const prefId = `ver_${k}`;
+              let el = null;
+              if (modalVer)
+                el =
+                  modalVer.querySelector(`#${prefId}`) ||
+                  modalVer.querySelector(`#${k}`);
+              else
+                el =
+                  document.getElementById(prefId) || document.getElementById(k);
               if (!el) return;
               const v =
                 ex.infoExperto && typeof ex.infoExperto[k] !== "undefined"
@@ -1947,10 +1922,13 @@ function setupDelegatedActions() {
           });
         } catch (e) {}
 
-        // Categorías: asegurar opciones cargadas y marcar las seleccionadas
+        // Categorías: asegurar opciones cargadas y marcar las seleccionadas (scoped)
         try {
           await loadAdminCategorias();
-          const categoriasEl = document.getElementById("categorias");
+          const categoriasEl = modalVer
+            ? modalVer.querySelector("#ver_categorias")
+            : document.getElementById("ver_categorias") ||
+              document.getElementById("categorias");
           if (categoriasEl) {
             const cats =
               (ex.infoExperto &&
@@ -1971,7 +1949,7 @@ function setupDelegatedActions() {
             });
             // Re-inicializar Choices para reflejar selección visual
             initializeChoicesOn(
-              "categorias",
+              categoriasEl,
               {
                 removeItemButton: true,
                 searchEnabled: true,
@@ -1983,9 +1961,12 @@ function setupDelegatedActions() {
           }
         } catch (e) {}
 
-        // Habilidades: poblar select con las habilidades del experto
+        // Habilidades: poblar select con las habilidades del experto (scoped)
         try {
-          const skillsEl = document.getElementById("skills");
+          const skillsEl = modalVer
+            ? modalVer.querySelector("#ver_skills")
+            : document.getElementById("ver_skills") ||
+              document.getElementById("skills");
           if (skillsEl) {
             const skillsArr =
               (ex.infoExperto &&
@@ -2005,7 +1986,7 @@ function setupDelegatedActions() {
               } catch (e) {}
             });
             initializeChoicesOn(
-              "skills",
+              skillsEl,
               {
                 removeItemButton: true,
                 searchEnabled: true,
@@ -2017,11 +1998,138 @@ function setupDelegatedActions() {
             );
           }
         } catch (e) {}
+
+        // Render visual-only badges for categorias and skills as a fallback
+        try {
+          // Categorías display
+          const categoriasForDisplay =
+            (ex.infoExperto &&
+              Array.isArray(ex.infoExperto.categorias) &&
+              ex.infoExperto.categorias) ||
+            ex.categorias ||
+            [];
+          const adminCats = Array.isArray(window._adminCategorias)
+            ? window._adminCategorias
+            : [];
+          const categoriasNames = (
+            Array.isArray(categoriasForDisplay) ? categoriasForDisplay : []
+          )
+            .map((c) => {
+              try {
+                if (!c) return null;
+                if (typeof c === "object")
+                  return c.nombre || c.name || (c._id ? String(c._id) : null);
+                // buscar nombre en adminCats
+                const found = adminCats.find(
+                  (ac) =>
+                    String(ac._id) === String(c) || String(ac.id) === String(c)
+                );
+                if (found)
+                  return found.nombre || found.name || String(found._id);
+                return String(c);
+              } catch (e) {
+                return null;
+              }
+            })
+            .filter(Boolean);
+
+          const catDisplayId = modalVer
+            ? "ver_categorias_display"
+            : "ver_categorias_display";
+          let catDisplayEl = modalVer
+            ? modalVer.querySelector(`#${catDisplayId}`)
+            : document.getElementById(catDisplayId);
+          if (!catDisplayEl) {
+            // intentar insertar cerca del select de categorias si existe
+            const insertAfter = modalVer
+              ? modalVer.querySelector("#ver_categorias") ||
+                modalVer.querySelector("#categorias")
+              : document.getElementById("categorias");
+            catDisplayEl = document.createElement("div");
+            catDisplayEl.id = catDisplayId;
+            catDisplayEl.className = "user-cats";
+            if (insertAfter && insertAfter.parentNode)
+              insertAfter.parentNode.insertBefore(
+                catDisplayEl,
+                insertAfter.nextSibling
+              );
+            else if (modalVer && modalVer.querySelector(".modal-expert__body"))
+              modalVer
+                .querySelector(".modal-expert__body")
+                .appendChild(catDisplayEl);
+            else document.body.appendChild(catDisplayEl);
+          }
+          catDisplayEl.innerHTML =
+            categoriasNames.length > 0
+              ? categoriasNames
+                  .map((n) => `<span class="badge">${escapeHtml(n)}</span>`)
+                  .join(" ")
+              : '<span class="muted">Sin categorías</span>';
+
+          // Skills display
+          const skillsForDisplay =
+            (ex.infoExperto &&
+              Array.isArray(ex.infoExperto.skills) &&
+              ex.infoExperto.skills) ||
+            ex.skills ||
+            [];
+          const skillsNames = (
+            Array.isArray(skillsForDisplay) ? skillsForDisplay : []
+          )
+            .map((s) => {
+              try {
+                if (!s) return null;
+                if (typeof s === "object")
+                  return (
+                    s.nombre ||
+                    s.name ||
+                    (s._id ? String(s._id) : JSON.stringify(s))
+                  );
+                return String(s);
+              } catch (e) {
+                return null;
+              }
+            })
+            .filter(Boolean);
+
+          const skillsDisplayId = modalVer
+            ? "ver_skills_display"
+            : "ver_skills_display";
+          let skillsDisplayEl = modalVer
+            ? modalVer.querySelector(`#${skillsDisplayId}`)
+            : document.getElementById(skillsDisplayId);
+          if (!skillsDisplayEl) {
+            const insertAfterSkills = modalVer
+              ? modalVer.querySelector("#ver_skills") ||
+                modalVer.querySelector("#skills")
+              : document.getElementById("skills");
+            skillsDisplayEl = document.createElement("div");
+            skillsDisplayEl.id = skillsDisplayId;
+            skillsDisplayEl.className = "user-skills";
+            if (insertAfterSkills && insertAfterSkills.parentNode)
+              insertAfterSkills.parentNode.insertBefore(
+                skillsDisplayEl,
+                insertAfterSkills.nextSibling
+              );
+            else if (modalVer && modalVer.querySelector(".modal-expert__body"))
+              modalVer
+                .querySelector(".modal-expert__body")
+                .appendChild(skillsDisplayEl);
+            else document.body.appendChild(skillsDisplayEl);
+          }
+          skillsDisplayEl.innerHTML =
+            skillsNames.length > 0
+              ? skillsNames
+                  .map((n) => `<span class="badge">${escapeHtml(n)}</span>`)
+                  .join(" ")
+              : '<span class="muted">Sin habilidades</span>';
+        } catch (e) {
+          // no bloquear la visualización por errores al renderizar badges
+        }
       } catch (e) {
         console.warn("Error al rellenar modal de ver perfil:", e);
       }
 
-      const modalVer = document.getElementById("verPerfilExperto");
       if (modalVer) {
         modalVer.style.display = "flex";
         document.body.style.overflow = "hidden";
