@@ -67,430 +67,696 @@
             </div>
           </div>
 
-            <!-- Modernized filtros, estadísticas, tabla y paginación -->
-            <style>
-              /* Scoped modern styles for expertos section using only provided variables */
-              .expertos-grid {
-              display: grid;
-              grid-template-columns: 320px 1fr;
-              gap: 1.5rem;
-              align-items: start;
-              margin-top: 1rem;
-              }
+          <!-- Modernized filtros, estadísticas, tabla y paginación -->
 
-              .expertos-card {
-              background: var(--admin-card-bg);
-              border: 1px solid var(--admin-border-color);
-              color: var(--admin-text-primary);
-              border-radius: 12px;
-              padding: 1rem;
-              box-shadow: var(--admin-shadow);
-              }
-
-              .expertos-filtros__title,
-              .expertos-estadisticas__title {
-              margin: 0 0 0.6rem 0;
-              font-size: 0.95rem;
-              font-weight: 600;
-              color: var(--admin-text-primary);
-              }
-
-              .expertos-filtros__group {
-              display: flex;
-              flex-direction: column;
-              gap: 0.35rem;
-              margin-bottom: 0.8rem;
-              }
-
-              .expertos-filtros__label {
-              font-size: 0.78rem;
-              color: var(--admin-text-secondary);
-              }
-
-              .expertos-filtros__select {
-              appearance: none;
-              background: linear-gradient(180deg, var(--admin-card-bg), transparent);
-              border: 1px solid var(--admin-border-color);
-              color: inherit;
-              padding: 0.55rem 0.75rem;
-              border-radius: 8px;
-              font-size: 0.92rem;
-              outline: none;
-              }
-
-              .expertos-filtros__btn {
-              width: 100%;
-              display: inline-flex;
-              gap: 0.6rem;
-              align-items: center;
-              justify-content: center;
-              padding: 0.6rem;
-              border-radius: 10px;
-              font-weight: 600;
-              margin-top: 0.6rem;
-              background: linear-gradient(90deg, var(--admin-accent-color), var(--admin-accent-secondary));
-              color: var(--admin-text-primary);
-              border: 1px solid var(--admin-border-color);
-              box-shadow: var(--admin-shadow);
-              }
-
-              .expertos-estadisticas__list {
-              display: grid;
-              grid-template-columns: 1fr 1fr;
-              gap: 0.6rem;
-              margin-top: 0.6rem;
-              }
-
-              .expertos-estadisticas__item {
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-              gap: 0.75rem;
-              padding: 0.7rem;
-              border-radius: 10px;
-              background: linear-gradient(180deg, var(--admin-card-bg), transparent);
-              border: 1px solid var(--admin-border-color);
-              }
-
-              .expertos-estadisticas__icon {
-              display: inline-flex;
-              width: 42px;
-              height: 42px;
-              align-items: center;
-              justify-content: center;
-              border-radius: 8px;
-              font-size: 1.05rem;
-              color: var(--admin-card-bg);
-              background: var(--admin-accent-color);
-              }
-
-              .expertos-estadisticas__value {
-              font-weight: 700;
-              font-size: 1.05rem;
-              color: var(--admin-text-primary);
-              }
-
-              /* Table container */
-              .expertos-grid__tabla .admin-table {
-              width: 100%;
-              border-collapse: collapse;
-              background: transparent;
-              overflow: hidden;
-              border-radius: 12px;
-              }
-
-              .admin-table thead tr {
-              background: linear-gradient(180deg, var(--admin-card-bg), transparent);
-              }
-
-              .admin-table th,
-              .admin-table td {
-              padding: 0.9rem 0.8rem;
-              text-align: left;
-              font-size: 0.92rem;
-              border-bottom: 1px dashed var(--admin-border-color);
-              color: var(--admin-text-primary);
-              }
-
-              .admin-table tbody tr:hover {
-              background: var(--admin-hover-bg);
-              }
-
-              .admin-table tbody tr.placeholder-row td {
-              color: var(--admin-text-secondary);
-              font-style: italic;
-              background: transparent;
-              }
-
-              .experto-info {
-              display: flex;
-              gap: 0.75rem;
-              align-items: center;
-              }
-
-              .experto-avatar {
-              width: 42px;
-              height: 42px;
-              border-radius: 8px;
-              object-fit: cover;
-              border: 1px solid var(--admin-border-color);
-              }
-
-              .experto-name {
-              display: flex;
-              flex-direction: column;
-              }
-
-              .experto-name .name {
-              font-weight: 600;
-              color: var(--admin-text-primary);
-              }
-
-              .experto-name .email {
-              font-size: 0.8rem;
-              color: var(--admin-text-secondary);
-              }
-
-              .chip {
-              display: inline-flex;
-              align-items: center;
-              gap: 0.4rem;
-              background: var(--admin-card-bg);
-              color: var(--admin-text-secondary);
-              padding: 0.28rem 0.55rem;
-              border-radius: 999px;
-              font-size: 0.8rem;
-              border: 1px solid var(--admin-border-color);
-              }
-
-              .estado-badge {
-              padding: 0.36rem 0.6rem;
-              border-radius: 999px;
-              font-weight: 700;
-              font-size: 0.85rem;
-              display: inline-flex;
-              align-items: center;
-              justify-content: center;
-              }
-
-              .estado-badge.active {
-              background: color-mix(in srgb, var(--admin-accent-secondary) 8%, transparent);
-              color: var(--admin-accent-secondary);
-              border: 1px solid color-mix(in srgb, var(--admin-accent-secondary) 8%, transparent);
-              }
-              .estado-badge.pending {
-              background: color-mix(in srgb, var(--admin-accent-color) 6%, transparent);
-              color: var(--admin-accent-color);
-              border: 1px solid color-mix(in srgb, var(--admin-accent-color) 6%, transparent);
-              }
-              .estado-badge.inactive {
-              background: color-mix(in srgb, #ef4444 6%, transparent);
-              color: #ef4444;
-              border: 1px solid color-mix(in srgb, #ef4444 6%, transparent);
-              }
-
-              .acciones-cell {
-              display: flex;
-              gap: 0.5rem;
-              justify-content: flex-end;
-              }
-
-              .btn-ghost {
-              background: transparent;
-              border: 1px solid var(--admin-border-color);
-              color: var(--admin-text-secondary);
-              padding: 0.45rem 0.6rem;
-              border-radius: 8px;
-              cursor: pointer;
-              }
-
-              .btn-ghost:hover {
-              color: var(--admin-text-primary);
-              border-color: var(--admin-accent-color);
-              background: var(--admin-hover-bg);
-              }
-
-              /* Pagination */
-              .expertos-paginacion {
-              display: flex;
-              flex-direction: column;
-              gap: 0.6rem;
-              margin-top: 1rem;
-              align-items: flex-start; /* moved to left */
-              }
-
-              .expertos-paginacion__info {
-              font-size: 0.85rem;
-              color: var(--admin-text-secondary);
-              }
-
-              .expertos-paginacion__controles {
-              display: flex;
-              gap: 0.45rem;
-              align-items: center;
-              justify-content: flex-start; /* ensure controls align left */
-              }
-
-              .expertos-paginacion__btn {
-              min-width: 40px;
-              height: 40px;
-              padding: 0 0.65rem;
-              border-radius: 10px;
-              border: none;
-              background: var(--admin-card-bg);
-              color: var(--admin-text-primary);
-              cursor: pointer;
-              font-weight: 600;
-              display: inline-flex;
-              align-items: center;
-              justify-content: center;
-              border: 1px solid var(--admin-border-color);
-              }
-
-              .expertos-paginacion__btn--active {
-              background: linear-gradient(90deg, var(--admin-accent-color), var(--admin-accent-secondary));
-              color: var(--admin-text-primary);
-              box-shadow: var(--admin-shadow);
-              }
-
-              .expertos-paginacion__btn--disabled {
-              opacity: 0.45;
-              cursor: default;
-              }
-
-              .expertos-paginacion__ellipsis {
-              color: var(--admin-text-secondary);
-              font-weight: 700;
-              padding: 0 0.25rem;
-              }
-
-              /* Responsive adjustments */
-              @media (max-width: 920px) {
-              .expertos-grid {
-              grid-template-columns: 1fr;
-              }
-              .expertos-paginacion { align-items: flex-start; }
-              }
-            </style>
-
-            <div class="expertos-grid">
-              <aside class="expertos-card expertos-grid__filters" aria-label="Filtros y estadísticas">
+          <div class="expertos-grid">
+            <aside class="expertos-card expertos-grid__filters" aria-label="Filtros y estadísticas">
               <div class="expertos-filtros">
-              <h3 class="expertos-filtros__title">Filtros</h3>
+                <h3 class="expertos-filtros__title">Filtros</h3>
 
-              <div class="expertos-filtros__group">
-              <label class="expertos-filtros__label" for="filterEstado">Estado</label>
-              <select class="expertos-filtros__select" id="filterEstado">
-                <option value="">Todos los estados</option>
-                <option value="active">Activos</option>
-                <option value="pending">Pendientes</option>
-                <option value="inactive">Inactivos</option>
-              </select>
-              </div>
+                <div class="expertos-filtros__group">
+                  <label class="expertos-filtros__label" for="filterEstado">Estado</label>
+                  <select class="expertos-filtros__select" id="filterEstado">
+                    <option value="">Todos los estados</option>
+                    <option value="active">Activos</option>
+                    <option value="pending">Pendientes</option>
+                    <option value="inactive">Inactivos</option>
+                  </select>
+                </div>
 
-              <div class="expertos-filtros__group">
-              <label class="expertos-filtros__label" for="filterCategoria">Categoría</label>
-              <select class="expertos-filtros__select" id="filterCategoria">
-                <option value="">Todas las categorías</option>
-                <% if (typeof categorias !=='undefined' && Array.isArray(categorias)) { %>
-                <% categorias.forEach(function(c){ %>
-                <option value="<%= c._id %>"><%= c.nombre || c.name %></option>
-                <% }) %>
-                <% } %>
-              </select>
-              </div>
+                <div class="expertos-filtros__group">
+                  <label class="expertos-filtros__label" for="filterCategoria">Categoría</label>
+                  <select class="expertos-filtros__select" id="filterCategoria">
+                    <option value="">Todas las categorías</option>
+                    <% if (typeof categorias !=='undefined' && Array.isArray(categorias)) { %>
+                      <% categorias.forEach(function(c){ %>
+                        <option value="<%= c._id %>">
+                          <%= c.nombre || c.name %>
+                        </option>
+                        <% }) %>
+                          <% } %>
+                  </select>
+                </div>
 
-              <div class="expertos-filtros__group">
-              <label class="expertos-filtros__label" for="filterRating">Calificación mínima</label>
-              <select class="expertos-filtros__select" id="filterRating">
-                <option value="">Todas las calificaciones</option>
-                <option value="5">5 estrellas</option>
-                <option value="4">4+ estrellas</option>
-                <option value="3">3+ estrellas</option>
-                <option value="2">2+ estrellas</option>
-              </select>
-              </div>
+                <div class="expertos-filtros__group">
+                  <label class="expertos-filtros__label" for="filterRating">Calificación mínima</label>
+                  <select class="expertos-filtros__select" id="filterRating">
+                    <option value="">Todas las calificaciones</option>
+                    <option value="5">5 estrellas</option>
+                    <option value="4">4+ estrellas</option>
+                    <option value="3">3+ estrellas</option>
+                    <option value="2">2+ estrellas</option>
+                  </select>
+                </div>
 
-              <button class="btn-primary expertos-filtros__btn" id="applyFiltersBtn">
-              <i class="fas fa-filter" aria-hidden="true"></i>
-              <span>Aplicar filtros</span>
-              </button>
+                <button class="btn-primary expertos-filtros__btn" id="applyFiltersBtn">
+                  <i class="fas fa-filter" aria-hidden="true"></i>
+                  <span>Aplicar filtros</span>
+                </button>
               </div>
 
               <div class="expertos-estadisticas" style="margin-top:1rem;">
-              <h3 class="expertos-estadisticas__title">Estadísticas</h3>
-              <div class="expertos-estadisticas__list">
-              <div class="expertos-estadisticas__item">
-                <div class="expertos-estadisticas__item-info">
-                <i class="fas fa-user-tie expertos-estadisticas__icon" aria-hidden="true"></i>
-                <span>Total Expertos</span>
-                </div>
-                <span class="expertos-estadisticas__value">128</span>
-              </div>
+                <h3 class="expertos-estadisticas__title">Estadísticas</h3>
+                <div class="expertos-estadisticas__list">
+                  <div class="expertos-estadisticas__item">
+                    <div class="expertos-estadisticas__item-info">
+                      <i class="fas fa-user-tie expertos-estadisticas__icon" aria-hidden="true"></i>
+                      <span>Total Expertos</span>
+                    </div>
+                    <span class="expertos-estadisticas__value">128</span>
+                  </div>
 
-              <div class="expertos-estadisticas__item">
-                <div class="expertos-estadisticas__item-info">
-                <i class="fas fa-check-circle expertos-estadisticas__icon" aria-hidden="true"></i>
-                <span>Activos</span>
-                </div>
-                <span class="expertos-estadisticas__value">98</span>
-              </div>
+                  <div class="expertos-estadisticas__item">
+                    <div class="expertos-estadisticas__item-info">
+                      <i class="fas fa-check-circle expertos-estadisticas__icon" aria-hidden="true"></i>
+                      <span>Activos</span>
+                    </div>
+                    <span class="expertos-estadisticas__value">98</span>
+                  </div>
 
-              <div class="expertos-estadisticas__item">
-                <div class="expertos-estadisticas__item-info">
-                <i class="fas fa-clock expertos-estadisticas__icon" aria-hidden="true"></i>
-                <span>Pendientes</span>
-                </div>
-                <span class="expertos-estadisticas__value">22</span>
-              </div>
+                  <div class="expertos-estadisticas__item">
+                    <div class="expertos-estadisticas__item-info">
+                      <i class="fas fa-clock expertos-estadisticas__icon" aria-hidden="true"></i>
+                      <span>Pendientes</span>
+                    </div>
+                    <span class="expertos-estadisticas__value">22</span>
+                  </div>
 
-              <div class="expertos-estadisticas__item">
-                <div class="expertos-estadisticas__item-info">
-                <i class="fas fa-star expertos-estadisticas__icon" aria-hidden="true"></i>
-                <span>Promedio</span>
+                  <div class="expertos-estadisticas__item">
+                    <div class="expertos-estadisticas__item-info">
+                      <i class="fas fa-star expertos-estadisticas__icon" aria-hidden="true"></i>
+                      <span>Promedio</span>
+                    </div>
+                    <span class="expertos-estadisticas__value">4.7</span>
+                  </div>
                 </div>
-                <span class="expertos-estadisticas__value">4.7</span>
               </div>
-              </div>
-              </div>
-              </aside>
+            </aside>
 
-              <section class="expertos-card expertos-grid__tabla" aria-label="Tabla de expertos">
+            <section class="expertos-card expertos-grid__tabla" aria-label="Tabla de expertos">
               <table class="admin-table" role="table" aria-label="Lista de expertos">
-              <thead>
-              <tr>
-                <th style="width:40px;">
-                <input type="checkbox" id="selectAll" class="expertos-checkbox" />
-                </th>
-                <th>Experto</th>
-                <th>Categorías</th>
-                <th>Especialidad</th>
-                <th>Registro</th>
-                <th>Sesiones</th>
-                <th>Calificación</th>
-                <th>Estado</th>
-                <th style="width:160px;">Acciones</th>
-              </tr>
-              </thead>
-              <tbody>
-              <tr class="placeholder-row">
-                <td colspan="9" style="text-align:center;padding:24px;color:var(--admin-text-secondary);">
-                Cargando expertos...
-                </td>
-              </tr>
-              </tbody>
+                <thead>
+                  <tr>
+                    <th style="width:40px;">
+                      <input type="checkbox" id="selectAll" class="expertos-checkbox" />
+                    </th>
+                    <th>Experto</th>
+                    <th>Categorías</th>
+                    <th>Especialidad</th>
+                    <th>Registro</th>
+                    <th>Sesiones</th>
+                    <th>Calificación</th>
+                    <th>Estado</th>
+                    <th style="width:160px;">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="placeholder-row">
+                    <td colspan="9" style="text-align:center;padding:24px;color:var(--admin-text-secondary);">
+                      Cargando expertos...
+                    </td>
+                  </tr>
+                </tbody>
               </table>
 
               <!-- Paginación (ubicada directamente bajo la tabla para asociación semántica y visual) -->
               <div class="expertos-paginacion" role="navigation" aria-label="Paginación de expertos">
-              <span class="expertos-paginacion__info">Mostrando 1-7 de 128 expertos</span>
-              <div class="expertos-paginacion__controles" aria-hidden="false">
-              <button class="expertos-paginacion__btn expertos-paginacion__btn--disabled" aria-disabled="true">
-                <i class="fas fa-chevron-left" aria-hidden="true"></i>
-              </button>
-              <button class="expertos-paginacion__btn expertos-paginacion__btn--active" aria-current="page">1</button>
-              <button class="expertos-paginacion__btn">2</button>
-              <button class="expertos-paginacion__btn">3</button>
-              <span class="expertos-paginacion__ellipsis">…</span>
-              <button class="expertos-paginacion__btn">18</button>
-              <button class="expertos-paginacion__btn">
-                <i class="fas fa-chevron-right" aria-hidden="true"></i>
-              </button>
+                <span class="expertos-paginacion__info">Mostrando 1-7 de 128 expertos</span>
+                <div class="expertos-paginacion__controles" aria-hidden="false">
+                  <button class="expertos-paginacion__btn expertos-paginacion__btn--disabled" aria-disabled="true">
+                    <i class="fas fa-chevron-left" aria-hidden="true"></i>
+                  </button>
+                  <button class="expertos-paginacion__btn expertos-paginacion__btn--active"
+                    aria-current="page">1</button>
+                  <button class="expertos-paginacion__btn">2</button>
+                  <button class="expertos-paginacion__btn">3</button>
+                  <span class="expertos-paginacion__ellipsis">…</span>
+                  <button class="expertos-paginacion__btn">18</button>
+                  <button class="expertos-paginacion__btn">
+                    <i class="fas fa-chevron-right" aria-hidden="true"></i>
+                  </button>
+                </div>
               </div>
-              </div>
-              </section>
-            </div></div>
-
+            </section>
+          </div>
         </div>
-      </main>
+
+  </div>
+  </main>
   </div>
 
   <!-- Modal para agregar experto -->
-  <div id="expertModal" class="modal-expert">
+  <div id="addExpertModal" class="modal-expert">
 
     <div class="modal-expert__container">
       <div class="modal-expert__header">
         <h2 class="modal-expert__title">Agregar nuevo experto</h2>
+        <button class="btn-close" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+      </div>
+
+      <div class="modal-expert__body">
+        <form id="expertForm">
+          <!-- Layout helper: responsive two-column grid for most rows -->
+          <div class="modal-expert__grid">
+
+            <!-- Información básica -->
+            <div>
+              <label class="modal-expert__label" for="name">
+                <i class="fas fa-user modal-expert__icon" aria-hidden="true"></i>
+                Nombre completo
+              </label>
+              <input type="text" id="name" placeholder="Nombre y apellidos registrados" class="modal-expert__input" />
+            </div>
+
+            <div>
+              <label class="modal-expert__label" for="email">
+                <i class="fas fa-envelope modal-expert__icon" aria-hidden="true"></i>
+                Email registrado
+              </label>
+              <input type="email" id="email" placeholder="Email de la cuenta" class="modal-expert__input" />
+            </div>
+
+            <!-- Precio por hora (columna) -->
+            <div>
+              <label for="precio" class="modal-expert__label">
+                <i class="fas fa-money-bill-wave modal-expert__icon" aria-hidden="true" title="Precio"></i>
+                Precio por hora (COP)
+                <span class="price-tooltip icon-tooltip" title="Ejemplo recomendado: $30.000 - $200.000 COP"
+                  style="margin-left:.5rem;">
+                  <i class="fas fa-info-circle"></i>
+                </span>
+              </label>
+
+              <div class="srv-price-input price-input">
+                <span class="srv-currency currency-symbol">$</span>
+                <input type="number" id="precio" name="precio" min="10000" step="100" required placeholder="Ej: 50000"
+                  class="srv-input price-field" />
+              </div>
+              <p class="srv-note price-note">
+                Tarifa por hora de asesoría (Recomendado: $30.000 - $200.000 COP)
+              </p>
+              <div id="precio-feedback" class="srv-feedback price-feedback" aria-live="polite"></div>
+            </div>
+
+            <!-- Días disponibles (columna) -->
+            <div>
+              <label for="diasDisponibles" class="modal-expert__label">
+                <i class="fas fa-calendar-alt modal-expert__icon" aria-hidden="true"></i>
+                Días disponibles
+              </label>
+
+              <div class="srv-days-wrapper">
+                <div class="srv-days">
+                  <button type="button" class="srv-day" data-day="Lunes" aria-pressed="false">L</button>
+                  <button type="button" class="srv-day" data-day="Martes" aria-pressed="false">M</button>
+                  <button type="button" class="srv-day" data-day="Miércoles" aria-pressed="false">X</button>
+                  <button type="button" class="srv-day" data-day="Jueves" aria-pressed="false">J</button>
+                  <button type="button" class="srv-day" data-day="Viernes" aria-pressed="false">V</button>
+                  <button type="button" class="srv-day" data-day="Sábado" aria-pressed="false">S</button>
+                  <button type="button" class="srv-day" data-day="Domingo" aria-pressed="false">D</button>
+                </div>
+
+                <div class="srv-days-display">
+                  Ningún día seleccionado
+                </div>
+              </div>
+
+              <input type="hidden" id="diasDisponibles" name="diasDisponibles" />
+            </div>
+
+            <!-- Especialidad principal -->
+            <div>
+              <label class="modal-expert__label" for="specialty">
+                <i class="fas fa-briefcase modal-expert__icon" aria-hidden="true"></i>
+                Especialidad principal
+              </label>
+              <div class="input-with-icon">
+                <i class="fas fa-briefcase" aria-hidden="true"></i>
+                <select id="specialty" class="modal-expert__input modal-expert__select"
+                  aria-label="Especialidad principal">
+                  <option value="">Seleccionar especialidad</option>
+                  <option value="web">Desarrollo Web</option>
+                  <option value="mobile">Desarrollo Móvil</option>
+                  <option value="data">Ciencia de Datos</option>
+                  <option value="uxui">UX/UI</option>
+                  <option value="devops">DevOps</option>
+                  <option value="blockchain">Blockchain</option>
+                  <option value="cloud">Cloud Computing</option>
+                </select>
+                <i class="fas fa-chevron-down" aria-hidden="true"></i>
+              </div>
+              <small class="modal-expert__hint">Selecciona la especialidad principal que describe mejor al
+                experto</small>
+            </div>
+
+            <!-- Estado -->
+            <div>
+              <label class="modal-expert__label" for="status">
+                <i class="fas fa-toggle-on modal-expert__icon" aria-hidden="true"></i>
+                Estado
+              </label>
+              <div class="input-with-icon">
+                <i class="fas fa-toggle-on" aria-hidden="true"></i>
+                <select id="status" class="modal-expert__input modal-expert__select" aria-label="Estado del experto">
+                  <option value="active">Activo</option>
+                  <option value="pending">Pendiente</option>
+                  <option value="inactive">Inactivo</option>
+                </select>
+                <i class="fas fa-chevron-down" aria-hidden="true"></i>
+              </div>
+              <small class="modal-expert__hint">Define si el experto puede recibir solicitudes</small>
+            </div>
+
+            <!-- Categorías (full width) -->
+            <div class="full-width">
+              <label class="modal-expert__label" for="categorias">
+                <i class="fas fa-tags modal-expert__icon" aria-hidden="true"></i>
+                Categorías
+              </label>
+              <select id="categorias" class="modal-expert__input modal-expert__select-categorias" multiple size="4"
+                aria-label="Categorías">
+                <!-- opciones añadidas dinámicamente -->
+              </select>
+
+              <script>
+                // Initialize Choices and force visual fixes for the created/cloned input
+                document.addEventListener('DOMContentLoaded', function () {
+                  function applyInputFix(el) {
+                    if (!el || el.dataset.__stylingApplied) return;
+                    try {
+                      el.style.setProperty('background', 'transparent', 'important');
+                      el.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
+                      el.style.setProperty('-webkit-text-fill-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
+                      el.style.setProperty('caret-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-accent-color') || '#5e81ff', 'important');
+                      el.style.setProperty('border', 'none', 'important');
+                      el.style.setProperty('outline', 'none', 'important');
+                      el.style.setProperty('width', 'auto', 'important');
+                      el.style.setProperty('min-width', '22ch', 'important');
+                      el.style.setProperty('font-family', 'inherit', 'important');
+                      el.style.setProperty('padding-left', '42px', 'important');
+                      el.dataset.__stylingApplied = '1';
+                    } catch (e) { }
+                  }
+
+                  // Initialize Choices on categorias (if available)
+                  if (window.Choices) {
+                    const catSelect = document.getElementById('categorias');
+                    if (catSelect && !catSelect.classList.contains('choices-initialized')) {
+                      new Choices(catSelect, {
+                        removeItemButton: true,
+                        delimiter: ',',
+                        editItems: false,
+                        maxItemCount: 10,
+                        duplicateItemsAllowed: false
+                      });
+                      catSelect.classList.add('choices-initialized');
+                    }
+                  }
+
+                  // Try to style existing inputs immediately and observe future clones
+                  function processAll() {
+                    document.querySelectorAll('#addExpertModal .choices__input, #addExpertModal .choices__input--cloned, input[placeholder="Selecciona categorías"], input[aria-label="Selecciona categorías"]').forEach(applyInputFix);
+                    document.querySelectorAll('#addExpertModal .choices__list--dropdown, #addExpertModal .choices__list--dropdown .choices__item').forEach(function (el) {
+                      try {
+                        el.style.setProperty('background', getComputedStyle(document.documentElement).getPropertyValue('--admin-card-bg') || '#121212', 'important');
+                        el.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
+                        el.style.setProperty('border-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-border-color') || '#333', 'important');
+                      } catch (e) { }
+                    });
+
+                    document.querySelectorAll('#addExpertModal .choices__inner').forEach(function (inner) {
+                      try {
+                        if (inner.querySelector('.choices__list--multiple')) inner.classList.add('no-icon');
+                        else inner.classList.remove('no-icon');
+                      } catch (e) { }
+                    });
+                  }
+
+                  processAll();
+                  var attempts = 0;
+                  var id = setInterval(function () { processAll(); attempts++; if (attempts > 20) clearInterval(id); }, 150);
+                  var mo = new MutationObserver(function () { processAll(); });
+                  mo.observe(document.body, { childList: true, subtree: true });
+                });
+              </script>
+              <script>
+                // Diagnóstico: registra en consola la estructura y estilos computados del botón remove
+                (function () {
+                  function diag() {
+                    try {
+                      var btns = document.querySelectorAll('#addExpertModal .choices__button');
+                      if (!btns || btns.length === 0) {
+                        console.info('[diag] No se encontraron .choices__button dentro de #addExpertModal');
+                        return;
+                      }
+                      btns.forEach(function (b, i) {
+                        console.info('[diag] choices__button #' + i + ':', b.outerHTML);
+                        var cs = window.getComputedStyle(b);
+                        console.info('[diag] computed (button):', {
+                          display: cs.display,
+                          visibility: cs.visibility,
+                          color: cs.color,
+                          background: cs.backgroundColor || cs['background-color'],
+                          overflow: cs.overflow,
+                          zIndex: cs.zIndex
+                        });
+                        var pa = window.getComputedStyle(b, '::after');
+                        console.info('[diag] computed (::after):', {
+                          content: pa.content,
+                          color: pa.color,
+                          display: pa.display,
+                          visibility: pa.visibility,
+                          zIndex: pa.zIndex,
+                          fontSize: pa.fontSize
+                        });
+                        var pb = window.getComputedStyle(b, '::before');
+                        console.info('[diag] computed (::before):', {
+                          content: pb.content,
+                          color: pb.color
+                        });
+                      });
+                    } catch (e) {
+                      console.error('[diag] error:', e);
+                    }
+                  }
+                    document.addEventListener('DOMContentLoaded', function () {
+                    setTimeout(diag, 600);
+                    // también vuelve a correr cuando se detecta interacción que puede abrir el modal
+                    document.body.addEventListener('click', function (ev) {
+                      if (ev.target.closest('#addExpertModal') || ev.target.closest('.btn-close')) setTimeout(diag, 300);
+                    }, true);
+                  });
+                })();
+              </script>
+              <small class="modal-expert__hint">Selecciona una o varias categorías (Ctrl/Cmd+click)</small>
+            </div>
+
+            <!-- Habilidades (full width) -->
+            <div class="full-width">
+              <label class="modal-expert__label" for="skills">
+                <i class="fas fa-tools modal-expert__icon" aria-hidden="true"></i>
+                Habilidades
+              </label>
+              <select id="skills" class="modal-expert__input" multiple size="6">
+                <% if (typeof habilidades !=='undefined' && Array.isArray(habilidades) && habilidades.length> 0) { %>
+                  <% habilidades.forEach(function(h) { %>
+                    <% const val=(h && (h.nombre || h.name || h.label)) ? (h.nombre || h.name || h.label) : (h && h._id
+                      ? String(h._id) : '' ); %>
+                      <% if (val) { %>
+                        <option value="<%= val %>">
+                          <%= val %>
+                        </option>
+                        <% } %>
+                          <% }); %>
+                            <% } %>
+              </select>
+              <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                  if (window.Choices) {
+                    const skillsSelect = document.getElementById('skills');
+                    if (skillsSelect && !skillsSelect.classList.contains('choices-initialized')) {
+                      new Choices(skillsSelect, {
+                        removeItemButton: true,
+                        delimiter: ',',
+                        editItems: false,
+                        maxItemCount: 10,
+                        duplicateItemsAllowed: false
+                      });
+                      skillsSelect.classList.add('choices-initialized');
+                    }
+                  }
+                });
+              </script>
+              <small class="modal-expert__hint">Selecciona o escribe para añadir nuevas habilidades</small>
+            </div>
+
+            <!-- Biografía -->
+            <div class="full-width">
+              <label class="modal-expert__label" for="bio">
+                <i class="fas fa-file-alt modal-expert__icon" aria-hidden="true"></i>
+                Biografía profesional
+              </label>
+              <textarea id="bio" rows="4" placeholder="Descripción breve de experiencia y especialización"
+                class="modal-expert__input modal-expert__textarea"></textarea>
+            </div>
+
+            <!-- Imagen de perfil -->
+            <div class="full-width">
+              <label class="modal-expert__label" for="profileImage">
+                <i class="fas fa-image modal-expert__icon" aria-hidden="true"></i>
+                Imagen de perfil
+              </label>
+
+              <div class="modal-expert__upload-wrapper">
+                <!-- hidden but accessible -->
+                <input type="file" id="profileImage" class="modal-expert__file-input"
+                  aria-label="Seleccionar imagen de perfil" accept="image/*" />
+
+                <!-- visual upload box (acts as label) -->
+                <label for="profileImage" class="modal-expert__upload-box" role="button" aria-haspopup="dialog">
+                  <i class="fas fa-upload" aria-hidden="true"></i>
+                  <span id="uploadLabel">Seleccionar imagen (png, jpg) · Máx 2MB</span>
+                </label>
+
+                <!-- preview thumbnail -->
+                <div id="profilePreview" aria-hidden="true" role="img" aria-label="Vista previa de imagen">
+                  <button id="removeProfileBtn" type="button" title="Eliminar imagen" aria-label="Eliminar imagen"
+                    style="display:none;">
+                    <i class="fas fa-times"></i>
+                  </button>
+                  <img src="" alt="Preview" />
+                </div>
+
+                <div class="upload-meta" id="uploadMeta" aria-live="polite" style="display:none;"></div>
+                <div class="upload-error" id="profileImageError" role="alert" style="display:none;"></div>
+              </div>
+            </div>
+
+            <!-- Espacio reservado para mantener la columna alineada -->
+            <div aria-hidden="true"></div>
+
+            <!-- Sección bancaria (tarjeta de ancho completo) -->
+            <div class="full-width">
+              <div class="bank-section">
+                <h3 class="bank-title">
+                  <i class="fas fa-university"></i> Datos Bancarios para Pagos
+                </h3>
+                <p class="bank-sub">Información necesaria para recibir pagos por tus asesorías</p>
+
+                <div class="bank-grid">
+                  <div>
+                    <label for="banco">Banco *</label>
+                    <div id="banco-wrapper">
+                      <select id="banco" name="banco" required class="modal-expert__input">
+                        <option value="">Selecciona tu banco</option>
+                        <option value="Banco de Bogotá">Banco de Bogotá</option>
+                        <option value="Bancolombia">Bancolombia</option>
+                        <option value="Banco Popular">Banco Popular</option>
+                        <option value="Banco AV Villas">Banco AV Villas</option>
+                        <option value="Banco Caja Social">Banco Caja Social</option>
+                        <option value="Banco de Occidente">Banco de Occidente</option>
+                        <option value="Banco GNB Sudameris">Banco GNB Sudameris</option>
+                        <option value="Banco Itaú">Banco Itaú</option>
+                        <option value="Banco Pichincha">Banco Pichincha</option>
+                        <option value="Banco Santander">Banco Santander</option>
+                        <option value="Banco Scotiabank Colpatria">Banco Scotiabank Colpatria</option>
+                        <option value="Davivienda">Davivienda</option>
+                        <option value="Banco Agrario">Banco Agrario</option>
+                        <option value="Banco Falabella">Banco Falabella</option>
+                        <option value="Banco Finandina">Banco Finandina</option>
+                        <option value="Banco W">Banco W</option>
+                        <option value="Banco Serfinanza">Banco Serfinanza</option>
+                        <option value="Banco Cooperativo Coopcentral">Banco Cooperativo Coopcentral</option>
+                        <option value="Banco BBVA">Banco BBVA</option>
+                        <option value="Nequi">Nequi</option>
+                        <option value="Daviplata">Daviplata</option>
+                        <option value="Movii">Movii</option>
+                        <option value="Banco de Vivienda">Banco de Vivienda</option>
+                        <option value="Banco ProCredit">Banco ProCredit</option>
+                        <option value="Banco Multibank">Banco Multibank</option>
+                        <option value="Banco Coopcentral">Banco Coopcentral</option>
+                        <option value="Banco Credifinanciera">Banco Credifinanciera</option>
+                        <option value="Banco Mundo Mujer">Banco Mundo Mujer</option>
+                        <option value="Banco Ripley">Banco Ripley</option>
+                        <option value="Banco CrediScotia">Banco CrediScotia</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label for="tipoCuenta">Tipo de cuenta *</label>
+                    <div id="tipoCuenta-wrapper">
+                      <select id="tipoCuenta" name="tipoCuenta" required class="modal-expert__input">
+                        <option value="">Selecciona el tipo</option>
+                        <option value="Cuenta de Ahorros">Cuenta de Ahorros</option>
+                        <option value="Cuenta Corriente">Cuenta Corriente</option>
+                        <option value="Cuenta de Nómina">Cuenta de Nómina</option>
+                        <option value="Cuenta Digital">Cuenta Digital</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label for="numeroCuenta">Número de cuenta *</label>
+                    <div class="acct-wrap">
+                      <input type="password" id="numeroCuenta" name="numeroCuenta" required
+                        placeholder="Número de cuenta" pattern="[0-9\-]*" title="Solo números y guiones"
+                        class="acct-input">
+                      <button type="button" id="toggleAccountNumber" class="acct-toggle"
+                        aria-label="Mostrar número de cuenta">
+                        <i class="fas fa-eye"></i>
+                      </button>
+                    </div>
+                    <p class="hint">Número completo de tu cuenta</p>
+                  </div>
+
+                  <div>
+                    <label for="titular">Titular de la cuenta *</label>
+                    <input type="text" id="titular" name="titular" required placeholder="Nombre completo del titular"
+                      class="modal-expert__input">
+                    <p class="hint">Debe coincidir con el nombre en la cuenta</p>
+                  </div>
+
+                  <div>
+                    <label for="tipoDocumento">Tipo de documento *</label>
+                    <div id="tipoDocumento-wrapper">
+                      <select id="tipoDocumento" name="tipoDocumento" required class="modal-expert__input">
+                        <option value="">Selecciona el tipo</option>
+                        <option value="Cédula de Ciudadanía">Cédula de Ciudadanía</option>
+                        <option value="Cédula de Extranjería">Cédula de Extranjería</option>
+                        <option value="Pasaporte">Pasaporte</option>
+                        <option value="NIT">NIT (Persona Jurídica)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label for="numeroDocumento">Número de documento *</label>
+                    <input type="text" id="numeroDocumento" name="numeroDocumento" required
+                      placeholder="Número de identificación" pattern="[0-9\-]*" class="modal-expert__input">
+                    <p class="hint">Documento del titular</p>
+                  </div>
+
+                  <div class="full-width">
+                    <label for="telefonoContacto">Teléfono de contacto</label>
+                    <input type="tel" id="telefonoContacto" name="telefonoContacto" placeholder="+57 300 123 4567"
+                      class="modal-expert__input">
+                    <p class="hint">Opcional: Teléfono para contacto sobre pagos</p>
+                  </div>
+                </div>
+
+                <div class="info-box info-sm">
+                  <div class="info-header">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Información importante sobre pagos</strong>
+                  </div>
+                  <ul class="info-list">
+                    <li><i class="fas fa-check"></i> Los pagos se procesan cada 15 días</li>
+                    <li><i class="fas fa-check"></i> Se requiere verificación de cuenta</li>
+                    <li><i class="fas fa-check"></i> Datos editables desde tu perfil</li>
+                    <li><i class="fas fa-check"></i> Seguridad garantizada</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Moved footer inside container so it remains visually part of the modal.
+           The container is a column-flex so the body scrolls while footer stays at bottom. -->
+      <div class="modal-expert__footer">
+        <button class="btn-outline" data-dismiss="modal" type="button">Cancelar</button>
+        <button type="button" class="btn-primary" id="saveExpert">Guardar experto</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function profileImagePreview() {
+      var input = document.getElementById('profileImage');
+      var preview = document.getElementById('profilePreview');
+      var img = preview ? preview.querySelector('img') : null;
+      var removeBtn = document.getElementById('removeProfileBtn');
+      var meta = document.getElementById('uploadMeta');
+      var err = document.getElementById('profileImageError');
+      var label = document.getElementById('uploadLabel');
+
+      function reset() {
+        if (input) input.value = '';
+        if (img) img.src = '';
+        if (preview) preview.classList.remove('visible');
+        if (removeBtn) removeBtn.style.display = 'none';
+        if (meta) { meta.style.display = 'none'; meta.textContent = ''; }
+        if (err) { err.style.display = 'none'; err.textContent = ''; }
+      }
+
+      function showError(message) {
+        if (err) { err.textContent = message; err.style.display = 'block'; }
+      }
+
+      function setFileInfo(file) {
+        if (!meta) return;
+        meta.style.display = 'block';
+        meta.textContent = file.name + ' · ' + Math.round(file.size / 1024) + 'KB';
+      }
+
+      if (!input) return;
+
+      input.addEventListener('change', function (e) {
+        var f = input.files && input.files[0];
+        if (!f) { reset(); return; }
+        // basic validation
+        var allowed = /^image\/(png|jpe?g|gif|webp)$/i;
+        if (!allowed.test(f.type)) {
+          showError('Formato no soportado. Usa png, jpg, gif o webp.');
+          input.value = '';
+          return;
+        }
+        var max = 2 * 1024 * 1024; // 2MB
+        if (f.size > max) {
+          showError('Archivo muy grande. Máx 2MB.');
+          input.value = '';
+          return;
+        }
+        // show preview
+        var reader = new FileReader();
+        reader.onload = function (ev) {
+          if (img) img.src = ev.target.result;
+          if (preview) preview.classList.add('visible');
+          if (removeBtn) removeBtn.style.display = 'inline-flex';
+          if (err) { err.style.display = 'none'; err.textContent = ''; }
+          setFileInfo(f);
+        };
+        reader.readAsDataURL(f);
+      });
+
+      if (removeBtn) {
+        removeBtn.addEventListener('click', function () {
+          reset();
+        });
+      }
+
+      // provide keyboard accessible remove from upload meta area
+      if (meta) {
+        meta.addEventListener('keydown', function (ev) {
+          if (ev.key === 'Delete' || ev.key === 'Backspace') reset();
+        });
+      }
+
+      // hide preview initial (fixes "Preview" text showing)
+      document.addEventListener('DOMContentLoaded', function () {
+        reset();
+      });
+    })();
+  </script>
+
+  <!--modal editar experto-->
+  <div id="expertModal" class="modal-expert">
+
+    <div class="modal-expert__container">
+      <div class="modal-expert__header">
+        <h2 class="modal-expert__title">Editar experto</h2>
         <button class="btn-close" aria-label="Cerrar"><i class="fas fa-times"></i></button>
       </div>
 
@@ -944,7 +1210,7 @@
       </div>
 
       <!-- Moved footer inside container so it remains visually part of the modal.
-           The container is a column-flex so the body scrolls while footer stays at bottom. -->
+             The container is a column-flex so the body scrolls while footer stays at bottom. -->
       <div class="modal-expert__footer">
         <button class="btn-outline" data-dismiss="modal" type="button">Cancelar</button>
         <button type="button" class="btn-primary" id="saveExpert">Guardar experto</button>
@@ -952,191 +1218,474 @@
     </div>
   </div>
 
-  <script>
-    (function profileImagePreview() {
-      var input = document.getElementById('profileImage');
-      var preview = document.getElementById('profilePreview');
-      var img = preview ? preview.querySelector('img') : null;
-      var removeBtn = document.getElementById('removeProfileBtn');
-      var meta = document.getElementById('uploadMeta');
-      var err = document.getElementById('profileImageError');
-      var label = document.getElementById('uploadLabel');
-
-      function reset() {
-        if (input) input.value = '';
-        if (img) img.src = '';
-        if (preview) preview.classList.remove('visible');
-        if (removeBtn) removeBtn.style.display = 'none';
-        if (meta) { meta.style.display = 'none'; meta.textContent = ''; }
-        if (err) { err.style.display = 'none'; err.textContent = ''; }
-      }
-
-      function showError(message) {
-        if (err) { err.textContent = message; err.style.display = 'block'; }
-      }
-
-      function setFileInfo(file) {
-        if (!meta) return;
-        meta.style.display = 'block';
-        meta.textContent = file.name + ' · ' + Math.round(file.size / 1024) + 'KB';
-      }
-
-      if (!input) return;
-
-      input.addEventListener('change', function (e) {
-        var f = input.files && input.files[0];
-        if (!f) { reset(); return; }
-        // basic validation
-        var allowed = /^image\/(png|jpe?g|gif|webp)$/i;
-        if (!allowed.test(f.type)) {
-          showError('Formato no soportado. Usa png, jpg, gif o webp.');
-          input.value = '';
-          return;
-        }
-        var max = 2 * 1024 * 1024; // 2MB
-        if (f.size > max) {
-          showError('Archivo muy grande. Máx 2MB.');
-          input.value = '';
-          return;
-        }
-        // show preview
-        var reader = new FileReader();
-        reader.onload = function (ev) {
-          if (img) img.src = ev.target.result;
-          if (preview) preview.classList.add('visible');
-          if (removeBtn) removeBtn.style.display = 'inline-flex';
-          if (err) { err.style.display = 'none'; err.textContent = ''; }
-          setFileInfo(f);
-        };
-        reader.readAsDataURL(f);
-      });
-
-      if (removeBtn) {
-        removeBtn.addEventListener('click', function () {
-          reset();
-        });
-      }
-
-      // provide keyboard accessible remove from upload meta area
-      if (meta) {
-        meta.addEventListener('keydown', function (ev) {
-          if (ev.key === 'Delete' || ev.key === 'Backspace') reset();
-        });
-      }
-
-      // hide preview initial (fixes "Preview" text showing)
-      document.addEventListener('DOMContentLoaded', function () {
-        reset();
-      });
-    })();
-  </script>
-
-
-  <!--modal editar experto-->
-  <div id="editarExperto" class="modal-expert">
-    <div class="modal-expert__content">
-      <div class="modal-expert__header">
-        <h2 class="modal-expert__title">Editar experto</h2>
-        <button class="btn-close"><i class="fas fa-times"></i></button>
-      </div>
-      <div class="modal-expert__body">
-        <form id="formEditarExperto">
-          <div class="modal-expert__grid">
-            <div>
-              <label class="modal-expert__label">Nombre</label>
-              <input type="text" id="nombreExperto" class="modal-expert__input" />
-            </div>
-            <div>
-              <label class="modal-expert__label">Correo</label>
-              <input type="email" id="correoExperto" class="modal-expert__input" />
-            </div>
-            <div>
-              <label class="modal-expert__label">Especialidad</label>
-              <input type="text" id="especialidadExperto" class="modal-expert__input" />
-            </div>
-            <div>
-              <label class="modal-expert__label">Estado</label>
-              <select id="estadoExperto" class="modal-expert__input">
-                <option value="Activo">Activo</option>
-                <option value="Inactivo">Inactivo</option>
-                <option value="Pendiente">Pendiente</option>
-              </select>
-            </div>
-            <div>
-              <label class="modal-expert__label">Fecha de registro</label>
-              <input type="date" id="fechaRegistroExperto" class="modal-expert__input" disabled />
-            </div>
-            <div>
-              <label class="modal-expert__label">Sesiones</label>
-              <input type="number" id="sesionesExperto" class="modal-expert__input" disabled />
-            </div>
-
-            <div>
-              <label class="modal-expert__label">Calificación</label>
-              <input type="number" id="calificacionExperto" class="modal-expert__input" disabled />
-            </div>
-          </div>
-        </form>
-      </div>
-      <div class="modal-expert__footer">
-        <button type="button" class="btn-outline modal-editar-cancelar">
-          Cancelar
-        </button>
-        <button class="btn-primary" type="submit" form="formEditarExperto">
-          Guardar cambios
-        </button>
-      </div>
-    </div>
-  </div>
-
   <!--modal ver perfil experto-->
   <div id="verPerfilExperto" class="modal-expert">
-    <div class="modal-expert__content">
+
+    <div class="modal-expert__container">
       <div class="modal-expert__header">
         <h2 class="modal-expert__title">Perfil del experto</h2>
-        <button class="btn-close"><i class="fas fa-times"></i></button>
+        <button class="btn-close" aria-label="Cerrar"><i class="fas fa-times"></i></button>
       </div>
+
       <div class="modal-expert__body">
-        <form id="formVerPerfilExperto">
+        <form id="expertForm">
+          <!-- Layout helper: responsive two-column grid for most rows -->
           <div class="modal-expert__grid">
+
+            <!-- Información básica -->
             <div>
-              <label class="modal-expert__label">Nombre</label>
-              <input type="text" id="verNombreExperto" class="modal-expert__input" disabled />
+              <label class="modal-expert__label" for="name">
+                <i class="fas fa-user modal-expert__icon" aria-hidden="true"></i>
+                Nombre completo
+              </label>
+              <input type="text" id="name" placeholder="Nombre y apellidos registrados" class="modal-expert__input" />
             </div>
+
             <div>
-              <label class="modal-expert__label">Correo</label>
-              <input type="email" id="verCorreoExperto" class="modal-expert__input" disabled />
+              <label class="modal-expert__label" for="email">
+                <i class="fas fa-envelope modal-expert__icon" aria-hidden="true"></i>
+                Email registrado
+              </label>
+              <input type="email" id="email" placeholder="Email de la cuenta" class="modal-expert__input" />
             </div>
+
+            <!-- Precio por hora (columna) -->
             <div>
-              <label class="modal-expert__label">Especialidad</label>
-              <input type="text" id="verEspecialidadExperto" class="modal-expert__input" disabled />
+              <label for="precio" class="modal-expert__label">
+                <i class="fas fa-money-bill-wave modal-expert__icon" aria-hidden="true" title="Precio"></i>
+                Precio por hora (COP)
+                <span class="price-tooltip icon-tooltip" title="Ejemplo recomendado: $30.000 - $200.000 COP"
+                  style="margin-left:.5rem;">
+                  <i class="fas fa-info-circle"></i>
+                </span>
+              </label>
+
+              <div class="srv-price-input price-input">
+                <span class="srv-currency currency-symbol">$</span>
+                <input type="number" id="precio" name="precio" min="10000" step="100" required placeholder="Ej: 50000"
+                  class="srv-input price-field" />
+              </div>
+              <p class="srv-note price-note">
+                Tarifa por hora de asesoría (Recomendado: $30.000 - $200.000 COP)
+              </p>
+              <div id="precio-feedback" class="srv-feedback price-feedback" aria-live="polite"></div>
             </div>
+
+            <!-- Días disponibles (columna) -->
             <div>
-              <label class="modal-expert__label">Estado</label>
-              <input type="text" id="verEstadoExperto" class="modal-expert__input" disabled />
+              <label for="diasDisponibles" class="modal-expert__label">
+                <i class="fas fa-calendar-alt modal-expert__icon" aria-hidden="true"></i>
+                Días disponibles
+              </label>
+
+              <div class="srv-days-wrapper">
+                <div class="srv-days">
+                  <button type="button" class="srv-day" data-day="Lunes" aria-pressed="false">L</button>
+                  <button type="button" class="srv-day" data-day="Martes" aria-pressed="false">M</button>
+                  <button type="button" class="srv-day" data-day="Miércoles" aria-pressed="false">X</button>
+                  <button type="button" class="srv-day" data-day="Jueves" aria-pressed="false">J</button>
+                  <button type="button" class="srv-day" data-day="Viernes" aria-pressed="false">V</button>
+                  <button type="button" class="srv-day" data-day="Sábado" aria-pressed="false">S</button>
+                  <button type="button" class="srv-day" data-day="Domingo" aria-pressed="false">D</button>
+                </div>
+
+                <div class="srv-days-display">
+                  Ningún día seleccionado
+                </div>
+              </div>
+
+              <input type="hidden" id="diasDisponibles" name="diasDisponibles" />
             </div>
+
+            <!-- Especialidad principal -->
             <div>
-              <label class="modal-expert__label">Fecha de registro</label>
-              <input type="date" id="verFechaRegistroExperto" class="modal-expert__input" disabled />
+              <label class="modal-expert__label" for="specialty">
+                <i class="fas fa-briefcase modal-expert__icon" aria-hidden="true"></i>
+                Especialidad principal
+              </label>
+              <div class="input-with-icon">
+                <i class="fas fa-briefcase" aria-hidden="true"></i>
+                <select id="specialty" class="modal-expert__input modal-expert__select"
+                  aria-label="Especialidad principal">
+                  <option value="">Seleccionar especialidad</option>
+                  <option value="web">Desarrollo Web</option>
+                  <option value="mobile">Desarrollo Móvil</option>
+                  <option value="data">Ciencia de Datos</option>
+                  <option value="uxui">UX/UI</option>
+                  <option value="devops">DevOps</option>
+                  <option value="blockchain">Blockchain</option>
+                  <option value="cloud">Cloud Computing</option>
+                </select>
+                <i class="fas fa-chevron-down" aria-hidden="true"></i>
+              </div>
+              <small class="modal-expert__hint">Selecciona la especialidad principal que describe mejor al
+                experto</small>
             </div>
+
+            <!-- Estado -->
             <div>
-              <label class="modal-expert__label">Sesiones</label>
-              <input type="number" id="verSesionesExperto" class="modal-expert__input" disabled />
+              <label class="modal-expert__label" for="status">
+                <i class="fas fa-toggle-on modal-expert__icon" aria-hidden="true"></i>
+                Estado
+              </label>
+              <div class="input-with-icon">
+                <i class="fas fa-toggle-on" aria-hidden="true"></i>
+                <select id="status" class="modal-expert__input modal-expert__select" aria-label="Estado del experto">
+                  <option value="active">Activo</option>
+                  <option value="pending">Pendiente</option>
+                  <option value="inactive">Inactivo</option>
+                </select>
+                <i class="fas fa-chevron-down" aria-hidden="true"></i>
+              </div>
+              <small class="modal-expert__hint">Define si el experto puede recibir solicitudes</small>
             </div>
-            <div>
-              <label class="modal-expert__label">Calificación</label>
-              <input type="number" id="verCalificacionExperto" class="modal-expert__input" disabled />
+
+            <!-- Categorías (full width) -->
+            <div class="full-width">
+              <label class="modal-expert__label" for="categorias">
+                <i class="fas fa-tags modal-expert__icon" aria-hidden="true"></i>
+                Categorías
+              </label>
+              <select id="categorias" class="modal-expert__input modal-expert__select-categorias" multiple size="4"
+                aria-label="Categorías">
+                <!-- opciones añadidas dinámicamente -->
+              </select>
+
+              <script>
+                // Initialize Choices and force visual fixes for the created/cloned input
+                document.addEventListener('DOMContentLoaded', function () {
+                  function applyInputFix(el) {
+                    if (!el || el.dataset.__stylingApplied) return;
+                    try {
+                      el.style.setProperty('background', 'transparent', 'important');
+                      el.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
+                      el.style.setProperty('-webkit-text-fill-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
+                      el.style.setProperty('caret-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-accent-color') || '#5e81ff', 'important');
+                      el.style.setProperty('border', 'none', 'important');
+                      el.style.setProperty('outline', 'none', 'important');
+                      el.style.setProperty('width', 'auto', 'important');
+                      el.style.setProperty('min-width', '22ch', 'important');
+                      el.style.setProperty('font-family', 'inherit', 'important');
+                      el.style.setProperty('padding-left', '42px', 'important');
+                      el.dataset.__stylingApplied = '1';
+                    } catch (e) { }
+                  }
+
+                  // Initialize Choices on categorias (if available)
+                  if (window.Choices) {
+                    const catSelect = document.getElementById('categorias');
+                    if (catSelect && !catSelect.classList.contains('choices-initialized')) {
+                      new Choices(catSelect, {
+                        removeItemButton: true,
+                        delimiter: ',',
+                        editItems: false,
+                        maxItemCount: 10,
+                        duplicateItemsAllowed: false
+                      });
+                      catSelect.classList.add('choices-initialized');
+                    }
+                  }
+
+                  // Try to style existing inputs immediately and observe future clones
+                  function processAll() {
+                    document.querySelectorAll('#expertModal .choices__input, #expertModal .choices__input--cloned, input[placeholder="Selecciona categorías"], input[aria-label="Selecciona categorías"]').forEach(applyInputFix);
+                    document.querySelectorAll('#expertModal .choices__list--dropdown, #expertModal .choices__list--dropdown .choices__item').forEach(function (el) {
+                      try {
+                        el.style.setProperty('background', getComputedStyle(document.documentElement).getPropertyValue('--admin-card-bg') || '#121212', 'important');
+                        el.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
+                        el.style.setProperty('border-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-border-color') || '#333', 'important');
+                      } catch (e) { }
+                    });
+
+                    document.querySelectorAll('#expertModal .choices__inner').forEach(function (inner) {
+                      try {
+                        if (inner.querySelector('.choices__list--multiple')) inner.classList.add('no-icon');
+                        else inner.classList.remove('no-icon');
+                      } catch (e) { }
+                    });
+                  }
+
+                  processAll();
+                  var attempts = 0;
+                  var id = setInterval(function () { processAll(); attempts++; if (attempts > 20) clearInterval(id); }, 150);
+                  var mo = new MutationObserver(function () { processAll(); });
+                  mo.observe(document.body, { childList: true, subtree: true });
+                });
+              </script>
+              <script>
+                // Diagnóstico: registra en consola la estructura y estilos computados del botón remove
+                (function () {
+                  function diag() {
+                    try {
+                      var btns = document.querySelectorAll('#expertModal .choices__button');
+                      if (!btns || btns.length === 0) {
+                        console.info('[diag] No se encontraron .choices__button dentro de #expertModal');
+                        return;
+                      }
+                      btns.forEach(function (b, i) {
+                        console.info('[diag] choices__button #' + i + ':', b.outerHTML);
+                        var cs = window.getComputedStyle(b);
+                        console.info('[diag] computed (button):', {
+                          display: cs.display,
+                          visibility: cs.visibility,
+                          color: cs.color,
+                          background: cs.backgroundColor || cs['background-color'],
+                          overflow: cs.overflow,
+                          zIndex: cs.zIndex
+                        });
+                        var pa = window.getComputedStyle(b, '::after');
+                        console.info('[diag] computed (::after):', {
+                          content: pa.content,
+                          color: pa.color,
+                          display: pa.display,
+                          visibility: pa.visibility,
+                          zIndex: pa.zIndex,
+                          fontSize: pa.fontSize
+                        });
+                        var pb = window.getComputedStyle(b, '::before');
+                        console.info('[diag] computed (::before):', {
+                          content: pb.content,
+                          color: pb.color
+                        });
+                      });
+                    } catch (e) {
+                      console.error('[diag] error:', e);
+                    }
+                  }
+                  document.addEventListener('DOMContentLoaded', function () {
+                    setTimeout(diag, 600);
+                    // también vuelve a correr cuando se detecta interacción que puede abrir el modal
+                    document.body.addEventListener('click', function (ev) {
+                      if (ev.target.closest('#expertModal') || ev.target.closest('.btn-close')) setTimeout(diag, 300);
+                    }, true);
+                  });
+                })();
+              </script>
+              <small class="modal-expert__hint">Selecciona una o varias categorías (Ctrl/Cmd+click)</small>
+            </div>
+
+            <!-- Habilidades (full width) -->
+            <div class="full-width">
+              <label class="modal-expert__label" for="skills">
+                <i class="fas fa-tools modal-expert__icon" aria-hidden="true"></i>
+                Habilidades
+              </label>
+              <select id="skills" class="modal-expert__input" multiple size="6">
+                <% if (typeof habilidades !=='undefined' && Array.isArray(habilidades) && habilidades.length> 0) { %>
+                  <% habilidades.forEach(function(h) { %>
+                    <% const val=(h && (h.nombre || h.name || h.label)) ? (h.nombre || h.name || h.label) : (h && h._id
+                      ? String(h._id) : '' ); %>
+                      <% if (val) { %>
+                        <option value="<%= val %>">
+                          <%= val %>
+                        </option>
+                        <% } %>
+                          <% }); %>
+                            <% } %>
+              </select>
+              <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                  if (window.Choices) {
+                    const skillsSelect = document.getElementById('skills');
+                    if (skillsSelect && !skillsSelect.classList.contains('choices-initialized')) {
+                      new Choices(skillsSelect, {
+                        removeItemButton: true,
+                        delimiter: ',',
+                        editItems: false,
+                        maxItemCount: 10,
+                        duplicateItemsAllowed: false
+                      });
+                      skillsSelect.classList.add('choices-initialized');
+                    }
+                  }
+                });
+              </script>
+              <small class="modal-expert__hint">Selecciona o escribe para añadir nuevas habilidades</small>
+            </div>
+
+            <!-- Biografía -->
+            <div class="full-width">
+              <label class="modal-expert__label" for="bio">
+                <i class="fas fa-file-alt modal-expert__icon" aria-hidden="true"></i>
+                Biografía profesional
+              </label>
+              <textarea id="bio" rows="4" placeholder="Descripción breve de experiencia y especialización"
+                class="modal-expert__input modal-expert__textarea"></textarea>
+            </div>
+
+            <!-- Imagen de perfil -->
+            <div class="full-width">
+              <label class="modal-expert__label" for="profileImage">
+                <i class="fas fa-image modal-expert__icon" aria-hidden="true"></i>
+                Imagen de perfil
+              </label>
+
+              <div class="modal-expert__upload-wrapper">
+                <!-- hidden but accessible -->
+                <input type="file" id="profileImage" class="modal-expert__file-input"
+                  aria-label="Seleccionar imagen de perfil" accept="image/*" />
+
+                <!-- visual upload box (acts as label) -->
+                <label for="profileImage" class="modal-expert__upload-box" role="button" aria-haspopup="dialog">
+                  <i class="fas fa-upload" aria-hidden="true"></i>
+                  <span id="uploadLabel">Seleccionar imagen (png, jpg) · Máx 2MB</span>
+                </label>
+
+                <!-- preview thumbnail -->
+                <div id="profilePreview" aria-hidden="true" role="img" aria-label="Vista previa de imagen">
+                  <button id="removeProfileBtn" type="button" title="Eliminar imagen" aria-label="Eliminar imagen"
+                    style="display:none;">
+                    <i class="fas fa-times"></i>
+                  </button>
+                  <img src="" alt="Preview" />
+                </div>
+
+                <div class="upload-meta" id="uploadMeta" aria-live="polite" style="display:none;"></div>
+                <div class="upload-error" id="profileImageError" role="alert" style="display:none;"></div>
+              </div>
+            </div>
+
+            <!-- Espacio reservado para mantener la columna alineada -->
+            <div aria-hidden="true"></div>
+
+            <!-- Sección bancaria (tarjeta de ancho completo) -->
+            <div class="full-width">
+              <div class="bank-section">
+                <h3 class="bank-title">
+                  <i class="fas fa-university"></i> Datos Bancarios para Pagos
+                </h3>
+                <p class="bank-sub">Información necesaria para recibir pagos por tus asesorías</p>
+
+                <div class="bank-grid">
+                  <div>
+                    <label for="banco">Banco *</label>
+                    <div id="banco-wrapper">
+                      <select id="banco" name="banco" required class="modal-expert__input">
+                        <option value="">Selecciona tu banco</option>
+                        <option value="Banco de Bogotá">Banco de Bogotá</option>
+                        <option value="Bancolombia">Bancolombia</option>
+                        <option value="Banco Popular">Banco Popular</option>
+                        <option value="Banco AV Villas">Banco AV Villas</option>
+                        <option value="Banco Caja Social">Banco Caja Social</option>
+                        <option value="Banco de Occidente">Banco de Occidente</option>
+                        <option value="Banco GNB Sudameris">Banco GNB Sudameris</option>
+                        <option value="Banco Itaú">Banco Itaú</option>
+                        <option value="Banco Pichincha">Banco Pichincha</option>
+                        <option value="Banco Santander">Banco Santander</option>
+                        <option value="Banco Scotiabank Colpatria">Banco Scotiabank Colpatria</option>
+                        <option value="Davivienda">Davivienda</option>
+                        <option value="Banco Agrario">Banco Agrario</option>
+                        <option value="Banco Falabella">Banco Falabella</option>
+                        <option value="Banco Finandina">Banco Finandina</option>
+                        <option value="Banco W">Banco W</option>
+                        <option value="Banco Serfinanza">Banco Serfinanza</option>
+                        <option value="Banco Cooperativo Coopcentral">Banco Cooperativo Coopcentral</option>
+                        <option value="Banco BBVA">Banco BBVA</option>
+                        <option value="Nequi">Nequi</option>
+                        <option value="Daviplata">Daviplata</option>
+                        <option value="Movii">Movii</option>
+                        <option value="Banco de Vivienda">Banco de Vivienda</option>
+                        <option value="Banco ProCredit">Banco ProCredit</option>
+                        <option value="Banco Multibank">Banco Multibank</option>
+                        <option value="Banco Coopcentral">Banco Coopcentral</option>
+                        <option value="Banco Credifinanciera">Banco Credifinanciera</option>
+                        <option value="Banco Mundo Mujer">Banco Mundo Mujer</option>
+                        <option value="Banco Ripley">Banco Ripley</option>
+                        <option value="Banco CrediScotia">Banco CrediScotia</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label for="tipoCuenta">Tipo de cuenta *</label>
+                    <div id="tipoCuenta-wrapper">
+                      <select id="tipoCuenta" name="tipoCuenta" required class="modal-expert__input">
+                        <option value="">Selecciona el tipo</option>
+                        <option value="Cuenta de Ahorros">Cuenta de Ahorros</option>
+                        <option value="Cuenta Corriente">Cuenta Corriente</option>
+                        <option value="Cuenta de Nómina">Cuenta de Nómina</option>
+                        <option value="Cuenta Digital">Cuenta Digital</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label for="numeroCuenta">Número de cuenta *</label>
+                    <div class="acct-wrap">
+                      <input type="password" id="numeroCuenta" name="numeroCuenta" required
+                        placeholder="Número de cuenta" pattern="[0-9\-]*" title="Solo números y guiones"
+                        class="acct-input">
+                      <button type="button" id="toggleAccountNumber" class="acct-toggle"
+                        aria-label="Mostrar número de cuenta">
+                        <i class="fas fa-eye"></i>
+                      </button>
+                    </div>
+                    <p class="hint">Número completo de tu cuenta</p>
+                  </div>
+
+                  <div>
+                    <label for="titular">Titular de la cuenta *</label>
+                    <input type="text" id="titular" name="titular" required placeholder="Nombre completo del titular"
+                      class="modal-expert__input">
+                    <p class="hint">Debe coincidir con el nombre en la cuenta</p>
+                  </div>
+
+                  <div>
+                    <label for="tipoDocumento">Tipo de documento *</label>
+                    <div id="tipoDocumento-wrapper">
+                      <select id="tipoDocumento" name="tipoDocumento" required class="modal-expert__input">
+                        <option value="">Selecciona el tipo</option>
+                        <option value="Cédula de Ciudadanía">Cédula de Ciudadanía</option>
+                        <option value="Cédula de Extranjería">Cédula de Extranjería</option>
+                        <option value="Pasaporte">Pasaporte</option>
+                        <option value="NIT">NIT (Persona Jurídica)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label for="numeroDocumento">Número de documento *</label>
+                    <input type="text" id="numeroDocumento" name="numeroDocumento" required
+                      placeholder="Número de identificación" pattern="[0-9\-]*" class="modal-expert__input">
+                    <p class="hint">Documento del titular</p>
+                  </div>
+
+                  <div class="full-width">
+                    <label for="telefonoContacto">Teléfono de contacto</label>
+                    <input type="tel" id="telefonoContacto" name="telefonoContacto" placeholder="+57 300 123 4567"
+                      class="modal-expert__input">
+                    <p class="hint">Opcional: Teléfono para contacto sobre pagos</p>
+                  </div>
+                </div>
+
+                <div class="info-box info-sm">
+                  <div class="info-header">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Información importante sobre pagos</strong>
+                  </div>
+                  <ul class="info-list">
+                    <li><i class="fas fa-check"></i> Los pagos se procesan cada 15 días</li>
+                    <li><i class="fas fa-check"></i> Se requiere verificación de cuenta</li>
+                    <li><i class="fas fa-check"></i> Datos editables desde tu perfil</li>
+                    <li><i class="fas fa-check"></i> Seguridad garantizada</li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
         </form>
       </div>
+
+      <!-- Moved footer inside container so it remains visually part of the modal.
+             The container is a column-flex so the body scrolls while footer stays at bottom. -->
       <div class="modal-expert__footer">
-        <button type="button" class="btn-outline modal-ver-cerrar">
-          Cerrar
-        </button>
+        <button class="btn-outline" data-dismiss="modal" type="button">Cancelar</button>
+        <button type="button" class="btn-primary" id="saveExpert">Guardar experto</button>
       </div>
     </div>
   </div>
+
+
 
   <!-- Modal inactivar experto -->
   <div id="modalInactivarExperto" class="modal-expert">

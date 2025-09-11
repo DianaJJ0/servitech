@@ -3088,3 +3088,298 @@
     font-size: 11px !important;
   }
 }
+
+/* Estilos modernos y con alcance para la sección de expertos usando únicamente las variables proporcionadas */
+.expertos-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 1.5rem;
+  align-items: start;
+  margin-top: 1rem;
+}
+
+.expertos-card {
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-border-color);
+  color: var(--admin-text-primary);
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: var(--admin-shadow);
+}
+
+.expertos-filtros__title,
+.expertos-estadisticas__title {
+  margin: 0 0 0.6rem 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--admin-text-primary);
+}
+
+.expertos-filtros__group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.8rem;
+}
+
+.expertos-filtros__label {
+  font-size: 0.78rem;
+  color: var(--admin-text-secondary);
+}
+
+.expertos-filtros__select {
+  appearance: none;
+  background: linear-gradient(180deg, var(--admin-card-bg), transparent);
+  border: 1px solid var(--admin-border-color);
+  color: inherit;
+  padding: 0.55rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.92rem;
+  outline: none;
+}
+
+.expertos-filtros__btn {
+  width: 100%;
+  display: inline-flex;
+  gap: 0.6rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6rem;
+  border-radius: 10px;
+  font-weight: 600;
+  margin-top: 0.6rem;
+  background: linear-gradient(
+    90deg,
+    var(--admin-accent-color),
+    var(--admin-accent-secondary)
+  );
+  color: var(--admin-text-primary);
+  border: 1px solid var(--admin-border-color);
+  box-shadow: var(--admin-shadow);
+}
+
+.expertos-estadisticas__list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+}
+
+.expertos-estadisticas__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.7rem;
+  border-radius: 10px;
+  background: linear-gradient(180deg, var(--admin-card-bg), transparent);
+  border: 1px solid var(--admin-border-color);
+}
+
+.expertos-estadisticas__icon {
+  display: inline-flex;
+  width: 42px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: 1.05rem;
+  color: var(--admin-card-bg);
+  background: var(--admin-accent-color);
+}
+
+.expertos-estadisticas__value {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--admin-text-primary);
+}
+
+/* Table container */
+.expertos-grid__tabla .admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: transparent;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.admin-table thead tr {
+  background: linear-gradient(180deg, var(--admin-card-bg), transparent);
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 0.9rem 0.8rem;
+  text-align: left;
+  font-size: 0.92rem;
+  border-bottom: 1px dashed var(--admin-border-color);
+  color: var(--admin-text-primary);
+}
+
+.admin-table tbody tr:hover {
+  background: var(--admin-hover-bg);
+}
+
+.admin-table tbody tr.placeholder-row td {
+  color: var(--admin-text-secondary);
+  font-style: italic;
+  background: transparent;
+}
+
+.experto-info {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.experto-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid var(--admin-border-color);
+}
+
+.experto-name {
+  display: flex;
+  flex-direction: column;
+}
+
+.experto-name .name {
+  font-weight: 600;
+  color: var(--admin-text-primary);
+}
+
+.experto-name .email {
+  font-size: 0.8rem;
+  color: var(--admin-text-secondary);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--admin-card-bg);
+  color: var(--admin-text-secondary);
+  padding: 0.28rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  border: 1px solid var(--admin-border-color);
+}
+
+.estado-badge {
+  padding: 0.36rem 0.6rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.estado-badge.active {
+  background: color-mix(in srgb, var(--admin-accent-secondary) 8%, transparent);
+  color: var(--admin-accent-secondary);
+  border: 1px solid
+    color-mix(in srgb, var(--admin-accent-secondary) 8%, transparent);
+}
+.estado-badge.pending {
+  background: color-mix(in srgb, var(--admin-accent-color) 6%, transparent);
+  color: var(--admin-accent-color);
+  border: 1px solid
+    color-mix(in srgb, var(--admin-accent-color) 6%, transparent);
+}
+.estado-badge.inactive {
+  background: color-mix(in srgb, #ef4444 6%, transparent);
+  color: #ef4444;
+  border: 1px solid color-mix(in srgb, #ef4444 6%, transparent);
+}
+
+.acciones-cell {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--admin-border-color);
+  color: var(--admin-text-secondary);
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-ghost:hover {
+  color: var(--admin-text-primary);
+  border-color: var(--admin-accent-color);
+  background: var(--admin-hover-bg);
+}
+
+/* Pagination */
+.expertos-paginacion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 1rem;
+  align-items: flex-start; /* moved to left */
+}
+
+.expertos-paginacion__info {
+  font-size: 0.85rem;
+  color: var(--admin-text-secondary);
+}
+
+.expertos-paginacion__controles {
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+  justify-content: flex-start; /* ensure controls align left */
+}
+
+.expertos-paginacion__btn {
+  min-width: 40px;
+  height: 40px;
+  padding: 0 0.65rem;
+  border-radius: 10px;
+  border: none;
+  background: var(--admin-card-bg);
+  color: var(--admin-text-primary);
+  cursor: pointer;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--admin-border-color);
+}
+
+.expertos-paginacion__btn--active {
+  background: linear-gradient(
+    90deg,
+    var(--admin-accent-color),
+    var(--admin-accent-secondary)
+  );
+  color: var(--admin-text-primary);
+  box-shadow: var(--admin-shadow);
+}
+
+.expertos-paginacion__btn--disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.expertos-paginacion__ellipsis {
+  color: var(--admin-text-secondary);
+  font-weight: 700;
+  padding: 0 0.25rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 920px) {
+  .expertos-grid {
+    grid-template-columns: 1fr;
+  }
+  .expertos-paginacion {
+    align-items: flex-start;
+  }
+}
