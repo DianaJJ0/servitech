@@ -218,7 +218,7 @@
   </div>
 
   <!-- Modal para agregar experto -->
-  <div id="addExpertModal" class="modal-expert" aria-hidden="true" style="display:none;">
+  <div id="expertModal" class="modal-expert">
 
     <div class="modal-expert__container">
       <div class="modal-expert__header">
@@ -387,8 +387,8 @@
 
                   // Try to style existing inputs immediately and observe future clones
                   function processAll() {
-                    document.querySelectorAll('#addExpertModal .choices__input, #addExpertModal .choices__input--cloned, input[placeholder="Selecciona categorías"], input[aria-label="Selecciona categorías"]').forEach(applyInputFix);
-                    document.querySelectorAll('#addExpertModal .choices__list--dropdown, #addExpertModal .choices__list--dropdown .choices__item').forEach(function (el) {
+                    document.querySelectorAll('#expertModal .choices__input, #expertModal .choices__input--cloned, input[placeholder="Selecciona categorías"], input[aria-label="Selecciona categorías"]').forEach(applyInputFix);
+                    document.querySelectorAll('#expertModal .choices__list--dropdown, #expertModal .choices__list--dropdown .choices__item').forEach(function (el) {
                       try {
                         el.style.setProperty('background', getComputedStyle(document.documentElement).getPropertyValue('--admin-card-bg') || '#121212', 'important');
                         el.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
@@ -396,7 +396,7 @@
                       } catch (e) { }
                     });
 
-                    document.querySelectorAll('#addExpertModal .choices__inner').forEach(function (inner) {
+                    document.querySelectorAll('#expertModal .choices__inner').forEach(function (inner) {
                       try {
                         if (inner.querySelector('.choices__list--multiple')) inner.classList.add('no-icon');
                         else inner.classList.remove('no-icon');
@@ -416,9 +416,9 @@
                 (function () {
                   function diag() {
                     try {
-                      var btns = document.querySelectorAll('#addExpertModal .choices__button');
+                      var btns = document.querySelectorAll('#expertModal .choices__button');
                       if (!btns || btns.length === 0) {
-                        console.info('[diag] No se encontraron .choices__button dentro de #addExpertModal');
+                        console.info('[diag] No se encontraron .choices__button dentro de #expertModal');
                         return;
                       }
                       btns.forEach(function (b, i) {
@@ -455,7 +455,7 @@
                     setTimeout(diag, 600);
                     // también vuelve a correr cuando se detecta interacción que puede abrir el modal
                     document.body.addEventListener('click', function (ev) {
-                      if (ev.target.closest('#addExpertModal') || ev.target.closest('.btn-close')) setTimeout(diag, 300);
+                      if (ev.target.closest('#expertModal') || ev.target.closest('.btn-close')) setTimeout(diag, 300);
                     }, true);
                   });
                 })();
@@ -472,8 +472,8 @@
               <select id="skills" class="modal-expert__input" multiple size="6">
                 <% if (typeof habilidades !=='undefined' && Array.isArray(habilidades) && habilidades.length> 0) { %>
                   <% habilidades.forEach(function(h) { %>
-                    <% const val=(h && (h.nombre || h.name || h.label)) ? (h.nombre || h.name || h.label) : (h && h._id
-                      ? String(h._id) : '' ); %>
+                    <% const val=(h && (h.nombre || h.name || h.label)) ? (h.nombre || h.name || h.label) : (h && h._id ?
+                      String(h._id) : '' ); %>
                       <% if (val) { %>
                         <option value="<%= val %>">
                           <%= val %>
@@ -611,9 +611,8 @@
                   <div>
                     <label for="numeroCuenta">Número de cuenta *</label>
                     <div class="acct-wrap">
-                      <input type="password" id="numeroCuenta" name="numeroCuenta" required
-                        placeholder="Número de cuenta" pattern="[0-9\-]*" title="Solo números y guiones"
-                        class="acct-input">
+                      <input type="password" id="numeroCuenta" name="numeroCuenta" required placeholder="Número de cuenta"
+                        pattern="[0-9\-]*" title="Solo números y guiones" class="acct-input">
                       <button type="button" id="toggleAccountNumber" class="acct-toggle"
                         aria-label="Mostrar número de cuenta">
                         <i class="fas fa-eye"></i>
@@ -676,7 +675,7 @@
       </div>
 
       <!-- Moved footer inside container so it remains visually part of the modal.
-           The container is a column-flex so the body scrolls while footer stays at bottom. -->
+             The container is a column-flex so the body scrolls while footer stays at bottom. -->
       <div class="modal-expert__footer">
         <button class="btn-outline" data-dismiss="modal" type="button">Cancelar</button>
         <button type="button" class="btn-primary" id="saveExpert">Guardar experto</button>
@@ -1712,7 +1711,6 @@
       </div>
     </div>
   </div>
-
 
 
   <!-- Modal inactivar experto -->
