@@ -70,6 +70,83 @@ function ensureChoicesLoaded() {
   return window._choicesLoadedPromise;
 }
 
+// Global modal close helpers: handle any .modal-expert instances (covers duplicates)
+document.addEventListener("DOMContentLoaded", function () {
+  // Close by clicking .btn-close or [data-dismiss="modal"] inside any modal
+  document.body.addEventListener("click", function (e) {
+    const closeBtn =
+      e.target.closest(".btn-close") ||
+      e.target.closest("[data-dismiss='modal']");
+    if (closeBtn) {
+      const modal = closeBtn.closest(".modal-expert");
+      if (modal) {
+        try {
+          modal.style.display = "none";
+          document.body.style.overflow = "";
+          // if modal contains the expertForm, clear edit state and reset title
+          const form = modal.querySelector("form#expertForm");
+          if (form) {
+            try {
+              if (form.dataset && form.dataset.editId)
+                delete form.dataset.editId;
+              form.reset();
+            } catch (e) {}
+            const titleEl = modal.querySelector(".modal-expert__title");
+            if (titleEl) titleEl.textContent = "Agregar nuevo experto";
+          }
+        } catch (err) {}
+      }
+      return;
+    }
+
+    // Close when clicking on backdrop (the modal element itself)
+    const modalClicked = e.target.closest(".modal-expert");
+    if (modalClicked && e.target === modalClicked) {
+      try {
+        modalClicked.style.display = "none";
+        document.body.style.overflow = "";
+        const form = modalClicked.querySelector("form#expertForm");
+        if (form) {
+          try {
+            if (form.dataset && form.dataset.editId) delete form.dataset.editId;
+            form.reset();
+          } catch (e) {}
+          const titleEl = modalClicked.querySelector(".modal-expert__title");
+          if (titleEl) titleEl.textContent = "Agregar nuevo experto";
+        }
+      } catch (err) {}
+      return;
+    }
+  });
+
+  // Close visible modals on Escape
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" || e.key === "Esc") {
+      document.querySelectorAll(".modal-expert").forEach((modal) => {
+        try {
+          if (
+            modal.style &&
+            (modal.style.display === "flex" || modal.style.display === "block")
+          ) {
+            modal.style.display = "none";
+            document.body.style.overflow = "";
+            const form = modal.querySelector("form#expertForm");
+            if (form) {
+              try {
+                if (form.dataset && form.dataset.editId)
+                  delete form.dataset.editId;
+                form.reset();
+              } catch (e) {}
+              const titleEl = modal.querySelector(".modal-expert__title");
+              if (titleEl) titleEl.textContent = "Agregar nuevo experto";
+            }
+          }
+        } catch (err) {}
+      });
+    }
+  });
+});
+
 /**
  * Inicializa (o re-inicializa) Choices.js en un elemento dado.
  * idOrElement puede ser id o elemento DOM. key es la clave para almacenar instancia.
@@ -225,6 +302,15 @@ function setupExpertModal() {
   const openModal = () => {
     modal.style.display = "flex";
     document.body.style.overflow = "hidden";
+    // Ensure expertForm edit state is cleared when opening as "Agregar"
+    try {
+      const form = document.getElementById("expertForm");
+      if (form && form.dataset) {
+        delete form.dataset.editId;
+      }
+      const titleEl = modal.querySelector(".modal-expert__title");
+      if (titleEl) titleEl.textContent = "Agregar nuevo experto";
+    } catch (e) {}
     // cargar categorías disponibles para el modal (si no cargadas)
     loadAdminCategorias().catch((err) =>
       console.error("Error cargando categorias:", err)
@@ -325,6 +411,13 @@ function setupExpertModal() {
     document.body.style.overflow = "";
     const form = document.getElementById("expertForm");
     if (form) form.reset();
+    // remove edit id and reset title if present
+    try {
+      if (form && form.dataset && form.dataset.editId)
+        delete form.dataset.editId;
+      const titleEl = modal.querySelector(".modal-expert__title");
+      if (titleEl) titleEl.textContent = "Agregar nuevo experto";
+    } catch (e) {}
   };
 
   btnAddExpert.addEventListener("click", openModal);
@@ -886,6 +979,206 @@ function abrirModalEditarExperto(expertoId) {
 }
 
 /**
+ * Abre y rellena el modal común de edición `#expertModal` para el experto dado.
+ */
+async function openExpertEditModal(expertoId) {
+  try {
+    const expertos = window._adminExpertos || [];
+    const ex = expertos.find((x) => String(x._id) === String(expertoId));
+    if (!ex) return showMessage("Experto no encontrado", "error");
+    const modal = document.getElementById("expertModal");
+    if (!modal) return;
+
+    // Reutilizar el mismo mapeo que antes (precio, dias, bio, categorias, skills, avatar, bank)
+    const assign = (sel, value) => {
+      try {
+        const el = document.getElementById(sel);
+        if (!el) return;
+        if (typeof value === "undefined" || value === null) value = "";
+        if ("value" in el) el.value = value;
+        else el.textContent = String(value);
+      } catch (e) {}
+    };
+
+    assign("name", ex.nombre || ex.email || "");
+    assign("email", ex.email || "");
+
+    const precioVal =
+      (ex.infoExperto &&
+        (ex.infoExperto.precioPorHora || ex.infoExperto.precio)) ||
+      ex.precioPorHora ||
+      ex.precio ||
+      "";
+    assign("precio", precioVal);
+
+    try {
+      const dias =
+        (ex.infoExperto && ex.infoExperto.diasDisponibles) ||
+        ex.diasDisponibles ||
+        [];
+      const diasEl = document.getElementById("diasDisponibles");
+      if (diasEl)
+        diasEl.value = Array.isArray(dias) ? dias.join(",") : dias || "";
+      const display = modal.querySelector(".srv-days-display");
+      if (display)
+        display.textContent =
+          Array.isArray(dias) && dias.length
+            ? dias.join(", ")
+            : "Ningún día seleccionado";
+      modal.querySelectorAll(".srv-day").forEach((b) => {
+        try {
+          const d = b.dataset.day;
+          b.setAttribute(
+            "aria-pressed",
+            Array.isArray(dias) && dias.indexOf(d) !== -1 ? "true" : "false"
+          );
+        } catch (e) {}
+      });
+    } catch (e) {}
+
+    assign(
+      "specialty",
+      (ex.infoExperto && ex.infoExperto.especialidad) || ex.especialidad || ""
+    );
+    assign("status", ex.estado || "active");
+    const descripcion =
+      (ex.infoExperto && (ex.infoExperto.descripcion || ex.infoExperto.bio)) ||
+      ex.descripcion ||
+      ex.bio ||
+      "";
+    assign("bio", descripcion);
+
+    try {
+      const preview = document.getElementById("profilePreview");
+      if (preview) {
+        const img = preview.querySelector("img");
+        const avatarUrl =
+          (ex.infoExperto && ex.infoExperto.avatarUrl) ||
+          ex.avatarUrl ||
+          ex.avatar ||
+          "";
+        if (img) img.src = avatarUrl || "";
+        const removeBtn = document.getElementById("removeProfileBtn");
+        if (removeBtn)
+          removeBtn.style.display = avatarUrl ? "inline-block" : "none";
+        preview.style.display = avatarUrl ? "block" : "none";
+        const avatarInput = document.getElementById("avatarUrl");
+        if (avatarInput) avatarInput.value = avatarUrl || "";
+      }
+    } catch (e) {}
+
+    try {
+      const bankKeys = [
+        "banco",
+        "tipoCuenta",
+        "numeroCuenta",
+        "titular",
+        "tipoDocumento",
+        "numeroDocumento",
+        "telefonoContacto",
+      ];
+      bankKeys.forEach((k) => {
+        try {
+          const el = document.getElementById(k);
+          if (!el) return;
+          const val =
+            (ex.infoExperto && typeof ex.infoExperto[k] !== "undefined"
+              ? ex.infoExperto[k]
+              : ex[k]) || "";
+          el.value = val;
+        } catch (e) {}
+      });
+    } catch (e) {}
+
+    try {
+      await loadAdminCategorias();
+      const categoriasEl = document.getElementById("categorias");
+      if (categoriasEl) {
+        const cats =
+          (ex.infoExperto &&
+            Array.isArray(ex.infoExperto.categorias) &&
+            ex.infoExperto.categorias) ||
+          ex.categorias ||
+          [];
+        const vals = (Array.isArray(cats) ? cats : []).map((c) => {
+          if (!c) return String(c);
+          if (typeof c === "object")
+            return String(
+              c._id || c.id || c.value || c.nombre || c.name || c.label || c
+            );
+          return String(c);
+        });
+        Array.from(categoriasEl.options).forEach((opt) => {
+          opt.selected = vals.indexOf(String(opt.value)) !== -1;
+        });
+        initializeChoicesOn(
+          "categorias",
+          {
+            removeItemButton: true,
+            searchEnabled: true,
+            placeholder: true,
+            placeholderValue: "Selecciona categorías",
+          },
+          "categorias"
+        );
+      }
+    } catch (e) {}
+
+    try {
+      const skillsEl = document.getElementById("skills");
+      if (skillsEl) {
+        const skillsArr =
+          (ex.infoExperto &&
+            Array.isArray(ex.infoExperto.skills) &&
+            ex.infoExperto.skills) ||
+          ex.skills ||
+          [];
+        skillsEl.innerHTML = "";
+        (Array.isArray(skillsArr) ? skillsArr : []).forEach((s) => {
+          try {
+            const opt = document.createElement("option");
+            if (typeof s === "object")
+              opt.value =
+                s.nombre || s.name || s._id || s.id || JSON.stringify(s);
+            else opt.value = s;
+            opt.textContent =
+              typeof s === "object"
+                ? s.nombre || s.name || s._id || s.id || String(opt.value)
+                : s;
+            opt.selected = true;
+            skillsEl.appendChild(opt);
+          } catch (e) {}
+        });
+        initializeChoicesOn(
+          "skills",
+          {
+            removeItemButton: true,
+            searchEnabled: true,
+            addItems: true,
+            placeholder: true,
+            placeholderValue: "Selecciona habilidades",
+          },
+          "skills"
+        );
+      }
+    } catch (e) {}
+
+    const form = document.getElementById("expertForm");
+    if (form) form.dataset.editId = expertoId;
+    try {
+      const titleEl = modal.querySelector(".modal-expert__title");
+      if (titleEl) titleEl.textContent = "Editar experto";
+    } catch (e) {}
+
+    modal.style.display = "flex";
+    document.body.style.overflow = "hidden";
+  } catch (err) {
+    console.error("openExpertEditModal error", err);
+    showMessage("No se pudo abrir el modal de edición", "error");
+  }
+}
+
+/**
  * Verifica o desverifica un experto.
  */
 async function cambiarVerificacionExperto(expertoId, verificado) {
@@ -1328,29 +1621,215 @@ function setupDelegatedActions() {
     const id = btn.dataset.id || (row && row.dataset.id);
 
     if (title === "Editar" || btn.classList.contains("expert-edit")) {
-      // rellenar modal editar con datos del experto
+      // Abrir el modal común de "Agregar/Editar" experto (#expertModal)
       const expertos = window._adminExpertos || [];
       const ex = expertos.find((x) => String(x._id) === String(id));
       if (!ex) return showMessage("Experto no encontrado", "error");
-      const modal = document.getElementById("editarExperto");
+      const modal = document.getElementById("expertModal");
       if (!modal) return;
-      // fill form using server-provided object (preferred) but keep safe fallbacks
-      document.getElementById("nombreExperto").value =
-        ex.nombre || ex.email || "";
-      document.getElementById("correoExperto").value = ex.email || "";
-      // Prefer infoExperto.especialidad if available
-      document.getElementById("especialidadExperto").value =
-        (ex.infoExperto && ex.infoExperto.especialidad) ||
-        ex.especialidad ||
-        "";
-      document.getElementById("estadoExperto").value = ex.estado || "activo";
-      document.getElementById("fechaRegistroExperto").value =
-        (ex.fechaRegistro || "").split("T")[0] || "";
-      document.getElementById("sesionesExperto").value = ex.sesionesCount || 0;
-      document.getElementById("calificacionExperto").value =
-        ex.calificacion || "";
-      const form = document.getElementById("formEditarExperto");
-      if (form) form.dataset.editId = id;
+
+      // Rellenar los campos del modal con la información registrada por el experto
+      try {
+        // Helper seguro para asignar values
+        const assign = (sel, value) => {
+          try {
+            const el = document.getElementById(sel);
+            if (!el) return;
+            if (typeof value === "undefined" || value === null) value = "";
+            if ("value" in el) el.value = value;
+            else el.textContent = String(value);
+          } catch (e) {}
+        };
+
+        assign("name", ex.nombre || ex.email || "");
+        assign("email", ex.email || "");
+
+        // Precio
+        const precioVal =
+          (ex.infoExperto &&
+            (ex.infoExperto.precioPorHora || ex.infoExperto.precio)) ||
+          ex.precioPorHora ||
+          ex.precio ||
+          "";
+        assign("precio", precioVal);
+
+        // Días disponibles
+        try {
+          const dias =
+            (ex.infoExperto && ex.infoExperto.diasDisponibles) ||
+            ex.diasDisponibles ||
+            [];
+          const diasEl = document.getElementById("diasDisponibles");
+          if (diasEl)
+            diasEl.value = Array.isArray(dias) ? dias.join(",") : dias || "";
+          const display = modal.querySelector(".srv-days-display");
+          if (display)
+            display.textContent =
+              Array.isArray(dias) && dias.length
+                ? dias.join(", ")
+                : "Ningún día seleccionado";
+          modal.querySelectorAll(".srv-day").forEach((b) => {
+            try {
+              const d = b.dataset.day;
+              b.setAttribute(
+                "aria-pressed",
+                Array.isArray(dias) && dias.indexOf(d) !== -1 ? "true" : "false"
+              );
+            } catch (e) {}
+          });
+        } catch (e) {}
+
+        // Especialidad, estado y bio/descripcion
+        assign(
+          "specialty",
+          (ex.infoExperto && ex.infoExperto.especialidad) ||
+            ex.especialidad ||
+            ""
+        );
+        assign("status", ex.estado || "active");
+        // registro uses 'descripcion' field name; modal uses 'bio'
+        const descripcion =
+          (ex.infoExperto &&
+            (ex.infoExperto.descripcion || ex.infoExperto.bio)) ||
+          ex.descripcion ||
+          ex.bio ||
+          "";
+        assign("bio", descripcion);
+
+        // Avatar / preview
+        try {
+          const preview = document.getElementById("profilePreview");
+          if (preview) {
+            const img = preview.querySelector("img");
+            const avatarUrl =
+              (ex.infoExperto && ex.infoExperto.avatarUrl) ||
+              ex.avatarUrl ||
+              ex.avatar ||
+              "";
+            if (img) img.src = avatarUrl || "";
+            const removeBtn = document.getElementById("removeProfileBtn");
+            if (removeBtn)
+              removeBtn.style.display = avatarUrl ? "inline-block" : "none";
+            preview.style.display = avatarUrl ? "block" : "none";
+            // set hidden avatarUrl input if present
+            const avatarInput = document.getElementById("avatarUrl");
+            if (avatarInput) avatarInput.value = avatarUrl || "";
+          }
+        } catch (e) {}
+
+        // Datos bancarios
+        try {
+          const bankKeys = [
+            "banco",
+            "tipoCuenta",
+            "numeroCuenta",
+            "titular",
+            "tipoDocumento",
+            "numeroDocumento",
+            "telefonoContacto",
+          ];
+          bankKeys.forEach((k) => {
+            try {
+              const el = document.getElementById(k);
+              if (!el) return;
+              const val =
+                (ex.infoExperto && typeof ex.infoExperto[k] !== "undefined"
+                  ? ex.infoExperto[k]
+                  : ex[k]) || "";
+              el.value = val;
+            } catch (e) {}
+          });
+        } catch (e) {}
+
+        // Categorías: asegurar opciones y marcar las seleccionadas
+        try {
+          await loadAdminCategorias();
+          const categoriasEl = document.getElementById("categorias");
+          if (categoriasEl) {
+            const cats =
+              (ex.infoExperto &&
+                Array.isArray(ex.infoExperto.categorias) &&
+                ex.infoExperto.categorias) ||
+              ex.categorias ||
+              [];
+            const vals = (Array.isArray(cats) ? cats : []).map((c) => {
+              if (!c) return String(c);
+              if (typeof c === "object")
+                return String(
+                  c._id || c.id || c.value || c.nombre || c.name || c.label || c
+                );
+              return String(c);
+            });
+            Array.from(categoriasEl.options).forEach((opt) => {
+              opt.selected = vals.indexOf(String(opt.value)) !== -1;
+            });
+            initializeChoicesOn(
+              "categorias",
+              {
+                removeItemButton: true,
+                searchEnabled: true,
+                placeholder: true,
+                placeholderValue: "Selecciona categorías",
+              },
+              "categorias"
+            );
+          }
+        } catch (e) {}
+
+        // Habilidades: reconstruir opciones seleccionadas y reiniciar Choices
+        try {
+          const skillsEl = document.getElementById("skills");
+          if (skillsEl) {
+            const skillsArr =
+              (ex.infoExperto &&
+                Array.isArray(ex.infoExperto.skills) &&
+                ex.infoExperto.skills) ||
+              ex.skills ||
+              [];
+            skillsEl.innerHTML = "";
+            (Array.isArray(skillsArr) ? skillsArr : []).forEach((s) => {
+              try {
+                const opt = document.createElement("option");
+                // si s es objeto intentar extraer nombre o id
+                if (typeof s === "object")
+                  opt.value =
+                    s.nombre || s.name || s._id || s.id || JSON.stringify(s);
+                else opt.value = s;
+                opt.textContent =
+                  typeof s === "object"
+                    ? s.nombre || s.name || s._id || s.id || String(opt.value)
+                    : s;
+                opt.selected = true;
+                skillsEl.appendChild(opt);
+              } catch (e) {}
+            });
+            initializeChoicesOn(
+              "skills",
+              {
+                removeItemButton: true,
+                searchEnabled: true,
+                addItems: true,
+                placeholder: true,
+                placeholderValue: "Selecciona habilidades",
+              },
+              "skills"
+            );
+          }
+        } catch (e) {}
+
+        // Indicar que el modal está en modo edición asignando edit id al form
+        const form = document.getElementById("expertForm");
+        if (form) form.dataset.editId = id;
+
+        // Ajustar título del modal para reflejar edición
+        try {
+          const titleEl = modal.querySelector(".modal-expert__title");
+          if (titleEl) titleEl.textContent = "Editar experto";
+        } catch (e) {}
+      } catch (e) {
+        console.warn("Error rellenando modal de edición:", e);
+      }
+
       modal.style.display = "flex";
       document.body.style.overflow = "hidden";
       return;
@@ -1360,22 +1839,211 @@ function setupDelegatedActions() {
       const expertos = window._adminExpertos || [];
       const ex = expertos.find((x) => String(x._id) === String(id));
       if (!ex) return showMessage("Experto no encontrado", "error");
-      document.getElementById("verNombreExperto").value =
-        ex.nombre || ex.email || "";
-      document.getElementById("verCorreoExperto").value = ex.email || "";
-      document.getElementById("verEspecialidadExperto").value =
-        (ex.infoExperto && ex.infoExperto.especialidad) ||
-        ex.especialidad ||
-        "";
-      document.getElementById("verEstadoExperto").value = ex.estado || "";
-      document.getElementById("verFechaRegistroExperto").value =
-        (ex.fechaRegistro || "").split("T")[0] || "";
-      document.getElementById("verSesionesExperto").value =
-        ex.sesionesCount || 0;
-      document.getElementById("verCalificacionExperto").value =
-        ex.calificacion || "";
+
+      // Mapear datos del experto a los campos del modal #verPerfilExperto
+      try {
+        const setIf = (idSel, val) => {
+          try {
+            const el = document.getElementById(idSel);
+            if (!el) return;
+            if (typeof val === "undefined" || val === null) val = "";
+            if ("value" in el) el.value = val;
+            else el.textContent = String(val);
+          } catch (e) {}
+        };
+
+        setIf("name", ex.nombre || ex.email || "");
+        setIf("email", ex.email || "");
+
+        // Precio por hora
+        const precioVal =
+          (ex.infoExperto &&
+            (ex.infoExperto.precioPorHora || ex.infoExperto.precio)) ||
+          ex.precioPorHora ||
+          "";
+        setIf("precio", precioVal);
+
+        // Días disponibles: oculto + botones visuales
+        try {
+          const dias =
+            (ex.infoExperto &&
+              Array.isArray(ex.infoExperto.diasDisponibles) &&
+              ex.infoExperto.diasDisponibles) ||
+            (Array.isArray(ex.diasDisponibles) && ex.diasDisponibles) ||
+            [];
+          const diasInput = document.getElementById("diasDisponibles");
+          if (diasInput)
+            diasInput.value = Array.isArray(dias) ? dias.join(",") : dias || "";
+          const display = document.querySelector(
+            "#verPerfilExperto .srv-days-display"
+          );
+          if (display)
+            display.textContent =
+              Array.isArray(dias) && dias.length > 0
+                ? dias.join(", ")
+                : "Ningún día seleccionado";
+          document
+            .querySelectorAll("#verPerfilExperto .srv-day")
+            .forEach((b) => {
+              try {
+                const d = b.dataset.day;
+                b.setAttribute(
+                  "aria-pressed",
+                  Array.isArray(dias) && dias.indexOf(d) !== -1
+                    ? "true"
+                    : "false"
+                );
+              } catch (e) {}
+            });
+        } catch (e) {}
+
+        // Especialidad y estado
+        setIf(
+          "specialty",
+          (ex.infoExperto && ex.infoExperto.especialidad) ||
+            ex.especialidad ||
+            ""
+        );
+        setIf("status", ex.estado || "");
+
+        // Biografía
+        setIf("bio", (ex.infoExperto && ex.infoExperto.descripcion) || "");
+
+        // Perfil / imagen
+        try {
+          const preview = document.getElementById("profilePreview");
+          if (preview) {
+            const img = preview.querySelector("img");
+            if (img) img.src = ex.avatarUrl || ex.avatar || "";
+            const removeBtn = document.getElementById("removeProfileBtn");
+            if (removeBtn)
+              removeBtn.style.display =
+                img && img.src ? "inline-block" : "none";
+            preview.style.display = img && img.src ? "block" : "none";
+          }
+        } catch (e) {}
+
+        // Datos bancarios (si existen)
+        try {
+          const bankFields = [
+            "banco",
+            "tipoCuenta",
+            "numeroCuenta",
+            "titular",
+            "tipoDocumento",
+            "numeroDocumento",
+            "telefonoContacto",
+          ];
+          bankFields.forEach((k) => {
+            try {
+              const el = document.getElementById(k);
+              if (!el) return;
+              const v =
+                ex.infoExperto && typeof ex.infoExperto[k] !== "undefined"
+                  ? ex.infoExperto[k]
+                  : ex[k];
+              if (typeof v !== "undefined" && v !== null) el.value = v;
+            } catch (e) {}
+          });
+        } catch (e) {}
+
+        // Categorías: asegurar opciones cargadas y marcar las seleccionadas
+        try {
+          await loadAdminCategorias();
+          const categoriasEl = document.getElementById("categorias");
+          if (categoriasEl) {
+            const cats =
+              (ex.infoExperto &&
+                Array.isArray(ex.infoExperto.categorias) &&
+                ex.infoExperto.categorias) ||
+              ex.categorias ||
+              [];
+            const vals = (Array.isArray(cats) ? cats : []).map((c) => {
+              if (!c) return String(c);
+              if (typeof c === "object")
+                return String(
+                  c._id || c.id || c.value || c.nombre || c.name || c.label || c
+                );
+              return String(c);
+            });
+            Array.from(categoriasEl.options).forEach((opt) => {
+              opt.selected = vals.indexOf(String(opt.value)) !== -1;
+            });
+            // Re-inicializar Choices para reflejar selección visual
+            initializeChoicesOn(
+              "categorias",
+              {
+                removeItemButton: true,
+                searchEnabled: true,
+                placeholder: true,
+                placeholderValue: "Selecciona categorías",
+              },
+              "categorias"
+            );
+          }
+        } catch (e) {}
+
+        // Habilidades: poblar select con las habilidades del experto
+        try {
+          const skillsEl = document.getElementById("skills");
+          if (skillsEl) {
+            const skillsArr =
+              (ex.infoExperto &&
+                Array.isArray(ex.infoExperto.skills) &&
+                ex.infoExperto.skills) ||
+              ex.skills ||
+              [];
+            // reconstruir opciones para mostrar las habilidades actuales
+            skillsEl.innerHTML = "";
+            (Array.isArray(skillsArr) ? skillsArr : []).forEach((s) => {
+              try {
+                const opt = document.createElement("option");
+                opt.value = s;
+                opt.textContent = s;
+                opt.selected = true;
+                skillsEl.appendChild(opt);
+              } catch (e) {}
+            });
+            initializeChoicesOn(
+              "skills",
+              {
+                removeItemButton: true,
+                searchEnabled: true,
+                addItems: true,
+                placeholder: true,
+                placeholderValue: "Selecciona habilidades",
+              },
+              "skills"
+            );
+          }
+        } catch (e) {}
+      } catch (e) {
+        console.warn("Error al rellenar modal de ver perfil:", e);
+      }
+
       const modalVer = document.getElementById("verPerfilExperto");
-      if (modalVer) modalVer.style.display = "flex";
+      if (modalVer) {
+        modalVer.style.display = "flex";
+        document.body.style.overflow = "hidden";
+        try {
+          // añadir botón 'Editar' en el footer temporalmente (si no existe)
+          const footer = modalVer.querySelector(".modal-expert__footer");
+          if (footer && !footer.querySelector(".ver-to-edit")) {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "btn-primary ver-to-edit";
+            btn.textContent = "Editar";
+            btn.addEventListener("click", function () {
+              try {
+                modalVer.style.display = "none";
+                document.body.style.overflow = "";
+              } catch (e) {}
+              openExpertEditModal(id);
+            });
+            footer.appendChild(btn);
+          }
+        } catch (e) {}
+      }
       return;
     }
 
@@ -1403,11 +2071,26 @@ function setupDelegatedActions() {
       const email = document.getElementById("email").value.trim();
       const specialty = document.getElementById("specialty").value;
       const status = document.getElementById("status").value;
-      const skills = document
-        .getElementById("skills")
-        .value.split(",")
-        .map((s) => s.trim())
-        .filter(Boolean);
+      let skills = [];
+      try {
+        const skillsEl = document.getElementById("skills");
+        if (skillsEl) {
+          // If Choices instance exists, use it
+          const inst =
+            window._choicesInstances && window._choicesInstances["skills"];
+          if (inst && typeof inst.getValue === "function")
+            skills = inst.getValue(true) || [];
+          else
+            skills = skillsEl.value
+              ? skillsEl.value
+                  .split(",")
+                  .map((s) => s.trim())
+                  .filter(Boolean)
+              : [];
+        }
+      } catch (e) {
+        skills = [];
+      }
       const bio = document.getElementById("bio").value.trim();
       // Build payload for registration. If the modal contains enough
       // expert-profile fields, include an `infoExperto` object so the
@@ -1531,11 +2214,68 @@ function setupDelegatedActions() {
         payload.infoExperto = Object.assign({}, maybeInfo);
       }
       try {
-        await agregarExperto(payload);
-        const modal = document.getElementById("expertModal");
-        if (modal) modal.style.display = "none";
+        // Si el form tiene dataset.editId -> modo edición: enviar PUT
+        const form = document.getElementById("expertForm");
+        const editId = form && form.dataset ? form.dataset.editId : null;
+        if (editId) {
+          // construir payload para actualizar
+          const putPayload = { infoExperto: {} };
+          if (specialty) putPayload.infoExperto.especialidad = specialty;
+          if (bio) putPayload.infoExperto.descripcion = bio;
+          if (skills && skills.length > 0)
+            putPayload.infoExperto.skills = skills;
+          // categorias (multiple)
+          try {
+            const catsSelect = document.getElementById("categorias");
+            if (catsSelect) {
+              if (catsSelect.multiple)
+                putPayload.infoExperto.categorias = Array.from(
+                  catsSelect.selectedOptions
+                ).map((o) => o.value);
+              else if (catsSelect.value)
+                putPayload.infoExperto.categorias = [catsSelect.value];
+            }
+          } catch (e) {}
+
+          // enviar PUT
+          try {
+            const headers = await getHeaders();
+            const res = await fetch(
+              `/api/usuarios/expertos/${encodeURIComponent(editId)}`,
+              {
+                method: "PUT",
+                headers: Object.assign(
+                  { "Content-Type": "application/json" },
+                  headers
+                ),
+                credentials: "same-origin",
+                body: JSON.stringify(putPayload),
+              }
+            );
+            if (!res.ok) {
+              let err = {};
+              try {
+                err = await res.json();
+              } catch (e) {}
+              throw new Error(
+                err.mensaje || err.message || "Error al actualizar experto"
+              );
+            }
+            showMessage("Experto actualizado", "success");
+            await loadExpertos();
+            const modal = document.getElementById("expertModal");
+            if (modal) modal.style.display = "none";
+          } catch (e) {
+            console.error(e);
+            showMessage(e.message || "Error al actualizar experto", "error");
+          }
+        } else {
+          await agregarExperto(payload);
+          const modal = document.getElementById("expertModal");
+          if (modal) modal.style.display = "none";
+        }
       } catch (err) {
-        // ya manejado por agregarExperto
+        // ya manejado por agregarExperto o arriba
       }
     });
   }
