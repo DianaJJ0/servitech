@@ -2307,6 +2307,27 @@ async function getHeaders() {
   return { "Content-Type": "application/json" };
 }
 
+// Conectar el botón guardar del modal al envío del formulario
+document.addEventListener("DOMContentLoaded", function () {
+  try {
+    const saveBtn = document.getElementById("saveExpert");
+    if (!saveBtn) return;
+    saveBtn.addEventListener("click", function (e) {
+      try {
+        const form = document.getElementById("expertForm");
+        if (!form) return;
+        if (typeof form.requestSubmit === "function") {
+          form.requestSubmit();
+        } else {
+          // fallback: dispatch submit event
+          const ev = new Event("submit", { bubbles: true, cancelable: true });
+          form.dispatchEvent(ev);
+        }
+      } catch (err) {}
+    });
+  } catch (e) {}
+});
+
 /**
  * Carga las categorías desde el backend y las guarda en window._adminCategorias.
  * También renderiza las opciones dentro del select #categorias del modal de experto.
