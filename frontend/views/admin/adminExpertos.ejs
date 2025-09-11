@@ -20,6 +20,18 @@
 </head>
 
 <body>
+  <script>
+    // Protección temprana: ocultar cualquier modal que el servidor haya renderizado visible
+    try {
+      (function () {
+        var mods = document.querySelectorAll && document.querySelectorAll('.modal-expert');
+        if (mods && mods.length) {
+          for (var i = 0; i < mods.length; i++) { try { mods[i].style.display = 'none'; mods[i].setAttribute('aria-hidden', 'true'); } catch (e) { } }
+        }
+        try { document.body.style.overflow = document.body.style.overflow || ''; } catch (e) { }
+      })();
+    } catch (e) { }
+  </script>
   <div class="admin-layout">
     <%- include('../componentes/navbarAdmin.ejs') %>
 
@@ -206,7 +218,7 @@
   </div>
 
   <!-- Modal para agregar experto -->
-  <div id="addExpertModal" class="modal-expert">
+  <div id="addExpertModal" class="modal-expert" aria-hidden="true" style="display:none;">
 
     <div class="modal-expert__container">
       <div class="modal-expert__header">
@@ -439,7 +451,7 @@
                       console.error('[diag] error:', e);
                     }
                   }
-                    document.addEventListener('DOMContentLoaded', function () {
+                  document.addEventListener('DOMContentLoaded', function () {
                     setTimeout(diag, 600);
                     // también vuelve a correr cuando se detecta interacción que puede abrir el modal
                     document.body.addEventListener('click', function (ev) {
@@ -751,8 +763,24 @@
     })();
   </script>
 
+  <!-- Ensure modals are hidden by default on page load to avoid flashes -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      try {
+        document.querySelectorAll('.modal-expert').forEach(function (m) {
+          try {
+            if (m && m.style) m.style.display = 'none';
+            m.setAttribute('aria-hidden', 'true');
+          } catch (e) { }
+        });
+        // restore body overflow in case server rendered a modal visible
+        document.body.style.overflow = document.body.style.overflow || '';
+      } catch (e) { }
+    });
+  </script>
+
   <!--modal editar experto-->
-  <div id="expertModal" class="modal-expert">
+  <div id="expertModal" class="modal-expert" aria-hidden="true" style="display:none;">
 
     <div class="modal-expert__container">
       <div class="modal-expert__header">
@@ -1219,7 +1247,7 @@
   </div>
 
   <!--modal ver perfil experto-->
-  <div id="verPerfilExperto" class="modal-expert">
+  <div id="verPerfilExperto" class="modal-expert" aria-hidden="true" style="display:none;">
 
     <div class="modal-expert__container">
       <div class="modal-expert__header">
