@@ -29,7 +29,7 @@
     "express": "^5.1.0",
     "express-session": "^1.18.2",
     "http-proxy-middleware": "^3.0.5",
-    "jsonwebtoken": "^9.0.2",
+    "jsonwebtoken": "^9.0.0",
     "mongoose": "^8.16.2",
     "multer": "^2.0.2",
     "node-cron": "^4.2.1",
@@ -39,6 +39,6 @@
   "devDependencies": {
     "nodemon": "^3.1.10",
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1"
+    "swagger-ui-express": "^4.6.3"
   }
 }

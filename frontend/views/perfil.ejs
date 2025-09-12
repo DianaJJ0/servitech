@@ -27,8 +27,8 @@
               <% // Ensure avatar URL points to backend uploads (avoid proxy 404). let
                 avatarSrc='/assets/img/default-avatar.png' ; if (user && (user.avatar || user.avatarUrl)) {
                 avatarSrc=user.avatar || user.avatarUrl; try { if (typeof avatarSrc==='string' &&
-                avatarSrc.indexOf('http://localhost:3001/uploads')===0) {
-                avatarSrc=avatarSrc.replace('http://localhost:3001','http://localhost:3000'); } } catch (e) {} } %>
+                avatarSrc.indexOf('http://localhost:5021/uploads')===0) {
+                avatarSrc=avatarSrc.replace('http://localhost:5021','http://localhost:5020'); } } catch (e) {} } %>
                 <img src="<%= avatarSrc %>" alt="Avatar de Usuario" id="profileAvatar">
                 <button class="change-avatar-btn">
                   <i class="fas fa-camera"></i>

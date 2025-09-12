@@ -24,4 +24,21 @@ const HabilidadSchema = new mongoose.Schema({
   },
 });
 
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     Habilidad:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *         nombre:
+ *           type: string
+ *         especialidadId:
+ *           type: string
+ *       required:
+ *         - nombre
+ */
+
 module.exports = mongoose.model("Habilidad", HabilidadSchema);

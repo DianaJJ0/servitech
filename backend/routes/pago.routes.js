@@ -5,7 +5,7 @@
 const express = require("express");
 const router = express.Router();
 const pagoController = require("../controllers/pago.controller.js");
-const authMiddleware = require("../middleware/auth.middleware.js");
+const authMiddleware = require("../middleware/auth.middleware");
 const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
 
 /**
@@ -13,6 +13,13 @@ const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
  * tags:
  *   - name: Pagos
  *     description: Gestión de pagos y transacciones
+ */
+
+/**
+ * @openapi
+ * tags:
+ *   - name: Pagos
+ *     description: Gestión de pagos
  */
 
 /**
@@ -56,7 +63,27 @@ const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
  *       409:
  *         description: Transacción duplicada
  */
-router.post("/", authMiddleware.protect, pagoController.crearPago);
+router.post("/", authMiddleware.autenticar, pagoController.crearPago);
+
+/**
+ * @openapi
+ * /api/pagos:
+ *   post:
+ *     tags: [Pagos]
+ *     summary: Procesar pago (requiere auth)
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Pago'
+ *     responses:
+ *       200:
+ *         description: Pago procesado
+ *       401:
+ *         description: No autenticado
+ */
 
 /**
  * @swagger
@@ -73,8 +100,8 @@ router.post("/", authMiddleware.protect, pagoController.crearPago);
 router.get(
   "/",
   apiKeyMiddleware,
-  authMiddleware.protect,
-  authMiddleware.esAdmin,
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("admin"),
   pagoController.obtenerPagos
 );
 
@@ -101,8 +128,8 @@ router.get(
 router.get(
   "/:id",
   apiKeyMiddleware,
-  authMiddleware.protect,
-  authMiddleware.esAdmin,
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("admin"),
   pagoController.obtenerPagoPorId
 );
 
@@ -143,8 +170,8 @@ router.get(
 router.put(
   "/:id/estado",
   apiKeyMiddleware,
-  authMiddleware.protect,
-  authMiddleware.esAdmin,
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("admin"),
   pagoController.actualizarEstadoPago
 );
 

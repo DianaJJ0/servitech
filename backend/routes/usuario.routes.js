@@ -174,7 +174,7 @@ router.post("/reset-password", usuarioController.resetearPassword);
  */
 router.get(
   "/perfil",
-  authMiddleware.protect,
+  authMiddleware.autenticar,
   usuarioController.obtenerPerfilUsuario
 );
 
@@ -200,14 +200,14 @@ router.get(
  */
 router.put(
   "/perfil",
-  authMiddleware.protect,
+  authMiddleware.autenticar,
   usuarioController.actualizarPerfilUsuario
 );
 
 // Ruta para subir avatar: multiparte (file 'avatar')
 router.post(
   "/avatar",
-  authMiddleware.protect,
+  authMiddleware.autenticar,
   upload.single("avatar"),
   usuarioController.subirAvatar
 );
@@ -228,7 +228,7 @@ router.post(
  */
 router.delete(
   "/perfil",
-  authMiddleware.protect,
+  authMiddleware.autenticar,
   usuarioController.eliminarUsuarioPropio
 );
 
@@ -273,8 +273,8 @@ router.delete(
  */
 router.get(
   "/",
-  authMiddleware.protect,
-  authMiddleware.esAdmin,
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("admin"),
   usuarioController.obtenerUsuarios
 );
 
@@ -303,8 +303,8 @@ router.get(
 router.get(
   "/:email",
   apiKeyMiddleware,
-  authMiddleware.protect,
-  authMiddleware.esAdmin,
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("admin"),
   usuarioController.obtenerUsuarioPorEmailAdmin
 );
 
@@ -338,8 +338,8 @@ router.get(
 router.put(
   "/:email",
   apiKeyMiddleware,
-  authMiddleware.protect,
-  authMiddleware.esAdmin,
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("admin"),
   usuarioController.actualizarUsuarioPorEmailAdmin
 );
 
@@ -367,9 +367,62 @@ router.put(
 router.delete(
   "/:email",
   apiKeyMiddleware,
-  authMiddleware.protect,
-  authMiddleware.esAdmin,
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("admin"),
   usuarioController.eliminarUsuarioPorAdmin
 );
 
+/**
+ * @openapi
+ * tags:
+ *   - name: Usuarios
+ *     description: Operaciones sobre usuarios
+ */
+/**
+ * @openapi
+ * /api/usuarios:
+ *   post:
+ *     tags: [Usuarios]
+ *     summary: Crear un nuevo usuario
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Usuario'
+ *     responses:
+ *       201:
+ *         description: Usuario creado
+ *   get:
+ *     tags: [Usuarios]
+ *     summary: Listar usuarios
+ *     responses:
+ *       200:
+ *         description: Lista de usuarios
+ * /api/usuarios/{id}:
+ *   get:
+ *     tags: [Usuarios]
+ *     summary: Obtener usuario por ID (requiere auth)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Usuario encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Usuario'
+ *       401:
+ *         description: No autenticado
+ *       403:
+ *         description: Acceso denegado
+ */
+
+// Rutas finales y export
 module.exports = router;

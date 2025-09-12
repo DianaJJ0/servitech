@@ -195,7 +195,7 @@ Editar `backend/.env` con tu editor favorito:
 
 ```ini
 # === CONFIGURACIÓN DEL SERVIDOR ===
-PORT=3000
+PORT=5020
 NODE_ENV=development
 
 # === BASE DE DATOS ===
@@ -213,8 +213,8 @@ EMAIL_USER=servitech.app.correo@gmail.com
 EMAIL_PASS=tu_contraseña_de_aplicacion_gmail
 
 # === URLS DE LA APLICACIÓN ===
-APP_URL=http://localhost:3000
-FRONTEND_URL=http://localhost:3001
+APP_URL=http://localhost:5020
+FRONTEND_URL=http://localhost:5021
 
 # === SEGURIDAD ===
 API_KEY=8g-X4JgECIPNcQ59tMN
@@ -285,3 +285,58 @@ servitech/
 │   ├── server.js ✅
 │   └── node_modules/ ✅
 ```
+
+---
+
+## 🔐 Visualizar Swagger UI protegido con token admin
+
+Estos pasos muestran cómo obtener un token admin y abrir la UI de Swagger protegida.
+
+Requisitos: el servidor backend está corriendo en http://localhost:5020 y existe un usuario admin.
+
+1. Obtener token (login)
+
+- En Git Bash / Linux / macOS ejecuta:
+
+  curl -s -H "Content-Type: application/json" -d '{"email":"servitech.app.correo@gmail.com","password":"Admin123"}' http://localhost:5020/api/usuarios/login
+
+- Respuesta (ejemplo):
+  {"mensaje":"Login exitoso.","token":"<TOKEN>","usuario":{...}}
+
+  Copia el valor del campo token (sin <>). Por ejemplo:
+  eyJhbGciOiJIUzI1NiI...
+
+2. Verificar que el token funciona (opcional)
+
+- Con curl verifica que puedes descargar la spec:
+
+  TOKEN="<TOKEN>"
+  curl -i -H "Authorization: Bearer $TOKEN" http://localhost:5020/api-docs.json
+
+- Si responde HTTP/1.1 200 verás el JSON de la especificación.
+
+3. Ver Swagger UI en el navegador (en tu máquina local)
+
+- Instala la extensión ModHeader (o similar) en tu navegador.
+- Abre la extensión y crea un header nuevo:
+  - Name: Authorization
+  - Value: Bearer <TOKEN>
+  - Opcional: filtra por URL: http://localhost:5020/\*
+- Asegúrate de activar el perfil (checkbox) y recarga: http://localhost:5020/api-docs
+- Ahora la UI debe cargarse (si ves 403 revisa que el token no haya expirado).
+
+4. Alternativa: abrir spec en editor externo
+
+- Si no quieres usar la extensión, descarga la spec con curl y ábrela en https://editor.swagger.io/
+
+  TOKEN="<TOKEN>"
+  curl -H "Authorization: Bearer $TOKEN" http://localhost:5020/api-docs.json -o spec.json
+
+  # Abrir spec.json en editor.swagger.io (Import File)
+
+5. Notas de seguridad y troubleshooting
+
+- En producción siempre exige HTTPS, autenticar y rol admin; no dejar tokens en extensiones públicas.
+- Si recibes "Formato de token inválido" o "Token inválido o expirado": genera un token nuevo con /api/usuarios/login.
+- Si recibes "Se requiere rol admin": verifica los roles del usuario en la BD o ejecuta login con un admin.
+- Si la UI se abre pero no permite ejecutar peticiones, es porque la opción "Try it out" está desactivada (configuración segura).

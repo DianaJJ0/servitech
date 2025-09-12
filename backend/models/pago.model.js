@@ -49,4 +49,31 @@ const pagoSchema = new Schema(
   }
 );
 
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     Pago:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *         usuarioId:
+ *           type: string
+ *         asesoríaId:
+ *           type: string
+ *         monto:
+ *           type: number
+ *           format: float
+ *         moneda:
+ *           type: string
+ *         estado:
+ *           type: string
+ *         metodo:
+ *           type: string
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ */
+
 module.exports = mongoose.model("Pago", pagoSchema);
