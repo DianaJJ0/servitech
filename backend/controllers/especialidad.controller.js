@@ -5,6 +5,29 @@
 const Especialidad = require("../models/especialidad.model");
 
 /**
+ * @openapi
+ * tags:
+ *   - name: Especialidades
+ *     description: Gestión de especialidades
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ErrorResponse:
+ *       type: object
+ *       properties:
+ *         error:
+ *           type: string
+ *         message:
+ *           type: string
+ *       required:
+ *         - error
+ *         - message
+ */
+
+/**
  * Lista todas las especialidades
  * @param {Object} req - Request object
  * @param {Object} res - Response object
@@ -19,6 +42,66 @@ const getAll = async (req, res) => {
   }
 };
 
+/**
+ * @openapi
+ * /api/especialidades:
+ *   get:
+ *     tags: [Especialidades]
+ *     summary: Listar especialidades
+ *     responses:
+ *       200:
+ *         description: Lista de especialidades
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Especialidad'
+ *       500:
+ *         description: Error interno
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+
+/**
+ * Crear especialidad.
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @openapi
+ * /api/especialidades:
+ *   post:
+ *     tags: [Especialidades]
+ *     summary: Crear especialidad
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Especialidad'
+ *     responses:
+ *       201:
+ *         description: Especialidad creada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Especialidad'
+ *       400:
+ *         description: Petición inválida
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       409:
+ *         description: Recurso ya existe
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 /**
  * Crea una nueva especialidad
  * @param {Object} req - Request object
@@ -80,6 +163,38 @@ const update = async (req, res) => {
     res.status(500).json({ mensaje: "Error al actualizar especialidad." });
   }
 };
+
+/**
+ * @openapi
+ * /api/especialidades/{id}:
+ *   put:
+ *     tags: [Especialidades]
+ *     summary: Actualizar especialidad
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Especialidad'
+ *     responses:
+ *       200:
+ *         description: Especialidad actualizada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Especialidad'
+ *       400:
+ *         description: Petición inválida
+ *       404:
+ *         description: Recurso no encontrado
+ */
 
 /**
  * Elimina una especialidad por ID

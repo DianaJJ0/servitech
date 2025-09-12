@@ -129,4 +129,38 @@ asesoriaSchema.index({ "cliente.email": 1, fechaHoraInicio: -1 });
 asesoriaSchema.index({ "experto.email": 1, fechaHoraInicio: -1 });
 asesoriaSchema.index({ estado: 1, fechaHoraInicio: 1 });
 
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     Asesoria:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *         titulo:
+ *           type: string
+ *         descripcion:
+ *           type: string
+ *         usuarioId:
+ *           type: string
+ *         expertoId:
+ *           type: string
+ *         precio:
+ *           type: number
+ *           format: float
+ *         estado:
+ *           type: string
+ *           description: Estado de la asesoría (pendiente, aceptada, finalizada, cancelada)
+ *         calificacion:
+ *           type: number
+ *           format: float
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *       required:
+ *         - titulo
+ *         - usuarioId
+ */
+
 module.exports = mongoose.model("Asesoria", asesoriaSchema);

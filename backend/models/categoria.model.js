@@ -85,4 +85,21 @@ const categoriaSchema = new Schema(
   }
 );
 
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     Categoria:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *         nombre:
+ *           type: string
+ *         descripcion:
+ *           type: string
+ *       required:
+ *         - nombre
+ */
+
 module.exports = mongoose.model("Categoria", categoriaSchema);

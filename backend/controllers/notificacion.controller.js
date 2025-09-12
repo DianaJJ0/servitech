@@ -6,10 +6,54 @@ const Notificacion = require("../models/notificacion.model.js");
 const Usuario = require("../models/usuario.model.js");
 
 /**
+ * @openapi
+ * tags:
+ *   - name: Notificaciones
+ *     description: Gestión de notificaciones y webhooks
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ErrorResponse:
+ *       type: object
+ *       properties:
+ *         error:
+ *           type: string
+ *         message:
+ *           type: string
+ *       required:
+ *         - error
+ *         - message
+ */
+
+/**
  * Registra una nueva notificación
  * @param {Object} req - Request object
  * @param {Object} res - Response object
  * @returns {Promise<void>}
+ * @openapi
+ * /api/notificaciones:
+ *   post:
+ *     tags: [Notificaciones]
+ *     summary: Enviar notificación
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Notificacion'
+ *     responses:
+ *       200:
+ *         description: Notificación enviada
+ *       400:
+ *         description: Petición inválida
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 const crearNotificacion = async (req, res) => {
   try {

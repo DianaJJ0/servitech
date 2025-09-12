@@ -1,7 +1,7 @@
 /**
- * @file Configuración de la base de datos MongoDB
+ * Configuración y utilidades de conexión a la base de datos.
+ *
  * @module config/database
- * @description Se encarga de establecer la conexión con MongoDB utilizando Mongoose.
  */
 const mongoose = require("mongoose");
 
@@ -9,12 +9,20 @@ const mongoose = require("mongoose");
 const MONGO_URI = process.env.MONGO_URI;
 
 /**
- * Establece la conexión con la base de datos MongoDB
+ * Opciones de conexión a la base de datos.
+ * @typedef {Object} DBConfig
+ * @property {string} uri - URI de conexión a MongoDB
+ * @property {Object} [options] - Opciones adicionales para el cliente de MongoDB
+ */
+
+/**
+ * Inicializa la conexión a la base de datos.
  * @async
- * @function conectarDB
+ * @function connectDatabase
+ * @param {DBConfig} config - Configuración de la base de datos
+ * @returns {Promise<void>} Resuelve cuando la conexión está establecida
  * @description Conecta a MongoDB usando la URI de las variables de entorno
  * @throws {Error} Termina el proceso si no puede conectar
- * @returns {Promise<void>}
  * @example
  * // En app.js
  * const conectarDB = require('./config/database');
