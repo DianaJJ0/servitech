@@ -6,7 +6,7 @@ const express = require("express");
 const router = express.Router();
 
 const categoriaController = require("../controllers/categoria.controller.js");
-const authMiddleware = require("../middleware/auth.middleware.js");
+const authMiddleware = require("../middleware/auth.middleware");
 const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
 
 /**
@@ -64,8 +64,8 @@ router.get("/", categoriaController.obtenerCategorias);
 router.post(
   "/",
   apiKeyMiddleware,
-  authMiddleware.protegerRuta,
-  authMiddleware.esAdmin,
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("admin"),
   categoriaController.crearCategoria
 );
 
@@ -103,8 +103,8 @@ router.post(
 router.put(
   "/:id",
   apiKeyMiddleware,
-  authMiddleware.protegerRuta,
-  authMiddleware.esAdmin,
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("admin"),
   categoriaController.actualizarCategoria
 );
 
@@ -131,9 +131,43 @@ router.put(
 router.delete(
   "/:id",
   apiKeyMiddleware,
-  authMiddleware.protegerRuta,
-  authMiddleware.esAdmin,
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("admin"),
   categoriaController.eliminarCategoria
 );
 
+/**
+ * @openapi
+ * tags:
+ *   - name: Categorias
+ *     description: Gestión de categorías
+ */
+
+/**
+ * @openapi
+ * /api/categorias:
+ *   get:
+ *     tags: [Categorias]
+ *     summary: Obtener categorias
+ *     responses:
+ *       200:
+ *         description: Lista de categorias
+ *   post:
+ *     tags: [Categorias]
+ *     summary: Crear categoría (requiere rol admin)
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Categoria'
+ *     responses:
+ *       201:
+ *         description: Categoría creada
+ *       401:
+ *         description: No autenticado
+ *       403:
+ *         description: Requiere rol admin
+ */
 module.exports = router;

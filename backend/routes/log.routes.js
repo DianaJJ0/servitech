@@ -4,8 +4,8 @@
  */
 const express = require("express");
 const router = express.Router();
-const logController = require("../controllers/log.controller.js");
-const authMiddleware = require("../middleware/auth.middleware.js");
+const logController = require("../controllers/log.controller");
+const authMiddleware = require("../middleware/auth.middleware");
 const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
 
 /**
@@ -53,7 +53,7 @@ const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
  *       400:
  *         description: Datos faltantes
  */
-router.post("/", authMiddleware.protect, logController.crearLog);
+router.post("/", authMiddleware.autenticar, logController.crearLog);
 
 /**
  * @swagger
@@ -69,9 +69,8 @@ router.post("/", authMiddleware.protect, logController.crearLog);
  */
 router.get(
   "/",
-  apiKeyMiddleware,
-  authMiddleware.protect,
-  authMiddleware.esAdmin,
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("admin"),
   logController.obtenerLogs
 );
 
@@ -98,9 +97,38 @@ router.get(
 router.get(
   "/:id",
   apiKeyMiddleware,
-  authMiddleware.protect,
-  authMiddleware.esAdmin,
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("admin"),
   logController.obtenerLogPorId
 );
+
+/**
+ * @openapi
+ * tags:
+ *   - name: Logs
+ *     description: Consultas sobre logs
+ */
+
+/**
+ * @openapi
+ * /api/logs:
+ *   get:
+ *     tags: [Logs]
+ *     summary: Obtener logs (requiere rol admin)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: nivel
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Lista de logs
+ *       401:
+ *         description: No autenticado
+ *       403:
+ *         description: Requiere rol admin
+ */
 
 module.exports = router;

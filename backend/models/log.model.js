@@ -35,4 +35,24 @@ const logSchema = new Schema(
   }
 );
 
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     LogEntry:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *         nivel:
+ *           type: string
+ *         mensaje:
+ *           type: string
+ *         meta:
+ *           type: object
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ */
+
 module.exports = mongoose.model("Log", logSchema);

@@ -52,7 +52,7 @@ async function main() {
       titular: "Titular por defecto",
       tipoDocumento: "DNI",
       numeroDocumento: "00000000",
-      telefonoContacto: "3000000000",
+      telefonoContacto: "5020000000",
       diasDisponibles: ["Lunes", "Miercoles", "Viernes"],
     });
 

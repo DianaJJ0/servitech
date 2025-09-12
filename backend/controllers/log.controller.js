@@ -6,6 +6,29 @@ const Log = require("../models/log.model.js");
 const Usuario = require("../models/usuario.model.js");
 
 /**
+ * @openapi
+ * tags:
+ *   - name: Logs
+ *     description: Consultas y gestión de logs
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ErrorResponse:
+ *       type: object
+ *       properties:
+ *         error:
+ *           type: string
+ *         message:
+ *           type: string
+ *       required:
+ *         - error
+ *         - message
+ */
+
+/**
  * Registra un nuevo log en el sistema
  * @param {Object} req - Request object
  * @param {Object} res - Response object
@@ -72,6 +95,26 @@ const obtenerLogPorId = async (req, res) => {
       .json({ mensaje: "Error al buscar log.", error: error.message });
   }
 };
+
+/**
+ * Obtener logs filtrados.
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @openapi
+ * /api/logs:
+ *   get:
+ *     tags: [Logs]
+ *     summary: Obtener logs
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de logs
+ *       401:
+ *         description: No autenticado
+ *       403:
+ *         description: Requiere rol admin
+ */
 
 module.exports = {
   crearLog,

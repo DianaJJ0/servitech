@@ -26,7 +26,7 @@ const path = require("path");
 const crypto = require("crypto");
 const { createProxyMiddleware } = require("http-proxy-middleware");
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 5021;
 
 // Simple in-memory SSE client registry to notify browsers of changes (dev use)
 const _sseClients = new Set();
@@ -134,7 +134,7 @@ app.use("/api", async (req, res) => {
     import("node-fetch").then(({ default: fetch }) => fetch(...args));
 
   try {
-    const targetUrl = `http://localhost:3000/api${req.url}`;
+    const targetUrl = `http://localhost:5020/api${req.url}`;
     console.log(`Proxy manual: ${req.method} ${req.url} -> ${targetUrl}`);
 
     // Enforce CSRF for state-changing requests (POST/PUT/DELETE/PATCH)
@@ -269,7 +269,7 @@ app.use("/api", async (req, res) => {
           // No email to target, return registration result
           return res.status(regRes.status).json(regData);
         }
-        const putUrl = `http://localhost:3000/api/usuarios/${email}`;
+        const putUrl = `http://localhost:5020/api/usuarios/${email}`;
 
         // Ensure outboundHeaders contains x-api-key (it should for admin sessions)
         const putHeaders = Object.assign({}, outboundHeaders);
@@ -385,7 +385,7 @@ app.use("/api", async (req, res) => {
 });
 
 // Proxy para servir archivos de uploads desde el backend
-// Esto permite que URLs como http://localhost:3001/uploads/... funcionen
+// Esto permite que URLs como http://localhost:5021/uploads/... funcionen
 // Debug logger for uploads requests (temporary)
 app.use("/uploads", (req, res, next) => {
   try {
@@ -395,7 +395,7 @@ app.use("/uploads", (req, res, next) => {
 });
 // In development it's simpler and more reliable to serve the backend's
 // uploads directory directly from the frontend server so URLs at
-// http://localhost:3001/uploads/<file> work without depending on the
+// http://localhost:5021/uploads/<file> work without depending on the
 // proxy. This avoids subtle proxy/connectivity issues during local dev.
 const backendUploads = path.join(__dirname, "..", "backend", "uploads");
 try {
@@ -423,7 +423,7 @@ app.post("/dev/create-admin-session", async (req, res) => {
       import("node-fetch").then(({ default: fetch }) => fetch(...args));
     // Forward request body to backend dev route which creates admin and returns token
     const backendRes = await fetch(
-      "http://localhost:3000/api/dev/create-admin",
+      "http://localhost:5020/api/dev/create-admin",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -505,7 +505,7 @@ app.post("/set-session", (req, res) => {
             import("node-fetch").then(({ default: fetch }) => fetch(...args));
           try {
             const loginRes = await fetch(
-              "http://localhost:3000/api/usuarios/login",
+              "http://localhost:5020/api/usuarios/login",
               {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -555,7 +555,7 @@ app.post("/set-session", (req, res) => {
             const fetch = (...args) =>
               import("node-fetch").then(({ default: fetch }) => fetch(...args));
             const devRes = await fetch(
-              "http://localhost:3000/api/dev/create-admin",
+              "http://localhost:5020/api/dev/create-admin",
               {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -661,24 +661,24 @@ app.get("/perfil", async (req, res) => {
       import("node-fetch").then(({ default: fetch }) => fetch(...args));
     try {
       const perfilRes = await fetch(
-        "http://localhost:3000/api/usuarios/perfil",
+        "http://localhost:5020/api/usuarios/perfil",
         {
           headers: { Authorization: `Bearer ${req.session.user.token}` },
         }
       );
       if (perfilRes.ok) {
         const user = await perfilRes.json();
-        // Normalizar avatarUrl que pudiera apuntar al proxy (localhost:3001)
+        // Normalizar avatarUrl que pudiera apuntar al proxy (localhost:5021)
         try {
           if (
             user &&
             user.avatarUrl &&
             typeof user.avatarUrl === "string" &&
-            user.avatarUrl.indexOf("http://localhost:3001/uploads") === 0
+            user.avatarUrl.indexOf("http://localhost:5021/uploads") === 0
           ) {
             user.avatarUrl = user.avatarUrl.replace(
-              "http://localhost:3001",
-              "http://localhost:3000"
+              "http://localhost:5021",
+              "http://localhost:5020"
             );
           }
         } catch (e) {}
@@ -719,7 +719,7 @@ app.get("/expertos.html", async (req, res) => {
     totalPages = 1,
     baseQuery = "";
   try {
-    const catRes = await fetch("http://localhost:3000/api/categorias");
+    const catRes = await fetch("http://localhost:5020/api/categorias");
     categorias = catRes.ok ? await catRes.json() : [];
     // Pedimos la lista de expertos al endpoint correcto (/api/usuarios/expertos)
     // que devuelve { expertos: [...], total }.
@@ -729,7 +729,7 @@ app.get("/expertos.html", async (req, res) => {
     // Si querés permitir override, cambiar aquí para leer de req.query.limit con límites razonables.
     limit = 6;
     // Construir URL del API pasando página y límite
-    const apiUrl = `http://localhost:3000/api/expertos?page=${page}&limit=${limit}`;
+    const apiUrl = `http://localhost:5020/api/expertos?page=${page}&limit=${limit}`;
     const expRes = await fetch(apiUrl);
     if (expRes && expRes.ok) {
       const tmp = await expRes.json().catch(() => null);
@@ -786,11 +786,11 @@ app.get("/registroExperto", async (req, res) => {
     especialidades = [],
     habilidades = [];
   try {
-    const catRes = await fetch("http://localhost:3000/api/categorias");
+    const catRes = await fetch("http://localhost:5020/api/categorias");
     categorias = catRes.ok ? await catRes.json() : [];
-    const espRes = await fetch("http://localhost:3000/api/especialidades");
+    const espRes = await fetch("http://localhost:5020/api/especialidades");
     especialidades = espRes.ok ? await espRes.json() : [];
-    const habRes = await fetch("http://localhost:3000/api/habilidades");
+    const habRes = await fetch("http://localhost:5020/api/habilidades");
     habilidades = habRes.ok ? await habRes.json() : [];
   } catch {}
   res.render("registroExperto", {
@@ -815,11 +815,11 @@ app.get("/registroExperto.html", async (req, res) => {
     especialidades = [],
     habilidades = [];
   try {
-    const catRes = await fetch("http://localhost:3000/api/categorias");
+    const catRes = await fetch("http://localhost:5020/api/categorias");
     categorias = catRes.ok ? await catRes.json() : [];
-    const espRes = await fetch("http://localhost:3000/api/especialidades");
+    const espRes = await fetch("http://localhost:5020/api/especialidades");
     especialidades = espRes.ok ? await espRes.json() : [];
-    const habRes = await fetch("http://localhost:3000/api/habilidades");
+    const habRes = await fetch("http://localhost:5020/api/habilidades");
     habilidades = habRes.ok ? await habRes.json() : [];
   } catch {}
   res.render("registroExperto", {
@@ -845,18 +845,18 @@ app.get("/editarExperto", async (req, res) => {
   try {
     if (req.session.user && req.session.user.token) {
       const perfilRes = await fetch(
-        "http://localhost:3000/api/usuarios/perfil",
+        "http://localhost:5020/api/usuarios/perfil",
         {
           headers: { Authorization: `Bearer ${req.session.user.token}` },
         }
       );
       if (perfilRes.ok) experto = await perfilRes.json();
     }
-    const catRes = await fetch("http://localhost:3000/api/categorias");
+    const catRes = await fetch("http://localhost:5020/api/categorias");
     categorias = catRes.ok ? await catRes.json() : [];
-    const espRes = await fetch("http://localhost:3000/api/especialidades");
+    const espRes = await fetch("http://localhost:5020/api/especialidades");
     especialidades = espRes.ok ? await espRes.json() : [];
-    const habRes = await fetch("http://localhost:3000/api/habilidades");
+    const habRes = await fetch("http://localhost:5020/api/habilidades");
     habilidades = habRes.ok ? await habRes.json() : [];
   } catch {}
   res.render("editarExpertos", {
@@ -884,7 +884,7 @@ app.post("/editarExperto", async (req, res) => {
     }
     const fetch = (...args) =>
       import("node-fetch").then(({ default: fetch }) => fetch(...args));
-    const response = await fetch("http://localhost:3000/api/usuarios/perfil", {
+    const response = await fetch("http://localhost:5020/api/usuarios/perfil", {
       method: "PUT",
       headers: {
         Authorization: `Bearer ${req.session.user.token}`,
@@ -898,11 +898,11 @@ app.post("/editarExperto", async (req, res) => {
     }
     const perfilActualizado = await response.json();
     // Obtener nuevas opciones
-    const catRes = await fetch("http://localhost:3000/api/categorias");
+    const catRes = await fetch("http://localhost:5020/api/categorias");
     const categorias = catRes.ok ? await catRes.json() : [];
-    const espRes = await fetch("http://localhost:3000/api/especialidades");
+    const espRes = await fetch("http://localhost:5020/api/especialidades");
     const especialidades = espRes.ok ? await espRes.json() : [];
-    const habRes = await fetch("http://localhost:3000/api/habilidades");
+    const habRes = await fetch("http://localhost:5020/api/habilidades");
     const habilidades = habRes.ok ? await habRes.json() : [];
     res.render("editarExpertos", {
       experto: perfilActualizado,
@@ -942,7 +942,7 @@ app.get("/admin/adminExpertos", requireAdmin, async (req, res) => {
   let habilidades = [];
   let initialExpertos = [];
   try {
-    const habRes = await fetch("http://localhost:3000/api/habilidades");
+    const habRes = await fetch("http://localhost:5020/api/habilidades");
     habilidades = habRes.ok ? await habRes.json() : [];
   } catch (e) {
     habilidades = [];
@@ -950,7 +950,7 @@ app.get("/admin/adminExpertos", requireAdmin, async (req, res) => {
   // Obtener categorías para filtros
   let categorias = [];
   try {
-    const catRes = await fetch("http://localhost:3000/api/categorias");
+    const catRes = await fetch("http://localhost:5020/api/categorias");
     categorias = catRes.ok ? await catRes.json() : [];
   } catch (e) {
     habilidades = [];
@@ -962,7 +962,7 @@ app.get("/admin/adminExpertos", requireAdmin, async (req, res) => {
       process.env.ALLOW_DEV_ROUTES !== "false"
     ) {
       const devRes = await fetch(
-        "http://localhost:3000/api/dev/expertos-populados?limit=50"
+        "http://localhost:5020/api/dev/expertos-populados?limit=50"
       );
       if (devRes && devRes.ok) {
         const devJson = await devRes.json();
@@ -1049,7 +1049,7 @@ app.get("/admin/adminExpertos", requireAdmin, async (req, res) => {
       req.session.user.roles.includes("admin")
     ) {
       const proxyRes = await fetch(
-        "http://localhost:3001/api/usuarios/expertos?limit=50",
+        "http://localhost:5021/api/usuarios/expertos?limit=50",
         {
           headers: { Cookie: req.headers.cookie || "" },
         }
@@ -1100,7 +1100,7 @@ app.get("/dev/admin/adminExpertos", async (req, res) => {
   let habilidades = [];
   let initialExpertos = [];
   try {
-    const habRes = await fetch("http://localhost:3000/api/habilidades");
+    const habRes = await fetch("http://localhost:5020/api/habilidades");
     habilidades = habRes.ok ? await habRes.json() : [];
   } catch (e) {
     habilidades = [];
@@ -1108,7 +1108,7 @@ app.get("/dev/admin/adminExpertos", async (req, res) => {
 
   try {
     const devRes = await fetch(
-      "http://localhost:3000/api/dev/expertos-populados?limit=50"
+      "http://localhost:5020/api/dev/expertos-populados?limit=50"
     );
     if (devRes && devRes.ok) {
       const devJson = await devRes.json();
