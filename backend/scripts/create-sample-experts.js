@@ -62,7 +62,7 @@ async function main() {
           titular: `Expert Demo ${i}`,
           tipoDocumento: "DNI",
           numeroDocumento: `0000000${i}`,
-          telefonoContacto: `30000000${i}`,
+          telefonoContacto: `50200000${i}`,
           diasDisponibles: ["Lunes", "Miercoles", "Viernes"],
         },
         fechaRegistro: new Date(),

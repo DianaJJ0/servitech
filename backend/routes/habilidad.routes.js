@@ -6,18 +6,18 @@ const express = require("express");
 const router = express.Router();
 
 const habilidadController = require("../controllers/habilidad.controller");
-const authMiddleware = require("../middleware/auth.middleware.js");
+const authMiddleware = require("../middleware/auth.middleware");
 const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
 
 /**
- * @swagger
+ * @openapi
  * tags:
  *   - name: Habilidades
  *     description: Gestión de habilidades tecnológicas
  */
 
 /**
- * @swagger
+ * @openapi
  * /api/habilidades:
  *   get:
  *     summary: Listar habilidades
@@ -25,11 +25,27 @@ const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
  *     responses:
  *       200:
  *         description: Lista de habilidades
+ *   post:
+ *     tags: [Habilidades]
+ *     summary: Crear habilidad (requiere rol admin)
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Habilidad'
+ *     responses:
+ *       201:
+ *         description: Habilidad creada
+ *       401:
+ *         description: No autenticado
+ *       403:
+ *         description: Requiere rol admin
  */
-router.get("/", habilidadController.getAll);
 
 /**
- * @swagger
+ * @openapi
  * /api/habilidades:
  *   post:
  *     summary: Crear habilidad (admin)
@@ -58,13 +74,13 @@ router.get("/", habilidadController.getAll);
 router.post(
   "/",
   apiKeyMiddleware,
-  authMiddleware.protect,
-  authMiddleware.esAdmin,
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("admin"),
   habilidadController.create
 );
 
 /**
- * @swagger
+ * @openapi
  * /api/habilidades/{id}:
  *   put:
  *     summary: Actualizar habilidad (admin)
@@ -86,13 +102,13 @@ router.post(
 router.put(
   "/:id",
   apiKeyMiddleware,
-  authMiddleware.protect,
-  authMiddleware.esAdmin,
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("admin"),
   habilidadController.update
 );
 
 /**
- * @swagger
+ * @openapi
  * /api/habilidades/{id}:
  *   delete:
  *     summary: Eliminar habilidad (admin)
@@ -114,8 +130,8 @@ router.put(
 router.delete(
   "/:id",
   apiKeyMiddleware,
-  authMiddleware.protect,
-  authMiddleware.esAdmin,
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("admin"),
   habilidadController.remove
 );
 

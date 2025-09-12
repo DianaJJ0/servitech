@@ -6,8 +6,8 @@
 const express = require("express");
 const router = express.Router();
 
-const expertoController = require("../controllers/experto.controller.js");
-const authMiddleware = require("../middleware/auth.middleware.js");
+const expertoController = require("../controllers/experto.controller");
+const authMiddleware = require("../middleware/auth.middleware");
 const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
 
 /**
@@ -15,6 +15,13 @@ const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
  * tags:
  *   - name: Expertos
  *     description: Gestión de perfiles de expertos
+ */
+
+/**
+ * @openapi
+ * tags:
+ *   - name: Expertos
+ *     description: Gestión de expertos
  */
 
 /**
@@ -60,7 +67,7 @@ const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
  *       200:
  *         description: Lista de expertos
  */
-router.get("/", authMiddleware.protect, expertoController.listarExpertos);
+router.get("/", authMiddleware.autenticar, expertoController.listarExpertos);
 
 /**
  * @swagger
@@ -85,8 +92,8 @@ router.get("/", authMiddleware.protect, expertoController.listarExpertos);
 router.get(
   "/:email",
   apiKeyMiddleware,
-  authMiddleware.protect,
-  authMiddleware.esAdmin,
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("admin"),
   expertoController.obtenerExpertoPorEmail
 );
 
@@ -113,8 +120,8 @@ router.get(
 router.delete(
   "/:email",
   apiKeyMiddleware,
-  authMiddleware.protect,
-  authMiddleware.esAdmin,
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("admin"),
   expertoController.eliminarExpertoPorEmail
 );
 
@@ -157,7 +164,7 @@ router.delete(
  */
 router.put(
   "/perfil",
-  authMiddleware.protect,
+  authMiddleware.autenticar,
   expertoController.actualizarPerfilExperto
 );
 

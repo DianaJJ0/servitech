@@ -8,10 +8,54 @@ const Notificacion = require("../models/notificacion.model.js");
 const Log = require("../models/log.model.js");
 
 /**
+ * @openapi
+ * tags:
+ *   - name: Pagos
+ *     description: Integración y gestión de pagos
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ErrorResponse:
+ *       type: object
+ *       properties:
+ *         error:
+ *           type: string
+ *         message:
+ *           type: string
+ *       required:
+ *         - error
+ *         - message
+ */
+
+/**
  * Registra un nuevo pago en el sistema
  * @param {Object} req - Request object
  * @param {Object} res - Response object
  * @returns {Promise<void>}
+ * @openapi
+ * /api/pagos:
+ *   post:
+ *     tags: [Pagos]
+ *     summary: Procesar pago
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Pago'
+ *     responses:
+ *       200:
+ *         description: Pago procesado
+ *       400:
+ *         description: Petición inválida
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 const crearPago = async (req, res) => {
   try {

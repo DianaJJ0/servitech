@@ -10,6 +10,29 @@ const Log = require("../models/log.model.js");
 const { enviarCorreo } = require("../services/email.service.js");
 
 /**
+ * @openapi
+ * tags:
+ *   - name: Asesorias
+ *     description: Gestión de asesorías (creación, actualización, consultas)
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ErrorResponse:
+ *       type: object
+ *       properties:
+ *         error:
+ *           type: string
+ *         message:
+ *           type: string
+ *       required:
+ *         - error
+ *         - message
+ */
+
+/**
  * Recalcula el promedio de calificaciones para un experto
  * @param {string} expertoEmail - Email del experto
  * @returns {Promise<void>}
@@ -47,6 +70,37 @@ const recalcularPromedioExperto = async (expertoEmail) => {
   }
 };
 
+/**
+ * Crear una asesoría.
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @openapi
+ * /api/asesorias:
+ *   post:
+ *     tags: [Asesorias]
+ *     summary: Crear asesoría
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Asesoria'
+ *     responses:
+ *       201:
+ *         description: Asesoría creada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Asesoria'
+ *       400:
+ *         description: Petición inválida
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 /**
  * Crea una nueva asesoría con pago asociado
  * @param {Object} req - Request object
@@ -414,6 +468,25 @@ const listarPorExperto = async (req, res) => {
   }
 };
 
+/**
+ * Obtener una asesoría por id.
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @openapi
+ * /api/asesorias/{id}:
+ *   get:
+ *     tags: [Asesorias]
+ *     summary: Obtener asesoría por ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Asesoría encontrada
+ */
 /**
  * Obtiene una asesoría por su ID
  * @param {Object} req - Request object
