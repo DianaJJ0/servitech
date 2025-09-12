@@ -5,6 +5,7 @@
 const Usuario = require("../models/usuario.model.js");
 const Especialidad = require("../models/especialidad.model.js");
 const mongoose = require("mongoose");
+const generarLogs = require("../services/generarLogs");
 
 /**
  * @openapi
@@ -203,6 +204,14 @@ const listarExpertos = async (req, res) => {
     res.json({ expertos: expertosFinal || expertos, total });
   } catch (error) {
     console.error("Error al listar expertos:", error);
+    generarLogs.registrarEvento({
+      usuarioEmail: (req.usuario && req.usuario.email) || null,
+      accion: "LISTAR_EXPERTOS",
+      detalle: "Error al listar expertos",
+      resultado: "Error: " + (error.message || "desconocido"),
+      tipo: "experto",
+      persistirEnDB: true,
+    });
     res.status(500).json({ mensaje: "Error al listar expertos." });
   }
 };
@@ -220,11 +229,27 @@ const obtenerExpertoPorEmail = async (req, res) => {
       "-passwordHash"
     );
     if (!experto) {
+      generarLogs.registrarEvento({
+        usuarioEmail: email || null,
+        accion: "OBTENER_EXPERTO",
+        detalle: "Experto no encontrado",
+        resultado: "Error: no encontrado",
+        tipo: "experto",
+        persistirEnDB: true,
+      });
       return res.status(404).json({ mensaje: "Experto no encontrado." });
     }
     res.json(experto);
   } catch (error) {
     console.error("Error al obtener experto por email:", error);
+    generarLogs.registrarEvento({
+      usuarioEmail: (req.usuario && req.usuario.email) || null,
+      accion: "OBTENER_EXPERTO",
+      detalle: "Error al obtener experto",
+      resultado: "Error: " + (error.message || "desconocido"),
+      tipo: "experto",
+      persistirEnDB: true,
+    });
     res.status(500).json({ mensaje: "Error interno al obtener experto." });
   }
 };
@@ -240,12 +265,36 @@ const eliminarExpertoPorEmail = async (req, res) => {
     const email = req.params.email;
     const experto = await Usuario.findOne({ email, roles: "experto" });
     if (!experto) {
+      generarLogs.registrarEvento({
+        usuarioEmail: email || null,
+        accion: "ELIMINAR_EXPERTO",
+        detalle: "Experto no encontrado",
+        resultado: "Error: no encontrado",
+        tipo: "experto",
+        persistirEnDB: true,
+      });
       return res.status(404).json({ mensaje: "Experto no encontrado." });
     }
     await experto.deleteOne();
+    generarLogs.registrarEvento({
+      usuarioEmail: email || null,
+      accion: "ELIMINAR_EXPERTO",
+      detalle: "Experto eliminado por admin",
+      resultado: "Exito",
+      tipo: "experto",
+      persistirEnDB: true,
+    });
     res.json({ mensaje: "Experto eliminado correctamente." });
   } catch (error) {
     console.error("Error al eliminar experto por email:", error);
+    generarLogs.registrarEvento({
+      usuarioEmail: null,
+      accion: "ELIMINAR_EXPERTO",
+      detalle: "Error al eliminar experto",
+      resultado: "Error: " + (error.message || "desconocido"),
+      tipo: "experto",
+      persistirEnDB: true,
+    });
     res.status(500).json({ mensaje: "Error al eliminar experto." });
   }
 };
@@ -347,12 +396,30 @@ const actualizarPerfilExperto = async (req, res) => {
     };
 
     await usuario.save();
+    generarLogs.registrarEvento({
+      usuarioEmail: usuario.email,
+      nombre: usuario.nombre,
+      apellido: usuario.apellido,
+      accion: "EDITAR_PERFIL_EXPERTO",
+      detalle: "Perfil de experto actualizado",
+      resultado: "Exito",
+      tipo: "experto",
+      persistirEnDB: true,
+    });
     res.json({
       mensaje: "Perfil de experto actualizado correctamente.",
       usuario,
     });
   } catch (error) {
     console.error("Error al actualizar perfil de experto:", error);
+    generarLogs.registrarEvento({
+      usuarioEmail: (req.usuario && req.usuario.email) || null,
+      accion: "EDITAR_PERFIL_EXPERTO",
+      detalle: "Error al actualizar perfil de experto",
+      resultado: "Error: " + (error.message || "desconocido"),
+      tipo: "experto",
+      persistirEnDB: true,
+    });
     res.status(500).json({ mensaje: "Error al actualizar perfil de experto." });
   }
 };

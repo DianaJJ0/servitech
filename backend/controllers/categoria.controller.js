@@ -3,6 +3,7 @@
  * Lógica de negocio para la gestión de las categorías de especialización.
  */
 const Categoria = require("../models/categoria.model.js");
+const generarLogs = require("../services/generarLogs");
 
 /**
  * @openapi
@@ -47,14 +48,33 @@ const crearCategoria = async (req, res) => {
         .status(409)
         .json({ mensaje: "Ya existe una categoría con ese nombre." });
     }
-    // Crear una nueva categoría
     const nuevaCategoria = new Categoria({ nombre, descripcion });
     await nuevaCategoria.save();
+
+    generarLogs.registrarEvento({
+      usuarioEmail: (req.usuario && req.usuario.email) || null,
+      nombre: (req.usuario && req.usuario.nombre) || null,
+      apellido: (req.usuario && req.usuario.apellido) || null,
+      accion: "CREAR_CATEGORIA",
+      detalle: `Categoría creada id:${nuevaCategoria._id}`,
+      resultado: "Exito",
+      tipo: "categoria",
+      persistirEnDB: true,
+    });
+
     res.status(201).json({
       mensaje: "Categoría creada exitosamente.",
       categoria: nuevaCategoria,
     });
   } catch (error) {
+    generarLogs.registrarEvento({
+      usuarioEmail: (req.usuario && req.usuario.email) || null,
+      accion: "CREAR_CATEGORIA",
+      detalle: "Error al crear categoría",
+      resultado: "Error: " + (error.message || "desconocido"),
+      tipo: "categoria",
+      persistirEnDB: true,
+    });
     res
       .status(500)
       .json({ mensaje: "Error interno del servidor al crear la categoría." });
@@ -110,15 +130,32 @@ const actualizarCategoria = async (req, res) => {
       { nombre, descripcion },
       { new: true, runValidators: true }
     );
-    // asegurar que la categoría existe
     if (!categoria) {
       return res.status(404).json({ mensaje: "Categoría no encontrada." });
     }
+
+    generarLogs.registrarEvento({
+      usuarioEmail: (req.usuario && req.usuario.email) || null,
+      accion: "ACTUALIZAR_CATEGORIA",
+      detalle: `Categoría actualizada id:${categoria._id}`,
+      resultado: "Exito",
+      tipo: "categoria",
+      persistirEnDB: true,
+    });
+
     res.status(200).json({
       mensaje: "Categoría actualizada exitosamente.",
       categoria,
     });
   } catch (error) {
+    generarLogs.registrarEvento({
+      usuarioEmail: (req.usuario && req.usuario.email) || null,
+      accion: "ACTUALIZAR_CATEGORIA",
+      detalle: "Error al actualizar categoría",
+      resultado: "Error: " + (error.message || "desconocido"),
+      tipo: "categoria",
+      persistirEnDB: true,
+    });
     res.status(500).json({
       mensaje: "Error interno del servidor al actualizar la categoría.",
     });
@@ -133,14 +170,31 @@ const actualizarCategoria = async (req, res) => {
  */
 const eliminarCategoria = async (req, res) => {
   try {
-    // Validar que se proporciona un ID de categoría
     const categoriaId = req.params.id;
     const categoria = await Categoria.findByIdAndDelete(categoriaId);
     if (!categoria) {
       return res.status(404).json({ mensaje: "Categoría no encontrada." });
     }
+
+    generarLogs.registrarEvento({
+      usuarioEmail: (req.usuario && req.usuario.email) || null,
+      accion: "ELIMINAR_CATEGORIA",
+      detalle: `Categoría eliminada id:${categoria._id}`,
+      resultado: "Exito",
+      tipo: "categoria",
+      persistirEnDB: true,
+    });
+
     res.status(200).json({ mensaje: "Categoría eliminada exitosamente." });
   } catch (error) {
+    generarLogs.registrarEvento({
+      usuarioEmail: (req.usuario && req.usuario.email) || null,
+      accion: "ELIMINAR_CATEGORIA",
+      detalle: "Error al eliminar categoría",
+      resultado: "Error: " + (error.message || "desconocido"),
+      tipo: "categoria",
+      persistirEnDB: true,
+    });
     res.status(500).json({
       mensaje: "Error interno del servidor al eliminar la categoría.",
     });

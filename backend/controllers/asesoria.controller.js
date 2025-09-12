@@ -8,6 +8,7 @@ const Usuario = require("../models/usuario.model.js");
 const Notificacion = require("../models/notificacion.model.js");
 const Log = require("../models/log.model.js");
 const { enviarCorreo } = require("../services/email.service.js");
+const generarLogs = require("../services/generarLogs");
 
 /**
  * @openapi
@@ -224,10 +225,32 @@ const crearAsesoria = async (req, res) => {
       console.error("Error enviando correo/notificación/log de asesoría:", e);
     }
 
+    // Log evento de negocio: creación de asesoría
+    generarLogs.registrarEvento({
+      usuarioEmail: (datos.cliente && datos.cliente.email) || null,
+      nombre: (datos.cliente && datos.cliente.nombre) || null,
+      apellido: (datos.cliente && datos.cliente.apellido) || null,
+      accion: "CREAR_ASESORIA",
+      detalle: `Asesoría creada id:${asesoria._id}`,
+      resultado: "Exito",
+      tipo: "asesoria",
+      persistirEnDB: true,
+    });
+
     res
       .status(201)
       .json({ mensaje: "Asesoría creada correctamente.", asesoria });
   } catch (error) {
+    console.error(error);
+    // Log error de negocio
+    generarLogs.registrarEvento({
+      usuarioEmail: (req.body.cliente && req.body.cliente.email) || null,
+      accion: "CREAR_ASESORIA",
+      detalle: "Error al crear asesoría",
+      resultado: "Error: " + (error.message || "desconocido"),
+      tipo: "asesoria",
+      persistirEnDB: true,
+    });
     res.status(500).json({ mensaje: "Error al crear asesoría." });
   }
 };
@@ -335,8 +358,29 @@ const finalizarAsesoria = async (req, res) => {
       );
     }
 
+    // Log finalización exitoso
+    generarLogs.registrarEvento({
+      usuarioEmail: (asesoria.cliente && asesoria.cliente.email) || null,
+      nombre: (asesoria.cliente && asesoria.cliente.nombre) || null,
+      apellido: (asesoria.cliente && asesoria.cliente.apellido) || null,
+      accion: "FINALIZAR_ASESORIA",
+      detalle: `Asesoría finalizada id:${asesoria._id}`,
+      resultado: "Exito",
+      tipo: "asesoria",
+      persistirEnDB: true,
+    });
+
     res.json({ mensaje: "Asesoría finalizada y pago liberado.", asesoria });
   } catch (error) {
+    console.error(error);
+    generarLogs.registrarEvento({
+      usuarioEmail: null,
+      accion: "FINALIZAR_ASESORIA",
+      detalle: "Error al finalizar asesoría",
+      resultado: "Error: " + (error.message || "desconocido"),
+      tipo: "asesoria",
+      persistirEnDB: true,
+    });
     res.status(500).json({ mensaje: "Error al finalizar asesoría." });
   }
 };

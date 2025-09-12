@@ -4,6 +4,7 @@
  */
 const Notificacion = require("../models/notificacion.model.js");
 const Usuario = require("../models/usuario.model.js");
+const generarLogs = require("../services/generarLogs");
 
 /**
  * @openapi
@@ -73,8 +74,28 @@ const crearNotificacion = async (req, res) => {
     }
     const notificacion = new Notificacion({ ...datos, fechaEnvio: new Date() });
     await notificacion.save();
+
+    generarLogs.registrarEvento({
+      usuarioEmail: usuario.email,
+      nombre: usuario.nombre,
+      apellido: usuario.apellido,
+      accion: "ENVIAR_NOTIFICACION",
+      detalle: `Notificación creada id:${notificacion._id}`,
+      resultado: "Exito",
+      tipo: "notificacion",
+      persistirEnDB: true,
+    });
+
     res.status(201).json({ mensaje: "Notificación registrada.", notificacion });
   } catch (error) {
+    generarLogs.registrarEvento({
+      usuarioEmail: (req.body && req.body.email) || null,
+      accion: "ENVIAR_NOTIFICACION",
+      detalle: "Error al registrar notificación",
+      resultado: "Error: " + (error.message || "desconocido"),
+      tipo: "notificacion",
+      persistirEnDB: true,
+    });
     res.status(500).json({
       mensaje: "Error al registrar notificación.",
       error: error.message,
@@ -93,6 +114,14 @@ const obtenerNotificaciones = async (req, res) => {
     const notificaciones = await Notificacion.find().sort({ createdAt: -1 });
     res.status(200).json(notificaciones);
   } catch (error) {
+    generarLogs.registrarEvento({
+      usuarioEmail: (req.usuario && req.usuario.email) || null,
+      accion: "LISTAR_NOTIFICACIONES",
+      detalle: "Error al listar notificaciones",
+      resultado: "Error: " + (error.message || "desconocido"),
+      tipo: "notificacion",
+      persistirEnDB: true,
+    });
     res.status(500).json({
       mensaje: "Error al listar notificaciones.",
       error: error.message,
@@ -113,6 +142,14 @@ const obtenerNotificacionPorId = async (req, res) => {
       return res.status(404).json({ mensaje: "No encontrada." });
     res.status(200).json(notificacion);
   } catch (error) {
+    generarLogs.registrarEvento({
+      usuarioEmail: (req.usuario && req.usuario.email) || null,
+      accion: "OBTENER_NOTIFICACION",
+      detalle: "Error al obtener notificación",
+      resultado: "Error: " + (error.message || "desconocido"),
+      tipo: "notificacion",
+      persistirEnDB: true,
+    });
     res
       .status(500)
       .json({ mensaje: "Error al buscar notificación.", error: error.message });
