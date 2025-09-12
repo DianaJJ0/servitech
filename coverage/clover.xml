@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1757640725160" clover="3.2.0">
-  <project timestamp="1757640725160" name="All files">
+<coverage generated="1757656706725" clover="3.2.0">
+  <project timestamp="1757656706725" name="All files">
     <metrics statements="1656" coveredstatements="295" conditionals="1550" coveredconditionals="146" methods="228" coveredmethods="43" elements="3434" coveredelements="484" complexity="0" loc="1656" ncloc="1656" packages="2" files="4" classes="4"/>
     <package name="js">
       <metrics statements="176" coveredstatements="44" conditionals="92" coveredconditionals="16" methods="37" coveredmethods="6"/>
-      <file name="admin-common.js" path="/home/runner/work/servitech/servitech/frontend/assets/js/admin-common.js">
+      <file name="admin-common.js" path="/home/pc/Documentos/servitech-9/frontend/assets/js/admin-common.js">
         <metrics statements="14" coveredstatements="14" conditionals="4" coveredconditionals="3" methods="4" coveredmethods="4"/>
         <line num="2" count="2" type="stmt"/>
         <line num="4" count="2" type="cond" truecount="2" falsecount="0"/>
@@ -21,7 +21,7 @@
         <line num="15" count="1" type="stmt"/>
         <line num="25" count="2" type="stmt"/>
       </file>
-      <file name="expertos.js" path="/home/runner/work/servitech/servitech/frontend/assets/js/expertos.js">
+      <file name="expertos.js" path="/home/pc/Documentos/servitech-9/frontend/assets/js/expertos.js">
         <metrics statements="53" coveredstatements="11" conditionals="30" coveredconditionals="6" methods="7" coveredmethods="1"/>
         <line num="5" count="2" type="stmt"/>
         <line num="6" count="0" type="stmt"/>
@@ -77,7 +77,7 @@
         <line num="103" count="2" type="cond" truecount="1" falsecount="1"/>
         <line num="104" count="2" type="stmt"/>
       </file>
-      <file name="misAsesorias.js" path="/home/runner/work/servitech/servitech/frontend/assets/js/misAsesorias.js">
+      <file name="misAsesorias.js" path="/home/pc/Documentos/servitech-9/frontend/assets/js/misAsesorias.js">
         <metrics statements="109" coveredstatements="19" conditionals="58" coveredconditionals="7" methods="26" coveredmethods="1"/>
         <line num="6" count="0" type="stmt"/>
         <line num="7" count="0" type="stmt"/>
@@ -192,7 +192,7 @@
     </package>
     <package name="js.admin">
       <metrics statements="1480" coveredstatements="251" conditionals="1458" coveredconditionals="130" methods="191" coveredmethods="37"/>
-      <file name="admin-expertos.js" path="/home/runner/work/servitech/servitech/frontend/assets/js/admin/admin-expertos.js">
+      <file name="admin-expertos.js" path="/home/pc/Documentos/servitech-9/frontend/assets/js/admin/admin-expertos.js">
         <metrics statements="1480" coveredstatements="251" conditionals="1458" coveredconditionals="130" methods="191" coveredmethods="37"/>
         <line num="18" count="3" type="cond" truecount="2" falsecount="0"/>
         <line num="19" count="1" type="stmt"/>
