@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="/assets/css/admin.css" />
   <!-- Estilos específicos del panel: componentes y experto -->
   <link rel="stylesheet" href="/assets/css/admin-components.css" />
+  <!-- Usar archivo canónico y completo del modal (incluye bank-section) -->
   <link rel="stylesheet" href="/assets/css/Admin-expertos.css" />
   <!-- Choices.js styles for enhanced multi-selects -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
@@ -81,6 +82,557 @@
 
           <!-- Modernized filtros, estadísticas, tabla y paginación -->
 
+          <style>
+            /* Expertos grid / filtros / tabla
+               Variables forced by user: use only those colors */
+            .expertos-grid {
+              display: grid;
+              grid-template-columns: 300px 1fr;
+              gap: 1.25rem;
+              align-items: start;
+              width: 100%;
+              box-sizing: border-box;
+              margin-top: 1rem;
+            }
+
+            /* Card base used by both aside and section */
+            .expertos-card {
+              background: var(--admin-card-bg);
+              border: 1px solid var(--admin-border-color);
+              color: var(--admin-text-primary);
+              border-radius: 10px;
+              box-shadow: var(--admin-shadow);
+              padding: 1rem;
+              box-sizing: border-box;
+            }
+
+            /* Filters sidebar */
+            .expertos-grid__filters {
+              padding: 1rem;
+              min-width: 220px;
+              display: flex;
+              flex-direction: column;
+              gap: 1rem;
+            }
+
+            /* Filters header and group layout */
+            .expertos-filtros__title {
+              margin: 0 0 .25rem 0;
+              font-size: 1.05rem;
+              font-weight: 600;
+              color: var(--admin-text-primary);
+            }
+
+            .expertos-filtros__group {
+              display: flex;
+              flex-direction: column;
+              gap: .375rem;
+            }
+
+            .expertos-filtros__label {
+              font-size: .85rem;
+              color: var(--admin-text-secondary);
+              display: block;
+            }
+
+            .expertos-filtros__select {
+              background: transparent;
+              color: var(--admin-text-primary);
+              border: 1px solid var(--admin-border-color);
+              padding: .5rem .625rem;
+              border-radius: 6px;
+              outline: none;
+              transition: box-shadow .15s ease, border-color .15s ease, background .15s ease;
+              -webkit-appearance: none;
+              appearance: none;
+            }
+
+            /* Focus and hover states */
+            .expertos-filtros__select:focus,
+            .expertos-filtros__select:hover {
+              border-color: var(--admin-accent-color);
+              box-shadow: 0 0 0 3px rgba(58, 142, 255, 0.08);
+            }
+
+            /* Apply button inside filters */
+            .expertos-filtros__btn {
+              margin-top: .25rem;
+              display: inline-flex;
+              gap: .5rem;
+              align-items: center;
+              justify-content: center;
+              width: 100%;
+              padding: .6rem .75rem;
+              border-radius: 8px;
+              border: none;
+              background: linear-gradient(180deg, var(--admin-accent-color), var(--admin-accent-color));
+              color: #fff;
+              cursor: pointer;
+              font-weight: 600;
+              transition: transform .06s ease, box-shadow .12s ease, filter .08s ease;
+            }
+
+            .expertos-filtros__btn:active {
+              transform: translateY(1px);
+            }
+
+            .expertos-filtros__btn:focus {
+              box-shadow: 0 0 0 4px rgba(58, 142, 255, 0.12);
+              outline: none;
+            }
+
+            /* Reset (Limpiar filtros) - tailored styles */
+            .btn-outline.expertos-filtros__reset {
+              display: inline-flex;
+              gap: .5rem;
+              align-items: center;
+              justify-content: center;
+              width: 100%;
+              padding: .55rem .75rem;
+              border-radius: 8px;
+              border: 1px solid var(--admin-border-color);
+              background: transparent;
+              color: var(--admin-text-secondary);
+              font-weight: 600;
+              cursor: pointer;
+              transition: background .12s ease, color .12s ease, transform .06s ease, border-color .12s ease;
+              margin-top: .5rem;
+            }
+
+            .btn-outline.expertos-filtros__reset i {
+              color: var(--admin-text-secondary);
+              font-size: 0.95rem;
+            }
+
+            .btn-outline.expertos-filtros__reset:hover {
+              background: rgba(255, 255, 255, 0.02);
+              color: var(--admin-text-primary);
+              border-color: rgba(255, 255, 255, 0.04);
+              transform: translateY(-1px);
+            }
+
+            .btn-outline.expertos-filtros__reset:active {
+              transform: translateY(0);
+            }
+
+            .btn-outline.expertos-filtros__reset:focus {
+              outline: none;
+              box-shadow: 0 0 0 4px rgba(18, 216, 250, 0.10);
+            }
+
+            .btn-outline.expertos-filtros__reset[disabled],
+            .btn-outline.expertos-filtros__reset[aria-disabled="true"] {
+              opacity: .45;
+              cursor: default;
+            }
+
+            /* Estadísticas block */
+            .expertos-estadisticas__title {
+              margin: 0 0 .5rem 0;
+              font-size: 1rem;
+              font-weight: 600;
+              color: var(--admin-text-primary);
+            }
+
+            .expertos-estadisticas__list {
+              display: grid;
+              grid-template-columns: 1fr;
+              gap: .65rem;
+            }
+
+            .expertos-estadisticas__item {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              padding: .5rem;
+              border-radius: 8px;
+              background: linear-gradient(180deg, rgba(255, 255, 255, 0.01), transparent);
+              border: 1px solid rgba(255, 255, 255, 0.02);
+            }
+
+            .expertos-estadisticas__item-info {
+              display: flex;
+              gap: .6rem;
+              align-items: center;
+              color: var(--admin-text-secondary);
+              font-size: .92rem;
+            }
+
+            .expertos-estadisticas__icon {
+              color: var(--admin-accent-secondary);
+              font-size: 1.05rem;
+              width: 26px;
+              height: 26px;
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+            }
+
+            /* Tabla principal */
+            .expertos-grid__tabla {
+              padding: 0;
+              overflow: hidden;
+              min-width: 0;
+              /* allow truncation inside flex/grid */
+            }
+
+            /* Responsive wrapper: allows horizontal scroll on narrow sizes */
+            .expertos-grid__tabla .table-wrap {
+              width: 100%;
+              overflow-x: auto;
+              -webkit-overflow-scrolling: touch;
+            }
+
+            .admin-table {
+              width: 100%;
+              border-collapse: collapse;
+              color: var(--admin-text-primary);
+              font-size: .95rem;
+              min-width: 720px;
+              /* baseline so desktop shows full columns */
+            }
+
+            /* Table head */
+            .admin-table thead th {
+              text-align: left;
+              padding: .9rem .75rem;
+              font-size: .85rem;
+              color: var(--admin-text-secondary);
+              border-bottom: 1px solid var(--admin-border-color);
+              background: transparent;
+              vertical-align: middle;
+              white-space: nowrap;
+            }
+
+            /* Table body rows */
+            .admin-table tbody tr {
+              border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+              transition: background .12s ease;
+            }
+
+            .admin-table tbody tr:hover {
+              background: var(--admin-hover-bg);
+            }
+
+            /* Cells */
+            .admin-table td {
+              padding: .75rem;
+              vertical-align: middle;
+              color: var(--admin-text-primary);
+              font-size: .95rem;
+              white-space: nowrap;
+            }
+
+            /* Small states & badges inside table cells */
+            .admin-table .badge {
+              display: inline-flex;
+              align-items: center;
+              gap: .4rem;
+              padding: .2rem .5rem;
+              font-size: .8rem;
+              border-radius: 999px;
+              background: rgba(255, 255, 255, 0.02);
+              color: var(--admin-text-secondary);
+            }
+
+            /* Checkbox */
+            .expertos-checkbox {
+              width: 16px;
+              height: 16px;
+              accent-color: var(--admin-accent-color);
+            }
+
+            /* Placeholder row */
+            .placeholder-row td {
+              background: transparent;
+              color: var(--admin-text-secondary);
+            }
+
+            /* Acciones cell layout */
+            .admin-table td .actions {
+              display: flex;
+              gap: .5rem;
+              align-items: center;
+              justify-content: flex-end;
+            }
+
+            /* Buttons used in actions, keep lightweight overrides */
+            .expertos-action-btn {
+              background: transparent;
+              border: 1px solid transparent;
+              color: var(--admin-text-secondary);
+              padding: .45rem .55rem;
+              border-radius: 6px;
+              display: inline-flex;
+              align-items: center;
+              gap: .45rem;
+              cursor: pointer;
+              transition: background .12s ease, color .12s ease, transform .06s ease;
+            }
+
+            .expertos-action-btn:hover {
+              background: rgba(255, 255, 255, 0.02);
+              color: var(--admin-text-primary);
+            }
+
+            .expertos-action-btn:focus {
+              outline: none;
+              box-shadow: 0 0 0 4px rgba(18, 216, 250, 0.12);
+            }
+
+            /* Pagination */
+            .expertos-paginacion {
+              margin-top: .75rem;
+              padding: .75rem;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              gap: .75rem;
+              flex-wrap: wrap;
+            }
+
+            .expertos-paginacion__info {
+              color: var(--admin-text-secondary);
+              font-size: .88rem;
+            }
+
+            .expertos-paginacion__controles {
+              display: inline-flex;
+              gap: .35rem;
+              align-items: center;
+            }
+
+            .expertos-paginacion__btn {
+              background: transparent;
+              border: 1px solid transparent;
+              color: var(--admin-text-secondary);
+              padding: .45rem .65rem;
+              border-radius: 6px;
+              cursor: pointer;
+            }
+
+            .expertos-paginacion__btn:hover {
+              background: rgba(255, 255, 255, 0.02);
+              color: var(--admin-text-primary);
+            }
+
+            .expertos-paginacion__btn--active {
+              background: linear-gradient(180deg, var(--admin-accent-color), var(--admin-accent-color));
+              color: white;
+              border-color: transparent;
+            }
+
+            .expertos-paginacion__btn--disabled,
+            .expertos-paginacion__btn[aria-disabled="true"] {
+              opacity: .45;
+              cursor: default;
+            }
+
+            /* Responsive: stack filters above table on small screens */
+            @media (max-width: 900px) {
+              .expertos-grid {
+                grid-template-columns: 1fr;
+              }
+
+              .expertos-grid__filters {
+                order: 0;
+                min-width: 0;
+              }
+
+              .expertos-grid__tabla {
+                order: 1;
+              }
+
+              .expertos-estadisticas__list {
+                grid-template-columns: repeat(2, 1fr);
+              }
+
+              /* allow horizontal scroll on medium/narrow screens */
+              .admin-table {
+                min-width: 640px;
+              }
+            }
+
+            /* Mobile-first card transformation for very small screens */
+            @media (max-width: 640px) {
+
+              /* wrap table to disable difficult horizontal scroll inside grid */
+              .admin-table {
+                border: none;
+                min-width: 0;
+                font-size: 0.95rem;
+              }
+
+              .admin-table thead {
+                display: none;
+              }
+
+              /* turn each row into a card */
+              .admin-table,
+              .admin-table tbody,
+              .admin-table tr,
+              .admin-table td {
+                display: block;
+                width: 100%;
+              }
+
+              .admin-table tr {
+                margin: 0 0 0.75rem 0;
+                padding: 0.8rem;
+                border-radius: 8px;
+                background: linear-gradient(180deg, rgba(255, 255, 255, 0.01), transparent);
+                border: 1px solid var(--admin-border-color);
+                box-shadow: none;
+              }
+
+              .admin-table td {
+                padding: .35rem 0;
+                border: none;
+                color: var(--admin-text-primary);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              }
+
+              /* Add label before each cell using nth-child mapping (keeps HTML unchanged) */
+              .admin-table td:nth-child(1):before {
+                content: "Sel";
+                color: var(--admin-text-secondary);
+                font-weight: 600;
+                margin-right: .6rem;
+                width: 28%;
+              }
+
+              .admin-table td:nth-child(2):before {
+                content: "Experto";
+                color: var(--admin-text-secondary);
+                font-weight: 600;
+                margin-right: .6rem;
+                width: 28%;
+                text-align: left;
+              }
+
+              .admin-table td:nth-child(3):before {
+                content: "Categorías";
+                color: var(--admin-text-secondary);
+                font-weight: 600;
+                margin-right: .6rem;
+                width: 28%;
+                text-align: left;
+              }
+
+              .admin-table td:nth-child(4):before {
+                content: "Especialidad";
+                color: var(--admin-text-secondary);
+                font-weight: 600;
+                margin-right: .6rem;
+                width: 28%;
+                text-align: left;
+              }
+
+              .admin-table td:nth-child(5):before {
+                content: "Registro";
+                color: var(--admin-text-secondary);
+                font-weight: 600;
+                margin-right: .6rem;
+                width: 28%;
+                text-align: left;
+              }
+
+              .admin-table td:nth-child(6):before {
+                content: "Sesiones";
+                color: var(--admin-text-secondary);
+                font-weight: 600;
+                margin-right: .6rem;
+                width: 28%;
+                text-align: left;
+              }
+
+              .admin-table td:nth-child(7):before {
+                content: "Calificación";
+                color: var(--admin-text-secondary);
+                font-weight: 600;
+                margin-right: .6rem;
+                width: 28%;
+                text-align: left;
+              }
+
+              .admin-table td:nth-child(8):before {
+                content: "Estado";
+                color: var(--admin-text-secondary);
+                font-weight: 600;
+                margin-right: .6rem;
+                width: 28%;
+                text-align: left;
+              }
+
+              .admin-table td:nth-child(9):before {
+                content: "Acciones";
+                color: var(--admin-text-secondary);
+                font-weight: 600;
+                margin-right: .6rem;
+                width: 28%;
+                text-align: left;
+              }
+
+              /* visually separate label from value */
+              .admin-table td:before {
+                display: inline-block;
+                font-size: .82rem;
+                color: var(--admin-text-secondary);
+                flex: 0 0 40%;
+                white-space: nowrap;
+              }
+
+              .admin-table td>* {
+                flex: 1 1 auto;
+                text-align: right;
+              }
+
+              /* make action buttons wrap nicely on small cards */
+              .admin-table td .actions {
+                justify-content: flex-end;
+                gap: .5rem;
+                flex-wrap: wrap;
+              }
+
+              /* hide some non-critical columns on tiniest screens to improve readability */
+              @media (max-width: 420px) {
+                .admin-table td:nth-child(4),
+                /* especialidad */
+                .admin-table td:nth-child(6)
+
+                /* sesiones */
+                  {
+                  display: none;
+                }
+              }
+            }
+
+            /* Accessibility: high-contrast focus fallback */
+            :focus {
+              outline-offset: 2px;
+            }
+
+            /* Small niceties */
+            .expertos-grid .fas {
+              color: var(--admin-text-secondary);
+            }
+
+            /* Ensure table cells don't overflow on narrow screens */
+            .admin-table td,
+            .admin-table th {
+              word-break: break-word;
+            }
+
+            /* Limits to avoid overly wide sidebar on very large screens */
+            @media (min-width: 1600px) {
+              .expertos-grid {
+                grid-template-columns: 320px 1fr;
+              }
+            }
+          </style>
+
           <div class="expertos-grid">
             <aside class="expertos-card expertos-grid__filters" aria-label="Filtros y estadísticas">
               <div class="expertos-filtros">
@@ -125,6 +677,13 @@
                   <i class="fas fa-filter" aria-hidden="true"></i>
                   <span>Aplicar filtros</span>
                 </button>
+
+                <!-- Reset button: Limpiar filtros -->
+                <button type="button" class="btn-outline expertos-filtros__reset" id="resetFiltersBtn"
+                  aria-label="Limpiar filtros">
+                  <i class="fas fa-eraser" aria-hidden="true"></i>
+                  <span>Limpiar filtros</span>
+                </button>
               </div>
 
               <div class="expertos-estadisticas" style="margin-top:1rem;">
@@ -166,30 +725,32 @@
             </aside>
 
             <section class="expertos-card expertos-grid__tabla" aria-label="Tabla de expertos">
-              <table class="admin-table" role="table" aria-label="Lista de expertos">
-                <thead>
-                  <tr>
-                    <th style="width:40px;">
-                      <input type="checkbox" id="selectAll" class="expertos-checkbox" />
-                    </th>
-                    <th>Experto</th>
-                    <th>Categorías</th>
-                    <th>Especialidad</th>
-                    <th>Registro</th>
-                    <th>Sesiones</th>
-                    <th>Calificación</th>
-                    <th>Estado</th>
-                    <th style="width:160px;">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr class="placeholder-row">
-                    <td colspan="9" style="text-align:center;padding:24px;color:var(--admin-text-secondary);">
-                      Cargando expertos...
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+              <div class="table-wrap">
+                <table class="admin-table" role="table" aria-label="Lista de expertos">
+                  <thead>
+                    <tr>
+                      <th style="width:40px;">
+                        <input type="checkbox" id="selectAll" class="expertos-checkbox" />
+                      </th>
+                      <th>Experto</th>
+                      <th>Categorías</th>
+                      <th>Especialidad</th>
+                      <th>Registro</th>
+                      <th>Sesiones</th>
+                      <th>Calificación</th>
+                      <th>Estado</th>
+                      <th style="width:160px;">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="placeholder-row">
+                      <td colspan="9" style="text-align:center;padding:24px;color:var(--admin-text-secondary);">
+                        Cargando expertos...
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
 
               <!-- Paginación (ubicada directamente bajo la tabla para asociación semántica y visual) -->
               <div class="expertos-paginacion" role="navigation" aria-label="Paginación de expertos">
@@ -210,7 +771,9 @@
                 </div>
               </div>
             </section>
+
           </div>
+
         </div>
 
   </div>
@@ -218,8 +781,451 @@
   </div>
 
   <!-- Modal para agregar experto -->
-  <div id="expertModal" class="modal-expert">
+  <style>
+    /* Modal overlay & container (apply to any .modal-expert instance) */
+    .modal-expert {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(2, 6, 23, 0.6);
+      z-index: 1200;
+      -webkit-overflow-scrolling: touch;
+    }
 
+    /* Container: column flex so footer stays visible */
+    .modal-expert .modal-expert__container {
+      width: 100%;
+      max-width: 980px;
+      max-height: calc(100vh - 48px);
+      box-sizing: border-box;
+      background: var(--admin-card-bg);
+      border: 1px solid var(--admin-border-color);
+      border-radius: 12px;
+      box-shadow: var(--admin-shadow);
+      color: var(--admin-text-primary);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Header */
+    .modal-expert .modal-expert__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.125rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.01), transparent);
+    }
+
+    .modal-expert .modal-expert__title {
+      margin: 0;
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--admin-text-primary);
+    }
+
+    .modal-expert .btn-close {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--admin-text-secondary);
+      width: 40px;
+      height: 40px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background .12s ease, color .12s ease;
+    }
+
+    .modal-expert .btn-close:hover {
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--admin-text-primary);
+    }
+
+    /* Body (scrollable) */
+    .modal-expert .modal-expert__body {
+      padding: 1rem;
+      overflow: auto;
+      flex: 1 1 auto;
+    }
+
+    /* Form grid */
+    .modal-expert .modal-expert__grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+      align-items: start;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .modal-expert .modal-expert__grid .full-width {
+      grid-column: 1 / -1;
+    }
+
+    /* Labels and inputs */
+    .modal-expert .modal-expert__label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      color: var(--admin-text-secondary);
+      margin-bottom: 0.375rem;
+    }
+
+    .modal-expert .modal-expert__icon {
+      color: var(--admin-accent-secondary);
+    }
+
+    .modal-expert .modal-expert__input,
+    .modal-expert .modal-expert__select,
+    .modal-expert select,
+    .modal-expert input[type="text"],
+    .modal-expert input[type="email"],
+    .modal-expert input[type="tel"],
+    .modal-expert textarea,
+    .modal-expert .acct-input {
+      width: 100%;
+      box-sizing: border-box;
+      background: transparent;
+      color: var(--admin-text-primary);
+      border: 1px solid var(--admin-border-color);
+      padding: 0.5rem 0.625rem;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: box-shadow .12s ease, border-color .12s ease;
+    }
+
+    .modal-expert .modal-expert__input:focus,
+    .modal-expert select:focus,
+    .modal-expert textarea:focus {
+      border-color: var(--admin-accent-color);
+      box-shadow: 0 0 0 4px rgba(58, 142, 255, 0.06);
+    }
+
+    .modal-expert .modal-expert__textarea {
+      min-height: 96px;
+      resize: vertical;
+    }
+
+    /* Price input */
+    .modal-expert .srv-price-input,
+    .modal-expert .price-input {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.25rem;
+      border-radius: 8px;
+      border: 1px solid var(--admin-border-color);
+      background: rgba(255, 255, 255, 0.01);
+    }
+
+    .modal-expert .srv-currency,
+    .modal-expert .currency-symbol {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 36px;
+      height: 36px;
+      color: var(--admin-text-primary);
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    .modal-expert input.price-field {
+      border: none;
+      background: transparent;
+      color: var(--admin-text-primary);
+      padding: 0.5rem 0;
+    }
+
+    .modal-expert .srv-note,
+    .modal-expert .hint,
+    .modal-expert .modal-expert__hint {
+      margin: 0.35rem 0 0 0;
+      font-size: 0.82rem;
+      color: var(--admin-text-secondary);
+    }
+
+    /* Days selector */
+    .modal-expert .srv-days-wrapper {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    .modal-expert .srv-days {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      margin-top: 0.4rem;
+    }
+
+    .modal-expert .srv-day {
+      background: transparent;
+      border: 1px solid var(--admin-border-color);
+      color: var(--admin-text-secondary);
+      width: 40px;
+      height: 40px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background .12s ease, color .12s ease, transform .06s ease;
+    }
+
+    .modal-expert .srv-day:hover {
+      background: rgba(58, 142, 255, 0.06);
+      color: var(--admin-text-primary);
+      transform: translateY(-1px);
+    }
+
+    .modal-expert .srv-day.selected,
+    .modal-expert .srv-day[aria-pressed="true"] {
+      background: linear-gradient(180deg, var(--admin-accent-color), var(--admin-accent-color));
+      color: #fff;
+      border-color: transparent;
+    }
+
+    .modal-expert .srv-days-display {
+      font-size: 0.9rem;
+      color: var(--admin-text-secondary);
+    }
+
+    /* Upload area */
+    .modal-expert .modal-expert__upload-wrapper {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+
+    .modal-expert .modal-expert__file-input {
+      display: none;
+    }
+
+    .modal-expert .modal-expert__upload-box {
+      display: inline-flex;
+      gap: 0.65rem;
+      align-items: center;
+      padding: 0.6rem 0.8rem;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.01);
+      border: 1px dashed var(--admin-border-color);
+      color: var(--admin-text-secondary);
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+
+    .modal-expert .modal-expert__upload-box:hover {
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--admin-text-primary);
+    }
+
+    .modal-expert #profilePreview {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      min-width: 72px;
+      min-height: 48px;
+      max-height: 72px;
+      overflow: hidden;
+      border-radius: 8px;
+    }
+
+    .modal-expert #profilePreview img {
+      display: block;
+      width: 64px;
+      height: 64px;
+      object-fit: cover;
+      border-radius: 6px;
+    }
+
+    .modal-expert #removeProfileBtn {
+      display: none;
+      background: rgba(0, 0, 0, 0.4);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.25rem;
+      cursor: pointer;
+    }
+
+    /* Account number toggle */
+    .modal-expert .acct-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .modal-expert .acct-toggle {
+      background: transparent;
+      border: 1px solid var(--admin-border-color);
+      color: var(--admin-text-secondary);
+      padding: 0.45rem 0.6rem;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .modal-expert .acct-toggle:hover {
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--admin-text-primary);
+    }
+
+    /* Bank section */
+    .modal-expert .bank-section {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.01), transparent);
+      padding: 0.75rem;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.02);
+    }
+
+    .modal-expert .bank-title {
+      margin: 0 0 0.35rem 0;
+      font-size: 1rem;
+      color: var(--admin-text-primary);
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .modal-expert .bank-sub {
+      margin: 0 0 0.6rem 0;
+      color: var(--admin-text-secondary);
+      font-size: 0.88rem;
+    }
+
+    .modal-expert .bank-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
+    }
+
+    .modal-expert .bank-grid .full-width {
+      grid-column: 1 / -1;
+    }
+
+    /* Info box small */
+    .modal-expert .info-box.info-sm {
+      margin-top: 0.65rem;
+      background: rgba(255, 255, 255, 0.01);
+      border: 1px solid rgba(255, 255, 255, 0.02);
+      padding: 0.6rem;
+      border-radius: 8px;
+      color: var(--admin-text-secondary);
+    }
+
+    .modal-expert .info-header {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      margin-bottom: 0.35rem;
+      color: var(--admin-text-primary);
+      font-weight: 600;
+    }
+
+    .modal-expert .info-list {
+      margin: 0;
+      padding: 0 0 0 1rem;
+      display: block;
+      color: var(--admin-text-secondary);
+      font-size: 0.9rem;
+    }
+
+    /* Footer (keeps visible) */
+    .modal-expert .modal-expert__footer {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 0.75rem 1rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.02);
+      background: linear-gradient(0deg, rgba(255, 255, 255, 0.01), transparent);
+    }
+
+    /* Buttons (lightweight overrides to match theme) */
+    .modal-expert .btn-primary {
+      background: linear-gradient(180deg, var(--admin-accent-color), var(--admin-accent-color));
+      color: #fff;
+      border: none;
+      padding: 0.6rem 0.9rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .modal-expert .btn-outline {
+      background: transparent;
+      border: 1px solid var(--admin-border-color);
+      color: var(--admin-text-secondary);
+      padding: 0.55rem 0.85rem;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .modal-expert .btn-outline:hover {
+      color: var(--admin-text-primary);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* Small utilities */
+    .modal-expert .price-feedback {
+      font-size: 0.85rem;
+      color: var(--admin-accent-color);
+      margin-top: 0.35rem;
+    }
+
+    .modal-expert .upload-error {
+      color: #ff7676;
+      margin-top: 0.35rem;
+      font-size: 0.9rem;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 880px) {
+      .modal-expert .modal-expert__container {
+        max-width: 92%;
+      }
+
+      .modal-expert .modal-expert__grid {
+        grid-template-columns: 1fr;
+      }
+
+      .modal-expert .bank-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .modal-expert .bank-grid .full-width {
+        grid-column: auto;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .modal-expert .modal-expert__container {
+        border-radius: 8px;
+        max-height: calc(100vh - 24px);
+      }
+
+      .modal-expert .modal-expert__title {
+        font-size: 1rem;
+      }
+
+      .modal-expert .srv-day {
+        width: 36px;
+        height: 36px;
+      }
+    }
+  </style>
+  <div id="expertModal" class="modal-expert">
     <div class="modal-expert__container">
       <div class="modal-expert__header">
         <h2 class="modal-expert__title">Agregar nuevo experto</h2>
@@ -350,75 +1356,23 @@
                 <!-- opciones añadidas dinámicamente -->
               </select>
 
-              <script>
-                // Initialize Choices and force visual fixes for the created/cloned input
-                document.addEventListener('DOMContentLoaded', function () {
-                  function applyInputFix(el) {
-                    if (!el || el.dataset.__stylingApplied) return;
-                    try {
-                      el.style.setProperty('background', 'transparent', 'important');
-                      el.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
-                      el.style.setProperty('-webkit-text-fill-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
-                      el.style.setProperty('caret-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-accent-color') || '#5e81ff', 'important');
-                      el.style.setProperty('border', 'none', 'important');
-                      el.style.setProperty('outline', 'none', 'important');
-                      el.style.setProperty('width', 'auto', 'important');
-                      el.style.setProperty('min-width', '22ch', 'important');
-                      el.style.setProperty('font-family', 'inherit', 'important');
-                      el.style.setProperty('padding-left', '42px', 'important');
-                      el.dataset.__stylingApplied = '1';
-                    } catch (e) { }
-                  }
-
-                  // Initialize Choices on categorias (if available)
-                  if (window.Choices) {
-                    const catSelect = document.getElementById('categorias');
-                    if (catSelect && !catSelect.classList.contains('choices-initialized')) {
-                      new Choices(catSelect, {
-                        removeItemButton: true,
-                        delimiter: ',',
-                        editItems: false,
-                        maxItemCount: 10,
-                        duplicateItemsAllowed: false
-                      });
-                      catSelect.classList.add('choices-initialized');
-                    }
-                  }
-
-                  // Try to style existing inputs immediately and observe future clones
-                  function processAll() {
-                    document.querySelectorAll('#expertModal .choices__input, #expertModal .choices__input--cloned, input[placeholder="Selecciona categorías"], input[aria-label="Selecciona categorías"]').forEach(applyInputFix);
-                    document.querySelectorAll('#expertModal .choices__list--dropdown, #expertModal .choices__list--dropdown .choices__item').forEach(function (el) {
-                      try {
-                        el.style.setProperty('background', getComputedStyle(document.documentElement).getPropertyValue('--admin-card-bg') || '#121212', 'important');
-                        el.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
-                        el.style.setProperty('border-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-border-color') || '#333', 'important');
-                      } catch (e) { }
-                    });
-
-                    document.querySelectorAll('#expertModal .choices__inner').forEach(function (inner) {
-                      try {
-                        if (inner.querySelector('.choices__list--multiple')) inner.classList.add('no-icon');
-                        else inner.classList.remove('no-icon');
-                      } catch (e) { }
-                    });
-                  }
-
-                  processAll();
-                  var attempts = 0;
-                  var id = setInterval(function () { processAll(); attempts++; if (attempts > 20) clearInterval(id); }, 150);
-                  var mo = new MutationObserver(function () { processAll(); });
-                  mo.observe(document.body, { childList: true, subtree: true });
-                });
-              </script>
+              <!-- Choices initialization and visual fixes are centralized in /assets/js/admin/admin-expertos.js -->
               <script>
                 // Diagnóstico: registra en consola la estructura y estilos computados del botón remove
                 (function () {
                   function diag() {
                     try {
-                      var btns = document.querySelectorAll('#expertModal .choices__button');
+                      // Inspect only buttons inside the currently visible modal
+                      const visibleModal = Array.from(document.querySelectorAll('.modal-expert')).find(function (m) {
+                        try { const cs = getComputedStyle(m); return cs && cs.display !== 'none' && cs.visibility !== 'hidden' && m.offsetWidth > 0 && m.offsetHeight > 0; } catch (e) { return false; }
+                      });
+                      if (!visibleModal) {
+                        console.info('[diag] No hay modal visible para inspeccionar');
+                        return;
+                      }
+                      var btns = visibleModal.querySelectorAll('.choices__button');
                       if (!btns || btns.length === 0) {
-                        console.info('[diag] No se encontraron .choices__button dentro de #expertModal');
+                        console.info('[diag] No se encontraron .choices__button dentro del modal visible');
                         return;
                       }
                       btns.forEach(function (b, i) {
@@ -455,7 +1409,7 @@
                     setTimeout(diag, 600);
                     // también vuelve a correr cuando se detecta interacción que puede abrir el modal
                     document.body.addEventListener('click', function (ev) {
-                      if (ev.target.closest('#expertModal') || ev.target.closest('.btn-close')) setTimeout(diag, 300);
+                      if (ev.target.closest('.modal-expert') || ev.target.closest('.btn-close')) setTimeout(diag, 300);
                     }, true);
                   });
                 })();
@@ -472,8 +1426,8 @@
               <select id="skills" class="modal-expert__input" multiple size="6">
                 <% if (typeof habilidades !=='undefined' && Array.isArray(habilidades) && habilidades.length> 0) { %>
                   <% habilidades.forEach(function(h) { %>
-                    <% const val=(h && (h.nombre || h.name || h.label)) ? (h.nombre || h.name || h.label) : (h && h._id ?
-                      String(h._id) : '' ); %>
+                    <% const val=(h && (h.nombre || h.name || h.label)) ? (h.nombre || h.name || h.label) : (h && h._id
+                      ? String(h._id) : '' ); %>
                       <% if (val) { %>
                         <option value="<%= val %>">
                           <%= val %>
@@ -482,23 +1436,7 @@
                           <% }); %>
                             <% } %>
               </select>
-              <script>
-                document.addEventListener('DOMContentLoaded', function () {
-                  if (window.Choices) {
-                    const skillsSelect = document.getElementById('skills');
-                    if (skillsSelect && !skillsSelect.classList.contains('choices-initialized')) {
-                      new Choices(skillsSelect, {
-                        removeItemButton: true,
-                        delimiter: ',',
-                        editItems: false,
-                        maxItemCount: 10,
-                        duplicateItemsAllowed: false
-                      });
-                      skillsSelect.classList.add('choices-initialized');
-                    }
-                  }
-                });
-              </script>
+              <!-- Inicialización de Choices para #skills centralizada en /assets/js/admin/admin-expertos.js -->
               <small class="modal-expert__hint">Selecciona o escribe para añadir nuevas habilidades</small>
             </div>
 
@@ -611,8 +1549,9 @@
                   <div>
                     <label for="numeroCuenta">Número de cuenta *</label>
                     <div class="acct-wrap">
-                      <input type="password" id="numeroCuenta" name="numeroCuenta" required placeholder="Número de cuenta"
-                        pattern="[0-9\-]*" title="Solo números y guiones" class="acct-input">
+                      <input type="password" id="numeroCuenta" name="numeroCuenta" required
+                        placeholder="Número de cuenta" pattern="[0-9\-]*" title="Solo números y guiones"
+                        class="acct-input">
                       <button type="button" id="toggleAccountNumber" class="acct-toggle"
                         aria-label="Mostrar número de cuenta">
                         <i class="fas fa-eye"></i>
@@ -911,116 +1850,7 @@
                 <!-- opciones añadidas dinámicamente -->
               </select>
 
-              <script>
-                // Initialize Choices and force visual fixes for the created/cloned input
-                document.addEventListener('DOMContentLoaded', function () {
-                  function applyInputFix(el) {
-                    if (!el || el.dataset.__stylingApplied) return;
-                    try {
-                      el.style.setProperty('background', 'transparent', 'important');
-                      el.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
-                      el.style.setProperty('-webkit-text-fill-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
-                      el.style.setProperty('caret-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-accent-color') || '#5e81ff', 'important');
-                      el.style.setProperty('border', 'none', 'important');
-                      el.style.setProperty('outline', 'none', 'important');
-                      el.style.setProperty('width', 'auto', 'important');
-                      el.style.setProperty('min-width', '22ch', 'important');
-                      el.style.setProperty('font-family', 'inherit', 'important');
-                      el.style.setProperty('padding-left', '42px', 'important');
-                      el.dataset.__stylingApplied = '1';
-                    } catch (e) { }
-                  }
-
-                  // Initialize Choices on categorias (if available)
-                  if (window.Choices) {
-                    const catSelect = document.getElementById('categorias');
-                    if (catSelect && !catSelect.classList.contains('choices-initialized')) {
-                      new Choices(catSelect, {
-                        removeItemButton: true,
-                        delimiter: ',',
-                        editItems: false,
-                        maxItemCount: 10,
-                        duplicateItemsAllowed: false
-                      });
-                      catSelect.classList.add('choices-initialized');
-                    }
-                  }
-
-                  // Try to style existing inputs immediately and observe future clones
-                  function processAll() {
-                    document.querySelectorAll('#expertModal .choices__input, #expertModal .choices__input--cloned, input[placeholder="Selecciona categorías"], input[aria-label="Selecciona categorías"]').forEach(applyInputFix);
-                    document.querySelectorAll('#expertModal .choices__list--dropdown, #expertModal .choices__list--dropdown .choices__item').forEach(function (el) {
-                      try {
-                        el.style.setProperty('background', getComputedStyle(document.documentElement).getPropertyValue('--admin-card-bg') || '#121212', 'important');
-                        el.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
-                        el.style.setProperty('border-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-border-color') || '#333', 'important');
-                      } catch (e) { }
-                    });
-
-                    document.querySelectorAll('#expertModal .choices__inner').forEach(function (inner) {
-                      try {
-                        if (inner.querySelector('.choices__list--multiple')) inner.classList.add('no-icon');
-                        else inner.classList.remove('no-icon');
-                      } catch (e) { }
-                    });
-                  }
-
-                  processAll();
-                  var attempts = 0;
-                  var id = setInterval(function () { processAll(); attempts++; if (attempts > 20) clearInterval(id); }, 150);
-                  var mo = new MutationObserver(function () { processAll(); });
-                  mo.observe(document.body, { childList: true, subtree: true });
-                });
-              </script>
-              <script>
-                // Diagnóstico: registra en consola la estructura y estilos computados del botón remove
-                (function () {
-                  function diag() {
-                    try {
-                      var btns = document.querySelectorAll('#expertModal .choices__button');
-                      if (!btns || btns.length === 0) {
-                        console.info('[diag] No se encontraron .choices__button dentro de #expertModal');
-                        return;
-                      }
-                      btns.forEach(function (b, i) {
-                        console.info('[diag] choices__button #' + i + ':', b.outerHTML);
-                        var cs = window.getComputedStyle(b);
-                        console.info('[diag] computed (button):', {
-                          display: cs.display,
-                          visibility: cs.visibility,
-                          color: cs.color,
-                          background: cs.backgroundColor || cs['background-color'],
-                          overflow: cs.overflow,
-                          zIndex: cs.zIndex
-                        });
-                        var pa = window.getComputedStyle(b, '::after');
-                        console.info('[diag] computed (::after):', {
-                          content: pa.content,
-                          color: pa.color,
-                          display: pa.display,
-                          visibility: pa.visibility,
-                          zIndex: pa.zIndex,
-                          fontSize: pa.fontSize
-                        });
-                        var pb = window.getComputedStyle(b, '::before');
-                        console.info('[diag] computed (::before):', {
-                          content: pb.content,
-                          color: pb.color
-                        });
-                      });
-                    } catch (e) {
-                      console.error('[diag] error:', e);
-                    }
-                  }
-                  document.addEventListener('DOMContentLoaded', function () {
-                    setTimeout(diag, 600);
-                    // también vuelve a correr cuando se detecta interacción que puede abrir el modal
-                    document.body.addEventListener('click', function (ev) {
-                      if (ev.target.closest('#expertModal') || ev.target.closest('.btn-close')) setTimeout(diag, 300);
-                    }, true);
-                  });
-                })();
-              </script>
+              <!-- Choices initialization and visual fixes are centralized in /assets/js/admin/admin-expertos.js -->
               <small class="modal-expert__hint">Selecciona una o varias categorías (Ctrl/Cmd+click)</small>
             </div>
 
@@ -1043,23 +1873,7 @@
                           <% }); %>
                             <% } %>
               </select>
-              <script>
-                document.addEventListener('DOMContentLoaded', function () {
-                  if (window.Choices) {
-                    const skillsSelect = document.getElementById('skills');
-                    if (skillsSelect && !skillsSelect.classList.contains('choices-initialized')) {
-                      new Choices(skillsSelect, {
-                        removeItemButton: true,
-                        delimiter: ',',
-                        editItems: false,
-                        maxItemCount: 10,
-                        duplicateItemsAllowed: false
-                      });
-                      skillsSelect.classList.add('choices-initialized');
-                    }
-                  }
-                });
-              </script>
+              <!-- Inicialización de Choices para #skills centralizada en /assets/js/admin/admin-expertos.js -->
               <small class="modal-expert__hint">Selecciona o escribe para añadir nuevas habilidades</small>
             </div>
 
@@ -1246,7 +2060,7 @@
   </div>
 
   <!--modal ver perfil experto-->
-  <div id="verPerfilExperto" class="modal-expert" aria-hidden="true" style="display:none;">
+  <div id="verPerfilExperto" class="modal-expert">
 
     <div class="modal-expert__container">
       <div class="modal-expert__header">
@@ -1378,116 +2192,7 @@
                 <!-- opciones añadidas dinámicamente -->
               </select>
 
-              <script>
-                // Initialize Choices and force visual fixes for the created/cloned input
-                document.addEventListener('DOMContentLoaded', function () {
-                  function applyInputFix(el) {
-                    if (!el || el.dataset.__stylingApplied) return;
-                    try {
-                      el.style.setProperty('background', 'transparent', 'important');
-                      el.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
-                      el.style.setProperty('-webkit-text-fill-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
-                      el.style.setProperty('caret-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-accent-color') || '#5e81ff', 'important');
-                      el.style.setProperty('border', 'none', 'important');
-                      el.style.setProperty('outline', 'none', 'important');
-                      el.style.setProperty('width', 'auto', 'important');
-                      el.style.setProperty('min-width', '22ch', 'important');
-                      el.style.setProperty('font-family', 'inherit', 'important');
-                      el.style.setProperty('padding-left', '42px', 'important');
-                      el.dataset.__stylingApplied = '1';
-                    } catch (e) { }
-                  }
-
-                  // Initialize Choices on categorias (if available)
-                  if (window.Choices) {
-                    const catSelect = document.getElementById('categorias');
-                    if (catSelect && !catSelect.classList.contains('choices-initialized')) {
-                      new Choices(catSelect, {
-                        removeItemButton: true,
-                        delimiter: ',',
-                        editItems: false,
-                        maxItemCount: 10,
-                        duplicateItemsAllowed: false
-                      });
-                      catSelect.classList.add('choices-initialized');
-                    }
-                  }
-
-                  // Try to style existing inputs immediately and observe future clones
-                  function processAll() {
-                    document.querySelectorAll('#expertModal .choices__input, #expertModal .choices__input--cloned, input[placeholder="Selecciona categorías"], input[aria-label="Selecciona categorías"]').forEach(applyInputFix);
-                    document.querySelectorAll('#expertModal .choices__list--dropdown, #expertModal .choices__list--dropdown .choices__item').forEach(function (el) {
-                      try {
-                        el.style.setProperty('background', getComputedStyle(document.documentElement).getPropertyValue('--admin-card-bg') || '#121212', 'important');
-                        el.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
-                        el.style.setProperty('border-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-border-color') || '#333', 'important');
-                      } catch (e) { }
-                    });
-
-                    document.querySelectorAll('#expertModal .choices__inner').forEach(function (inner) {
-                      try {
-                        if (inner.querySelector('.choices__list--multiple')) inner.classList.add('no-icon');
-                        else inner.classList.remove('no-icon');
-                      } catch (e) { }
-                    });
-                  }
-
-                  processAll();
-                  var attempts = 0;
-                  var id = setInterval(function () { processAll(); attempts++; if (attempts > 20) clearInterval(id); }, 150);
-                  var mo = new MutationObserver(function () { processAll(); });
-                  mo.observe(document.body, { childList: true, subtree: true });
-                });
-              </script>
-              <script>
-                // Diagnóstico: registra en consola la estructura y estilos computados del botón remove
-                (function () {
-                  function diag() {
-                    try {
-                      var btns = document.querySelectorAll('#expertModal .choices__button');
-                      if (!btns || btns.length === 0) {
-                        console.info('[diag] No se encontraron .choices__button dentro de #expertModal');
-                        return;
-                      }
-                      btns.forEach(function (b, i) {
-                        console.info('[diag] choices__button #' + i + ':', b.outerHTML);
-                        var cs = window.getComputedStyle(b);
-                        console.info('[diag] computed (button):', {
-                          display: cs.display,
-                          visibility: cs.visibility,
-                          color: cs.color,
-                          background: cs.backgroundColor || cs['background-color'],
-                          overflow: cs.overflow,
-                          zIndex: cs.zIndex
-                        });
-                        var pa = window.getComputedStyle(b, '::after');
-                        console.info('[diag] computed (::after):', {
-                          content: pa.content,
-                          color: pa.color,
-                          display: pa.display,
-                          visibility: pa.visibility,
-                          zIndex: pa.zIndex,
-                          fontSize: pa.fontSize
-                        });
-                        var pb = window.getComputedStyle(b, '::before');
-                        console.info('[diag] computed (::before):', {
-                          content: pb.content,
-                          color: pb.color
-                        });
-                      });
-                    } catch (e) {
-                      console.error('[diag] error:', e);
-                    }
-                  }
-                  document.addEventListener('DOMContentLoaded', function () {
-                    setTimeout(diag, 600);
-                    // también vuelve a correr cuando se detecta interacción que puede abrir el modal
-                    document.body.addEventListener('click', function (ev) {
-                      if (ev.target.closest('#expertModal') || ev.target.closest('.btn-close')) setTimeout(diag, 300);
-                    }, true);
-                  });
-                })();
-              </script>
+              <!-- Choices initialization and visual fixes are centralized in /assets/js/admin/admin-expertos.js -->
               <small class="modal-expert__hint">Selecciona una o varias categorías (Ctrl/Cmd+click)</small>
             </div>
 
@@ -1510,23 +2215,7 @@
                           <% }); %>
                             <% } %>
               </select>
-              <script>
-                document.addEventListener('DOMContentLoaded', function () {
-                  if (window.Choices) {
-                    const skillsSelect = document.getElementById('skills');
-                    if (skillsSelect && !skillsSelect.classList.contains('choices-initialized')) {
-                      new Choices(skillsSelect, {
-                        removeItemButton: true,
-                        delimiter: ',',
-                        editItems: false,
-                        maxItemCount: 10,
-                        duplicateItemsAllowed: false
-                      });
-                      skillsSelect.classList.add('choices-initialized');
-                    }
-                  }
-                });
-              </script>
+              <!-- Inicialización de Choices para #skills centralizada en /assets/js/admin/admin-expertos.js -->
               <small class="modal-expert__hint">Selecciona o escribe para añadir nuevas habilidades</small>
             </div>
 
