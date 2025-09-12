@@ -1,0 +1,6 @@
+/* Local shim that imports Choices.css from CDN to avoid using corrupted local copies.
+   Keeps a local file present so build tools referencing /assets/vendor/choices/ work, but
+   delegates actual stylesheet delivery to the CDN. */
+@import url("https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css");
+
+/* Additional minimal overrides can be added here if needed. */
