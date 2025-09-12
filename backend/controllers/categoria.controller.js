@@ -5,6 +5,29 @@
 const Categoria = require("../models/categoria.model.js");
 
 /**
+ * @openapi
+ * tags:
+ *   - name: Categorias
+ *     description: Gestión de categorías
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ErrorResponse:
+ *       type: object
+ *       properties:
+ *         error:
+ *           type: string
+ *         message:
+ *           type: string
+ *       required:
+ *         - error
+ *         - message
+ */
+
+/**
  * Crea una nueva categoría
  * @param {Object} req - Request object
  * @param {Object} res - Response object
@@ -37,6 +60,17 @@ const crearCategoria = async (req, res) => {
       .json({ mensaje: "Error interno del servidor al crear la categoría." });
   }
 };
+
+/**
+ * @openapi
+ * /api/categorias:
+ *   get:
+ *     tags: [Categorias]
+ *     summary: Obtener categorías
+ *     responses:
+ *       200:
+ *         description: Lista de categorías
+ */
 
 /**
  * Obtiene todas las categorías con filtro opcional por nombre

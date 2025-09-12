@@ -177,4 +177,44 @@ usuarioSchema.pre("save", function (next) {
 // Índice para optimizar búsquedas por calificación
 usuarioSchema.index({ calificacion: -1 });
 
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     Usuario:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           description: Identificador único
+ *         nombre:
+ *           type: string
+ *         email:
+ *           type: string
+ *           format: email
+ *         roles:
+ *           type: array
+ *           items:
+ *             type: string
+ *         avatar:
+ *           type: string
+ *           format: uri
+ *         bio:
+ *           type: string
+ *         rating:
+ *           type: number
+ *           format: float
+ *         isAdmin:
+ *           type: boolean
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *       required:
+ *         - email
+ *         - nombre
+ */
+
 module.exports = mongoose.model("Usuario", usuarioSchema);

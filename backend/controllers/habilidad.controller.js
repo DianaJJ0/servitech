@@ -5,14 +5,54 @@
 const Habilidad = require("../models/habilidad.model");
 
 /**
+ * @openapi
+ * tags:
+ *   - name: Habilidades
+ *     description: Gestión de habilidades
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ErrorResponse:
+ *       type: object
+ *       properties:
+ *         error:
+ *           type: string
+ *         message:
+ *           type: string
+ *       required:
+ *         - error
+ *         - message
+ */
+
+/**
  * Lista todas las habilidades
  * @param {Object} req - Request object
  * @param {Object} res - Response object
  * @returns {Promise<void>}
+ * @openapi
+ * /api/habilidades:
+ *   get:
+ *     tags: [Habilidades]
+ *     summary: Obtener habilidades
+ *     parameters:
+ *       - in: query
+ *         name: especialidadId
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Lista de habilidades
+ *       500:
+ *         description: Error interno del servidor
  */
 const getAll = async (req, res) => {
   try {
-    const habilidades = await Habilidad.find({});
+    const { especialidadId } = req.query;
+    const query = especialidadId ? { especialidad: especialidadId } : {};
+    const habilidades = await Habilidad.find(query);
     res.status(200).json(habilidades);
   } catch (err) {
     res.status(500).json({ mensaje: "Error al obtener habilidades." });
@@ -24,6 +64,25 @@ const getAll = async (req, res) => {
  * @param {Object} req - Request object
  * @param {Object} res - Response object
  * @returns {Promise<void>}
+ * @openapi
+ * /api/habilidades:
+ *   post:
+ *     tags: [Habilidades]
+ *     summary: Crear habilidad
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Habilidad'
+ *     responses:
+ *       201:
+ *         description: Habilidad creada
+ *       400:
+ *         description: Petición inválida
+ *       409:
+ *         description: Recurso ya existe
  */
 const create = async (req, res) => {
   try {

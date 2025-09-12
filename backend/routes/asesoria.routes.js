@@ -5,7 +5,7 @@
 const express = require("express");
 const router = express.Router();
 const asesoriaController = require("../controllers/asesoria.controller.js");
-const authMiddleware = require("../middleware/auth.middleware.js");
+const authMiddleware = require("../middleware/auth.middleware");
 const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
 
 /**
@@ -43,7 +43,7 @@ const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
  *       400:
  *         description: Datos faltantes o inválidos
  */
-router.post("/", authMiddleware.protect, asesoriaController.crearAsesoria);
+router.post("/", authMiddleware.autenticar, asesoriaController.crearAsesoria);
 
 /**
  * @swagger
@@ -67,7 +67,7 @@ router.post("/", authMiddleware.protect, asesoriaController.crearAsesoria);
  */
 router.put(
   "/:id/finalizar",
-  authMiddleware.protect,
+  authMiddleware.autenticar,
   asesoriaController.finalizarAsesoria
 );
 
@@ -86,8 +86,8 @@ router.put(
 router.get(
   "/",
   apiKeyMiddleware,
-  authMiddleware.protect,
-  authMiddleware.esAdmin,
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("admin"),
   asesoriaController.listarAsesorias
 );
 
@@ -112,8 +112,8 @@ router.get(
 router.get(
   "/cliente/:email",
   apiKeyMiddleware,
-  authMiddleware.protect,
-  authMiddleware.esAdmin,
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("admin"),
   asesoriaController.listarPorCliente
 );
 
@@ -138,8 +138,8 @@ router.get(
 router.get(
   "/experto/:email",
   apiKeyMiddleware,
-  authMiddleware.protect,
-  authMiddleware.esAdmin,
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("admin"),
   asesoriaController.listarPorExperto
 );
 
@@ -166,8 +166,8 @@ router.get(
 router.get(
   "/:id",
   apiKeyMiddleware,
-  authMiddleware.protect,
-  authMiddleware.esAdmin,
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("admin"),
   asesoriaController.obtenerAsesoriaPorId
 );
 
@@ -186,8 +186,8 @@ router.get(
 router.get(
   "/estadisticas/resenas",
   apiKeyMiddleware,
-  authMiddleware.protect,
-  authMiddleware.esAdmin,
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("admin"),
   asesoriaController.estadisticasResenas
 );
 
@@ -214,8 +214,8 @@ router.get(
 router.put(
   "/:id",
   apiKeyMiddleware,
-  authMiddleware.protect,
-  authMiddleware.esAdmin,
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("admin"),
   asesoriaController.actualizarAsesoria
 );
 
@@ -240,8 +240,8 @@ router.put(
 router.post(
   "/recalcular/:email",
   apiKeyMiddleware,
-  authMiddleware.protect,
-  authMiddleware.esAdmin,
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("admin"),
   asesoriaController.recalcularPromedioEndpoint
 );
 
@@ -268,9 +268,54 @@ router.post(
 router.delete(
   "/:id",
   apiKeyMiddleware,
-  authMiddleware.protect,
-  authMiddleware.esAdmin,
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("admin"),
   asesoriaController.eliminarAsesoria
 );
 
+/**
+ * @openapi
+ * tags:
+ *   - name: Asesorias
+ *     description: Gestión de asesorías
+ */
+/**
+ * @openapi
+ * /api/asesorias:
+ *   post:
+ *     tags: [Asesorias]
+ *     summary: Crear asesoría (requiere auth)
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Asesoria'
+ *     responses:
+ *       201:
+ *         description: Asesoría creada
+ *       401:
+ *         description: No autenticado
+ *   get:
+ *     tags: [Asesorias]
+ *     summary: Listar asesorías
+ *     responses:
+ *       200:
+ *         description: Lista de asesorías
+ * /api/asesorias/{id}:
+ *   get:
+ *     tags: [Asesorias]
+ *     summary: Obtener asesoría por ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Asesoría encontrada
+ */
 module.exports = router;

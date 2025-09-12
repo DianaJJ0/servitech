@@ -9,10 +9,36 @@ const authMiddleware = require("../middleware/auth.middleware.js");
 const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
 
 /**
- * @swagger
+ * @openapi
  * tags:
  *   - name: Notificaciones
- *     description: Sistema de notificaciones a usuarios
+ *     description: Envío y manejo de notificaciones
+ */
+
+/**
+ * @openapi
+ * /api/notificaciones:
+ *   post:
+ *     tags: [Notificaciones]
+ *     summary: Enviar notificación (requiere auth)
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Notificacion'
+ *     responses:
+ *       200:
+ *         description: Notificación enviada
+ *       401:
+ *         description: No autenticado
+ *   get:
+ *     tags: [Notificaciones]
+ *     summary: Obtener notificaciones
+ *     responses:
+ *       200:
+ *         description: Lista de notificaciones
  */
 
 /**
@@ -52,7 +78,7 @@ const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
  */
 router.post(
   "/",
-  authMiddleware.protect,
+  authMiddleware.autenticar,
   notificacionController.crearNotificacion
 );
 
@@ -71,8 +97,8 @@ router.post(
 router.get(
   "/",
   apiKeyMiddleware,
-  authMiddleware.protect,
-  authMiddleware.esAdmin,
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("admin"),
   notificacionController.obtenerNotificaciones
 );
 
@@ -99,8 +125,8 @@ router.get(
 router.get(
   "/:id",
   apiKeyMiddleware,
-  authMiddleware.protect,
-  authMiddleware.esAdmin,
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("admin"),
   notificacionController.obtenerNotificacionPorId
 );
 

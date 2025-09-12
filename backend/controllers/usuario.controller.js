@@ -15,6 +15,29 @@ const mongoose = require("mongoose");
 const { generateLog } = require("../services/logService.js"); // logs
 
 /**
+ * @openapi
+ * tags:
+ *   - name: Usuarios
+ *     description: Operaciones relacionadas con usuarios (registro, login, perfil)
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ErrorResponse:
+ *       type: object
+ *       properties:
+ *         error:
+ *           type: string
+ *         message:
+ *           type: string
+ *       required:
+ *         - error
+ *         - message
+ */
+
+/**
  * Genera un token JWT para el usuario
  * @param {string} id - ID del usuario
  * @returns {string} Token JWT generado
@@ -24,10 +47,24 @@ const generarToken = (id) => {
 };
 
 /**
- * Registra un nuevo usuario en el sistema
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- * @returns {Promise<void>}
+ * Crea un nuevo usuario.
+ * @param {import('express').Request} req - objeto request de Express
+ * @param {import('express').Response} res - objeto response de Express
+ * @returns {Promise<void>} Respuesta HTTP
+ * @openapi
+ * /api/usuarios:
+ *   post:
+ *     tags: [Usuarios]
+ *     summary: Crear un usuario
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Usuario'
+ *     responses:
+ *       201:
+ *         description: Usuario creado
  */
 const registrarUsuario = async (req, res) => {
   const { nombre, apellido, email, password, roles, infoExperto } = req.body;
@@ -176,10 +213,47 @@ const registrarUsuario = async (req, res) => {
 };
 
 /**
- * Autentica un usuario y genera sesión
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- * @returns {Promise<void>}
+ * Loguear un usuario.
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @openapi
+ * /api/usuarios/login:
+ *   post:
+ *     tags: [Usuarios]
+ *     summary: Login de usuario
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Token de autenticación
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *       400:
+ *         description: Petición inválida
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Credenciales inválidas
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 const iniciarSesion = async (req, res) => {
   const { email, password } = req.body;
@@ -548,16 +622,16 @@ const subirAvatar = async (req, res) => {
       return res.status(400).json({ mensaje: "Archivo no recibido." });
     }
 
-    // Construir URL pública absoluta para que el frontend (puerto 3001)
+    // Construir URL pública absoluta para que el frontend (puerto 5021)
     // pueda cargar la imagen directamente desde el backend.
     const filename = req.file.filename;
     const uploadsPath = process.env.UPLOAD_PATH || "uploads";
-    // Preferir BACKEND_URL si está configurado (ej: http://localhost:3000)
+    // Preferir BACKEND_URL si está configurado (ej: http://localhost:5020)
     const configured = (process.env.BACKEND_URL || "").trim();
     // Forzar BACKEND_URL si está presente, sino usar el backend local por defecto.
     // Evitar inferir el host desde X-Forwarded o req.host para que las URLs
     // devueltas siempre apunten al servidor que sirve los archivos estáticos.
-    const base = configured || "http://localhost:3000";
+    const base = configured || "http://localhost:5020";
     const avatarUrl = `${base.replace(/\/$/, "")}/${uploadsPath.replace(
       /^\//,
       ""
@@ -796,6 +870,24 @@ const actualizarUsuarioPorEmailAdmin = async (req, res) => {
  * @param {Object} req - Request object
  * @param {Object} res - Response object
  * @returns {Promise<void>}
+ * @openapi
+ * /api/usuarios/{email}:
+ *   get:
+ *     tags: [Usuarios]
+ *     summary: Obtener usuario por email
+ *     parameters:
+ *       - in: path
+ *         name: email
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Usuario encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Usuario'
  */
 const obtenerUsuarioPorEmailAdmin = async (req, res) => {
   try {
@@ -809,6 +901,28 @@ const obtenerUsuarioPorEmailAdmin = async (req, res) => {
     res.status(500).json({ mensaje: "Error interno al obtener usuario." });
   }
 };
+
+/**
+ * @openapi
+ * /api/usuarios/{id}:
+ *   get:
+ *     tags: [Usuarios]
+ *     summary: Obtener usuario por ID (requiere auth)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Usuario encontrado
+ *         content:
+ *           application/json:
+ *
+ */
 
 module.exports = {
   registrarUsuario,

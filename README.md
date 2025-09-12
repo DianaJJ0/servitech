@@ -91,9 +91,9 @@ cd ../frontend && API_KEY=8g-X4JgECIPNcQ59tMN node server.js
 
 ### Acceso
 
-- **🌐 Aplicación:** http://localhost:3001
-- **🔐 Panel Admin:** http://localhost:3001/admin
-- **📡 API:** http://localhost:3000
+- **🌐 Aplicación:** http://localhost:5021
+- **🔐 Panel Admin:** http://localhost:5021/admin
+- **📡 API:** http://localhost:5020
 
 > 📖 **¿Necesitas ayuda?** Ver [Manual de Instalación Completo](./INSTALL.md)
 
@@ -143,7 +143,7 @@ graph TD
 
 ### Como Usuario
 
-1. **Registrarse** en http://localhost:3001/register
+1. **Registrarse** en http://localhost:5021/register
 2. **Explorar** expertos disponibles
 3. **Agendar** cita con el especialista
 4. **Pagar** y recibir confirmación

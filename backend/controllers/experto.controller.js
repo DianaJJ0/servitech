@@ -7,10 +7,56 @@ const Especialidad = require("../models/especialidad.model.js");
 const mongoose = require("mongoose");
 
 /**
+ * @openapi
+ * tags:
+ *   - name: Expertos
+ *     description: Operaciones relacionadas con expertos
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ErrorResponse:
+ *       type: object
+ *       properties:
+ *         error:
+ *           type: string
+ *         message:
+ *           type: string
+ *       required:
+ *         - error
+ *         - message
+ */
+
+/**
  * Lista expertos con paginación y filtros avanzados
  * @param {Object} req - Request object
  * @param {Object} res - Response object
  * @returns {Promise<void>}
+ * @openapi
+ * /api/expertos:
+ *   get:
+ *     tags: [Expertos]
+ *     summary: Listar expertos
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Lista de expertos
+ *       500:
+ *         description: Error interno
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 const listarExpertos = async (req, res) => {
   try {

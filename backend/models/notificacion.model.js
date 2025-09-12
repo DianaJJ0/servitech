@@ -42,4 +42,24 @@ const notificacionSchema = new Schema(
   }
 );
 
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     Notificacion:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *         usuarioId:
+ *           type: string
+ *         mensaje:
+ *           type: string
+ *         leido:
+ *           type: boolean
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ */
+
 module.exports = mongoose.model("Notificacion", notificacionSchema);

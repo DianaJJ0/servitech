@@ -4,8 +4,14 @@ const router = express.Router();
 // Controlador de edición de perfil
 const {
   actualizarPerfilExperto,
+  getProfile,
+  updateProfile,
 } = require("../controllers/experto.controller.js");
-const { protect } = require("../middleware/auth.middleware.js");
+const authMiddleware = require("../middleware/auth.middleware");
+if (!authMiddleware.protect && authMiddleware.autenticar)
+  authMiddleware.protect = authMiddleware.autenticar;
+if (!authMiddleware.esAdmin && authMiddleware.asegurarRol)
+  authMiddleware.esAdmin = authMiddleware.asegurarRol("admin");
 
 /**
  * @swagger
@@ -63,7 +69,55 @@ const { protect } = require("../middleware/auth.middleware.js");
  *       401:
  *         description: No autenticado
  */
-router.post("/perfil", protect, actualizarPerfilExperto);
+router.post("/perfil", authMiddleware.protect, actualizarPerfilExperto);
+
+/**
+ * @openapi
+ * tags:
+ *   - name: PerfilExperto
+ *     description: Endpoints para obtener y actualizar el perfil de un experto
+ */
+
+/**
+ * @openapi
+ * /api/perfil-experto:
+ *   get:
+ *     tags: [PerfilExperto]
+ *     summary: Obtener perfil del experto autenticado
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Perfil del experto
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Usuario'
+ *       401:
+ *         description: No autenticado
+ */
+router.get("/", authMiddleware.autenticar, getProfile);
+
+/**
+ * @openapi
+ * /api/perfil-experto:
+ *   put:
+ *     tags: [PerfilExperto]
+ *     summary: Actualizar perfil del experto autenticado
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Usuario'
+ *     responses:
+ *       200:
+ *         description: Perfil actualizado
+ *       401:
+ *         description: No autenticado
+ */
+router.put("/", authMiddleware.autenticar, updateProfile);
 
 // Define una ruta GET para "/editarExperto"
 // Modelos necesarios

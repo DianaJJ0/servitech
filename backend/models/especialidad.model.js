@@ -24,4 +24,21 @@ const EspecialidadSchema = new mongoose.Schema({
   },
 });
 
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     Especialidad:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *         nombre:
+ *           type: string
+ *         categoriaId:
+ *           type: string
+ *       required:
+ *         - nombre
+ */
+
 module.exports = mongoose.model("Especialidad", EspecialidadSchema);

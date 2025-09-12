@@ -3,6 +3,16 @@ const cron = require("node-cron");
 const { exec } = require("child_process");
 process.loadEnvFile("./.env");
 
+/**
+ * Utilidades para backups y restauración.
+ * @module config/backup
+ */
+
+/**
+ * Crea un backup del directorio de la aplicación.
+ * @param {string} targetPath - Ruta de destino del backup
+ * @returns {Promise<string>} Ruta del archivo zip creado
+ */
 exports.backupDatabase = async () => {
   const dbName = "servitech";
   const outputPath = "./backup";
@@ -20,8 +30,8 @@ exports.backupDatabase = async () => {
 
 // COMENTAR ESTA LÍNEA (solo para pruebas)
 //cron.schedule("* * * * *", async () => {
-  //console.log("[TESTING] Realizando backup básico de la base de datos...");
-  //exports.backupDatabase();
+//console.log("[TESTING] Realizando backup básico de la base de datos...");
+//exports.backupDatabase();
 //});
 
 // MANTENER SOLO EL BACKUP PROGRAMADO CADA 3 DÍAS

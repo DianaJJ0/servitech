@@ -22,6 +22,7 @@ const especialidadRoutes = require("./routes/especialidad.routes.js");
 const habilidadRoutes = require("./routes/habilidad.routes.js");
 const asesoriaRoutes = require("./routes/asesoria.routes.js");
 const devRoutes = require("./routes/dev.routes.js");
+const { autenticar, asegurarRol } = require("./middleware/auth.middleware");
 
 // Conectar a la base de datos
 conectarDB();
@@ -39,30 +40,64 @@ app.use(
   })
 );
 
-// --- Swagger ---
-const swaggerUi = require("swagger-ui-express"); // pa
-const swaggerJSDoc = require("swagger-jsdoc");
+// Integración de Swagger (swagger-jsdoc + swagger-ui-express)
+try {
+  const swaggerJSDoc = require("swagger-jsdoc");
+  const swaggerUi = require("swagger-ui-express");
+  const swaggerOptions = require("./config/swagger");
+  const swaggerSpec = swaggerJSDoc(swaggerOptions);
 
-const swaggerDefinition = {
-  openapi: "3.0.0",
-  info: {
-    title: "API Servitech",
-    version: "1.0.0",
-    description: "Documentación interactiva de la API de Servitech",
-  },
-  servers: [
-    { url: "http://localhost:3000/api", description: "Servidor local" },
-  ],
-};
+  // Añadir security definitions al spec para habilitar el botón Authorize
+  if (!swaggerSpec.components) swaggerSpec.components = {};
+  if (!swaggerSpec.components.securitySchemes) {
+    swaggerSpec.components.securitySchemes = {
+      bearerAuth: {
+        type: "http",
+        scheme: "bearer",
+        bearerFormat: "JWT",
+      },
+    };
+  }
+  // Seguridad global para que Swagger UI muestre el botón Authorize
+  swaggerSpec.security = [{ bearerAuth: [] }];
 
-const options = {
-  swaggerDefinition,
-  apis: ["./routes/*.js", "./models/*.js"], // el * indica que se lean todos los archivos .js en esa carpeta
-};
-
-const swaggerSpec = swaggerJSDoc(options);
-
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  // Proteger las rutas de documentación con autenticación JWT y rol admin
+  if (process.env.JWT_SECRET) {
+    // Requerir siempre autenticación y rol admin para /api-docs
+    app.use(
+      "/api-docs",
+      autenticar,
+      asegurarRol("admin"),
+      swaggerUi.serve,
+      swaggerUi.setup(swaggerSpec, {
+        swaggerOptions: { supportedSubmitMethods: [] },
+      })
+    );
+    app.get("/api-docs.json", autenticar, asegurarRol("admin"), (req, res) => {
+      res.setHeader("Content-Type", "application/json");
+      res.send(swaggerSpec);
+    });
+  } else {
+    // Si no hay JWT_SECRET, usar el middleware swaggerAuth como fallback (Basic)
+    const swaggerAuth = require("./middleware/swaggerAuth.middleware");
+    app.use(
+      "/api-docs",
+      swaggerAuth,
+      swaggerUi.serve,
+      swaggerUi.setup(swaggerSpec, {
+        swaggerOptions: { supportedSubmitMethods: [] },
+      })
+    );
+    app.get("/api-docs.json", swaggerAuth, (req, res) => {
+      res.setHeader("Content-Type", "application/json");
+      res.send(swaggerSpec);
+    });
+  }
+} catch (err) {
+  console.warn(
+    "Advertencia: no se pudo cargar swagger-jsdoc o swagger-ui-express. Ejecuta: npm install swagger-jsdoc swagger-ui-express"
+  );
+}
 
 // Middleware de registro de solicitudes
 app.use((req, res, next) => {
@@ -72,7 +107,7 @@ app.use((req, res, next) => {
 
 app.use(
   cors({
-    origin: ["http://localhost:3001", "http://127.0.0.1:3001"],
+    origin: ["http://localhost:5021", "http://127.0.0.1:5021"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
@@ -123,7 +158,7 @@ app.use("/api/asesorias", asesoriaRoutes);
 // Rutas de desarrollo (solo en entornos no productivos)
 app.use("/api/dev", devRoutes);
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5020;
 app.listen(PORT, () => {
   console.log(
     `Servidor API (Backend) ejecutándose en modo ${process.env.NODE_ENV} en el puerto ${PORT}`

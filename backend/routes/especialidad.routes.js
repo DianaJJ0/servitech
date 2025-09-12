@@ -6,25 +6,42 @@ const express = require("express");
 const router = express.Router();
 
 const especialidadController = require("../controllers/especialidad.controller");
-const authMiddleware = require("../middleware/auth.middleware.js");
+const authMiddleware = require("../middleware/auth.middleware");
 const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
 
 /**
- * @swagger
+ * @openapi
  * tags:
  *   - name: Especialidades
- *     description: Gestión de especialidades tecnológicas
+ *     description: Gestión de especialidades
  */
 
 /**
- * @swagger
+ * @openapi
  * /api/especialidades:
  *   get:
- *     summary: Listar especialidades
  *     tags: [Especialidades]
+ *     summary: Obtener especialidades
  *     responses:
  *       200:
  *         description: Lista de especialidades
+ *   post:
+ *     tags: [Especialidades]
+ *     summary: Crear especialidad (requiere rol admin)
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Especialidad'
+ *     responses:
+ *       201:
+ *         description: Especialidad creada
+ *       401:
+ *         description: No autenticado
+ *       403:
+ *         description: Requiere rol admin
  */
 router.get("/", especialidadController.getAll);
 
@@ -58,8 +75,8 @@ router.get("/", especialidadController.getAll);
 router.post(
   "/",
   apiKeyMiddleware,
-  authMiddleware.protect,
-  authMiddleware.esAdmin,
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("admin"),
   especialidadController.create
 );
 
@@ -86,8 +103,8 @@ router.post(
 router.put(
   "/:id",
   apiKeyMiddleware,
-  authMiddleware.protect,
-  authMiddleware.esAdmin,
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("admin"),
   especialidadController.update
 );
 
@@ -114,8 +131,8 @@ router.put(
 router.delete(
   "/:id",
   apiKeyMiddleware,
-  authMiddleware.protect,
-  authMiddleware.esAdmin,
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("admin"),
   especialidadController.remove
 );
 
