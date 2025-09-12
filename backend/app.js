@@ -118,6 +118,7 @@ app.use(
 app.set("views", path.join(__dirname, "../frontend/views"));
 app.set("view engine", "ejs");
 // Limitar tamaño del body y manejar JSON malformado de forma explícita
+//PARA PETICIONES JSON
 app.use(express.json({ limit: "100kb" }));
 
 // Servir archivos subidos (avatars) desde backend/uploads
