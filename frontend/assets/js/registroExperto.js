@@ -77,6 +77,100 @@ document.addEventListener("DOMContentLoaded", function () {
   } catch (e) {
     console.warn("Failed to set email tooltip", e);
   }
+
+  // --- Inicio: lógica de preview y subida de imagen (movida desde plantilla) ---
+  (function () {
+    const input = document.getElementById('fotoPerfil');
+    const previewWrap = document.getElementById('epPreview');
+    const img = document.getElementById('epImg');
+    const removeBtn = document.getElementById('epRemove');
+    const meta = document.getElementById('fotoMeta');
+    const nombre = document.getElementById('fotoNombre');
+    const tamano = document.getElementById('fotoTamano');
+    const errorBox = document.getElementById('fotoError');
+
+    if (!input) return;
+
+    function formatBytes(bytes) {
+      if (!bytes) return '0 B';
+      const units = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(1024));
+      return (bytes / Math.pow(1024, i)).toFixed((i === 0) ? 0 : 1) + ' ' + units[i];
+    }
+
+    function clearPreview() {
+      input.value = '';
+      try { if (img.src && img.src.startsWith('blob:')) URL.revokeObjectURL(img.src); } catch (e) { }
+      img.src = '';
+      if (previewWrap) previewWrap.setAttribute('aria-hidden', 'true');
+      if (previewWrap) previewWrap.classList.remove('show');
+      if (removeBtn) removeBtn.classList.remove('show');
+      if (meta) meta.hidden = true;
+      if (errorBox) { errorBox.hidden = true; errorBox.textContent = ''; }
+    }
+
+    function showError(msg) {
+      if (!errorBox) return;
+      errorBox.textContent = msg;
+      errorBox.hidden = false;
+    }
+
+    input.addEventListener('change', function () {
+      if (!input.files || !input.files[0]) { clearPreview(); return; }
+      const file = input.files[0];
+      errorBox && (errorBox.hidden = true);
+
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (!/^image\//.test(file.type)) {
+        showError('Solo se permiten imágenes (JPG, PNG, etc.).');
+        clearPreview();
+        return;
+      }
+      if (file.size > maxSize) {
+        showError('La imagen excede el tamaño máximo de 5 MB.');
+        clearPreview();
+        return;
+      }
+
+      const url = URL.createObjectURL(file);
+      if (img) img.src = url;
+      if (previewWrap) previewWrap.setAttribute('aria-hidden', 'false');
+      if (previewWrap) previewWrap.classList.add('show');
+      if (removeBtn) removeBtn.classList.add('show');
+      if (nombre) nombre.textContent = file.name;
+      if (tamano) tamano.textContent = formatBytes(file.size);
+      if (meta) meta.hidden = false;
+
+      (async function uploadAvatar() {
+        try {
+          const token = localStorage.getItem('token');
+          if (!token || token === 'null') { showError('Debes iniciar sesión para subir la imagen.'); return; }
+          const fd = new FormData();
+          fd.append('avatar', file);
+          const res = await fetch('/api/usuarios/avatar', {
+            method: 'POST',
+            body: fd,
+            headers: { Authorization: `Bearer ${token}` },
+            credentials: 'include'
+          });
+          const data = await res.json().catch(() => null);
+          if (!res.ok) { showError((data && data.mensaje) || 'Error subiendo la imagen'); return; }
+          const avatarInput = document.getElementById('avatarUrl');
+          if (avatarInput && data && data.avatarUrl) {
+            avatarInput.value = data.avatarUrl;
+            if (img) img.src = data.avatarUrl;
+          }
+        } catch (err) { console.error('Upload error', err); showError('Error subiendo la imagen. Intenta de nuevo.'); }
+      })();
+    });
+
+    removeBtn && removeBtn.addEventListener('click', function () { try { if (img.src) URL.revokeObjectURL(img.src); } catch (e) {} clearPreview(); });
+
+    document.querySelectorAll('.ep-box').forEach(function (el) {
+      el.addEventListener('keydown', function (evt) { if (evt.key === 'Enter' || evt.key === ' ') { evt.preventDefault(); el.click(); } });
+    });
+  })();
+  // --- Fin: lógica de preview y subida ---
 });
 
 // Elementos del formulario

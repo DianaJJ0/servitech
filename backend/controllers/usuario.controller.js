@@ -39,6 +39,29 @@ const generarLogs = require("../services/generarLogs");
  */
 
 /**
+ * @openapi
+ * tags:
+ *   - name: Usuarios
+ *     description: Operaciones relacionadas con usuarios (registro, login, perfil)
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ErrorResponse:
+ *       type: object
+ *       properties:
+ *         error:
+ *           type: string
+ *         message:
+ *           type: string
+ *       required:
+ *         - error
+ *         - message
+ */
+
+/**
  * Genera un token JWT para el usuario
  * @param {string} id - ID del usuario
  * @returns {string} Token JWT generado

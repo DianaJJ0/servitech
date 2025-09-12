@@ -243,61 +243,21 @@
         <%- include('componentes/footer') %>
             <script src="/assets/js/common.js"></script>
             <script src="/assets/js/calendario.js"></script>
-            <% if (typeof expertoSeleccionado !=='undefined' && expertoSeleccionado) { %>
-                <script>
-                    window.expertoSeleccionado = {
-                        id: '<%= expertoSeleccionado._id %>',
-                        nombre: '<%= expertoSeleccionado.userId ? expertoSeleccionado.userId.nombre : expertoSeleccionado.nombre %>',
-                        apellido: '<%= expertoSeleccionado.userId ? expertoSeleccionado.userId.apellido : expertoSeleccionado.apellido || "" %>',
-                        especialidad: '<%= expertoSeleccionado.especialidad || "Consultoría Técnica" %>',
-                        email: '<%= expertoSeleccionado.userId ? expertoSeleccionado.userId.email : expertoSeleccionado.email || "" %>'
-                    };
-                </script>
-                <% } %>
-                    <% if (typeof categoriaSeleccionadaId !=='undefined' && categoriaSeleccionadaId) { %>
-                        <script>
-                            window.categoriaSeleccionadaId = '<%= JSON.stringify(categoriaSeleccionadaId) %>';
-                        </script>
+                        <% if (typeof expertoSeleccionado !=='undefined' && expertoSeleccionado) { %>
+                                <script type="application/json" id="initial-expertoSeleccionado">
+                                    <%= JSON.stringify({
+                                        id: expertoSeleccionado._id,
+                                        nombre: expertoSeleccionado.userId ? expertoSeleccionado.userId.nombre : expertoSeleccionado.nombre,
+                                        apellido: expertoSeleccionado.userId ? expertoSeleccionado.userId.apellido : (expertoSeleccionado.apellido || ''),
+                                        especialidad: expertoSeleccionado.especialidad || 'Consultoría Técnica',
+                                        email: expertoSeleccionado.userId ? expertoSeleccionado.userId.email : (expertoSeleccionado.email || '')
+                                    }) %>
+                                </script>
                         <% } %>
-                            <script>
-                                // Variables para almacenar selección
-                                let fechaSeleccionada = '17 de Mayo 2025';
-                                let horaSeleccionada = '11:00';
-                                function confirmarCita() {
-                                    if (!horaSeleccionada) {
-                                        alert('Por favor selecciona un horario disponible');
-                                        return;
-                                    }
-                                    const citaData = {
-                                        experto: window.expertoSeleccionado ? {
-                                            id: window.expertoSeleccionado.id,
-                                            nombre: window.expertoSeleccionado.nombre,
-                                            apellido: window.expertoSeleccionado.apellido,
-                                            especialidad: window.expertoSeleccionado.especialidad,
-                                            email: window.expertoSeleccionado.email
-                                        } : {},
-                                        fecha: fechaSeleccionada,
-                                        hora: horaSeleccionada,
-                                        servicio: window.expertoSeleccionado ? (window.expertoSeleccionado.especialidad || 'Consultoría Técnica') : 'Consultoría Técnica',
-                                        duracion: '60 minutos',
-                                        precio: '$20.000 COP'
-                                    };
-                                    localStorage.setItem('citaSeleccionada', JSON.stringify(citaData));
-                                    sessionStorage.setItem('datosExperto', JSON.stringify(window.expertoSeleccionado));
-                                    sessionStorage.setItem('fechaCita', fechaSeleccionada);
-                                    sessionStorage.setItem('horaCita', horaSeleccionada);
-                                    if (window.expertoSeleccionado && window.expertoSeleccionado.id) {
-                                        window.location.href = `/expertos/${window.expertoSeleccionado.id}/pasarela-pagos`;
-                                    } else {
-                                        alert('No se encontró el experto seleccionado');
-                                    }
-                                }
-                                document.addEventListener('DOMContentLoaded', function () {
-                                    // Selección de fecha
-                                    const days = document.querySelectorAll('.day:not(.inactive)');
-                                    days.forEach(day => {
-                                        day.addEventListener('click', function () {
-                                            document.querySelectorAll('.day.selected').forEach(el => {
+                        <% if (typeof categoriaSeleccionadaId !=='undefined' && categoriaSeleccionadaId) { %>
+                                <script type="application/json" id="initial-categoriaSeleccionadaId"><%= JSON.stringify(categoriaSeleccionadaId) %></script>
+                        <% } %>
+                        <!-- confirmarCita y selección manejadas por /assets/js/calendario.js; datos inyectados en JSON -->
                                                 el.classList.remove('selected');
                                             });
                                             this.classList.add('selected');

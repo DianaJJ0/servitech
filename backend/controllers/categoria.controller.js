@@ -29,6 +29,29 @@ const generarLogs = require("../services/generarLogs");
  */
 
 /**
+ * @openapi
+ * tags:
+ *   - name: Categorias
+ *     description: Gestión de categorías
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ErrorResponse:
+ *       type: object
+ *       properties:
+ *         error:
+ *           type: string
+ *         message:
+ *           type: string
+ *       required:
+ *         - error
+ *         - message
+ */
+
+/**
  * Crea una nueva categoría
  * @param {Object} req - Request object
  * @param {Object} res - Response object

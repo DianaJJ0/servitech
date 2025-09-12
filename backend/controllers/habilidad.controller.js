@@ -29,6 +29,29 @@ const generarLogs = require("../services/generarLogs");
  */
 
 /**
+ * @openapi
+ * tags:
+ *   - name: Habilidades
+ *     description: Gestión de habilidades
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ErrorResponse:
+ *       type: object
+ *       properties:
+ *         error:
+ *           type: string
+ *         message:
+ *           type: string
+ *       required:
+ *         - error
+ *         - message
+ */
+
+/**
  * Lista todas las habilidades
  * @param {Object} req - Request object
  * @param {Object} res - Response object
