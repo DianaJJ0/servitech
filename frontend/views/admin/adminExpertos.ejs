@@ -5,34 +5,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gestión de Expertos - Servitech Admin</title>
-  <!-- Cargar estilos base y luego los específicos del panel admin (orden importante) -->
-  <link rel="stylesheet" href="/assets/css/base.css" />
+  <link rel="stylesheet" href="/assets/css/administrador.css" />
   <link rel="stylesheet" href="/assets/css/admin.css" />
-  <!-- Estilos específicos del panel: componentes y experto -->
-  <link rel="stylesheet" href="/assets/css/admin-components.css" />
-  <!-- Usar archivo canónico y completo del modal (incluye bank-section) -->
-  <link rel="stylesheet" href="/assets/css/Admin-expertos.css" />
-  <!-- Choices.js styles for enhanced multi-selects -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
-  <!-- Responsive último para que sus media queries tengan prioridad sobre reglas de componentes/página -->
   <link rel="stylesheet" href="/assets/css/admin-responsive.css" />
+  <link rel="stylesheet" href="/assets/css/admin-components.css" />
+  <!-- page-specific CSS -->
+  <link rel="stylesheet" href="/assets/css/Admin-expertos.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 </head>
 
 <body>
-  <script>
-    // Protección temprana: ocultar cualquier modal que el servidor haya renderizado visible
-    try {
-      (function () {
-        var mods = document.querySelectorAll && document.querySelectorAll('.modal-expert');
-        if (mods && mods.length) {
-          for (var i = 0; i < mods.length; i++) { try { mods[i].style.display = 'none'; mods[i].setAttribute('aria-hidden', 'true'); } catch (e) { } }
-        }
-        try { document.body.style.overflow = document.body.style.overflow || ''; } catch (e) { }
-      })();
-    } catch (e) { }
-  </script>
   <div class="admin-layout">
     <%- include('../componentes/navbarAdmin.ejs') %>
 
@@ -1357,63 +1340,6 @@
               </select>
 
               <!-- Choices initialization and visual fixes are centralized in /assets/js/admin/admin-expertos.js -->
-              <script>
-                // Diagnóstico: registra en consola la estructura y estilos computados del botón remove
-                (function () {
-                  function diag() {
-                    try {
-                      // Inspect only buttons inside the currently visible modal
-                      const visibleModal = Array.from(document.querySelectorAll('.modal-expert')).find(function (m) {
-                        try { const cs = getComputedStyle(m); return cs && cs.display !== 'none' && cs.visibility !== 'hidden' && m.offsetWidth > 0 && m.offsetHeight > 0; } catch (e) { return false; }
-                      });
-                      if (!visibleModal) {
-                        console.info('[diag] No hay modal visible para inspeccionar');
-                        return;
-                      }
-                      var btns = visibleModal.querySelectorAll('.choices__button');
-                      if (!btns || btns.length === 0) {
-                        console.info('[diag] No se encontraron .choices__button dentro del modal visible');
-                        return;
-                      }
-                      btns.forEach(function (b, i) {
-                        console.info('[diag] choices__button #' + i + ':', b.outerHTML);
-                        var cs = window.getComputedStyle(b);
-                        console.info('[diag] computed (button):', {
-                          display: cs.display,
-                          visibility: cs.visibility,
-                          color: cs.color,
-                          background: cs.backgroundColor || cs['background-color'],
-                          overflow: cs.overflow,
-                          zIndex: cs.zIndex
-                        });
-                        var pa = window.getComputedStyle(b, '::after');
-                        console.info('[diag] computed (::after):', {
-                          content: pa.content,
-                          color: pa.color,
-                          display: pa.display,
-                          visibility: pa.visibility,
-                          zIndex: pa.zIndex,
-                          fontSize: pa.fontSize
-                        });
-                        var pb = window.getComputedStyle(b, '::before');
-                        console.info('[diag] computed (::before):', {
-                          content: pb.content,
-                          color: pb.color
-                        });
-                      });
-                    } catch (e) {
-                      console.error('[diag] error:', e);
-                    }
-                  }
-                  document.addEventListener('DOMContentLoaded', function () {
-                    setTimeout(diag, 600);
-                    // también vuelve a correr cuando se detecta interacción que puede abrir el modal
-                    document.body.addEventListener('click', function (ev) {
-                      if (ev.target.closest('.modal-expert') || ev.target.closest('.btn-close')) setTimeout(diag, 300);
-                    }, true);
-                  });
-                })();
-              </script>
               <small class="modal-expert__hint">Selecciona una o varias categorías (Ctrl/Cmd+click)</small>
             </div>
 
@@ -1622,102 +1548,8 @@
     </div>
   </div>
 
-  <script>
-    (function profileImagePreview() {
-      var input = document.getElementById('profileImage');
-      var preview = document.getElementById('profilePreview');
-      var img = preview ? preview.querySelector('img') : null;
-      var removeBtn = document.getElementById('removeProfileBtn');
-      var meta = document.getElementById('uploadMeta');
-      var err = document.getElementById('profileImageError');
-      var label = document.getElementById('uploadLabel');
-
-      function reset() {
-        if (input) input.value = '';
-        if (img) img.src = '';
-        if (preview) preview.classList.remove('visible');
-        if (removeBtn) removeBtn.style.display = 'none';
-        if (meta) { meta.style.display = 'none'; meta.textContent = ''; }
-        if (err) { err.style.display = 'none'; err.textContent = ''; }
-      }
-
-      function showError(message) {
-        if (err) { err.textContent = message; err.style.display = 'block'; }
-      }
-
-      function setFileInfo(file) {
-        if (!meta) return;
-        meta.style.display = 'block';
-        meta.textContent = file.name + ' · ' + Math.round(file.size / 1024) + 'KB';
-      }
-
-      if (!input) return;
-
-      input.addEventListener('change', function (e) {
-        var f = input.files && input.files[0];
-        if (!f) { reset(); return; }
-        // basic validation
-        var allowed = /^image\/(png|jpe?g|gif|webp)$/i;
-        if (!allowed.test(f.type)) {
-          showError('Formato no soportado. Usa png, jpg, gif o webp.');
-          input.value = '';
-          return;
-        }
-        var max = 2 * 1024 * 1024; // 2MB
-        if (f.size > max) {
-          showError('Archivo muy grande. Máx 2MB.');
-          input.value = '';
-          return;
-        }
-        // show preview
-        var reader = new FileReader();
-        reader.onload = function (ev) {
-          if (img) img.src = ev.target.result;
-          if (preview) preview.classList.add('visible');
-          if (removeBtn) removeBtn.style.display = 'inline-flex';
-          if (err) { err.style.display = 'none'; err.textContent = ''; }
-          setFileInfo(f);
-        };
-        reader.readAsDataURL(f);
-      });
-
-      if (removeBtn) {
-        removeBtn.addEventListener('click', function () {
-          reset();
-        });
-      }
-
-      // provide keyboard accessible remove from upload meta area
-      if (meta) {
-        meta.addEventListener('keydown', function (ev) {
-          if (ev.key === 'Delete' || ev.key === 'Backspace') reset();
-        });
-      }
-
-      // hide preview initial (fixes "Preview" text showing)
-      document.addEventListener('DOMContentLoaded', function () {
-        reset();
-      });
-    })();
-  </script>
-
-  <!-- Ensure modals are hidden by default on page load to avoid flashes -->
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      try {
-        document.querySelectorAll('.modal-expert').forEach(function (m) {
-          try {
-            if (m && m.style) m.style.display = 'none';
-            m.setAttribute('aria-hidden', 'true');
-          } catch (e) { }
-        });
-        // restore body overflow in case server rendered a modal visible
-        document.body.style.overflow = document.body.style.overflow || '';
-      } catch (e) { }
-    });
-  </script>
-
-  <!--modal editar experto-->
+  <!-- Modal editar experto is intentionally left in the template; UI helpers moved to centralized JS -->
+  <!-- Modal editar experto -->
   <div id="expertModal" class="modal-expert" aria-hidden="true" style="display:none;">
 
     <div class="modal-expert__container">
@@ -1753,973 +1585,523 @@
               <label for="precio" class="modal-expert__label">
                 <i class="fas fa-money-bill-wave modal-expert__icon" aria-hidden="true" title="Precio"></i>
                 Precio por hora (COP)
-                <span class="price-tooltip icon-tooltip" title="Ejemplo recomendado: $30.000 - $200.000 COP"
-                  style="margin-left:.5rem;">
-                  <i class="fas fa-info-circle"></i>
-                </span>
-              </label>
-
-              <div class="srv-price-input price-input">
-                <span class="srv-currency currency-symbol">$</span>
-                <input type="number" id="precio" name="precio" min="10000" step="100" required placeholder="Ej: 50000"
-                  class="srv-input price-field" />
-              </div>
-              <p class="srv-note price-note">
-                Tarifa por hora de asesoría (Recomendado: $30.000 - $200.000 COP)
-              </p>
-              <div id="precio-feedback" class="srv-feedback price-feedback" aria-live="polite"></div>
-            </div>
-
-            <!-- Días disponibles (columna) -->
-            <div>
-              <label for="diasDisponibles" class="modal-expert__label">
-                <i class="fas fa-calendar-alt modal-expert__icon" aria-hidden="true"></i>
-                Días disponibles
-              </label>
-
-              <div class="srv-days-wrapper">
-                <div class="srv-days">
-                  <button type="button" class="srv-day" data-day="Lunes" aria-pressed="false">L</button>
-                  <button type="button" class="srv-day" data-day="Martes" aria-pressed="false">M</button>
-                  <button type="button" class="srv-day" data-day="Miércoles" aria-pressed="false">X</button>
-                  <button type="button" class="srv-day" data-day="Jueves" aria-pressed="false">J</button>
-                  <button type="button" class="srv-day" data-day="Viernes" aria-pressed="false">V</button>
-                  <button type="button" class="srv-day" data-day="Sábado" aria-pressed="false">S</button>
-                  <button type="button" class="srv-day" data-day="Domingo" aria-pressed="false">D</button>
-                </div>
-
-                <div class="srv-days-display">
-                  Ningún día seleccionado
-                </div>
-              </div>
-
-              <input type="hidden" id="diasDisponibles" name="diasDisponibles" />
-            </div>
-
-            <!-- Especialidad principal -->
-            <div>
-              <label class="modal-expert__label" for="specialty">
-                <i class="fas fa-briefcase modal-expert__icon" aria-hidden="true"></i>
-                Especialidad principal
-              </label>
-              <div class="input-with-icon">
-                <i class="fas fa-briefcase" aria-hidden="true"></i>
-                <select id="specialty" class="modal-expert__input modal-expert__select"
-                  aria-label="Especialidad principal">
-                  <option value="">Seleccionar especialidad</option>
-                  <option value="web">Desarrollo Web</option>
-                  <option value="mobile">Desarrollo Móvil</option>
-                  <option value="data">Ciencia de Datos</option>
-                  <option value="uxui">UX/UI</option>
-                  <option value="devops">DevOps</option>
-                  <option value="blockchain">Blockchain</option>
-                  <option value="cloud">Cloud Computing</option>
-                </select>
-                <i class="fas fa-chevron-down" aria-hidden="true"></i>
-              </div>
-              <small class="modal-expert__hint">Selecciona la especialidad principal que describe mejor al
-                experto</small>
-            </div>
-
-            <!-- Estado -->
-            <div>
-              <label class="modal-expert__label" for="status">
-                <i class="fas fa-toggle-on modal-expert__icon" aria-hidden="true"></i>
-                Estado
-              </label>
-              <div class="input-with-icon">
-                <i class="fas fa-toggle-on" aria-hidden="true"></i>
-                <select id="status" class="modal-expert__input modal-expert__select" aria-label="Estado del experto">
-                  <option value="active">Activo</option>
-                  <option value="pending">Pendiente</option>
-                  <option value="inactive">Inactivo</option>
-                </select>
-                <i class="fas fa-chevron-down" aria-hidden="true"></i>
-              </div>
-              <small class="modal-expert__hint">Define si el experto puede recibir solicitudes</small>
-            </div>
-
-            <!-- Categorías (full width) -->
-            <div class="full-width">
-              <label class="modal-expert__label" for="categorias">
-                <i class="fas fa-tags modal-expert__icon" aria-hidden="true"></i>
-                Categorías
-              </label>
-              <select id="categorias" class="modal-expert__input modal-expert__select-categorias" multiple size="4"
-                aria-label="Categorías">
-                <!-- opciones añadidas dinámicamente -->
-              </select>
-
-              <!-- Choices initialization and visual fixes are centralized in /assets/js/admin/admin-expertos.js -->
-              <small class="modal-expert__hint">Selecciona una o varias categorías (Ctrl/Cmd+click)</small>
-            </div>
-
-            <!-- Habilidades (full width) -->
-            <div class="full-width">
-              <label class="modal-expert__label" for="skills">
-                <i class="fas fa-tools modal-expert__icon" aria-hidden="true"></i>
-                Habilidades
-              </label>
-              <select id="skills" class="modal-expert__input" multiple size="6">
-                <% if (typeof habilidades !=='undefined' && Array.isArray(habilidades) && habilidades.length> 0) { %>
-                  <% habilidades.forEach(function(h) { %>
-                    <% const val=(h && (h.nombre || h.name || h.label)) ? (h.nombre || h.name || h.label) : (h && h._id
-                      ? String(h._id) : '' ); %>
-                      <% if (val) { %>
-                        <option value="<%= val %>">
-                          <%= val %>
-                        </option>
-                        <% } %>
-                          <% }); %>
-                            <% } %>
-              </select>
-              <!-- Inicialización de Choices para #skills centralizada en /assets/js/admin/admin-expertos.js -->
-              <small class="modal-expert__hint">Selecciona o escribe para añadir nuevas habilidades</small>
-            </div>
-
-            <!-- Biografía -->
-            <div class="full-width">
-              <label class="modal-expert__label" for="bio">
-                <i class="fas fa-file-alt modal-expert__icon" aria-hidden="true"></i>
-                Biografía profesional
-              </label>
-              <textarea id="bio" rows="4" placeholder="Descripción breve de experiencia y especialización"
-                class="modal-expert__input modal-expert__textarea"></textarea>
-            </div>
-
-            <!-- Imagen de perfil -->
-            <div class="full-width">
-              <label class="modal-expert__label" for="profileImage">
-                <i class="fas fa-image modal-expert__icon" aria-hidden="true"></i>
-                Imagen de perfil
-              </label>
-
-              <div class="modal-expert__upload-wrapper">
-                <!-- hidden but accessible -->
-                <input type="file" id="profileImage" class="modal-expert__file-input"
-                  aria-label="Seleccionar imagen de perfil" accept="image/*" />
-
-                <!-- visual upload box (acts as label) -->
-                <label for="profileImage" class="modal-expert__upload-box" role="button" aria-haspopup="dialog">
-                  <i class="fas fa-upload" aria-hidden="true"></i>
-                  <span id="uploadLabel">Seleccionar imagen (png, jpg) · Máx 2MB</span>
-                </label>
-
-                <!-- preview thumbnail -->
-                <div id="profilePreview" aria-hidden="true" role="img" aria-label="Vista previa de imagen">
-                  <button id="removeProfileBtn" type="button" title="Eliminar imagen" aria-label="Eliminar imagen"
-                    style="display:none;">
-                    <i class="fas fa-times"></i>
-                  </button>
-                  <img src="" alt="Preview" />
-                </div>
-
-                <div class="upload-meta" id="uploadMeta" aria-live="polite" style="display:none;"></div>
-                <div class="upload-error" id="profileImageError" role="alert" style="display:none;"></div>
-              </div>
-            </div>
-
-            <!-- Espacio reservado para mantener la columna alineada -->
-            <div aria-hidden="true"></div>
-
-            <!-- Sección bancaria (tarjeta de ancho completo) -->
-            <div class="full-width">
-              <div class="bank-section">
-                <h3 class="bank-title">
-                  <i class="fas fa-university"></i> Datos Bancarios para Pagos
-                </h3>
-                <p class="bank-sub">Información necesaria para recibir pagos por tus asesorías</p>
-
-                <div class="bank-grid">
-                  <div>
-                    <label for="banco">Banco *</label>
-                    <div id="banco-wrapper">
-                      <select id="banco" name="banco" required class="modal-expert__input">
-                        <option value="">Selecciona tu banco</option>
-                        <option value="Banco de Bogotá">Banco de Bogotá</option>
-                        <option value="Bancolombia">Bancolombia</option>
-                        <option value="Banco Popular">Banco Popular</option>
-                        <option value="Banco AV Villas">Banco AV Villas</option>
-                        <option value="Banco Caja Social">Banco Caja Social</option>
-                        <option value="Banco de Occidente">Banco de Occidente</option>
-                        <option value="Banco GNB Sudameris">Banco GNB Sudameris</option>
-                        <option value="Banco Itaú">Banco Itaú</option>
-                        <option value="Banco Pichincha">Banco Pichincha</option>
-                        <option value="Banco Santander">Banco Santander</option>
-                        <option value="Banco Scotiabank Colpatria">Banco Scotiabank Colpatria</option>
-                        <option value="Davivienda">Davivienda</option>
-                        <option value="Banco Agrario">Banco Agrario</option>
-                        <option value="Banco Falabella">Banco Falabella</option>
-                        <option value="Banco Finandina">Banco Finandina</option>
-                        <option value="Banco W">Banco W</option>
-                        <option value="Banco Serfinanza">Banco Serfinanza</option>
-                        <option value="Banco Cooperativo Coopcentral">Banco Cooperativo Coopcentral</option>
-                        <option value="Banco BBVA">Banco BBVA</option>
-                        <option value="Nequi">Nequi</option>
-                        <option value="Daviplata">Daviplata</option>
-                        <option value="Movii">Movii</option>
-                        <option value="Banco de Vivienda">Banco de Vivienda</option>
-                        <option value="Banco ProCredit">Banco ProCredit</option>
-                        <option value="Banco Multibank">Banco Multibank</option>
-                        <option value="Banco Coopcentral">Banco Coopcentral</option>
-                        <option value="Banco Credifinanciera">Banco Credifinanciera</option>
-                        <option value="Banco Mundo Mujer">Banco Mundo Mujer</option>
-                        <option value="Banco Ripley">Banco Ripley</option>
-                        <option value="Banco CrediScotia">Banco CrediScotia</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label for="tipoCuenta">Tipo de cuenta *</label>
-                    <div id="tipoCuenta-wrapper">
-                      <select id="tipoCuenta" name="tipoCuenta" required class="modal-expert__input">
-                        <option value="">Selecciona el tipo</option>
-                        <option value="Cuenta de Ahorros">Cuenta de Ahorros</option>
-                        <option value="Cuenta Corriente">Cuenta Corriente</option>
-                        <option value="Cuenta de Nómina">Cuenta de Nómina</option>
-                        <option value="Cuenta Digital">Cuenta Digital</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label for="numeroCuenta">Número de cuenta *</label>
-                    <div class="acct-wrap">
-                      <input type="password" id="numeroCuenta" name="numeroCuenta" required
-                        placeholder="Número de cuenta" pattern="[0-9\-]*" title="Solo números y guiones"
-                        class="acct-input">
-                      <button type="button" id="toggleAccountNumber" class="acct-toggle"
-                        aria-label="Mostrar número de cuenta">
-                        <i class="fas fa-eye"></i>
-                      </button>
-                    </div>
-                    <p class="hint">Número completo de tu cuenta</p>
-                  </div>
-
-                  <div>
-                    <label for="titular">Titular de la cuenta *</label>
-                    <input type="text" id="titular" name="titular" required placeholder="Nombre completo del titular"
-                      class="modal-expert__input">
-                    <p class="hint">Debe coincidir con el nombre en la cuenta</p>
-                  </div>
-
-                  <div>
-                    <label for="tipoDocumento">Tipo de documento *</label>
-                    <div id="tipoDocumento-wrapper">
-                      <select id="tipoDocumento" name="tipoDocumento" required class="modal-expert__input">
-                        <option value="">Selecciona el tipo</option>
-                        <option value="Cédula de Ciudadanía">Cédula de Ciudadanía</option>
-                        <option value="Cédula de Extranjería">Cédula de Extranjería</option>
-                        <option value="Pasaporte">Pasaporte</option>
-                        <option value="NIT">NIT (Persona Jurídica)</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label for="numeroDocumento">Número de documento *</label>
-                    <input type="text" id="numeroDocumento" name="numeroDocumento" required
-                      placeholder="Número de identificación" pattern="[0-9\-]*" class="modal-expert__input">
-                    <p class="hint">Documento del titular</p>
-                  </div>
-
-                  <div class="full-width">
-                    <label for="telefonoContacto">Teléfono de contacto</label>
-                    <input type="tel" id="telefonoContacto" name="telefonoContacto" placeholder="+57 300 123 4567"
-                      class="modal-expert__input">
-                    <p class="hint">Opcional: Teléfono para contacto sobre pagos</p>
-                  </div>
-                </div>
-
-                <div class="info-box info-sm">
-                  <div class="info-header">
-                    <i class="fas fa-info-circle"></i>
-                    <strong>Información importante sobre pagos</strong>
-                  </div>
-                  <ul class="info-list">
-                    <li><i class="fas fa-check"></i> Los pagos se procesan cada 15 días</li>
-                    <li><i class="fas fa-check"></i> Se requiere verificación de cuenta</li>
-                    <li><i class="fas fa-check"></i> Datos editables desde tu perfil</li>
-                    <li><i class="fas fa-check"></i> Seguridad garantizada</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        </form>
-      </div>
-
-      <!-- Moved footer inside container so it remains visually part of the modal.
-             The container is a column-flex so the body scrolls while footer stays at bottom. -->
-      <div class="modal-expert__footer">
-        <button class="btn-outline" data-dismiss="modal" type="button">Cancelar</button>
-        <button type="button" class="btn-primary" id="saveExpert">Guardar experto</button>
-      </div>
-    </div>
-  </div>
-
-  <!--modal ver perfil experto-->
-  <div id="verPerfilExperto" class="modal-expert">
-
-    <div class="modal-expert__container">
-      <div class="modal-expert__header">
-        <h2 class="modal-expert__title">Perfil del experto</h2>
-        <button class="btn-close" aria-label="Cerrar"><i class="fas fa-times"></i></button>
-      </div>
-
-      <div class="modal-expert__body">
-        <form id="expertForm">
-          <!-- Layout helper: responsive two-column grid for most rows -->
-          <div class="modal-expert__grid">
-
-            <!-- Información básica -->
-            <div>
-              <label class="modal-expert__label" for="name">
-                <i class="fas fa-user modal-expert__icon" aria-hidden="true"></i>
-                Nombre completo
-              </label>
-              <input type="text" id="name" placeholder="Nombre y apellidos registrados" class="modal-expert__input" />
-            </div>
-
-            <div>
-              <label class="modal-expert__label" for="email">
-                <i class="fas fa-envelope modal-expert__icon" aria-hidden="true"></i>
-                Email registrado
-              </label>
-              <input type="email" id="email" placeholder="Email de la cuenta" class="modal-expert__input" />
-            </div>
-
-            <!-- Precio por hora (columna) -->
-            <div>
-              <label for="precio" class="modal-expert__label">
-                <i class="fas fa-money-bill-wave modal-expert__icon" aria-hidden="true" title="Precio"></i>
-                Precio por hora (COP)
-                <span class="price-tooltip icon-tooltip" title="Ejemplo recomendado: $30.000 - $200.000 COP"
-                  style="margin-left:.5rem;">
-                  <i class="fas fa-info-circle"></i>
-                </span>
-              </label>
-
-              <div class="srv-price-input price-input">
-                <span class="srv-currency currency-symbol">$</span>
-                <input type="number" id="precio" name="precio" min="10000" step="100" required placeholder="Ej: 50000"
-                  class="srv-input price-field" />
-              </div>
-              <p class="srv-note price-note">
-                Tarifa por hora de asesoría (Recomendado: $30.000 - $200.000 COP)
-              </p>
-              <div id="precio-feedback" class="srv-feedback price-feedback" aria-live="polite"></div>
-            </div>
-
-            <!-- Días disponibles (columna) -->
-            <div>
-              <label for="diasDisponibles" class="modal-expert__label">
-                <i class="fas fa-calendar-alt modal-expert__icon" aria-hidden="true"></i>
-                Días disponibles
-              </label>
-
-              <div class="srv-days-wrapper">
-                <div class="srv-days">
-                  <button type="button" class="srv-day" data-day="Lunes" aria-pressed="false">L</button>
-                  <button type="button" class="srv-day" data-day="Martes" aria-pressed="false">M</button>
-                  <button type="button" class="srv-day" data-day="Miércoles" aria-pressed="false">X</button>
-                  <button type="button" class="srv-day" data-day="Jueves" aria-pressed="false">J</button>
-                  <button type="button" class="srv-day" data-day="Viernes" aria-pressed="false">V</button>
-                  <button type="button" class="srv-day" data-day="Sábado" aria-pressed="false">S</button>
-                  <button type="button" class="srv-day" data-day="Domingo" aria-pressed="false">D</button>
-                </div>
-
-                <div class="srv-days-display">
-                  Ningún día seleccionado
-                </div>
-              </div>
-
-              <input type="hidden" id="diasDisponibles" name="diasDisponibles" />
-            </div>
-
-            <!-- Especialidad principal -->
-            <div>
-              <label class="modal-expert__label" for="specialty">
-                <i class="fas fa-briefcase modal-expert__icon" aria-hidden="true"></i>
-                Especialidad principal
-              </label>
-              <div class="input-with-icon">
-                <i class="fas fa-briefcase" aria-hidden="true"></i>
-                <select id="specialty" class="modal-expert__input modal-expert__select"
-                  aria-label="Especialidad principal">
-                  <option value="">Seleccionar especialidad</option>
-                  <option value="web">Desarrollo Web</option>
-                  <option value="mobile">Desarrollo Móvil</option>
-                  <option value="data">Ciencia de Datos</option>
-                  <option value="uxui">UX/UI</option>
-                  <option value="devops">DevOps</option>
-                  <option value="blockchain">Blockchain</option>
-                  <option value="cloud">Cloud Computing</option>
-                </select>
-                <i class="fas fa-chevron-down" aria-hidden="true"></i>
-              </div>
-              <small class="modal-expert__hint">Selecciona la especialidad principal que describe mejor al
-                experto</small>
-            </div>
-
-            <!-- Estado -->
-            <div>
-              <label class="modal-expert__label" for="status">
-                <i class="fas fa-toggle-on modal-expert__icon" aria-hidden="true"></i>
-                Estado
-              </label>
-              <div class="input-with-icon">
-                <i class="fas fa-toggle-on" aria-hidden="true"></i>
-                <select id="status" class="modal-expert__input modal-expert__select" aria-label="Estado del experto">
-                  <option value="active">Activo</option>
-                  <option value="pending">Pendiente</option>
-                  <option value="inactive">Inactivo</option>
-                </select>
-                <i class="fas fa-chevron-down" aria-hidden="true"></i>
-              </div>
-              <small class="modal-expert__hint">Define si el experto puede recibir solicitudes</small>
-            </div>
-
-            <!-- Categorías (full width) -->
-            <div class="full-width">
-              <label class="modal-expert__label" for="categorias">
-                <i class="fas fa-tags modal-expert__icon" aria-hidden="true"></i>
-                Categorías
-              </label>
-              <select id="categorias" class="modal-expert__input modal-expert__select-categorias" multiple size="4"
-                aria-label="Categorías">
-                <!-- opciones añadidas dinámicamente -->
-              </select>
-
-              <!-- Choices initialization and visual fixes are centralized in /assets/js/admin/admin-expertos.js -->
-              <small class="modal-expert__hint">Selecciona una o varias categorías (Ctrl/Cmd+click)</small>
-            </div>
-
-            <!-- Habilidades (full width) -->
-            <div class="full-width">
-              <label class="modal-expert__label" for="skills">
-                <i class="fas fa-tools modal-expert__icon" aria-hidden="true"></i>
-                Habilidades
-              </label>
-              <select id="skills" class="modal-expert__input" multiple size="6">
-                <% if (typeof habilidades !=='undefined' && Array.isArray(habilidades) && habilidades.length> 0) { %>
-                  <% habilidades.forEach(function(h) { %>
-                    <% const val=(h && (h.nombre || h.name || h.label)) ? (h.nombre || h.name || h.label) : (h && h._id
-                      ? String(h._id) : '' ); %>
-                      <% if (val) { %>
-                        <option value="<%= val %>">
-                          <%= val %>
-                        </option>
-                        <% } %>
-                          <% }); %>
-                            <% } %>
-              </select>
-              <!-- Inicialización de Choices para #skills centralizada en /assets/js/admin/admin-expertos.js -->
-              <small class="modal-expert__hint">Selecciona o escribe para añadir nuevas habilidades</small>
-            </div>
-
-            <!-- Biografía -->
-            <div class="full-width">
-              <label class="modal-expert__label" for="bio">
-                <i class="fas fa-file-alt modal-expert__icon" aria-hidden="true"></i>
-                Biografía profesional
-              </label>
-              <textarea id="bio" rows="4" placeholder="Descripción breve de experiencia y especialización"
-                class="modal-expert__input modal-expert__textarea"></textarea>
-            </div>
-
-            <!-- Imagen de perfil -->
-            <div class="full-width">
-              <label class="modal-expert__label" for="profileImage">
-                <i class="fas fa-image modal-expert__icon" aria-hidden="true"></i>
-                Imagen de perfil
-              </label>
-
-              <div class="modal-expert__upload-wrapper">
-                <!-- hidden but accessible -->
-                <input type="file" id="profileImage" class="modal-expert__file-input"
-                  aria-label="Seleccionar imagen de perfil" accept="image/*" />
-
-                <!-- visual upload box (acts as label) -->
-                <label for="profileImage" class="modal-expert__upload-box" role="button" aria-haspopup="dialog">
-                  <i class="fas fa-upload" aria-hidden="true"></i>
-                  <span id="uploadLabel">Seleccionar imagen (png, jpg) · Máx 2MB</span>
-                </label>
-
-                <!-- preview thumbnail -->
-                <div id="profilePreview" aria-hidden="true" role="img" aria-label="Vista previa de imagen">
-                  <button id="removeProfileBtn" type="button" title="Eliminar imagen" aria-label="Eliminar imagen"
-                    style="display:none;">
-                    <i class="fas fa-times"></i>
-                  </button>
-                  <img src="" alt="Preview" />
-                </div>
-
-                <div class="upload-meta" id="uploadMeta" aria-live="polite" style="display:none;"></div>
-                <div class="upload-error" id="profileImageError" role="alert" style="display:none;"></div>
-              </div>
-            </div>
-
-            <!-- Espacio reservado para mantener la columna alineada -->
-            <div aria-hidden="true"></div>
-
-            <!-- Sección bancaria (tarjeta de ancho completo) -->
-            <div class="full-width">
-              <div class="bank-section">
-                <h3 class="bank-title">
-                  <i class="fas fa-university"></i> Datos Bancarios para Pagos
-                </h3>
-                <p class="bank-sub">Información necesaria para recibir pagos por tus asesorías</p>
-
-                <div class="bank-grid">
-                  <div>
-                    <label for="banco">Banco *</label>
-                    <div id="banco-wrapper">
-                      <select id="banco" name="banco" required class="modal-expert__input">
-                        <option value="">Selecciona tu banco</option>
-                        <option value="Banco de Bogotá">Banco de Bogotá</option>
-                        <option value="Bancolombia">Bancolombia</option>
-                        <option value="Banco Popular">Banco Popular</option>
-                        <option value="Banco AV Villas">Banco AV Villas</option>
-                        <option value="Banco Caja Social">Banco Caja Social</option>
-                        <option value="Banco de Occidente">Banco de Occidente</option>
-                        <option value="Banco GNB Sudameris">Banco GNB Sudameris</option>
-                        <option value="Banco Itaú">Banco Itaú</option>
-                        <option value="Banco Pichincha">Banco Pichincha</option>
-                        <option value="Banco Santander">Banco Santander</option>
-                        <option value="Banco Scotiabank Colpatria">Banco Scotiabank Colpatria</option>
-                        <option value="Davivienda">Davivienda</option>
-                        <option value="Banco Agrario">Banco Agrario</option>
-                        <option value="Banco Falabella">Banco Falabella</option>
-                        <option value="Banco Finandina">Banco Finandina</option>
-                        <option value="Banco W">Banco W</option>
-                        <option value="Banco Serfinanza">Banco Serfinanza</option>
-                        <option value="Banco Cooperativo Coopcentral">Banco Cooperativo Coopcentral</option>
-                        <option value="Banco BBVA">Banco BBVA</option>
-                        <option value="Nequi">Nequi</option>
-                        <option value="Daviplata">Daviplata</option>
-                        <option value="Movii">Movii</option>
-                        <option value="Banco de Vivienda">Banco de Vivienda</option>
-                        <option value="Banco ProCredit">Banco ProCredit</option>
-                        <option value="Banco Multibank">Banco Multibank</option>
-                        <option value="Banco Coopcentral">Banco Coopcentral</option>
-                        <option value="Banco Credifinanciera">Banco Credifinanciera</option>
-                        <option value="Banco Mundo Mujer">Banco Mundo Mujer</option>
-                        <option value="Banco Ripley">Banco Ripley</option>
-                        <option value="Banco CrediScotia">Banco CrediScotia</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label for="tipoCuenta">Tipo de cuenta *</label>
-                    <div id="tipoCuenta-wrapper">
-                      <select id="tipoCuenta" name="tipoCuenta" required class="modal-expert__input">
-                        <option value="">Selecciona el tipo</option>
-                        <option value="Cuenta de Ahorros">Cuenta de Ahorros</option>
-                        <option value="Cuenta Corriente">Cuenta Corriente</option>
-                        <option value="Cuenta de Nómina">Cuenta de Nómina</option>
-                        <option value="Cuenta Digital">Cuenta Digital</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label for="numeroCuenta">Número de cuenta *</label>
-                    <div class="acct-wrap">
-                      <input type="password" id="numeroCuenta" name="numeroCuenta" required
-                        placeholder="Número de cuenta" pattern="[0-9\-]*" title="Solo números y guiones"
-                        class="acct-input">
-                      <button type="button" id="toggleAccountNumber" class="acct-toggle"
-                        aria-label="Mostrar número de cuenta">
-                        <i class="fas fa-eye"></i>
-                      </button>
-                    </div>
-                    <p class="hint">Número completo de tu cuenta</p>
-                  </div>
-
-                  <div>
-                    <label for="titular">Titular de la cuenta *</label>
-                    <input type="text" id="titular" name="titular" required placeholder="Nombre completo del titular"
-                      class="modal-expert__input">
-                    <p class="hint">Debe coincidir con el nombre en la cuenta</p>
-                  </div>
-
-                  <div>
-                    <label for="tipoDocumento">Tipo de documento *</label>
-                    <div id="tipoDocumento-wrapper">
-                      <select id="tipoDocumento" name="tipoDocumento" required class="modal-expert__input">
-                        <option value="">Selecciona el tipo</option>
-                        <option value="Cédula de Ciudadanía">Cédula de Ciudadanía</option>
-                        <option value="Cédula de Extranjería">Cédula de Extranjería</option>
-                        <option value="Pasaporte">Pasaporte</option>
-                        <option value="NIT">NIT (Persona Jurídica)</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label for="numeroDocumento">Número de documento *</label>
-                    <input type="text" id="numeroDocumento" name="numeroDocumento" required
-                      placeholder="Número de identificación" pattern="[0-9\-]*" class="modal-expert__input">
-                    <p class="hint">Documento del titular</p>
-                  </div>
-
-                  <div class="full-width">
-                    <label for="telefonoContacto">Teléfono de contacto</label>
-                    <input type="tel" id="telefonoContacto" name="telefonoContacto" placeholder="+57 300 123 4567"
-                      class="modal-expert__input">
-                    <p class="hint">Opcional: Teléfono para contacto sobre pagos</p>
-                  </div>
-                </div>
-
-                <div class="info-box info-sm">
-                  <div class="info-header">
-                    <i class="fas fa-info-circle"></i>
-                    <strong>Información importante sobre pagos</strong>
-                  </div>
-                  <ul class="info-list">
-                    <li><i class="fas fa-check"></i> Los pagos se procesan cada 15 días</li>
-                    <li><i class="fas fa-check"></i> Se requiere verificación de cuenta</li>
-                    <li><i class="fas fa-check"></i> Datos editables desde tu perfil</li>
-                    <li><i class="fas fa-check"></i> Seguridad garantizada</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        </form>
-      </div>
-
-      <!-- Moved footer inside container so it remains visually part of the modal.
-             The container is a column-flex so the body scrolls while footer stays at bottom. -->
-      <div class="modal-expert__footer">
-        <button class="btn-outline" data-dismiss="modal" type="button">Cancelar</button>
-        <button type="button" class="btn-primary" id="saveExpert">Guardar experto</button>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- Modal inactivar experto -->
-  <div id="modalInactivarExperto" class="modal-expert">
-    <div class="modal-expert__content">
-      <div class="modal-expert__header">
-        <h2 class="modal-expert__title">Inactivar experto</h2>
-        <button class="btn-close"><i class="fas fa-times"></i></button>
-      </div>
-      <div class="modal-expert__body">
-        <p id="modalInactivarExpertoNombre" class="modal-expert__nombre-destacado"></p>
-        <p>
-          ¿Está seguro que desea inactivar este usuario?<br />
-          <span class="modal-expert__texto-secundario">
-            El usuario <b>no se eliminará</b> de la base de datos, solo pasará
-            a estado <b>inactivo</b>.
-          </span>
-        </p>
-      </div>
-      <div class="modal-expert__footer">
-        <button type="button" class="btn-outline modal-inactivar-cancelar">
-          Cancelar
-        </button>
-        <button type="button" class="btn-primary modal-inactivar-confirmar">
-          Inactivar
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <script src="/assets/js/admin/admin-common.js"></script>
-  <% /* Garantizar que _adminHabs siempre sea un array para producir JSON válido */ %>
-    <% const _adminHabs=(typeof habilidades !=='undefined' && Array.isArray(habilidades)) ? habilidades : []; %>
-      <!-- Inyectar JSON en un script de tipo application/json y leerlo desde JS -->
-      <script id="admin-habilidades" type="application/json"><%- JSON.stringify(_adminHabs) %></script>
-      <script src="/assets/js/admin/admin-expertos.js"></script>
-      <script>
-        // Forzar color del input clonado de Choices con placeholder/aria-label "Selecciona habilidades"
-        (function forceSkillsPlaceholderColor() {
-          function apply(el) {
-            try {
-              if (!el) return;
-              // Apply inline styles with CSS priority using setProperty and 'important'
-              el.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-secondary') || '#a0a0a0', 'important');
-              el.style.setProperty('-webkit-text-fill-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-secondary') || '#a0a0a0', 'important');
-              el.style.setProperty('caret-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-secondary') || '#a0a0a0', 'important');
-            } catch (e) { /* ignore */ }
-          }
-
-          function findAndApply() {
-            // Common places Choices places the cloned input
-            var selectors = [
-              'input.choices__input--cloned[aria-label="Selecciona habilidades"]',
-              'input.choices__input--cloned[placeholder="Selecciona habilidades"]',
-              'input.choices__input[aria-label="Selecciona habilidades"]',
-              'input.choices__input[placeholder="Selecciona habilidades"]'
-            ];
-            selectors.forEach(function (s) {
-              document.querySelectorAll(s).forEach(apply);
-            });
-          }
-
-          // Run after DOM ready and periodically for dynamic injection by Choices
-          document.addEventListener('DOMContentLoaded', function () {
-            findAndApply();
-            var attempts = 0;
-            var id = setInterval(function () {
-              findAndApply();
-              attempts += 1;
-              if (attempts > 20) clearInterval(id);
-            }, 150);
-          });
-
-          // Observe DOM changes to catch later insertions
-          var mo = new MutationObserver(function () {
-            findAndApply();
-          });
-          mo.observe(document.body, { childList: true, subtree: true });
-        })();
-      </script>
-      <script>
-        // Forzar estilos inline para el bloque Precio por hora si el CSS no se está aplicando
-        (function forcePriceRowStyles() {
-          function varOr(name, def) { try { var v = getComputedStyle(document.documentElement).getPropertyValue(name); return (v && v.trim()) || def; } catch (e) { return def; } }
-          var bg = varOr('--admin-card-bg', '#1a1a1a');
-          var text = varOr('--admin-text-primary', '#ffffff');
-          var secondary = varOr('--admin-text-secondary', '#a0a0a0');
-          var border = varOr('--admin-border-color', '#333');
-          var accent = varOr('--admin-accent-color', '#5e81ff');
-
-          function apply() {
-            // Apply grid to the container that holds both columns (precio + días)
-            var containers = document.querySelectorAll('.modal-expert__price-days');
-            containers.forEach(function (c) {
-              c.style.setProperty('display', 'grid', 'important');
-              c.style.setProperty('grid-template-columns', '1fr 1fr', 'important');
-              c.style.setProperty('gap', '1rem', 'important');
-              c.style.setProperty('align-items', 'start', 'important');
-              c.style.setProperty('width', '100%', 'important');
-              c.style.setProperty('box-sizing', 'border-box', 'important');
-            });
-
-            // Ensure internal rows are stacked normally
-            document.querySelectorAll('.modal-expert__price-days .price-row, .modal-expert__price-days .srv-grid').forEach(function (w) {
-              w.style.setProperty('display', 'block', 'important');
-              w.style.setProperty('margin', '0', 'important');
-            });
-
-            document.querySelectorAll('.srv-price-input, .price-input').forEach(function (pi) {
-              pi.style.setProperty('display', 'flex', 'important');
-              pi.style.setProperty('align-items', 'center', 'important');
-              pi.style.setProperty('gap', '0.5rem', 'important');
-              pi.style.setProperty('background', 'rgba(255,255,255,0.02)', 'important');
-              pi.style.setProperty('border', '1px solid ' + border, 'important');
-              pi.style.setProperty('padding', '0.375rem 0.5rem', 'important');
-              pi.style.setProperty('border-radius', '0.5rem', 'important');
-              pi.style.setProperty('box-sizing', 'border-box', 'important');
-            });
-
-            document.querySelectorAll('.srv-currency, .currency-symbol').forEach(function (c) {
-              c.style.setProperty('display', 'inline-flex', 'important');
-              c.style.setProperty('align-items', 'center', 'important');
-              c.style.setProperty('justify-content', 'center', 'important');
-              c.style.setProperty('min-width', '30px', 'important');
-              c.style.setProperty('height', '36px', 'important');
-              c.style.setProperty('color', text, 'important');
-              c.style.setProperty('font-weight', '700', 'important');
-              c.style.setProperty('font-size', '0.95rem', 'important');
-            });
-
-            document.querySelectorAll('input.srv-input.price-field, .price-input input.srv-input').forEach(function (inp) {
-              inp.style.setProperty('flex', '1 1 auto', 'important');
-              inp.style.setProperty('border', 'none', 'important');
-              inp.style.setProperty('background', 'transparent', 'important');
-              inp.style.setProperty('color', text, 'important');
-              inp.style.setProperty('font-size', '1rem', 'important');
-              inp.style.setProperty('padding', '0.25rem 0.25rem', 'important');
-              inp.style.setProperty('outline', 'none', 'important');
-              inp.style.setProperty('min-width', '0', 'important');
-            });
-
-            document.querySelectorAll('.srv-note.price-note').forEach(function (n) {
-              n.style.setProperty('margin', '0.35rem 0 0 0', 'important');
-              n.style.setProperty('color', secondary, 'important');
-              n.style.setProperty('font-size', '0.8rem', 'important');
-            });
-
-            document.querySelectorAll('.srv-feedback.price-feedback').forEach(function (f) {
-              f.style.setProperty('margin-top', '0.35rem', 'important');
-              f.style.setProperty('font-size', '0.85rem', 'important');
-              f.style.setProperty('color', accent, 'important');
-              // keep hidden unless JS toggles it
-              if (!f.classList.contains('visible')) f.style.setProperty('display', 'none', 'important');
-            });
-          }
-
-          // Run now and observe
-          apply();
-          var attempts = 0; var id = setInterval(function () { apply(); attempts++; if (attempts > 20) clearInterval(id); }, 150);
-          var mo = new MutationObserver(function () { apply(); }); mo.observe(document.body, { childList: true, subtree: true });
-        })();
-      </script>
-      <script>
-        // Forzar estilos inline en dropdown y items de Choices para evitar reglas externas que los pongan en blanco
-        (function forceChoicesDropdownColors() {
-          function varOr(def, name) {
-            try { var v = getComputedStyle(document.documentElement).getPropertyValue(name); return (v && v.trim()) || def; } catch (e) { return def; }
-          }
-          var bg = varOr('#1a1a1a', '--admin-card-bg');
-          var text = varOr('#ffffff', '--admin-text-primary');
-          var border = varOr('#333', '--admin-border-color');
-
-          function applyToList(list) {
-            try {
-              list.style.setProperty('background', bg, 'important');
-              list.style.setProperty('color', text, 'important');
-              list.style.setProperty('border', '1px solid ' + border, 'important');
-            } catch (e) { }
-          }
-          function applyToItem(it) {
-            try {
-              it.style.setProperty('color', text, 'important');
-              it.style.setProperty('background', 'transparent', 'important');
-              it.style.setProperty('border-color', border, 'important');
-            } catch (e) { }
-          }
-
-          function process() {
-            document.querySelectorAll('.choices__list--dropdown').forEach(applyToList);
-            document.querySelectorAll('.choices__list--dropdown .choices__item').forEach(applyToItem);
-          }
-
-          // Run immediately and then repeatedly for dynamic injection
-          process();
-          var attempts = 0;
-          var iid = setInterval(function () { process(); attempts++; if (attempts > 30) clearInterval(iid); }, 150);
-
-          var mo = new MutationObserver(function () { process(); });
-          mo.observe(document.body, { childList: true, subtree: true });
-        })();
-      </script>
-      <script>
-        // Selector dinámico de Días Disponibles: click / teclado y sincronización con input oculto
-        (function daysSelector() {
-          function readHidden() {
-            var h = document.getElementById('diasDisponibles');
-            if (!h) return [];
-            if (!h.value) return [];
-            try { var v = JSON.parse(h.value); if (Array.isArray(v)) return v; } catch (e) { }
-            return h.value.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
-          }
-
-          function writeHidden(arr) {
-            var h = document.getElementById('diasDisponibles');
-            if (!h) return;
-            h.value = JSON.stringify(arr);
-          }
-
-          function shortLabel(day) {
-            // Map day names to short letters shown in UI
-            var map = { 'Lunes': 'L', 'Martes': 'M', 'Miércoles': 'X', 'Miercoles': 'X', 'Jueves': 'J', 'Viernes': 'V', 'Sábado': 'S', 'Sabado': 'S', 'Domingo': 'D' };
-            return map[day] || (day && day.charAt(0)) || '';
-          }
-
-          function updateDisplay(selected) {
-            var disp = document.querySelector('.srv-days-display');
-            if (!disp) return;
-            if (!selected || selected.length === 0) {
-              disp.textContent = 'Ningún día seleccionado';
-            } else {
-              // mostrar nombres cortos y la lista completa al pasar el ratón
-              var short = selected.map(function (d) { return shortLabel(d); }).join(' ');
-              disp.textContent = short + ' — ' + selected.join(', ');
-            }
-          }
-
-          function toggleDay(el) {
-            if (!el) return;
-            var day = el.getAttribute('data-day');
-            if (!day) return;
-            var was = el.classList.toggle('selected');
-            el.setAttribute('aria-pressed', was ? 'true' : 'false');
-            syncHiddenFromUI();
-          }
-
-          function syncHiddenFromUI() {
-            var items = Array.from(document.querySelectorAll('.srv-day.selected')).map(function (e) { return e.getAttribute('data-day'); }).filter(Boolean);
-            writeHidden(items);
-            updateDisplay(items);
-          }
-
-          document.addEventListener('DOMContentLoaded', function () {
-            var nodes = Array.from(document.querySelectorAll('.srv-day'));
-            nodes.forEach(function (n) {
-              n.setAttribute('tabindex', '0');
-              n.setAttribute('role', 'button');
-              n.setAttribute('aria-pressed', 'false');
-              n.addEventListener('click', function (e) { toggleDay(n); });
-              n.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleDay(n); } });
-            });
-
-            // Initialize from hidden input if present (edición)
-            var initial = readHidden();
-            if (initial && initial.length) {
-              nodes.forEach(function (n) { var d = n.getAttribute('data-day'); if (initial.indexOf(d) !== -1) { n.classList.add('selected'); n.setAttribute('aria-pressed', 'true'); } });
-            }
-            syncHiddenFromUI();
-
-            // Exponer función global rápida para tests (opcional)
-            window._srv = window._srv || {};
-            window._srv.getSelectedDays = function () { try { return JSON.parse(document.getElementById('diasDisponibles').value); } catch (e) { return []; } };
-          });
-        })();
-      </script>
-      <script>
-        // Fallback definitivo: aplicar estilos inline para forzar layout horizontal de días
-        (function forceDaysInlineStyles() {
-          function apply() {
-            try {
-              var containers = document.querySelectorAll('.srv-days');
-              containers.forEach(function (c) {
-                c.style.setProperty('display', 'flex', 'important');
-                c.style.setProperty('flex-direction', 'row', 'important');
-                c.style.setProperty('flex-wrap', 'wrap', 'important');
-                c.style.setProperty('gap', '0.5rem', 'important');
-                c.style.setProperty('align-items', 'center', 'important');
-                c.style.setProperty('justify-content', 'flex-start', 'important');
-                c.style.setProperty('margin-top', '0.35rem', 'important');
-                c.style.setProperty('padding', '0', 'important');
-              });
-
-              document.querySelectorAll('.srv-day').forEach(function (n) {
-                n.style.setProperty('display', 'inline-flex', 'important');
-                n.style.setProperty('align-items', 'center', 'important');
-                n.style.setProperty('justify-content', 'center', 'important');
-                n.style.setProperty('width', '40px', 'important');
-                n.style.setProperty('height', '40px', 'important');
-                n.style.setProperty('min-width', '40px', 'important');
-                n.style.setProperty('padding', '0', 'important');
-                n.style.setProperty('margin', '0', 'important');
-                n.style.setProperty('box-sizing', 'border-box', 'important');
-                n.style.setProperty('line-height', '1', 'important');
-                n.style.setProperty('position', 'relative', 'important');
-              });
-            } catch (e) { /* ignore */ }
-          }
-
-          document.addEventListener('DOMContentLoaded', function () {
-            apply();
-            var attempts = 0;
-            var iid = setInterval(function () { apply(); attempts++; if (attempts > 25) clearInterval(iid); }, 120);
-
-            var mo = new MutationObserver(function () { apply(); });
-            mo.observe(document.body, { childList: true, subtree: true });
-
-            // reapply on window resize in case responsive rules try to change layout
-            window.addEventListener('resize', function () { apply(); });
-          });
-        })();
-      </script>
+                <span class="price-tooltip icon-tooltip" title="Ejemplo recomendado: $30.000 - $200.000 COP" <!-- Inline
+                  UI scripts removed; logic is centralized in /assets/js/admin/admin-expertos.js -->
 </body>
 
 </html>
+<h3 class="bank-title">
+  <i class="fas fa-university"></i> Datos Bancarios para Pagos
+</h3>
+<p class="bank-sub">Información necesaria para recibir pagos por tus asesorías</p>
+
+<div class="bank-grid">
+  <div>
+    <label for="banco">Banco *</label>
+    <div id="banco-wrapper">
+      <select id="banco" name="banco" required class="modal-expert__input">
+        <option value="">Selecciona tu banco</option>
+        <option value="Banco de Bogotá">Banco de Bogotá</option>
+        <option value="Bancolombia">Bancolombia</option>
+        <option value="Banco Popular">Banco Popular</option>
+        <option value="Banco AV Villas">Banco AV Villas</option>
+        <option value="Banco Caja Social">Banco Caja Social</option>
+        <option value="Banco de Occidente">Banco de Occidente</option>
+        <option value="Banco GNB Sudameris">Banco GNB Sudameris</option>
+        <option value="Banco Itaú">Banco Itaú</option>
+        <option value="Banco Pichincha">Banco Pichincha</option>
+        <option value="Banco Santander">Banco Santander</option>
+        <option value="Banco Scotiabank Colpatria">Banco Scotiabank Colpatria</option>
+        <option value="Davivienda">Davivienda</option>
+        <option value="Banco Agrario">Banco Agrario</option>
+        <option value="Banco Falabella">Banco Falabella</option>
+        <option value="Banco Finandina">Banco Finandina</option>
+        <option value="Banco W">Banco W</option>
+        <option value="Banco Serfinanza">Banco Serfinanza</option>
+        <option value="Banco Cooperativo Coopcentral">Banco Cooperativo Coopcentral</option>
+        <option value="Banco BBVA">Banco BBVA</option>
+        <option value="Nequi">Nequi</option>
+        <option value="Daviplata">Daviplata</option>
+        <option value="Movii">Movii</option>
+        <option value="Banco de Vivienda">Banco de Vivienda</option>
+        <option value="Banco ProCredit">Banco ProCredit</option>
+        <option value="Banco Multibank">Banco Multibank</option>
+        <option value="Banco Coopcentral">Banco Coopcentral</option>
+        <option value="Banco Credifinanciera">Banco Credifinanciera</option>
+        <option value="Banco Mundo Mujer">Banco Mundo Mujer</option>
+        <option value="Banco Ripley">Banco Ripley</option>
+        <option value="Banco CrediScotia">Banco CrediScotia</option>
+      </select>
+    </div>
+  </div>
+
+  <div>
+    <label for="tipoCuenta">Tipo de cuenta *</label>
+    <div id="tipoCuenta-wrapper">
+      <select id="tipoCuenta" name="tipoCuenta" required class="modal-expert__input">
+        <option value="">Selecciona el tipo</option>
+        <option value="Cuenta de Ahorros">Cuenta de Ahorros</option>
+        <option value="Cuenta Corriente">Cuenta Corriente</option>
+        <option value="Cuenta de Nómina">Cuenta de Nómina</option>
+        <option value="Cuenta Digital">Cuenta Digital</option>
+      </select>
+    </div>
+  </div>
+
+  <div>
+    <label for="numeroCuenta">Número de cuenta *</label>
+    <div class="acct-wrap">
+      <input type="password" id="numeroCuenta" name="numeroCuenta" required placeholder="Número de cuenta"
+        pattern="[0-9\-]*" title="Solo números y guiones" class="acct-input">
+      <button type="button" id="toggleAccountNumber" class="acct-toggle" aria-label="Mostrar número de cuenta">
+        <i class="fas fa-eye"></i>
+      </button>
+    </div>
+    <p class="hint">Número completo de tu cuenta</p>
+  </div>
+
+  <div>
+    <label for="titular">Titular de la cuenta *</label>
+    <input type="text" id="titular" name="titular" required placeholder="Nombre completo del titular"
+      class="modal-expert__input">
+    <p class="hint">Debe coincidir con el nombre en la cuenta</p>
+  </div>
+
+  <div>
+    <label for="tipoDocumento">Tipo de documento *</label>
+    <div id="tipoDocumento-wrapper">
+      <select id="tipoDocumento" name="tipoDocumento" required class="modal-expert__input">
+        <option value="">Selecciona el tipo</option>
+        <option value="Cédula de Ciudadanía">Cédula de Ciudadanía</option>
+        <option value="Cédula de Extranjería">Cédula de Extranjería</option>
+        <option value="Pasaporte">Pasaporte</option>
+        <option value="NIT">NIT (Persona Jurídica)</option>
+      </select>
+    </div>
+  </div>
+
+  <div>
+    <label for="numeroDocumento">Número de documento *</label>
+    <input type="text" id="numeroDocumento" name="numeroDocumento" required placeholder="Número de identificación"
+      pattern="[0-9\-]*" class="modal-expert__input">
+    <p class="hint">Documento del titular</p>
+  </div>
+
+  <div class="full-width">
+    <label for="telefonoContacto">Teléfono de contacto</label>
+    <input type="tel" id="telefonoContacto" name="telefonoContacto" placeholder="+57 300 123 4567"
+      class="modal-expert__input">
+    <p class="hint">Opcional: Teléfono para contacto sobre pagos</p>
+  </div>
+</div>
+
+<div class="info-box info-sm">
+  <div class="info-header">
+    <i class="fas fa-info-circle"></i>
+    <strong>Información importante sobre pagos</strong>
+  </div>
+  <ul class="info-list">
+    <li><i class="fas fa-check"></i> Los pagos se procesan cada 15 días</li>
+    <li><i class="fas fa-check"></i> Se requiere verificación de cuenta</li>
+    <li><i class="fas fa-check"></i> Datos editables desde tu perfil</li>
+    <li><i class="fas fa-check"></i> Seguridad garantizada</li>
+  </ul>
+</div>
+</div>
+</div>
+</div>
+</form>
+</div>
+
+<!-- Moved footer inside container so it remains visually part of the modal.
+             The container is a column-flex so the body scrolls while footer stays at bottom. -->
+<div class="modal-expert__footer">
+  <button class="btn-outline" data-dismiss="modal" type="button">Cancelar</button>
+  <button type="button" class="btn-primary" id="saveExpert">Guardar experto</button>
+</div>
+</div>
+</div>
+
+<!--modal ver perfil experto-->
+<div id="verPerfilExperto" class="modal-expert">
+
+  <div class="modal-expert__container">
+    <div class="modal-expert__header">
+      <h2 class="modal-expert__title">Perfil del experto</h2>
+      <button class="btn-close" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+    </div>
+
+    <div class="modal-expert__body">
+      <form id="expertForm">
+        <!-- Layout helper: responsive two-column grid for most rows -->
+        <div class="modal-expert__grid">
+
+          <!-- Información básica -->
+          <div>
+            <label class="modal-expert__label" for="name">
+              <i class="fas fa-user modal-expert__icon" aria-hidden="true"></i>
+              Nombre completo
+            </label>
+            <input type="text" id="name" placeholder="Nombre y apellidos registrados" class="modal-expert__input" />
+          </div>
+
+          <div>
+            <label class="modal-expert__label" for="email">
+              <i class="fas fa-envelope modal-expert__icon" aria-hidden="true"></i>
+              Email registrado
+            </label>
+            <input type="email" id="email" placeholder="Email de la cuenta" class="modal-expert__input" />
+          </div>
+
+          <!-- Precio por hora (columna) -->
+          <div>
+            <label for="precio" class="modal-expert__label">
+              <i class="fas fa-money-bill-wave modal-expert__icon" aria-hidden="true" title="Precio"></i>
+              Precio por hora (COP)
+              <span class="price-tooltip icon-tooltip" title="Ejemplo recomendado: $30.000 - $200.000 COP"
+                style="margin-left:.5rem;">
+                <i class="fas fa-info-circle"></i>
+              </span>
+            </label>
+
+            <div class="srv-price-input price-input">
+              <span class="srv-currency currency-symbol">$</span>
+              <input type="number" id="precio" name="precio" min="10000" step="100" required placeholder="Ej: 50000"
+                class="srv-input price-field" />
+            </div>
+            <p class="srv-note price-note">
+              Tarifa por hora de asesoría (Recomendado: $30.000 - $200.000 COP)
+            </p>
+            <div id="precio-feedback" class="srv-feedback price-feedback" aria-live="polite"></div>
+          </div>
+
+          <!-- Días disponibles (columna) -->
+          <div>
+            <label for="diasDisponibles" class="modal-expert__label">
+              <i class="fas fa-calendar-alt modal-expert__icon" aria-hidden="true"></i>
+              Días disponibles
+            </label>
+
+            <div class="srv-days-wrapper">
+              <div class="srv-days">
+                <button type="button" class="srv-day" data-day="Lunes" aria-pressed="false">L</button>
+                <button type="button" class="srv-day" data-day="Martes" aria-pressed="false">M</button>
+                <button type="button" class="srv-day" data-day="Miércoles" aria-pressed="false">X</button>
+                <button type="button" class="srv-day" data-day="Jueves" aria-pressed="false">J</button>
+                <button type="button" class="srv-day" data-day="Viernes" aria-pressed="false">V</button>
+                <button type="button" class="srv-day" data-day="Sábado" aria-pressed="false">S</button>
+                <button type="button" class="srv-day" data-day="Domingo" aria-pressed="false">D</button>
+              </div>
+
+              <div class="srv-days-display">
+                Ningún día seleccionado
+              </div>
+            </div>
+
+            <input type="hidden" id="diasDisponibles" name="diasDisponibles" />
+          </div>
+
+          <!-- Especialidad principal -->
+          <div>
+            <label class="modal-expert__label" for="specialty">
+              <i class="fas fa-briefcase modal-expert__icon" aria-hidden="true"></i>
+              Especialidad principal
+            </label>
+            <div class="input-with-icon">
+              <i class="fas fa-briefcase" aria-hidden="true"></i>
+              <select id="specialty" class="modal-expert__input modal-expert__select"
+                aria-label="Especialidad principal">
+                <option value="">Seleccionar especialidad</option>
+                <option value="web">Desarrollo Web</option>
+                <option value="mobile">Desarrollo Móvil</option>
+                <option value="data">Ciencia de Datos</option>
+                <option value="uxui">UX/UI</option>
+                <option value="devops">DevOps</option>
+                <option value="blockchain">Blockchain</option>
+                <option value="cloud">Cloud Computing</option>
+              </select>
+              <i class="fas fa-chevron-down" aria-hidden="true"></i>
+            </div>
+            <small class="modal-expert__hint">Selecciona la especialidad principal que describe mejor al
+              experto</small>
+          </div>
+
+          <!-- Estado -->
+          <div>
+            <label class="modal-expert__label" for="status">
+              <i class="fas fa-toggle-on modal-expert__icon" aria-hidden="true"></i>
+              Estado
+            </label>
+            <div class="input-with-icon">
+              <i class="fas fa-toggle-on" aria-hidden="true"></i>
+              <select id="status" class="modal-expert__input modal-expert__select" aria-label="Estado del experto">
+                <option value="active">Activo</option>
+                <option value="pending">Pendiente</option>
+                <option value="inactive">Inactivo</option>
+              </select>
+              <i class="fas fa-chevron-down" aria-hidden="true"></i>
+            </div>
+            <small class="modal-expert__hint">Define si el experto puede recibir solicitudes</small>
+          </div>
+
+          <!-- Categorías (full width) -->
+          <div class="full-width">
+            <label class="modal-expert__label" for="categorias">
+              <i class="fas fa-tags modal-expert__icon" aria-hidden="true"></i>
+              Categorías
+            </label>
+            <select id="categorias" class="modal-expert__input modal-expert__select-categorias" multiple size="4"
+              aria-label="Categorías">
+              <!-- opciones añadidas dinámicamente -->
+            </select>
+
+            <!-- Choices initialization and visual fixes are centralized in /assets/js/admin/admin-expertos.js -->
+            <small class="modal-expert__hint">Selecciona una o varias categorías (Ctrl/Cmd+click)</small>
+          </div>
+
+          <!-- Habilidades (full width) -->
+          <div class="full-width">
+            <label class="modal-expert__label" for="skills">
+              <i class="fas fa-tools modal-expert__icon" aria-hidden="true"></i>
+              Habilidades
+            </label>
+            <select id="skills" class="modal-expert__input" multiple size="6">
+              <% if (typeof habilidades !=='undefined' && Array.isArray(habilidades) && habilidades.length> 0) { %>
+                <% habilidades.forEach(function(h) { %>
+                  <% const val=(h && (h.nombre || h.name || h.label)) ? (h.nombre || h.name || h.label) : (h && h._id ?
+                    String(h._id) : '' ); %>
+                    <% if (val) { %>
+                      <option value="<%= val %>">
+                        <%= val %>
+                      </option>
+                      <% } %>
+                        <% }); %>
+                          <% } %>
+            </select>
+            <!-- Inicialización de Choices para #skills centralizada en /assets/js/admin/admin-expertos.js -->
+            <small class="modal-expert__hint">Selecciona o escribe para añadir nuevas habilidades</small>
+          </div>
+
+          <!-- Biografía -->
+          <div class="full-width">
+            <label class="modal-expert__label" for="bio">
+              <i class="fas fa-file-alt modal-expert__icon" aria-hidden="true"></i>
+              Biografía profesional
+            </label>
+            <textarea id="bio" rows="4" placeholder="Descripción breve de experiencia y especialización"
+              class="modal-expert__input modal-expert__textarea"></textarea>
+          </div>
+
+          <!-- Imagen de perfil -->
+          <div class="full-width">
+            <label class="modal-expert__label" for="profileImage">
+              <i class="fas fa-image modal-expert__icon" aria-hidden="true"></i>
+              Imagen de perfil
+            </label>
+
+            <div class="modal-expert__upload-wrapper">
+              <!-- hidden but accessible -->
+              <input type="file" id="profileImage" class="modal-expert__file-input"
+                aria-label="Seleccionar imagen de perfil" accept="image/*" />
+
+              <!-- visual upload box (acts as label) -->
+              <label for="profileImage" class="modal-expert__upload-box" role="button" aria-haspopup="dialog">
+                <i class="fas fa-upload" aria-hidden="true"></i>
+                <span id="uploadLabel">Seleccionar imagen (png, jpg) · Máx 2MB</span>
+              </label>
+
+              <!-- preview thumbnail -->
+              <div id="profilePreview" aria-hidden="true" role="img" aria-label="Vista previa de imagen">
+                <button id="removeProfileBtn" type="button" title="Eliminar imagen" aria-label="Eliminar imagen"
+                  style="display:none;">
+                  <i class="fas fa-times"></i>
+                </button>
+                <img src="" alt="Preview" />
+              </div>
+
+              <div class="upload-meta" id="uploadMeta" aria-live="polite" style="display:none;"></div>
+              <div class="upload-error" id="profileImageError" role="alert" style="display:none;"></div>
+            </div>
+          </div>
+
+          <!-- Espacio reservado para mantener la columna alineada -->
+          <div aria-hidden="true"></div>
+
+          <!-- Sección bancaria (tarjeta de ancho completo) -->
+          <div class="full-width">
+            <div class="bank-section">
+              <h3 class="bank-title">
+                <i class="fas fa-university"></i> Datos Bancarios para Pagos
+              </h3>
+              <p class="bank-sub">Información necesaria para recibir pagos por tus asesorías</p>
+
+              <div class="bank-grid">
+                <div>
+                  <label for="banco">Banco *</label>
+                  <div id="banco-wrapper">
+                    <select id="banco" name="banco" required class="modal-expert__input">
+                      <option value="">Selecciona tu banco</option>
+                      <option value="Banco de Bogotá">Banco de Bogotá</option>
+                      <option value="Bancolombia">Bancolombia</option>
+                      <option value="Banco Popular">Banco Popular</option>
+                      <option value="Banco AV Villas">Banco AV Villas</option>
+                      <option value="Banco Caja Social">Banco Caja Social</option>
+                      <option value="Banco de Occidente">Banco de Occidente</option>
+                      <option value="Banco GNB Sudameris">Banco GNB Sudameris</option>
+                      <option value="Banco Itaú">Banco Itaú</option>
+                      <option value="Banco Pichincha">Banco Pichincha</option>
+                      <option value="Banco Santander">Banco Santander</option>
+                      <option value="Banco Scotiabank Colpatria">Banco Scotiabank Colpatria</option>
+                      <option value="Davivienda">Davivienda</option>
+                      <option value="Banco Agrario">Banco Agrario</option>
+                      <option value="Banco Falabella">Banco Falabella</option>
+                      <option value="Banco Finandina">Banco Finandina</option>
+                      <option value="Banco W">Banco W</option>
+                      <option value="Banco Serfinanza">Banco Serfinanza</option>
+                      <option value="Banco Cooperativo Coopcentral">Banco Cooperativo Coopcentral</option>
+                      <option value="Banco BBVA">Banco BBVA</option>
+                      <option value="Nequi">Nequi</option>
+                      <option value="Daviplata">Daviplata</option>
+                      <option value="Movii">Movii</option>
+                      <option value="Banco de Vivienda">Banco de Vivienda</option>
+                      <option value="Banco ProCredit">Banco ProCredit</option>
+                      <option value="Banco Multibank">Banco Multibank</option>
+                      <option value="Banco Coopcentral">Banco Coopcentral</option>
+                      <option value="Banco Credifinanciera">Banco Credifinanciera</option>
+                      <option value="Banco Mundo Mujer">Banco Mundo Mujer</option>
+                      <option value="Banco Ripley">Banco Ripley</option>
+                      <option value="Banco CrediScotia">Banco CrediScotia</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label for="tipoCuenta">Tipo de cuenta *</label>
+                  <div id="tipoCuenta-wrapper">
+                    <select id="tipoCuenta" name="tipoCuenta" required class="modal-expert__input">
+                      <option value="">Selecciona el tipo</option>
+                      <option value="Cuenta de Ahorros">Cuenta de Ahorros</option>
+                      <option value="Cuenta Corriente">Cuenta Corriente</option>
+                      <option value="Cuenta de Nómina">Cuenta de Nómina</option>
+                      <option value="Cuenta Digital">Cuenta Digital</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label for="numeroCuenta">Número de cuenta *</label>
+                  <div class="acct-wrap">
+                    <input type="password" id="numeroCuenta" name="numeroCuenta" required placeholder="Número de cuenta"
+                      pattern="[0-9\-]*" title="Solo números y guiones" class="acct-input">
+                    <button type="button" id="toggleAccountNumber" class="acct-toggle"
+                      aria-label="Mostrar número de cuenta">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                  </div>
+                  <p class="hint">Número completo de tu cuenta</p>
+                </div>
+
+                <div>
+                  <label for="titular">Titular de la cuenta *</label>
+                  <input type="text" id="titular" name="titular" required placeholder="Nombre completo del titular"
+                    class="modal-expert__input">
+                  <p class="hint">Debe coincidir con el nombre en la cuenta</p>
+                </div>
+
+                <div>
+                  <label for="tipoDocumento">Tipo de documento *</label>
+                  <div id="tipoDocumento-wrapper">
+                    <select id="tipoDocumento" name="tipoDocumento" required class="modal-expert__input">
+                      <option value="">Selecciona el tipo</option>
+                      <option value="Cédula de Ciudadanía">Cédula de Ciudadanía</option>
+                      <option value="Cédula de Extranjería">Cédula de Extranjería</option>
+                      <option value="Pasaporte">Pasaporte</option>
+                      <option value="NIT">NIT (Persona Jurídica)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label for="numeroDocumento">Número de documento *</label>
+                  <input type="text" id="numeroDocumento" name="numeroDocumento" required
+                    placeholder="Número de identificación" pattern="[0-9\-]*" class="modal-expert__input">
+                  <p class="hint">Documento del titular</p>
+                </div>
+
+                <div class="full-width">
+                  <label for="telefonoContacto">Teléfono de contacto</label>
+                  <input type="tel" id="telefonoContacto" name="telefonoContacto" placeholder="+57 300 123 4567"
+                    class="modal-expert__input">
+                  <p class="hint">Opcional: Teléfono para contacto sobre pagos</p>
+                </div>
+              </div>
+
+              <div class="info-box info-sm">
+                <div class="info-header">
+                  <i class="fas fa-info-circle"></i>
+                  <strong>Información importante sobre pagos</strong>
+                </div>
+                <ul class="info-list">
+                  <li><i class="fas fa-check"></i> Los pagos se procesan cada 15 días</li>
+                  <li><i class="fas fa-check"></i> Se requiere verificación de cuenta</li>
+                  <li><i class="fas fa-check"></i> Datos editables desde tu perfil</li>
+                  <li><i class="fas fa-check"></i> Seguridad garantizada</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Moved footer inside container so it remains visually part of the modal.
+             The container is a column-flex so the body scrolls while footer stays at bottom. -->
+    <div class="modal-expert__footer">
+      <button class="btn-outline" data-dismiss="modal" type="button">Cancelar</button>
+      <button type="button" class="btn-primary" id="saveExpert">Guardar experto</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Modal inactivar experto -->
+<div id="modalInactivarExperto" class="modal-expert">
+  <div class="modal-expert__content">
+    <div class="modal-expert__header">
+      <h2 class="modal-expert__title">Inactivar experto</h2>
+      <button class="btn-close"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-expert__body">
+      <p id="modalInactivarExpertoNombre" class="modal-expert__nombre-destacado"></p>
+      <p>
+        ¿Está seguro que desea inactivar este usuario?<br />
+        <span class="modal-expert__texto-secundario">
+          El usuario <b>no se eliminará</b> de la base de datos, solo pasará
+          a estado <b>inactivo</b>.
+        </span>
+      </p>
+    </div>
+    <div class="modal-expert__footer">
+      <button type="button" class="btn-outline modal-inactivar-cancelar">
+        Cancelar
+      </button>
+      <button type="button" class="btn-primary modal-inactivar-confirmar">
+        Inactivar
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/admin/admin-common.js"></script>
+<% /* Garantizar que _adminHabs siempre sea un array para producir JSON válido */ %>
+  <% const _adminHabs=(typeof habilidades !=='undefined' && Array.isArray(habilidades)) ? habilidades : []; %>
+    <!-- Inyectar JSON en un script de tipo application/json y leerlo desde JS -->
+    <script id="admin-habilidades" type="application/json"><%- JSON.stringify(_adminHabs) %></script>
+    <script src="/assets/js/admin/admin-expertos.js"></script>
+    <script src="/assets/js/admin/admin-expertos.bootstrap.js"></script>
+    <!-- Inline DOM helpers and forced inline styles were moved to /assets/js/admin/admin-expertos.js
+       This file now centralizes: Choices visual fixes, days selector, price feedback, account toggle and image preview.
+       Removed duplicated IIFEs from template to avoid double execution. -->
+    </body>
+
+    </html>

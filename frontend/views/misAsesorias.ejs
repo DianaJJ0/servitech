@@ -58,10 +58,11 @@
     </main>
     <%- include('componentes/footer') %>
       <script src="/assets/js/common.js"></script>
-      <script>
-        // Variables globales para el usuario autenticado (inyectadas por backend, tipo string seguro)
-        window.usuarioId = "<%= usuarioId %>";
-        window.rolUsuario = "<%= rolUsuario %>";
+      <script type="application/json" id="initial-misAsesorias">
+        {
+          "usuarioId": <%= JSON.stringify(usuarioId || null) %>,
+          "rolUsuario": <%= JSON.stringify(rolUsuario || 'cliente') %>
+        }
       </script>
       <script src="/assets/js/misAsesorias.js"></script>
 

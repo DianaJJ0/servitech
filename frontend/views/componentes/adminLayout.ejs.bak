@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>
+    <%= typeof title !=='undefined' ? title : 'Panel Admin' %> - Servitech Admin
+  </title>
+  <link rel="stylesheet" href="/assets/css/base.css" />
+  <link rel="stylesheet" href="/assets/css/administrador.css" />
+  <link rel="stylesheet" href="/assets/css/admin.css" />
+  <link rel="stylesheet" href="/assets/css/admin-responsive.css" />
+  <link rel="stylesheet" href="/assets/css/admin-access.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <% if (extraCss) { extraCss.forEach(css=> { %>
+    <link rel="stylesheet" href="<%= css %>" />
+    <% }) } %>
+</head>
+
+<body>
+  <div class="admin-layout">
+    <%- include('componentes/navbarAdmin.ejs') %>
+      <main class="admin-main">
+        <%- body %>
+      </main>
+  </div>
+  <% if (extraJs) { extraJs.forEach(js=> { %>
+    <script src="<%= js %>"></script>
+    <% }) } %>
+      <% if (typeof showDevAdmin !=='undefined' && showDevAdmin) { %>
+        <script src="/assets/js/admin-button.js"></script>
+        <% } %>
+          <!-- CSRF helper: expose token to client and add hidden inputs to POST forms -->
+          <script>
+            (function () {
+              try {
+                var token = "<%= typeof csrfToken !== 'undefined' ? csrfToken : (typeof locals !== 'undefined' && locals.csrfToken ? locals.csrfToken : '') %>";
+                if (token) {
+                  // Expose for JS fetch helpers
+                  window._csrfToken = token;
+                  // Add hidden input to any POST form rendered server-side (no-JS fallback)
+                  document.addEventListener('DOMContentLoaded', function () {
+                    var forms = document.querySelectorAll('form[method="post"], form');
+                    forms.forEach(function (f) {
+                      // Only add if not already present
+                      if (!f.querySelector('input[name="_csrf"]')) {
+                        var input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = '_csrf';
+                        input.value = token;
+                        f.appendChild(input);
+                      }
+                    });
+                  });
+                }
+              } catch (e) { }
+            })();
+          </script>
+</body>
+
+</html>
+

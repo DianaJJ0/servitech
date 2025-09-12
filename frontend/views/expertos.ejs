@@ -308,25 +308,8 @@
 
         </main>
         <%- include('componentes/footer') %>
-          <script src="/assets/js/common.js"></script>
-          <script src="/assets/js/expertos.js"></script>
-          <script>
-            // SSE listener: recarga la página cuando el servidor notifica cambios en usuarios/experts
-            (function () {
-              try {
-                var es = new EventSource('/sse/stream');
-                es.addEventListener('usuarios:update', function (e) {
-                  try {
-                    // simple reload to reflect new expert
-                    console.info('SSE usuarios:update received, reloading page');
-                    window.location.reload();
-                  } catch (err) { }
-                });
-              } catch (e) {
-                // ignore if SSE not supported
-              }
-            })();
-          </script>
+    <script src="/assets/js/common.js"></script>
+    <script src="/assets/js/expertos.js"></script>
 
 </body>
 

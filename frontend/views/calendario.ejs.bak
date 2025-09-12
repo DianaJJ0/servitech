@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calendario | Servitech</title>
+  <link rel="stylesheet" href="/assets/css/base.css">
+  <link rel="stylesheet" href="/assets/css/componentes.css">
+  <link rel="stylesheet" href="/assets/css/calendario.css">
+
+</head>
+
+<body>
+  <%- include('componentes/header') %>
+    <main class="container">
+      <!-- ... contenido de calendario ... -->
+    </main>
+    <%- include('componentes/footer') %>
+      <script src="/assets/js/common.js"></script>
+      <script src="/assets/js/calendario.js"></script>
+      <% if (typeof expertoSeleccionado !=='undefined' && expertoSeleccionado) { %>
+          <script>
+              window.expertoSeleccionado = {
+                  id: '<%= expertoSeleccionado._id %>',
+                  nombre: '<%= expertoSeleccionado.userId ? expertoSeleccionado.userId.nombre : expertoSeleccionado.nombre %>',
+                  apellido: '<%= expertoSeleccionado.userId ? expertoSeleccionado.userId.apellido : expertoSeleccionado.apellido || "" %>',
+                  especialidad: '<%= expertoSeleccionado.especialidad || "Consultor\u00eda T\u00e9cnica" %>',
+                  email: '<%= expertoSeleccionado.userId ? expertoSeleccionado.userId.email : expertoSeleccionado.email || "" %>'
+              };
+          </script>
+          <% } %>
+              <% if (typeof categoriaSeleccionadaId !=='undefined' && categoriaSeleccionadaId) { %>
+                  <script>
+                      window.categoriaSeleccionadaId = '<%= JSON.stringify(categoriaSeleccionadaId) %>';
+                  </script>
+                  <% } %>
+                      <script>
+                          // Variables para almacenar seleccion
+                          let fechaSeleccionada = '17 de Mayo 2025';
+                          let horaSeleccionada = '11:00';
+                          function confirmarCita() {
+                              if (!horaSeleccionada) {
+                                  alert('Por favor selecciona un horario disponible');
+                                  return;
+                              }
+                              const citaData = {
+                                  experto: window.expertoSeleccionado ? {
+                                      id: window.expertoSeleccionado.id,
+                                      nombre: window.expertoSeleccionado.nombre,
+                                      apellido: window.expertoSeleccionado.apellido,
+                                      especialidad: window.expertoSeleccionado.especialidad,
+                                      email: window.expertoSeleccionado.email
+                                  } : {},
+                                  fecha: fechaSeleccionada,
+                                  hora: horaSeleccionada,
+                                  servicio: window.expertoSeleccionado ? (window.expertoSeleccionado.especialidad || 'Consultor\u00eda T\u00e9cnica') : 'Consultor\u00eda T\u00e9cnica',
+                                  duracion: '60 minutos',
+                                  precio: '$20.000 COP'
+                              };
+                              localStorage.setItem('citaSeleccionada', JSON.stringify(citaData));
+                              sessionStorage.setItem('datosExperto', JSON.stringify(window.expertoSeleccionado));
+                              sessionStorage.setItem('fechaCita', fechaSeleccionada);
+                              sessionStorage.setItem('horaCita', horaSeleccionada);
+                              if (window.expertoSeleccionado && window.expertoSeleccionado.id) {
+                                  window.location.href = `/expertos/${window.expertoSeleccionado.id}/pasarela-pagos`;
+                              } else {
+                                  alert('No se encontr\u00f3 el experto seleccionado');
+                              }
+                          }
+                      </script>
+</body>
+
+</html>
