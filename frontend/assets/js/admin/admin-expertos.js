@@ -70,8 +70,38 @@ function ensureChoicesLoaded() {
   return window._choicesLoadedPromise;
 }
 
+// Lightweight test-detection and DOM-ready wrapper.
+// In Jest (JSDOM) we avoid registering DOMContentLoaded handlers automatically
+// so tests can import functions and control when initialization runs.
+var __ADMIN_EXPERTS_IS_TEST = false;
+try {
+  __ADMIN_EXPERTS_IS_TEST =
+    typeof process !== "undefined" &&
+    !!process.env &&
+    !!process.env.JEST_WORKER_ID;
+} catch (e) {}
+
+var __adminExpertsDeferredDOMContentLoaded = [];
+function onDomReady(fn) {
+  if (__ADMIN_EXPERTS_IS_TEST) {
+    __adminExpertsDeferredDOMContentLoaded.push(fn);
+    return;
+  }
+  document.addEventListener("DOMContentLoaded", fn);
+}
+
+// Debug helper: enabled when window.__ADMIN_EXPERTOS_DEBUG === true
+function debugLog() {
+  try {
+    if (typeof window !== "undefined" && window.__ADMIN_EXPERTOS_DEBUG) {
+      if (console && typeof console.debug === "function")
+        console.debug.apply(console, arguments);
+    }
+  } catch (e) {}
+}
+
 // Global modal close helpers: handle any .modal-expert instances (covers duplicates)
-document.addEventListener("DOMContentLoaded", function () {
+onDomReady(function () {
   // Close by clicking .btn-close or [data-dismiss="modal"] inside any modal
   document.body.addEventListener("click", function (e) {
     const closeBtn =
@@ -147,6 +177,18 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 
+// Exports para permitir pruebas controladas (CommonJS)
+try {
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = module.exports || {};
+    module.exports.initializeChoicesOn = initializeChoicesOn;
+    module.exports.getExpertModal = getExpertModal;
+    module.exports.onDomReady = onDomReady;
+    module.exports.__adminExpertsDeferredDOMContentLoaded =
+      __adminExpertsDeferredDOMContentLoaded;
+  }
+} catch (e) {}
+
 /**
  * Inicializa (o re-inicializa) Choices.js en un elemento dado.
  * idOrElement puede ser id o elemento DOM. key es la clave para almacenar instancia.
@@ -187,7 +229,7 @@ function initializeChoicesOn(idOrElement, options = {}, key) {
     .catch((e) => console.error("Failed loading Choices.js for", id, e));
 }
 
-document.addEventListener("DOMContentLoaded", function () {
+onDomReady(function () {
   // Leer habilidades inyectadas por el servidor (si existen)
   try {
     const node = document.getElementById("admin-habilidades");
@@ -647,9 +689,302 @@ function applyChoicesVisualFixesWithinVisibleModal() {
 }
 
 // Auto-run visual fixes after DOM ready so inline scripts can be removed
-document.addEventListener("DOMContentLoaded", function () {
+onDomReady(function () {
   try {
     applyChoicesVisualFixesWithinVisibleModal();
+  } catch (e) {}
+});
+
+// Profile image preview and upload helpers (moved from inline view)
+onDomReady(function profileImagePreview() {
+  try {
+    var input = document.getElementById("profileImage");
+    var preview = document.getElementById("profilePreview");
+    var img = preview ? preview.querySelector("img") : null;
+    var removeBtn = document.getElementById("removeProfileBtn");
+    var meta = document.getElementById("uploadMeta");
+    var err = document.getElementById("profileImageError");
+    var label = document.getElementById("uploadLabel");
+
+    function reset() {
+      if (input) input.value = "";
+      if (img) img.src = "";
+      if (preview) preview.classList.remove("visible");
+      if (removeBtn) removeBtn.style.display = "none";
+      if (meta) {
+        meta.style.display = "none";
+        meta.textContent = "";
+      }
+      if (err) {
+        err.style.display = "none";
+        err.textContent = "";
+      }
+    }
+
+    function showError(message) {
+      if (err) {
+        err.textContent = message;
+        err.style.display = "block";
+      }
+    }
+
+    function setFileInfo(file) {
+      if (!meta) return;
+      meta.style.display = "block";
+      meta.textContent =
+        file.name + " · " + Math.round(file.size / 1024) + "KB";
+    }
+
+    if (!input) return;
+
+    input.addEventListener("change", function (e) {
+      var f = input.files && input.files[0];
+      if (!f) {
+        reset();
+        return;
+      }
+      var allowed = /^image\/(png|jpe?g|gif|webp)$/i;
+      if (!allowed.test(f.type)) {
+        showError("Formato no soportado. Usa png, jpg, gif o webp.");
+        input.value = "";
+        return;
+      }
+      var max = 2 * 1024 * 1024;
+      if (f.size > max) {
+        showError("Archivo muy grande. Máx 2MB.");
+        input.value = "";
+        return;
+      }
+      var reader = new FileReader();
+      reader.onload = function (ev) {
+        if (img) img.src = ev.target.result;
+        if (preview) preview.classList.add("visible");
+        if (removeBtn) removeBtn.style.display = "inline-flex";
+        if (err) {
+          err.style.display = "none";
+          err.textContent = "";
+        }
+        setFileInfo(f);
+      };
+      reader.readAsDataURL(f);
+    });
+
+    if (removeBtn) {
+      removeBtn.addEventListener("click", function () {
+        reset();
+      });
+    }
+
+    if (meta) {
+      meta.addEventListener("keydown", function (ev) {
+        if (ev.key === "Delete" || ev.key === "Backspace") reset();
+      });
+    }
+
+    // hide preview initial
+    if (document.readyState === "loading")
+      document.addEventListener("DOMContentLoaded", reset);
+    else reset();
+  } catch (e) {
+    /* ignore */
+  }
+});
+
+// Days selector, price feedback and account toggle centralization
+onDomReady(function uiHelpers() {
+  try {
+    // Days selector
+    function readHidden() {
+      var h = document.getElementById("diasDisponibles");
+      if (!h) return [];
+      if (!h.value) return [];
+      try {
+        var v = JSON.parse(h.value);
+        if (Array.isArray(v)) return v;
+      } catch (e) {}
+      return h.value
+        .split(",")
+        .map(function (s) {
+          return s.trim();
+        })
+        .filter(Boolean);
+    }
+    function writeHidden(arr) {
+      var h = document.getElementById("diasDisponibles");
+      if (!h) return;
+      h.value = JSON.stringify(arr);
+    }
+    function shortLabel(day) {
+      var map = {
+        Lunes: "L",
+        Martes: "M",
+        Miércoles: "X",
+        Miercoles: "X",
+        Jueves: "J",
+        Viernes: "V",
+        Sábado: "S",
+        Sabado: "S",
+        Domingo: "D",
+      };
+      return map[day] || (day && day.charAt(0)) || "";
+    }
+    function updateDisplay(selected) {
+      var disp = document.querySelector(".srv-days-display");
+      if (!disp) return;
+      if (!selected || selected.length === 0)
+        disp.textContent = "Ningún día seleccionado";
+      else {
+        var short = selected
+          .map(function (d) {
+            return shortLabel(d);
+          })
+          .join(" ");
+        disp.textContent = short + " — " + selected.join(", ");
+      }
+    }
+    function syncHiddenFromUI() {
+      var items = Array.from(document.querySelectorAll(".srv-day.selected"))
+        .map(function (e) {
+          return e.getAttribute("data-day");
+        })
+        .filter(Boolean);
+      writeHidden(items);
+      updateDisplay(items);
+    }
+    function toggleDay(el) {
+      if (!el) return;
+      var day = el.getAttribute("data-day");
+      if (!day) return;
+      var was = el.classList.toggle("selected");
+      el.setAttribute("aria-pressed", was ? "true" : "false");
+      syncHiddenFromUI();
+    }
+
+    var nodes = Array.from(document.querySelectorAll(".srv-day"));
+    nodes.forEach(function (n) {
+      try {
+        n.setAttribute("tabindex", "0");
+        n.setAttribute("role", "button");
+        n.setAttribute("aria-pressed", "false");
+        n.addEventListener("click", function () {
+          toggleDay(n);
+        });
+        n.addEventListener("keydown", function (e) {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            toggleDay(n);
+          }
+        });
+      } catch (e) {}
+    });
+    var initial = readHidden();
+    if (initial && initial.length) {
+      nodes.forEach(function (n) {
+        var d = n.getAttribute("data-day");
+        if (initial.indexOf(d) !== -1) {
+          n.classList.add("selected");
+          n.setAttribute("aria-pressed", "true");
+        }
+      });
+    }
+    syncHiddenFromUI();
+    window._srv = window._srv || {};
+    window._srv.getSelectedDays = function () {
+      try {
+        return JSON.parse(document.getElementById("diasDisponibles").value);
+      } catch (e) {
+        return [];
+      }
+    };
+
+    // Force inline styles for days container (fallback)
+    function applyDaysInline() {
+      try {
+        var containers = document.querySelectorAll(".srv-days");
+        containers.forEach(function (c) {
+          c.style.setProperty("display", "flex", "important");
+          c.style.setProperty("flex-direction", "row", "important");
+          c.style.setProperty("flex-wrap", "wrap", "important");
+          c.style.setProperty("gap", "0.5rem", "important");
+          c.style.setProperty("align-items", "center", "important");
+          c.style.setProperty("justify-content", "flex-start", "important");
+          c.style.setProperty("margin-top", "0.35rem", "important");
+          c.style.setProperty("padding", "0", "important");
+        });
+        document.querySelectorAll(".srv-day").forEach(function (n) {
+          n.style.setProperty("display", "inline-flex", "important");
+          n.style.setProperty("align-items", "center", "important");
+          n.style.setProperty("justify-content", "center", "important");
+          n.style.setProperty("width", "40px", "important");
+          n.style.setProperty("height", "40px", "important");
+          n.style.setProperty("min-width", "40px", "important");
+          n.style.setProperty("padding", "0", "important");
+          n.style.setProperty("margin", "0", "important");
+          n.style.setProperty("box-sizing", "border-box", "important");
+          n.style.setProperty("line-height", "1", "important");
+          n.style.setProperty("position", "relative", "important");
+        });
+      } catch (e) {}
+    }
+    applyDaysInline();
+    var ddAttempts = 0;
+    var ddId = setInterval(function () {
+      applyDaysInline();
+      ddAttempts++;
+      if (ddAttempts > 25) clearInterval(ddId);
+    }, 120);
+    var ddMo = new MutationObserver(function () {
+      applyDaysInline();
+    });
+    ddMo.observe(document.body, { childList: true, subtree: true });
+    window.addEventListener("resize", applyDaysInline);
+
+    // Toggle account number visibility
+    try {
+      var toggleBtn = document.getElementById("toggleAccountNumber");
+      var acctInput = document.getElementById("numeroCuenta");
+      if (toggleBtn && acctInput) {
+        toggleBtn.addEventListener("click", function () {
+          try {
+            if (acctInput.type === "password") {
+              acctInput.type = "text";
+              toggleBtn.setAttribute("aria-label", "Ocultar número de cuenta");
+            } else {
+              acctInput.type = "password";
+              toggleBtn.setAttribute("aria-label", "Mostrar número de cuenta");
+            }
+          } catch (e) {}
+        });
+      }
+    } catch (e) {}
+
+    // Price feedback (simple validation/display)
+    try {
+      var precioEl = document.getElementById("precio");
+      var feedback = document.getElementById("precio-feedback");
+      if (precioEl && feedback) {
+        precioEl.addEventListener("input", function () {
+          try {
+            var v = Number(precioEl.value) || 0;
+            if (!v) {
+              feedback.style.display = "none";
+              return;
+            }
+            if (v < 10000) {
+              feedback.textContent = "El precio es muy bajo.";
+              feedback.style.display = "block";
+            } else if (v > 500000) {
+              feedback.textContent =
+                "El precio es alto, verifica si es correcto.";
+              feedback.style.display = "block";
+            } else {
+              feedback.textContent = "";
+              feedback.style.display = "none";
+            }
+          } catch (e) {}
+        });
+      }
+    } catch (e) {}
   } catch (e) {}
 });
 
@@ -669,7 +1004,7 @@ function getExpertModal() {
 }
 
 /* editar experto */
-document.addEventListener("DOMContentLoaded", () => {
+onDomReady(() => {
   const modal = document.getElementById("editarExperto");
   const closeBtn = modal.querySelector(".btn-close");
   const cancelBtn = modal.querySelector(".modal-editar-cancelar");
@@ -734,7 +1069,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // and fills the #verPerfilExperto modal using scoped queries. No duplicate
 // initialization is necessary here.
 
-document.addEventListener("DOMContentLoaded", () => {
+onDomReady(() => {
   // Modal inactivar experto
   const modalInactivar = document.getElementById("modalInactivarExperto");
   const closeBtnInactivar = modalInactivar
@@ -1452,7 +1787,7 @@ async function loadExpertos() {
           window._adminExpertosTotal || window._adminExpertos.length
         );
       } catch (e) {
-        console.debug("adminExpertos: error rendering initial experts", e);
+        debugLog("adminExpertos: error rendering initial experts", e);
       }
     }
 
@@ -1504,8 +1839,8 @@ async function loadExpertos() {
 
     // DEBUG: mostrar una muestra del primer experto y categorias disponibles
     try {
-      console.debug("adminExpertos: sample experto:", expertos[0]);
-      console.debug(
+      debugLog("adminExpertos: sample experto:", expertos[0]);
+      debugLog(
         "adminExpertos: adminCategorias:",
         window._adminCategorias || []
       );
@@ -1753,10 +2088,7 @@ function renderExpertos(expertos, total) {
     // Log para depuración rápida en caso de filas sin infoExperto
     if (!ex.infoExperto) {
       try {
-        console.debug(
-          "adminExpertos: experto sin infoExperto",
-          ex.email || ex._id
-        );
+        debugLog("adminExpertos: experto sin infoExperto", ex.email || ex._id);
       } catch (e) {}
     }
   });
@@ -2645,7 +2977,7 @@ async function getHeaders() {
 }
 
 // Conectar el botón guardar del modal al envío del formulario
-document.addEventListener("DOMContentLoaded", function () {
+onDomReady(function () {
   try {
     const saveBtn = document.getElementById("saveExpert");
     if (!saveBtn) return;
@@ -2664,6 +2996,17 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   } catch (e) {}
 });
+
+// Exports for unit tests: expose a minimal surface without running DOM listeners.
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    initializeChoicesOn: initializeChoicesOn,
+    getExpertModal: getExpertModal,
+    __adminExpertsDeferredDOMContentLoaded:
+      __adminExpertsDeferredDOMContentLoaded,
+    onDomReady: onDomReady,
+  };
+}
 
 /**
  * Carga las categorías desde el backend y las guarda en window._adminCategorias.
@@ -2879,7 +3222,7 @@ function showMessage(text, type = "info", timeout = 2000) {
 }
 
 // Manejo del envío del formulario de edición (PUT)
-document.addEventListener("DOMContentLoaded", () => {
+onDomReady(() => {
   const form = document.getElementById("formEditarExperto");
   if (!form) return;
   form.addEventListener("submit", async (e) => {

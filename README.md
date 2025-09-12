@@ -182,6 +182,13 @@ npm run build  # Si existe script de build
 npm start
 ```
 
+Note: If you customize or bundle frontend assets for production, ensure the admin experts bootstrap file is included after the main script so deferred DOM-ready handlers run:
+
+- /assets/js/admin/admin-expertos.js
+- /assets/js/admin/admin-expertos.bootstrap.js
+
+This file executes deferred onDomReady handlers used to initialize Choices and other UI helpers.
+
 > 🔧 **Configuración avanzada:** Ver [INSTALL.md](./INSTALL.md) para deployment en Windows/Linux
 
 ---
