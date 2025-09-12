@@ -3,6 +3,7 @@
  * Lógica para gestionar especialidades tecnológicas en el sistema SERVITECH.
  */
 const Especialidad = require("../models/especialidad.model");
+const generarLogs = require("../services/generarLogs");
 
 /**
  * @openapi
@@ -126,11 +127,31 @@ const create = async (req, res) => {
       descripcion: descripcion ? descripcion.trim() : "",
     });
     await nuevaEspecialidad.save();
+
+    generarLogs.registrarEvento({
+      usuarioEmail: (req.usuario && req.usuario.email) || null,
+      nombre: (req.usuario && req.usuario.nombre) || null,
+      apellido: (req.usuario && req.usuario.apellido) || null,
+      accion: "CREAR_ESPECIALIDAD",
+      detalle: `Especialidad creada id:${nuevaEspecialidad._id}`,
+      resultado: "Exito",
+      tipo: "especialidad",
+      persistirEnDB: true,
+    });
+
     res.status(201).json({
       mensaje: "Especialidad creada.",
       especialidad: nuevaEspecialidad,
     });
   } catch (err) {
+    generarLogs.registrarEvento({
+      usuarioEmail: (req.usuario && req.usuario.email) || null,
+      accion: "CREAR_ESPECIALIDAD",
+      detalle: "Error al crear especialidad",
+      resultado: "Error: " + (err.message || "desconocido"),
+      tipo: "especialidad",
+      persistirEnDB: true,
+    });
     res.status(500).json({ mensaje: "Error al crear especialidad." });
   }
 };
@@ -156,10 +177,28 @@ const update = async (req, res) => {
     if (!especialidad) {
       return res.status(404).json({ mensaje: "Especialidad no encontrada." });
     }
+
+    generarLogs.registrarEvento({
+      usuarioEmail: (req.usuario && req.usuario.email) || null,
+      accion: "ACTUALIZAR_ESPECIALIDAD",
+      detalle: `Especialidad actualizada id:${especialidad._id}`,
+      resultado: "Exito",
+      tipo: "especialidad",
+      persistirEnDB: true,
+    });
+
     res
       .status(200)
       .json({ mensaje: "Especialidad actualizada.", especialidad });
   } catch (err) {
+    generarLogs.registrarEvento({
+      usuarioEmail: (req.usuario && req.usuario.email) || null,
+      accion: "ACTUALIZAR_ESPECIALIDAD",
+      detalle: "Error al actualizar especialidad",
+      resultado: "Error: " + (err.message || "desconocido"),
+      tipo: "especialidad",
+      persistirEnDB: true,
+    });
     res.status(500).json({ mensaje: "Error al actualizar especialidad." });
   }
 };
@@ -208,8 +247,26 @@ const remove = async (req, res) => {
     if (!especialidad) {
       return res.status(404).json({ mensaje: "Especialidad no encontrada." });
     }
+
+    generarLogs.registrarEvento({
+      usuarioEmail: (req.usuario && req.usuario.email) || null,
+      accion: "ELIMINAR_ESPECIALIDAD",
+      detalle: `Especialidad eliminada id:${especialidad._id}`,
+      resultado: "Exito",
+      tipo: "especialidad",
+      persistirEnDB: true,
+    });
+
     res.status(200).json({ mensaje: "Especialidad eliminada." });
   } catch (err) {
+    generarLogs.registrarEvento({
+      usuarioEmail: (req.usuario && req.usuario.email) || null,
+      accion: "ELIMINAR_ESPECIALIDAD",
+      detalle: "Error al eliminar especialidad",
+      resultado: "Error: " + (err.message || "desconocido"),
+      tipo: "especialidad",
+      persistirEnDB: true,
+    });
     res.status(500).json({ mensaje: "Error al eliminar especialidad." });
   }
 };

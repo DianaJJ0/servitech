@@ -13,6 +13,7 @@ const crypto = require("crypto");
 const { enviarCorreo } = require("../services/email.service.js");
 const mongoose = require("mongoose");
 const { generateLog } = require("../services/logService.js"); // logs
+const generarLogs = require("../services/generarLogs");
 
 /**
  * @openapi
@@ -191,11 +192,17 @@ const registrarUsuario = async (req, res) => {
 
     await nuevoUsuario.save();
 
-    // Generar log de usuario registrado
-    generateLog(
-      "../logs/usuarios.log",
-      `${new Date().toISOString()} - Usuario registrado: ${email} (${nombre} ${apellido})\n`
-    );
+    // Log: de éxito
+    generarLogs.registrarEvento({
+      usuarioEmail: nuevoUsuario.email,
+      nombre: nuevoUsuario.nombre,
+      apellido: nuevoUsuario.apellido,
+      accion: "REGISTRO",
+      detalle: "Usuario registrado",
+      resultado: "Exito",
+      tipo: "usuarios",
+      persistirEnDB: true,
+    });
 
     res.status(201).json({
       mensaje: "Usuario registrado exitosamente.",
@@ -203,6 +210,17 @@ const registrarUsuario = async (req, res) => {
     });
   } catch (error) {
     console.error("Error en el proceso de registro:", error);
+    // Log: error
+    generarLogs.registrarEvento({
+      usuarioEmail: req.body.email || null,
+      nombre: req.body.nombre || null,
+      apellido: req.body.apellido || null,
+      accion: "REGISTRO",
+      detalle: "Error al registrar usuario",
+      resultado: "Error: " + (error.message || "desconocido"),
+      tipo: "usuarios",
+      persistirEnDB: true,
+    });
     if (error.name === "ValidationError") {
       return res.status(400).json({ mensaje: error.message });
     }
@@ -265,6 +283,15 @@ const iniciarSesion = async (req, res) => {
     }
     const usuario = await Usuario.findOne({ email });
     if (!usuario) {
+      // Log intento fallido
+      generarLogs.registrarEvento({
+        usuarioEmail: email || null,
+        accion: "LOGIN",
+        detalle: "Credenciales incorrectas - usuario no encontrado",
+        resultado: "Error: credenciales incorrectas",
+        tipo: "usuarios",
+        persistirEnDB: true,
+      });
       return res.status(401).json({
         mensaje: "Credenciales incorrectas.",
       });
@@ -280,6 +307,19 @@ const iniciarSesion = async (req, res) => {
           roles: usuario.roles,
         };
       }
+
+      // Log de login exitoso
+      generarLogs.registrarEvento({
+        usuarioEmail: usuario.email,
+        nombre: usuario.nombre,
+        apellido: usuario.apellido,
+        accion: "LOGIN",
+        detalle: "Inicio de sesión exitoso",
+        resultado: "Exito",
+        tipo: "usuarios",
+        persistirEnDB: true,
+      });
+
       return res.status(200).json({
         mensaje: "Login exitoso.",
         token,
@@ -292,12 +332,31 @@ const iniciarSesion = async (req, res) => {
         },
       });
     } else {
+      // Log intento fallido por password
+      generarLogs.registrarEvento({
+        usuarioEmail: email || null,
+        accion: "LOGIN",
+        detalle: "Credenciales incorrectas - contraseña inválida",
+        resultado: "Error: credenciales incorrectas",
+        tipo: "usuarios",
+        persistirEnDB: true,
+      });
       return res.status(401).json({
         mensaje: "Credenciales incorrectas.",
       });
     }
   } catch (error) {
     console.error("Error en el proceso de inicio de sesión:", error);
+    generarLogs.registrarEvento({
+      usuarioEmail: req.body.email || null,
+      nombre: null,
+      apellido: null,
+      accion: "LOGIN",
+      detalle: "Error interno en inicio de sesión",
+      resultado: "Error: " + (error.message || "desconocido"),
+      tipo: "usuarios",
+      persistirEnDB: true,
+    });
     res.status(500).json({
       mensaje: "Error interno del servidor al iniciar sesión.",
     });
@@ -469,11 +528,31 @@ const solicitarRecuperacionPassword = async (req, res) => {
       <p>Saludos,<br>Equipo ServiTech</p>
     `;
     await enviarCorreo(usuario.email, asunto, mensaje, mensaje);
+
+    generarLogs.registrarEvento({
+      usuarioEmail: usuario.email,
+      nombre: usuario.nombre,
+      apellido: usuario.apellido,
+      accion: "RECUPERACION_PASSWORD",
+      detalle: "Solicitud de recuperación enviada",
+      resultado: "Exito",
+      tipo: "usuarios",
+      persistirEnDB: true,
+    });
+
     res
       .status(200)
       .json({ mensaje: "Si el email existe, se enviaron instrucciones." });
   } catch (error) {
     console.error("Error en recuperación de contraseña:", error);
+    generarLogs.registrarEvento({
+      usuarioEmail: req.body.email || null,
+      accion: "RECUPERACION_PASSWORD",
+      detalle: "Error en recuperación de contraseña",
+      resultado: "Error: " + (error.message || "desconocido"),
+      tipo: "usuarios",
+      persistirEnDB: true,
+    });
     res.status(500).json({ mensaje: "Error en la recuperación." });
   }
 };
@@ -497,11 +576,31 @@ const resetearPassword = async (req, res) => {
     usuario.passwordResetToken = undefined;
     usuario.passwordResetExpires = undefined;
     await usuario.save();
+
+    generarLogs.registrarEvento({
+      usuarioEmail: usuario.email,
+      nombre: usuario.nombre,
+      apellido: usuario.apellido,
+      accion: "RESET_PASSWORD",
+      detalle: "Contraseña restablecida con token",
+      resultado: "Exito",
+      tipo: "usuarios",
+      persistirEnDB: true,
+    });
+
     res
       .status(200)
       .json({ mensaje: "Contraseña actualizada. Puedes iniciar sesión." });
   } catch (error) {
     console.error("Error al actualizar contraseña:", error);
+    generarLogs.registrarEvento({
+      usuarioEmail: null,
+      accion: "RESET_PASSWORD",
+      detalle: "Error al restablecer contraseña",
+      resultado: "Error: " + (error.message || "desconocido"),
+      tipo: "usuarios",
+      persistirEnDB: true,
+    });
     res.status(500).json({ mensaje: "Error al actualizar contraseña." });
   }
 };
@@ -595,13 +694,35 @@ const actualizarPerfilUsuario = async (req, res) => {
 
     await usuario.save();
 
-    // RESPUESTA SIEMPRE CLARA Y ÚTIL
+    // Log éxito actualización
+    generarLogs.registrarEvento({
+      usuarioEmail: usuario.email,
+      nombre: usuario.nombre,
+      apellido: usuario.apellido,
+      accion: "EDITAR_PERFIL",
+      detalle: "Perfil actualizado",
+      resultado: "Exito",
+      tipo: "usuarios",
+      persistirEnDB: true,
+    });
+
     return res.status(200).json({
       mensaje: "Perfil de experto actualizado correctamente.",
       usuario,
     });
   } catch (error) {
     console.error("Error al actualizar perfil:", error);
+    generarLogs.registrarEvento({
+      usuarioEmail:
+        (req.usuario && req.usuario.email) || req.body.email || null,
+      nombre: req.body.nombre || null,
+      apellido: req.body.apellido || null,
+      accion: "EDITAR_PERFIL",
+      detalle: "Error al actualizar perfil",
+      resultado: "Error: " + (error.message || "desconocido"),
+      tipo: "usuarios",
+      persistirEnDB: true,
+    });
     res.status(500).json({
       mensaje: "Error interno del servidor al actualizar el perfil de experto.",
       error: error.message,
@@ -639,6 +760,18 @@ const subirAvatar = async (req, res) => {
     usuario.avatarUrl = avatarUrl;
     await usuario.save();
 
+    // Log subida avatar
+    generarLogs.registrarEvento({
+      usuarioEmail: usuario.email,
+      nombre: usuario.nombre,
+      apellido: usuario.apellido,
+      accion: "SUBIR_AVATAR",
+      detalle: "Avatar subido",
+      resultado: "Exito",
+      tipo: "usuarios",
+      persistirEnDB: true,
+    });
+
     return res.json({
       mensaje: "Avatar subido correctamente.",
       avatarUrl,
@@ -646,6 +779,16 @@ const subirAvatar = async (req, res) => {
     });
   } catch (error) {
     console.error("Error al subir avatar:", error);
+    generarLogs.registrarEvento({
+      usuarioEmail: (req.usuario && req.usuario.email) || null,
+      nombre: null,
+      apellido: null,
+      accion: "SUBIR_AVATAR",
+      detalle: "Error al subir avatar",
+      resultado: "Error: " + (error.message || "desconocido"),
+      tipo: "usuarios",
+      persistirEnDB: true,
+    });
     return res.status(500).json({ mensaje: "Error al subir avatar." });
   }
 };
@@ -665,9 +808,29 @@ const eliminarUsuarioPropio = async (req, res) => {
     }
     usuario.estado = "inactivo";
     await usuario.save();
+
+    generarLogs.registrarEvento({
+      usuarioEmail: usuario.email,
+      nombre: usuario.nombre,
+      apellido: usuario.apellido,
+      accion: "DESACTIVAR_CUENTA",
+      detalle: "Cuenta desactivada por usuario",
+      resultado: "Exito",
+      tipo: "usuarios",
+      persistirEnDB: true,
+    });
+
     res.json({ mensaje: "Cuenta desactivada correctamente." });
   } catch (error) {
     console.error("Error al desactivar usuario propio:", error);
+    generarLogs.registrarEvento({
+      usuarioEmail: (req.usuario && req.usuario.email) || null,
+      accion: "DESACTIVAR_CUENTA",
+      detalle: "Error al desactivar cuenta",
+      resultado: "Error: " + (error.message || "desconocido"),
+      tipo: "usuarios",
+      persistirEnDB: true,
+    });
     res
       .status(500)
       .json({ mensaje: "Error interno del servidor al desactivar la cuenta." });
@@ -689,9 +852,29 @@ const eliminarUsuarioPorAdmin = async (req, res) => {
     }
     usuario.estado = "inactivo";
     await usuario.save();
+
+    generarLogs.registrarEvento({
+      usuarioEmail: usuario.email,
+      nombre: usuario.nombre,
+      apellido: usuario.apellido,
+      accion: "DESACTIVAR_POR_ADMIN",
+      detalle: "Cuenta desactivada por admin",
+      resultado: "Exito",
+      tipo: "usuarios",
+      persistirEnDB: true,
+    });
+
     res.json({ mensaje: "Usuario desactivado correctamente por el admin." });
   } catch (error) {
     console.error("Error al desactivar usuario por admin:", error);
+    generarLogs.registrarEvento({
+      usuarioEmail: null,
+      accion: "DESACTIVAR_POR_ADMIN",
+      detalle: "Error al desactivar usuario por admin",
+      resultado: "Error: " + (error.message || "desconocido"),
+      tipo: "usuarios",
+      persistirEnDB: true,
+    });
     res.status(500).json({
       mensaje: "Error interno del servidor al desactivar el usuario.",
     });
@@ -849,12 +1032,32 @@ const actualizarUsuarioPorEmailAdmin = async (req, res) => {
     // Si no se proporciona infoExperto, guardar cambios simples en el documento
     try {
       await usuario.save();
+
+      generarLogs.registrarEvento({
+        usuarioEmail: usuario.email,
+        nombre: usuario.nombre,
+        apellido: usuario.apellido,
+        accion: "ACTUALIZAR_USUARIO_ADMIN",
+        detalle: "Usuario actualizado por admin",
+        resultado: "Exito",
+        tipo: "usuarios",
+        persistirEnDB: true,
+      });
+
       return res.json({
         mensaje: "Usuario actualizado correctamente.",
         usuario,
       });
     } catch (error) {
       console.error("Error saving usuario:", error);
+      generarLogs.registrarEvento({
+        usuarioEmail: usuario.email || email,
+        accion: "ACTUALIZAR_USUARIO_ADMIN",
+        detalle: "Error al actualizar usuario por admin",
+        resultado: "Error: " + (error.message || "desconocido"),
+        tipo: "usuarios",
+        persistirEnDB: true,
+      });
       return res
         .status(500)
         .json({ mensaje: "Error interno al actualizar usuario." });

@@ -3,6 +3,7 @@
  * Lógica para gestionar habilidades tecnológicas en el sistema SERVITECH.
  */
 const Habilidad = require("../models/habilidad.model");
+const generarLogs = require("../services/generarLogs");
 
 /**
  * @openapi
@@ -102,10 +103,30 @@ const create = async (req, res) => {
       descripcion: descripcion ? descripcion.trim() : "",
     });
     await nuevaHabilidad.save();
+
+    generarLogs.registrarEvento({
+      usuarioEmail: (req.usuario && req.usuario.email) || null,
+      nombre: (req.usuario && req.usuario.nombre) || null,
+      apellido: (req.usuario && req.usuario.apellido) || null,
+      accion: "CREAR_HABILIDAD",
+      detalle: `Habilidad creada id:${nuevaHabilidad._id}`,
+      resultado: "Exito",
+      tipo: "habilidad",
+      persistirEnDB: true,
+    });
+
     res
       .status(201)
       .json({ mensaje: "Habilidad creada.", habilidad: nuevaHabilidad });
   } catch (err) {
+    generarLogs.registrarEvento({
+      usuarioEmail: (req.usuario && req.usuario.email) || null,
+      accion: "CREAR_HABILIDAD",
+      detalle: "Error al crear habilidad",
+      resultado: "Error: " + (err.message || "desconocido"),
+      tipo: "habilidad",
+      persistirEnDB: true,
+    });
     res.status(500).json({ mensaje: "Error al crear habilidad." });
   }
 };
@@ -131,8 +152,26 @@ const update = async (req, res) => {
     if (!habilidad) {
       return res.status(404).json({ mensaje: "Habilidad no encontrada." });
     }
+
+    generarLogs.registrarEvento({
+      usuarioEmail: (req.usuario && req.usuario.email) || null,
+      accion: "ACTUALIZAR_HABILIDAD",
+      detalle: `Habilidad actualizada id:${habilidad._id}`,
+      resultado: "Exito",
+      tipo: "habilidad",
+      persistirEnDB: true,
+    });
+
     res.status(200).json({ mensaje: "Habilidad actualizada.", habilidad });
   } catch (err) {
+    generarLogs.registrarEvento({
+      usuarioEmail: (req.usuario && req.usuario.email) || null,
+      accion: "ACTUALIZAR_HABILIDAD",
+      detalle: "Error al actualizar habilidad",
+      resultado: "Error: " + (err.message || "desconocido"),
+      tipo: "habilidad",
+      persistirEnDB: true,
+    });
     res.status(500).json({ mensaje: "Error al actualizar habilidad." });
   }
 };
@@ -149,8 +188,26 @@ const remove = async (req, res) => {
     if (!habilidad) {
       return res.status(404).json({ mensaje: "Habilidad no encontrada." });
     }
+
+    generarLogs.registrarEvento({
+      usuarioEmail: (req.usuario && req.usuario.email) || null,
+      accion: "ELIMINAR_HABILIDAD",
+      detalle: `Habilidad eliminada id:${habilidad._id}`,
+      resultado: "Exito",
+      tipo: "habilidad",
+      persistirEnDB: true,
+    });
+
     res.status(200).json({ mensaje: "Habilidad eliminada." });
   } catch (err) {
+    generarLogs.registrarEvento({
+      usuarioEmail: (req.usuario && req.usuario.email) || null,
+      accion: "ELIMINAR_HABILIDAD",
+      detalle: "Error al eliminar habilidad",
+      resultado: "Error: " + (err.message || "desconocido"),
+      tipo: "habilidad",
+      persistirEnDB: true,
+    });
     res.status(500).json({ mensaje: "Error al eliminar habilidad." });
   }
 };

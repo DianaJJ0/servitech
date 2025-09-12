@@ -6,6 +6,7 @@ const Pago = require("../models/pago.model.js");
 const Usuario = require("../models/usuario.model.js");
 const Notificacion = require("../models/notificacion.model.js");
 const Log = require("../models/log.model.js");
+const generarLogs = require("../services/generarLogs");
 
 /**
  * @openapi
@@ -148,8 +149,30 @@ const crearPago = async (req, res) => {
       console.error("Error registrando notificación/log de pago:", e);
     }
 
+    // Log de negocio: pago creado
+    generarLogs.registrarEvento({
+      usuarioEmail: (nuevoPago && nuevoPago.clienteEmail) || null,
+      nombre: null,
+      apellido: null,
+      accion: "CREAR_PAGO",
+      detalle: `Pago registrado id:${nuevoPago._id} monto:${nuevoPago.monto}`,
+      resultado: "Exito",
+      tipo: "pago",
+      persistirEnDB: true,
+    });
+
     res.status(201).json({ mensaje: "Pago registrado.", pago: nuevoPago });
   } catch (error) {
+    generarLogs.registrarEvento({
+      usuarioEmail: (req.body && req.body.clienteEmail) || null,
+      nombre: null,
+      apellido: null,
+      accion: "CREAR_PAGO",
+      detalle: "Error al registrar pago",
+      resultado: "Error: " + (error.message || "desconocido"),
+      tipo: "pago",
+      persistirEnDB: true,
+    });
     // Error de validación de MongoDB
     if (error.name === "ValidationError") {
       return res
@@ -276,8 +299,30 @@ const actualizarEstadoPago = async (req, res) => {
       );
     }
 
+    // Log por cambio de estado
+    generarLogs.registrarEvento({
+      usuarioEmail: (pago && pago.clienteEmail) || null,
+      nombre: null,
+      apellido: null,
+      accion: "ACTUALIZAR_ESTADO_PAGO",
+      detalle: `Pago ${pago._id} cambiado a ${estado}`,
+      resultado: "Exito",
+      tipo: "pago",
+      persistirEnDB: true,
+    });
+
     res.status(200).json({ mensaje: "Estado actualizado.", pago });
   } catch (error) {
+    generarLogs.registrarEvento({
+      usuarioEmail: null,
+      nombre: null,
+      apellido: null,
+      accion: "ACTUALIZAR_ESTADO_PAGO",
+      detalle: "Error al actualizar estado de pago",
+      resultado: "Error: " + (error.message || "desconocido"),
+      tipo: "pago",
+      persistirEnDB: true,
+    });
     res.status(500).json({
       mensaje: "Error al actualizar estado del pago.",
       error: error.message,
