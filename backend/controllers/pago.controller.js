@@ -32,6 +32,29 @@ const generarLogs = require("../services/generarLogs");
  */
 
 /**
+ * @openapi
+ * tags:
+ *   - name: Pagos
+ *     description: Integración y gestión de pagos
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ErrorResponse:
+ *       type: object
+ *       properties:
+ *         error:
+ *           type: string
+ *         message:
+ *           type: string
+ *       required:
+ *         - error
+ *         - message
+ */
+
+/**
  * Registra un nuevo pago en el sistema
  * @param {Object} req - Request object
  * @param {Object} res - Response object

@@ -34,6 +34,29 @@ const generarLogs = require("../services/generarLogs");
  */
 
 /**
+ * @openapi
+ * tags:
+ *   - name: Asesorias
+ *     description: Gestión de asesorías (creación, actualización, consultas)
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ErrorResponse:
+ *       type: object
+ *       properties:
+ *         error:
+ *           type: string
+ *         message:
+ *           type: string
+ *       required:
+ *         - error
+ *         - message
+ */
+
+/**
  * Recalcula el promedio de calificaciones para un experto
  * @param {string} expertoEmail - Email del experto
  * @returns {Promise<void>}

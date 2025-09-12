@@ -31,6 +31,29 @@ const generarLogs = require("../services/generarLogs");
  */
 
 /**
+ * @openapi
+ * tags:
+ *   - name: Expertos
+ *     description: Operaciones relacionadas con expertos
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ErrorResponse:
+ *       type: object
+ *       properties:
+ *         error:
+ *           type: string
+ *         message:
+ *           type: string
+ *       required:
+ *         - error
+ *         - message
+ */
+
+/**
  * Lista expertos con paginación y filtros avanzados
  * @param {Object} req - Request object
  * @param {Object} res - Response object

@@ -1,7 +1,8 @@
 // ===============================
 // Verificación de sesión (seguridad)
 // ===============================
-(function () {
+// Auth check is performed on DOMContentLoaded to avoid redirecting during module import (testable)
+function ensureAuthenticatedOrRedirect() {
   try {
     const token = localStorage.getItem("token");
     const currentUser = localStorage.getItem("currentUser");
@@ -13,13 +14,34 @@
     window.location.replace("/login.html");
     throw e;
   }
-})();
+}
 
 // ===============================
 // Configuración global y helpers
 // ===============================
-const usuarioId = window.usuarioId || null;
-const rol = window.rolUsuario || "cliente";
+// Read initial data injected by server as JSON
+let usuarioId = null;
+let rol = 'cliente';
+function readInitialData() {
+  try {
+    const el = document.getElementById('initial-misAsesorias');
+    if (!el) return;
+    const data = JSON.parse(el.textContent);
+    usuarioId = data.usuarioId || null;
+    rol = data.rolUsuario || 'cliente';
+  } catch (e) {
+    // ignore and keep defaults
+  }
+}
+
+// Exports for tests
+try {
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = module.exports || {};
+    module.exports.readInitialData = readInitialData;
+    module.exports.ensureAuthenticatedOrRedirect = ensureAuthenticatedOrRedirect;
+  }
+} catch (e) {}
 const asesoriasList = document.querySelector(".asesorias-list");
 
 // ===============================
@@ -166,7 +188,11 @@ window.abrirDetallesAsesoria = function (data) {
 // ===============================
 // Eventos de la página
 // ===============================
-document.addEventListener("DOMContentLoaded", cargarAsesorias);
+document.addEventListener("DOMContentLoaded", function () {
+  readInitialData();
+  ensureAuthenticatedOrRedirect();
+  cargarAsesorias();
+});
 
 // ===============================
 // Eventos de los modales

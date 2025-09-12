@@ -7,34 +7,35 @@ const nodemailer = require("nodemailer");
 const generarLogs = require("../services/generarLogs");
 process.loadEnvFile("./.env");
 
-const BACKUP_DIR = path.join(".", "backup");
-if (!fs.existsSync(BACKUP_DIR)) fs.mkdirSync(BACKUP_DIR, { recursive: true });
+const CARPETA_RESPALDOS = path.join(".", "backup");
+if (!fs.existsSync(CARPETA_RESPALDOS))
+  fs.mkdirSync(CARPETA_RESPALDOS, { recursive: true });
 
-async function makeBackup() {
+async function crearRespaldo() {
   const ts = new Date().toISOString().replace(/[:.]/g, "-");
-  const outDir = path.join(BACKUP_DIR, `backup_${ts}`);
-  const cmd = `mongodump --uri "${process.env.MONGO_URI}" --out ${outDir} --gzip`;
+  const dirSalida = path.join(CARPETA_RESPALDOS, `backup_${ts}`);
+  const cmd = `mongodump --uri "${process.env.MONGO_URI}" --out ${dirSalida} --gzip`;
   await execP(cmd);
-  return outDir;
+  return dirSalida;
 }
 
-async function compress(outDir) {
-  const zipPath = `${outDir}.zip`;
+async function comprimir(dirSalida) {
+  const zipPath = `${dirSalida}.zip`;
   try {
-    await execP(`zip -r "${zipPath}" "${outDir}"`);
+    await execP(`zip -r "${zipPath}" "${dirSalida}"`);
     return zipPath;
   } catch (e) {
-    const tarPath = `${outDir}.tar.gz`;
+    const tarPath = `${dirSalida}.tar.gz`;
     await execP(
-      `tar -czf "${tarPath}" -C "${path.dirname(outDir)}" "${path.basename(
-        outDir
+      `tar -czf "${tarPath}" -C "${path.dirname(dirSalida)}" "${path.basename(
+        dirSalida
       )}"`
     );
     return tarPath;
   }
 }
 
-async function sendEmail(filePath) {
+async function enviarCorreo(rutaArchivo) {
   const transportCfg = process.env.SMTP_HOST
     ? {
         host: process.env.SMTP_HOST,
@@ -47,19 +48,19 @@ async function sendEmail(filePath) {
         auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
       };
   const transporter = nodemailer.createTransport(transportCfg);
-  const info = await transporter.sendMail({
+  const infoEnvio = await transporter.sendMail({
     from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
     to: "servitech.app.correo@gmail.com",
     subject: `Backup ServiTech - ${new Date().toISOString()}`,
     text: `Backup adjunto: ${path.basename(filePath)}`,
     attachments: [{ filename: path.basename(filePath), path: filePath }],
   });
-  return info;
+  return infoEnvio;
 }
 
-// Elimina todo en BACKUP_DIR excepto keepPath (ruta absoluta)
-function cleanOldBackups(keepPath) {
-  const items = fs.readdirSync(BACKUP_DIR);
+// Elimina todo en CARPETA_RESPALDOS excepto keepPath (ruta absoluta)
+function limpiarRespaldosAntiguos(keepPath) {
+  const items = fs.readdirSync(CARPETA_RESPALDOS);
   for (const item of items) {
     const full = path.join(BACKUP_DIR, item);
     try {
@@ -74,25 +75,25 @@ function cleanOldBackups(keepPath) {
 
 exports.realizarBackupCompletoConCorreo = async () => {
   try {
-    const outDir = await makeBackup();
-    const archive = await compress(outDir);
-    const info = await sendEmail(archive);
+    const dirSalida = await crearRespaldo();
+    const archivoComprimido = await comprimir(dirSalida);
+    const infoEnvio = await enviarCorreo(archivoComprimido);
 
-    // Si se envió correctamente, eliminar backups previos y el folder sin comprimir
-    cleanOldBackups(archive);
+    // Si se envió correctamente, eliminar respaldos previos y el folder sin comprimir
+    limpiarRespaldosAntiguos(archivoComprimido);
 
     await generarLogs.registrarEvento({
       usuarioEmail: null,
       nombre: null,
       apellido: null,
       accion: "BACKUP",
-      detalle: `Backup enviado: ${path.basename(archive)}`,
+      detalle: `Backup enviado: ${path.basename(archivoComprimido)}`,
       resultado: "Exito",
       tipo: "general",
-      meta: { archive, messageId: info && info.messageId },
+      meta: { archivoComprimido, messageId: infoEnvio && infoEnvio.messageId },
       persistirEnDB: true,
     });
-    return { archive, info };
+    return { archivoComprimido, infoEnvio };
   } catch (err) {
     await generarLogs.registrarEvento({
       usuarioEmail: null,

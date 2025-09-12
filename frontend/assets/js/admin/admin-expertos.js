@@ -70,8 +70,38 @@ function ensureChoicesLoaded() {
   return window._choicesLoadedPromise;
 }
 
+// Lightweight test-detection and DOM-ready wrapper.
+// In Jest (JSDOM) we avoid registering DOMContentLoaded handlers automatically
+// so tests can import functions and control when initialization runs.
+var __ADMIN_EXPERTS_IS_TEST = false;
+try {
+  __ADMIN_EXPERTS_IS_TEST =
+    typeof process !== "undefined" &&
+    !!process.env &&
+    !!process.env.JEST_WORKER_ID;
+} catch (e) {}
+
+var __adminExpertsDeferredDOMContentLoaded = [];
+function onDomReady(fn) {
+  if (__ADMIN_EXPERTS_IS_TEST) {
+    __adminExpertsDeferredDOMContentLoaded.push(fn);
+    return;
+  }
+  document.addEventListener("DOMContentLoaded", fn);
+}
+
+// Debug helper: enabled when window.__ADMIN_EXPERTOS_DEBUG === true
+function debugLog() {
+  try {
+    if (typeof window !== "undefined" && window.__ADMIN_EXPERTOS_DEBUG) {
+      if (console && typeof console.debug === "function")
+        console.debug.apply(console, arguments);
+    }
+  } catch (e) {}
+}
+
 // Global modal close helpers: handle any .modal-expert instances (covers duplicates)
-document.addEventListener("DOMContentLoaded", function () {
+onDomReady(function () {
   // Close by clicking .btn-close or [data-dismiss="modal"] inside any modal
   document.body.addEventListener("click", function (e) {
     const closeBtn =
@@ -147,6 +177,18 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 
+// Exports para permitir pruebas controladas (CommonJS)
+try {
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = module.exports || {};
+    module.exports.initializeChoicesOn = initializeChoicesOn;
+    module.exports.getExpertModal = getExpertModal;
+    module.exports.onDomReady = onDomReady;
+    module.exports.__adminExpertsDeferredDOMContentLoaded =
+      __adminExpertsDeferredDOMContentLoaded;
+  }
+} catch (e) {}
+
 /**
  * Inicializa (o re-inicializa) Choices.js en un elemento dado.
  * idOrElement puede ser id o elemento DOM. key es la clave para almacenar instancia.
@@ -187,7 +229,7 @@ function initializeChoicesOn(idOrElement, options = {}, key) {
     .catch((e) => console.error("Failed loading Choices.js for", id, e));
 }
 
-document.addEventListener("DOMContentLoaded", function () {
+onDomReady(function () {
   // Leer habilidades inyectadas por el servidor (si existen)
   try {
     const node = document.getElementById("admin-habilidades");
@@ -290,7 +332,7 @@ document.addEventListener("DOMContentLoaded", function () {
  * Configura la funcionalidad del modal para agregar/editar expertos
  */
 function setupExpertModal() {
-  const modal = document.getElementById("expertModal");
+  const modal = getExpertModal();
   const btnAddExpert = document.getElementById("btnAddExpert");
   const btnCloseModal = modal ? modal.querySelector(".btn-close") : null;
   const btnCancel = modal
@@ -312,6 +354,7 @@ function setupExpertModal() {
       if (titleEl) titleEl.textContent = "Agregar nuevo experto";
     } catch (e) {}
     // cargar categorías disponibles para el modal (si no cargadas)
+    // también inicializar Choices en #categorias de forma idempotente
     loadAdminCategorias().catch((err) =>
       console.error("Error cargando categorias:", err)
     );
@@ -319,6 +362,32 @@ function setupExpertModal() {
     if (skillsEl) {
       (async () => {
         let skillSuggestions = [];
+        // ensure categories are loaded and initialized for the modal
+        try {
+          await loadAdminCategorias().catch(function () {});
+          const categoriasEl = document.getElementById("categorias");
+          if (categoriasEl) {
+            try {
+              if (
+                !(
+                  window._choicesInstances &&
+                  window._choicesInstances["categorias"]
+                )
+              ) {
+                initializeChoicesOn(
+                  "categorias",
+                  {
+                    removeItemButton: true,
+                    searchEnabled: true,
+                    placeholder: true,
+                    placeholderValue: "Selecciona categorías",
+                  },
+                  "categorias"
+                );
+              }
+            } catch (e) {}
+          }
+        } catch (e) {}
         // Preferir listado inyectado por servidor (más eficiente)
         try {
           if (
@@ -439,8 +508,503 @@ function setupExpertModal() {
   }
 }
 
+/**
+ * Visual fixes for Choices instances restricted to the currently visible modal.
+ * Centralizes the logic previously duplicated inline in the EJS template.
+ */
+function applyChoicesVisualFixesWithinVisibleModal() {
+  function applyInputFix(el) {
+    if (!el || el.dataset.__stylingApplied) return;
+    try {
+      el.style.setProperty("background", "transparent", "important");
+      el.style.setProperty(
+        "color",
+        getComputedStyle(document.documentElement).getPropertyValue(
+          "--admin-text-primary"
+        ) || "#ffffff",
+        "important"
+      );
+      el.style.setProperty(
+        "-webkit-text-fill-color",
+        getComputedStyle(document.documentElement).getPropertyValue(
+          "--admin-text-primary"
+        ) || "#ffffff",
+        "important"
+      );
+      el.style.setProperty(
+        "caret-color",
+        getComputedStyle(document.documentElement).getPropertyValue(
+          "--admin-accent-color"
+        ) || "#5e81ff",
+        "important"
+      );
+      el.style.setProperty("border", "none", "important");
+      el.style.setProperty("outline", "none", "important");
+      el.style.setProperty("width", "auto", "important");
+      el.style.setProperty("min-width", "22ch", "important");
+      el.style.setProperty("font-family", "inherit", "important");
+      el.style.setProperty("padding-left", "42px", "important");
+      el.dataset.__stylingApplied = "1";
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  function findVisibleModal() {
+    return Array.from(document.querySelectorAll(".modal-expert")).find(
+      function (m) {
+        try {
+          const cs = getComputedStyle(m);
+          return (
+            cs &&
+            cs.display !== "none" &&
+            cs.visibility !== "hidden" &&
+            m.offsetWidth > 0 &&
+            m.offsetHeight > 0
+          );
+        } catch (e) {
+          return false;
+        }
+      }
+    );
+  }
+
+  function processAll() {
+    const visibleModal = findVisibleModal();
+    if (!visibleModal) return;
+
+    try {
+      visibleModal
+        .querySelectorAll(
+          '.choices__input, .choices__input--cloned, input[placeholder="Selecciona categorías"], input[aria-label="Selecciona categorías"]'
+        )
+        .forEach(applyInputFix);
+      visibleModal
+        .querySelectorAll(
+          ".choices__list--dropdown, .choices__list--dropdown .choices__item"
+        )
+        .forEach(function (el) {
+          try {
+            el.style.setProperty(
+              "background",
+              getComputedStyle(document.documentElement).getPropertyValue(
+                "--admin-card-bg"
+              ) || "#121212",
+              "important"
+            );
+            el.style.setProperty(
+              "color",
+              getComputedStyle(document.documentElement).getPropertyValue(
+                "--admin-text-primary"
+              ) || "#ffffff",
+              "important"
+            );
+            el.style.setProperty(
+              "border-color",
+              getComputedStyle(document.documentElement).getPropertyValue(
+                "--admin-border-color"
+              ) || "#333",
+              "important"
+            );
+          } catch (e) {}
+        });
+
+      visibleModal
+        .querySelectorAll(".choices__inner")
+        .forEach(function (inner) {
+          try {
+            if (inner.querySelector(".choices__list--multiple"))
+              inner.classList.add("no-icon");
+            else inner.classList.remove("no-icon");
+          } catch (e) {}
+        });
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  // Diagnostics: log choices button computed styles inside visible modal
+  function diag() {
+    try {
+      const visibleModal = findVisibleModal();
+      if (!visibleModal) {
+        console.info("[diag] No hay modal visible para inspeccionar");
+        return;
+      }
+      const btns = visibleModal.querySelectorAll(".choices__button");
+      if (!btns || btns.length === 0) {
+        console.info(
+          "[diag] No se encontraron .choices__button dentro del modal visible"
+        );
+        return;
+      }
+      btns.forEach(function (b, i) {
+        try {
+          console.info("[diag] choices__button #" + i + ":", b.outerHTML);
+          var cs = window.getComputedStyle(b);
+          console.info("[diag] computed (button):", {
+            display: cs.display,
+            visibility: cs.visibility,
+            color: cs.color,
+            background: cs.backgroundColor || cs["background-color"],
+            overflow: cs.overflow,
+            zIndex: cs.zIndex,
+          });
+        } catch (e) {}
+      });
+    } catch (e) {
+      console.error("[diag] error:", e);
+    }
+  }
+
+  // Run now and observe for dynamic clones
+  try {
+    processAll();
+    let attempts = 0;
+    const tid = setInterval(function () {
+      processAll();
+      attempts++;
+      if (attempts > 30) clearInterval(tid);
+    }, 150);
+    const mo = new MutationObserver(function () {
+      processAll();
+    });
+    mo.observe(document.body, { childList: true, subtree: true });
+
+    // also attach a lightweight click to re-run diag when modal interactions occur
+    document.body.addEventListener(
+      "click",
+      function (ev) {
+        if (
+          ev.target.closest(".modal-expert") ||
+          ev.target.closest(".btn-close")
+        )
+          setTimeout(diag, 300);
+      },
+      true
+    );
+  } catch (e) {
+    /* ignore */
+  }
+}
+
+// Auto-run visual fixes after DOM ready so inline scripts can be removed
+onDomReady(function () {
+  try {
+    applyChoicesVisualFixesWithinVisibleModal();
+  } catch (e) {}
+});
+
+// Profile image preview and upload helpers (moved from inline view)
+onDomReady(function profileImagePreview() {
+  try {
+    var input = document.getElementById("profileImage");
+    var preview = document.getElementById("profilePreview");
+    var img = preview ? preview.querySelector("img") : null;
+    var removeBtn = document.getElementById("removeProfileBtn");
+    var meta = document.getElementById("uploadMeta");
+    var err = document.getElementById("profileImageError");
+    var label = document.getElementById("uploadLabel");
+
+    function reset() {
+      if (input) input.value = "";
+      if (img) img.src = "";
+      if (preview) preview.classList.remove("visible");
+      if (removeBtn) removeBtn.style.display = "none";
+      if (meta) {
+        meta.style.display = "none";
+        meta.textContent = "";
+      }
+      if (err) {
+        err.style.display = "none";
+        err.textContent = "";
+      }
+    }
+
+    function showError(message) {
+      if (err) {
+        err.textContent = message;
+        err.style.display = "block";
+      }
+    }
+
+    function setFileInfo(file) {
+      if (!meta) return;
+      meta.style.display = "block";
+      meta.textContent =
+        file.name + " · " + Math.round(file.size / 1024) + "KB";
+    }
+
+    if (!input) return;
+
+    input.addEventListener("change", function (e) {
+      var f = input.files && input.files[0];
+      if (!f) {
+        reset();
+        return;
+      }
+      var allowed = /^image\/(png|jpe?g|gif|webp)$/i;
+      if (!allowed.test(f.type)) {
+        showError("Formato no soportado. Usa png, jpg, gif o webp.");
+        input.value = "";
+        return;
+      }
+      var max = 2 * 1024 * 1024;
+      if (f.size > max) {
+        showError("Archivo muy grande. Máx 2MB.");
+        input.value = "";
+        return;
+      }
+      var reader = new FileReader();
+      reader.onload = function (ev) {
+        if (img) img.src = ev.target.result;
+        if (preview) preview.classList.add("visible");
+        if (removeBtn) removeBtn.style.display = "inline-flex";
+        if (err) {
+          err.style.display = "none";
+          err.textContent = "";
+        }
+        setFileInfo(f);
+      };
+      reader.readAsDataURL(f);
+    });
+
+    if (removeBtn) {
+      removeBtn.addEventListener("click", function () {
+        reset();
+      });
+    }
+
+    if (meta) {
+      meta.addEventListener("keydown", function (ev) {
+        if (ev.key === "Delete" || ev.key === "Backspace") reset();
+      });
+    }
+
+    // hide preview initial
+    if (document.readyState === "loading")
+      document.addEventListener("DOMContentLoaded", reset);
+    else reset();
+  } catch (e) {
+    /* ignore */
+  }
+});
+
+// Days selector, price feedback and account toggle centralization
+onDomReady(function uiHelpers() {
+  try {
+    // Days selector
+    function readHidden() {
+      var h = document.getElementById("diasDisponibles");
+      if (!h) return [];
+      if (!h.value) return [];
+      try {
+        var v = JSON.parse(h.value);
+        if (Array.isArray(v)) return v;
+      } catch (e) {}
+      return h.value
+        .split(",")
+        .map(function (s) {
+          return s.trim();
+        })
+        .filter(Boolean);
+    }
+    function writeHidden(arr) {
+      var h = document.getElementById("diasDisponibles");
+      if (!h) return;
+      h.value = JSON.stringify(arr);
+    }
+    function shortLabel(day) {
+      var map = {
+        Lunes: "L",
+        Martes: "M",
+        Miércoles: "X",
+        Miercoles: "X",
+        Jueves: "J",
+        Viernes: "V",
+        Sábado: "S",
+        Sabado: "S",
+        Domingo: "D",
+      };
+      return map[day] || (day && day.charAt(0)) || "";
+    }
+    function updateDisplay(selected) {
+      var disp = document.querySelector(".srv-days-display");
+      if (!disp) return;
+      if (!selected || selected.length === 0)
+        disp.textContent = "Ningún día seleccionado";
+      else {
+        var short = selected
+          .map(function (d) {
+            return shortLabel(d);
+          })
+          .join(" ");
+        disp.textContent = short + " — " + selected.join(", ");
+      }
+    }
+    function syncHiddenFromUI() {
+      var items = Array.from(document.querySelectorAll(".srv-day.selected"))
+        .map(function (e) {
+          return e.getAttribute("data-day");
+        })
+        .filter(Boolean);
+      writeHidden(items);
+      updateDisplay(items);
+    }
+    function toggleDay(el) {
+      if (!el) return;
+      var day = el.getAttribute("data-day");
+      if (!day) return;
+      var was = el.classList.toggle("selected");
+      el.setAttribute("aria-pressed", was ? "true" : "false");
+      syncHiddenFromUI();
+    }
+
+    var nodes = Array.from(document.querySelectorAll(".srv-day"));
+    nodes.forEach(function (n) {
+      try {
+        n.setAttribute("tabindex", "0");
+        n.setAttribute("role", "button");
+        n.setAttribute("aria-pressed", "false");
+        n.addEventListener("click", function () {
+          toggleDay(n);
+        });
+        n.addEventListener("keydown", function (e) {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            toggleDay(n);
+          }
+        });
+      } catch (e) {}
+    });
+    var initial = readHidden();
+    if (initial && initial.length) {
+      nodes.forEach(function (n) {
+        var d = n.getAttribute("data-day");
+        if (initial.indexOf(d) !== -1) {
+          n.classList.add("selected");
+          n.setAttribute("aria-pressed", "true");
+        }
+      });
+    }
+    syncHiddenFromUI();
+    window._srv = window._srv || {};
+    window._srv.getSelectedDays = function () {
+      try {
+        return JSON.parse(document.getElementById("diasDisponibles").value);
+      } catch (e) {
+        return [];
+      }
+    };
+
+    // Force inline styles for days container (fallback)
+    function applyDaysInline() {
+      try {
+        var containers = document.querySelectorAll(".srv-days");
+        containers.forEach(function (c) {
+          c.style.setProperty("display", "flex", "important");
+          c.style.setProperty("flex-direction", "row", "important");
+          c.style.setProperty("flex-wrap", "wrap", "important");
+          c.style.setProperty("gap", "0.5rem", "important");
+          c.style.setProperty("align-items", "center", "important");
+          c.style.setProperty("justify-content", "flex-start", "important");
+          c.style.setProperty("margin-top", "0.35rem", "important");
+          c.style.setProperty("padding", "0", "important");
+        });
+        document.querySelectorAll(".srv-day").forEach(function (n) {
+          n.style.setProperty("display", "inline-flex", "important");
+          n.style.setProperty("align-items", "center", "important");
+          n.style.setProperty("justify-content", "center", "important");
+          n.style.setProperty("width", "40px", "important");
+          n.style.setProperty("height", "40px", "important");
+          n.style.setProperty("min-width", "40px", "important");
+          n.style.setProperty("padding", "0", "important");
+          n.style.setProperty("margin", "0", "important");
+          n.style.setProperty("box-sizing", "border-box", "important");
+          n.style.setProperty("line-height", "1", "important");
+          n.style.setProperty("position", "relative", "important");
+        });
+      } catch (e) {}
+    }
+    applyDaysInline();
+    var ddAttempts = 0;
+    var ddId = setInterval(function () {
+      applyDaysInline();
+      ddAttempts++;
+      if (ddAttempts > 25) clearInterval(ddId);
+    }, 120);
+    var ddMo = new MutationObserver(function () {
+      applyDaysInline();
+    });
+    ddMo.observe(document.body, { childList: true, subtree: true });
+    window.addEventListener("resize", applyDaysInline);
+
+    // Toggle account number visibility
+    try {
+      var toggleBtn = document.getElementById("toggleAccountNumber");
+      var acctInput = document.getElementById("numeroCuenta");
+      if (toggleBtn && acctInput) {
+        toggleBtn.addEventListener("click", function () {
+          try {
+            if (acctInput.type === "password") {
+              acctInput.type = "text";
+              toggleBtn.setAttribute("aria-label", "Ocultar número de cuenta");
+            } else {
+              acctInput.type = "password";
+              toggleBtn.setAttribute("aria-label", "Mostrar número de cuenta");
+            }
+          } catch (e) {}
+        });
+      }
+    } catch (e) {}
+
+    // Price feedback (simple validation/display)
+    try {
+      var precioEl = document.getElementById("precio");
+      var feedback = document.getElementById("precio-feedback");
+      if (precioEl && feedback) {
+        precioEl.addEventListener("input", function () {
+          try {
+            var v = Number(precioEl.value) || 0;
+            if (!v) {
+              feedback.style.display = "none";
+              return;
+            }
+            if (v < 10000) {
+              feedback.textContent = "El precio es muy bajo.";
+              feedback.style.display = "block";
+            } else if (v > 500000) {
+              feedback.textContent =
+                "El precio es alto, verifica si es correcto.";
+              feedback.style.display = "block";
+            } else {
+              feedback.textContent = "";
+              feedback.style.display = "none";
+            }
+          } catch (e) {}
+        });
+      }
+    } catch (e) {}
+  } catch (e) {}
+});
+
+/**
+ * Helper: devuelve el modal de experto preferido.
+ * Prioriza el id "expertModal" si existe, si no devuelve el primer elemento con
+ * la clase `.modal-expert` en el documento.
+ */
+function getExpertModal() {
+  try {
+    const byId = document.getElementById("expertModal");
+    if (byId) return byId;
+    return document.querySelector(".modal-expert");
+  } catch (e) {
+    return null;
+  }
+}
+
 /* editar experto */
-document.addEventListener("DOMContentLoaded", () => {
+onDomReady(() => {
   const modal = document.getElementById("editarExperto");
   const closeBtn = modal.querySelector(".btn-close");
   const cancelBtn = modal.querySelector(".modal-editar-cancelar");
@@ -505,7 +1069,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // and fills the #verPerfilExperto modal using scoped queries. No duplicate
 // initialization is necessary here.
 
-document.addEventListener("DOMContentLoaded", () => {
+onDomReady(() => {
   // Modal inactivar experto
   const modalInactivar = document.getElementById("modalInactivarExperto");
   const closeBtnInactivar = modalInactivar
@@ -704,7 +1268,7 @@ function setupExpertVerification() {
  * Abre el modal para agregar un nuevo experto.
  */
 function abrirModalAgregarExperto() {
-  const modal = document.getElementById("expertModal");
+  const modal = getExpertModal();
   if (modal) {
     modal.style.display = "flex";
     document.body.style.overflow = "hidden";
@@ -922,14 +1486,14 @@ function abrirModalEditarExperto(expertoId) {
 }
 
 /**
- * Abre y rellena el modal común de edición `#expertModal` para el experto dado.
+ * Abre y rellena el modal común de edición `.modal-expert` para el experto dado.
  */
 async function openExpertEditModal(expertoId) {
   try {
     const expertos = window._adminExpertos || [];
     const ex = expertos.find((x) => String(x._id) === String(expertoId));
     if (!ex) return showMessage("Experto no encontrado", "error");
-    const modal = document.getElementById("expertModal");
+    const modal = getExpertModal();
     if (!modal) return;
 
     // Reutilizar el mismo mapeo que antes (precio, dias, bio, categorias, skills, avatar, bank)
@@ -1223,7 +1787,7 @@ async function loadExpertos() {
           window._adminExpertosTotal || window._adminExpertos.length
         );
       } catch (e) {
-        console.debug("adminExpertos: error rendering initial experts", e);
+        debugLog("adminExpertos: error rendering initial experts", e);
       }
     }
 
@@ -1275,8 +1839,8 @@ async function loadExpertos() {
 
     // DEBUG: mostrar una muestra del primer experto y categorias disponibles
     try {
-      console.debug("adminExpertos: sample experto:", expertos[0]);
-      console.debug(
+      debugLog("adminExpertos: sample experto:", expertos[0]);
+      debugLog(
         "adminExpertos: adminCategorias:",
         window._adminCategorias || []
       );
@@ -1524,10 +2088,7 @@ function renderExpertos(expertos, total) {
     // Log para depuración rápida en caso de filas sin infoExperto
     if (!ex.infoExperto) {
       try {
-        console.debug(
-          "adminExpertos: experto sin infoExperto",
-          ex.email || ex._id
-        );
+        debugLog("adminExpertos: experto sin infoExperto", ex.email || ex._id);
       } catch (e) {}
     }
   });
@@ -1564,11 +2125,11 @@ function setupDelegatedActions() {
     const id = btn.dataset.id || (row && row.dataset.id);
 
     if (title === "Editar" || btn.classList.contains("expert-edit")) {
-      // Abrir el modal común de "Agregar/Editar" experto (#expertModal)
+      // Abrir el modal común de "Agregar/Editar" experto (.modal-expert)
       const expertos = window._adminExpertos || [];
       const ex = expertos.find((x) => String(x._id) === String(id));
       if (!ex) return showMessage("Experto no encontrado", "error");
-      const modal = document.getElementById("expertModal");
+      const modal = getExpertModal();
       if (!modal) return;
 
       // Rellenar los campos del modal con la información registrada por el experto
@@ -2371,7 +2932,7 @@ function setupDelegatedActions() {
             }
             showMessage("Experto actualizado", "success");
             await loadExpertos();
-            const modal = document.getElementById("expertModal");
+            const modal = getExpertModal();
             if (modal) modal.style.display = "none";
           } catch (e) {
             console.error(e);
@@ -2379,7 +2940,7 @@ function setupDelegatedActions() {
           }
         } else {
           await agregarExperto(payload);
-          const modal = document.getElementById("expertModal");
+          const modal = getExpertModal();
           if (modal) modal.style.display = "none";
         }
       } catch (err) {
@@ -2416,7 +2977,7 @@ async function getHeaders() {
 }
 
 // Conectar el botón guardar del modal al envío del formulario
-document.addEventListener("DOMContentLoaded", function () {
+onDomReady(function () {
   try {
     const saveBtn = document.getElementById("saveExpert");
     if (!saveBtn) return;
@@ -2435,6 +2996,17 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   } catch (e) {}
 });
+
+// Exports for unit tests: expose a minimal surface without running DOM listeners.
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    initializeChoicesOn: initializeChoicesOn,
+    getExpertModal: getExpertModal,
+    __adminExpertsDeferredDOMContentLoaded:
+      __adminExpertsDeferredDOMContentLoaded,
+    onDomReady: onDomReady,
+  };
+}
 
 /**
  * Carga las categorías desde el backend y las guarda en window._adminCategorias.
@@ -2650,7 +3222,7 @@ function showMessage(text, type = "info", timeout = 2000) {
 }
 
 // Manejo del envío del formulario de edición (PUT)
-document.addEventListener("DOMContentLoaded", () => {
+onDomReady(() => {
   const form = document.getElementById("formEditarExperto");
   if (!form) return;
   form.addEventListener("submit", async (e) => {
