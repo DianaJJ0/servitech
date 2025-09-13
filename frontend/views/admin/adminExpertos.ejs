@@ -1141,6 +1141,30 @@
     #expertModal .choices__button svg {
       color: #ffffff !important;
     }
+
+    /* Ajuste adicional: aumentar visibilidad y tamaño de la X */
+    #expertModal .choices__button {
+      background: rgba(255,255,255,0.06) !important; /* más claro que el pill */
+      color: #fff !important;
+      padding: 0 8px !important;
+      margin-left: 8px !important;
+      border: 1px solid rgba(255,255,255,0.08) !important;
+      font-size: 0.95rem !important;
+      border-radius: 6px !important;
+      transition: background .12s ease, transform .06s ease !important;
+    }
+
+    #expertModal .choices__button:hover {
+      background: rgba(255,255,255,0.12) !important;
+      transform: translateY(-1px) !important;
+    }
+
+    #expertModal .choices__button svg,
+    #expertModal .choices__button i {
+      color: #fff !important;
+      width: 14px !important;
+      height: 14px !important;
+    }
   </style>
 
   <!-- Modal para agregar experto -->
