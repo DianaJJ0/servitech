@@ -154,6 +154,7 @@ app.use("/api/usuarios/expertos", expertoRoutes);
 app.get("/api/expertos", expertoController.listarExpertos);
 app.use("/api/usuarios", usuarioRoutes);
 app.use("/api/especialidades", especialidadRoutes);
+console.log("Mounting route: /api/habilidades");
 app.use("/api/habilidades", habilidadRoutes);
 app.use("/api/asesorias", asesoriaRoutes);
 // Rutas de desarrollo (solo en entornos no productivos)

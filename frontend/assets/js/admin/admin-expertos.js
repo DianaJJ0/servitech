@@ -327,8 +327,8 @@ onDomReady(function () {
       window._adminHabilidades.length > 0
     ) {
       const choicesArray = window._adminHabilidades.map((h) => ({
-        value: h.nombre || h.name || h.label || String(h._id),
-        label: h.nombre || h.name || h.label || String(h._id),
+        value: h && h._id ? String(h._id) : h.nombre || h.name || h.label || "",
+        label: h.nombre || h.name || h.label || (h && String(h._id)) || "",
       }));
       initializeChoicesOn(
         skillsEl,
@@ -368,8 +368,9 @@ onDomReady(function () {
         window._adminHabilidades.length > 0
       ) {
         initOpts.choices = window._adminHabilidades.map((h) => ({
-          value: h.nombre || h.name || h.label || String(h._id),
-          label: h.nombre || h.name || h.label || String(h._id),
+          value:
+            h && h._id ? String(h._id) : h.nombre || h.name || h.label || "",
+          label: h.nombre || h.name || h.label || (h && String(h._id)) || "",
         }));
       }
       initializeChoicesOn(skillsEl, initOpts, "skills");
@@ -405,7 +406,7 @@ function setupExpertModal() {
   if (!modal || !btnAddExpert) return;
 
   const openModal = () => {
-  openExpertAddModal();
+    openExpertAddModal();
     // Ensure expertForm edit state is cleared when opening as "Agregar"
     try {
       const form = document.getElementById("expertForm");
@@ -472,9 +473,20 @@ function setupExpertModal() {
             if (res && res.ok) {
               const habs = await res.json();
               if (Array.isArray(habs) && habs.length > 0) {
+                // Convertir a objetos { value, label } para mantener id y nombre
                 skillSuggestions = habs
-                  .map((h) => h.nombre || h.name || h.label || String(h._id))
-                  .filter(Boolean);
+                  .map((h) => ({
+                    value:
+                      h && h._id
+                        ? String(h._id)
+                        : h.nombre || h.name || h.label || "",
+                    label:
+                      h.nombre ||
+                      h.name ||
+                      h.label ||
+                      (h && h._id ? String(h._id) : ""),
+                  }))
+                  .filter((x) => x && x.value && x.label);
               }
             }
           } catch (e) {
@@ -500,10 +512,10 @@ function setupExpertModal() {
           }
         }
 
-        const choicesArray = skillSuggestions.map((s) => ({
-          value: s,
-          label: s,
-        }));
+        const choicesArray = skillSuggestions.map((s) => {
+          if (typeof s === "string") return { value: s, label: s };
+          return { value: s.value, label: s.label };
+        });
         // DEBUG: mostrar en consola el origen y cantidad de sugerencias
         try {
           console.log(
@@ -584,7 +596,7 @@ function openExpertAddModal(opts) {
   try {
     const modal = getExpertModal();
     if (!modal) return;
-  // debug traces removed in production
+    // debug traces removed in production
     // respect opts.force to bypass global prevent flag
     try {
       safeShowModal(modal, opts && opts.force ? { force: true } : {});
@@ -603,7 +615,7 @@ function openExpertAddModal(opts) {
     try {
       loadAdminCategorias().catch(function () {});
     } catch (e) {}
-  // removed temporary visual debug outline
+    // removed temporary visual debug outline
   } catch (e) {}
 }
 
@@ -615,7 +627,8 @@ try {
       "click",
       function (e) {
         try {
-          const el = e.target && e.target.closest && e.target.closest("#btnAddExpert");
+          const el =
+            e.target && e.target.closest && e.target.closest("#btnAddExpert");
           if (el) {
             // delegated listener detected #btnAddExpert click
             // Force open to honor explicit user interaction even if the init guard
@@ -624,7 +637,7 @@ try {
             return;
           }
           // Also trace clicks directly on the element if it exists
-          const direct = e.target && e.target.id === 'btnAddExpert';
+          const direct = e.target && e.target.id === "btnAddExpert";
           if (direct) {
             // direct click on #btnAddExpert target
           }
@@ -637,8 +650,8 @@ try {
 
 // If the button exists at script run time, attach a tiny debug handler as well
 try {
-  if (typeof document !== 'undefined') {
-    const b = document.getElementById('btnAddExpert');
+  if (typeof document !== "undefined") {
+    const b = document.getElementById("btnAddExpert");
     if (b && !b.__dbgAttached) {
       try {
         // no-op debug handler removed

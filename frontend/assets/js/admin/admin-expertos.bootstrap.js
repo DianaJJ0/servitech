@@ -64,7 +64,7 @@
     // are no deferred callbacks or they failed to run. This guarantees UI
     // interactions can open modals after startup.
     try {
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         // clear after a short timeout to allow any synchronous init to finish
         setTimeout(function () {
           try {
