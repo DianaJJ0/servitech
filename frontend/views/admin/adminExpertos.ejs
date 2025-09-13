@@ -1117,53 +1117,49 @@
       color: #fff !important;
     }
 
-    /* Asegurar que el botón de eliminar (remove) sea visible y contrastante */
+    /* Asegurar que el botón de eliminar (remove) sea visible */
     #expertModal .choices__button {
-      color: #ffffff !important;
-      background: rgba(0, 0, 0, 0.25) !important;
-      border: 1px solid rgba(255, 255, 255, 0.06) !important;
+      color: var(--admin-text-primary, #ffffff) !important;
+      background: rgba(255, 255, 255, 0.02) !important;
       border-radius: 6px !important;
-      padding: 0 6px !important;
-      margin-left: 6px !important;
-      line-height: 20px !important;
-      box-shadow: none !important;
     }
 
-    #expertModal .choices__button:hover,
-    #expertModal .choices__button:focus {
-      background: rgba(94, 129, 255, 0.16) !important; /* tint when hovering */
-      color: #ffffff !important;
-      outline: none !important;
-    }
-
-    /* Si el botón contiene un icono SVG/ligero, forzar color contrastado */
-    #expertModal .choices__button i,
-    #expertModal .choices__button svg {
-      color: #ffffff !important;
-    }
-
-    /* Ajuste adicional: aumentar visibilidad y tamaño de la X */
+    /* Reemplazar visualmente el texto 'Remove item' por una X SVG vía pseudo-elemento
+       - mantenemos el texto original para accesibilidad (screen readers)
+       - el pseudo-elemento ::after muestra un SVG inline (data URI) y centrado
+    */
     #expertModal .choices__button {
-      background: rgba(255,255,255,0.06) !important; /* más claro que el pill */
-      color: #fff !important;
-      padding: 0 8px !important;
-      margin-left: 8px !important;
-      border: 1px solid rgba(255,255,255,0.08) !important;
-      font-size: 0.95rem !important;
-      border-radius: 6px !important;
-      transition: background .12s ease, transform .06s ease !important;
+      position: relative !important;
+      color: var(--admin-text-primary, #ffffff) !important;
+      padding: 0.125rem 0.375rem !important;
+      min-width: 1.25rem !important;
+      min-height: 1.25rem !important;
+      overflow: visible !important;
+      text-indent: -9999px !important;
+      /* ocultar texto visualmente */
+      white-space: nowrap !important;
     }
 
-    #expertModal .choices__button:hover {
-      background: rgba(255,255,255,0.12) !important;
-      transform: translateY(-1px) !important;
+    #expertModal .choices__button::after {
+      content: '';
+      position: absolute;
+      left: 50% !important;
+      top: 50% !important;
+      transform: translate(-50%, -50%) !important;
+      width: 0.95rem !important;
+      height: 0.95rem !important;
+      display: inline-block !important;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FFFFFF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='18' y1='6' x2='6' y2='18'/%3E%3Cline x1='6' y1='6' x2='18' y2='18'/%3E%3C/svg%3E");
+      background-repeat: no-repeat !important;
+      background-position: center !important;
+      background-size: contain !important;
+      pointer-events: none !important;
+      opacity: 0.98 !important;
     }
 
-    #expertModal .choices__button svg,
-    #expertModal .choices__button i {
-      color: #fff !important;
-      width: 14px !important;
-      height: 14px !important;
+    /* Hover effect for pseudo-icon */
+    #expertModal .choices__button:hover::after {
+      filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.2)) brightness(1.05) !important;
     }
   </style>
 
