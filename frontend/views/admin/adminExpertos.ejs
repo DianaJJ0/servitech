@@ -1135,30 +1135,23 @@
       min-width: 1.25rem !important;
       min-height: 1.25rem !important;
       overflow: visible !important;
-      text-indent: -9999px !important;
-      /* ocultar texto visualmente */
       white-space: nowrap !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
     }
 
-    #expertModal .choices__button::after {
-      content: '';
-      position: absolute;
-      left: 50% !important;
-      top: 50% !important;
-      transform: translate(-50%, -50%) !important;
+    /* Ensure the inline SVG will be well sized and colored */
+    #expertModal .choices__button svg {
       width: 0.95rem !important;
       height: 0.95rem !important;
-      display: inline-block !important;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FFFFFF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='18' y1='6' x2='6' y2='18'/%3E%3Cline x1='6' y1='6' x2='18' y2='18'/%3E%3C/svg%3E");
-      background-repeat: no-repeat !important;
-      background-position: center !important;
-      background-size: contain !important;
-      pointer-events: none !important;
-      opacity: 0.98 !important;
+      display: block !important;
+      stroke: currentColor !important;
+      fill: none !important;
     }
 
-    /* Hover effect for pseudo-icon */
-    #expertModal .choices__button:hover::after {
+    /* Hover effect for inline SVG */
+    #expertModal .choices__button:hover svg {
       filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.2)) brightness(1.05) !important;
     }
   </style>
@@ -1354,6 +1347,72 @@
                   var mo = new MutationObserver(function () { processAll(); });
                   mo.observe(document.body, { childList: true, subtree: true });
                 });
+              </script>
+              <script>
+                // Replace Choices remove button text with an inline SVG for semantic clarity.
+                (function () {
+                  function makeCloseSVG() {
+                    var ns = 'http://www.w3.org/2000/svg';
+                    var svg = document.createElementNS(ns, 'svg');
+                    svg.setAttribute('viewBox', '0 0 24 24');
+                    svg.setAttribute('aria-hidden', 'true');
+                    svg.setAttribute('focusable', 'false');
+                    svg.setAttribute('width', '16');
+                    svg.setAttribute('height', '16');
+                    var line1 = document.createElementNS(ns, 'line');
+                    line1.setAttribute('x1', '18'); line1.setAttribute('y1', '6'); line1.setAttribute('x2', '6'); line1.setAttribute('y2', '18');
+                    line1.setAttribute('stroke-width', '2'); line1.setAttribute('stroke-linecap', 'round'); line1.setAttribute('stroke-linejoin', 'round');
+                    var line2 = document.createElementNS(ns, 'line');
+                    line2.setAttribute('x1', '6'); line2.setAttribute('y1', '6'); line2.setAttribute('x2', '18'); line2.setAttribute('y2', '18');
+                    line2.setAttribute('stroke-width', '2'); line2.setAttribute('stroke-linecap', 'round'); line2.setAttribute('stroke-linejoin', 'round');
+                    svg.appendChild(line1);
+                    svg.appendChild(line2);
+                    return svg;
+                  }
+
+                  function replaceButton(btn) {
+                    if (!btn || btn.dataset.__svgApplied) return;
+                    try {
+                      // Keep aria-label for screen readers
+                      var aria = btn.getAttribute('aria-label') || '';
+                      btn.innerHTML = '';
+                      var svg = makeCloseSVG();
+                      btn.appendChild(svg);
+                      // Preserve the accessible name in a visually-hidden span
+                      var vis = document.createElement('span');
+                      vis.textContent = aria;
+                      vis.style.position = 'absolute';
+                      vis.style.left = '-9999px';
+                      vis.style.width = '1px';
+                      vis.style.height = '1px';
+                      vis.style.overflow = 'hidden';
+                      vis.style.clip = 'rect(1px, 1px, 1px, 1px)';
+                      btn.appendChild(vis);
+                      btn.dataset.__svgApplied = '1';
+                    } catch (e) { }
+                  }
+
+                  function processAllButtons(root) {
+                    root = root || document;
+                    var nodes = root.querySelectorAll('#expertModal .choices__button');
+                    nodes.forEach(replaceButton);
+                  }
+
+                  document.addEventListener('DOMContentLoaded', function () {
+                    processAllButtons(document);
+                    // Observe for future additions (Choices may recreate buttons)
+                    var mo = new MutationObserver(function (mutations) {
+                      mutations.forEach(function (m) {
+                        m.addedNodes.forEach(function (n) {
+                          if (n.nodeType !== 1) return;
+                          if (n.matches && n.matches('#expertModal .choices__button')) replaceButton(n);
+                          else processAllButtons(n);
+                        });
+                      });
+                    });
+                    mo.observe(document.body, { childList: true, subtree: true });
+                  });
+                })();
               </script>
               <script>
                 // Diagnóstico: registra en consola la estructura y estilos computados del botón remove
