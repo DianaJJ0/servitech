@@ -79,6 +79,9 @@ router.post(
   habilidadController.create
 );
 
+// Ruta pública para listar habilidades (no requiere apiKey ni auth)
+router.get("/", habilidadController.getAll);
+
 /**
  * @openapi
  * /api/habilidades/{id}:
