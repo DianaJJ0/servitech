@@ -22,10 +22,11 @@
     "ejs-lint": "^0.3.0",
     "jest": "^29.7.0",
     "nodemon": "^3.1.10"
-  }
-  ,
+  },
   "jest": {
     "testEnvironment": "jsdom",
-    "setupFiles": ["<rootDir>/tests/jest.setup.js"]
+    "setupFiles": [
+      "<rootDir>/tests/jest.setup.js"
+    ]
   }
 }

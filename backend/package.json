@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+  "test": "echo \"Error: no test specified\" && exit 1",
+  "test:contract": "jest --runInBand backend/tests/__tests__/habilidades.contract.test.js",
     "migrate:fill-user-ratings": "node scripts/migrate-fill-user-ratings.js",
     "smoke:ratings": "node scripts/smoke-test-ratings.js",
     "inspect:first5": "node scripts/inspect-first5-asesorias.js",
@@ -39,6 +40,8 @@
   "devDependencies": {
     "nodemon": "^3.1.10",
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^4.6.3"
+  "swagger-ui-express": "^4.6.3",
+  "supertest": "^6.3.3",
+  "jest": "^29.7.0"
   }
 }

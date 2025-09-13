@@ -74,10 +74,16 @@ const generarLogs = require("../services/generarLogs");
  */
 const getAll = async (req, res) => {
   try {
+    console.log("GET /api/habilidades called with query:", req.query);
     const { especialidadId } = req.query;
     const query = especialidadId ? { especialidad: especialidadId } : {};
     const habilidades = await Habilidad.find(query);
-    res.status(200).json(habilidades);
+    // Normalizar la forma de salida para que siempre sea [{ _id, nombre }]
+    const normalized = habilidades.map((h) => ({
+      _id: h._id,
+      nombre: h.nombre || h.name || String(h._id),
+    }));
+    res.status(200).json(normalized);
   } catch (err) {
     res.status(500).json({ mensaje: "Error al obtener habilidades." });
   }

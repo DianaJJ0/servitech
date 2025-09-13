@@ -765,6 +765,57 @@
     }
   </style>
 
+  <!-- Fix visual para Choices dentro del modal: asegurar fondo, color y z-index -->
+  <style>
+    /* Afecta el input creado por Choices dentro del modal */
+    #expertModal .choices__inner {
+      background: rgba(255,255,255,0.03) !important;
+      color: var(--admin-text-primary, #ffffff) !important;
+      border: 1px solid var(--admin-border-color, rgba(255,255,255,0.12)) !important;
+      min-height: 44px !important;
+      box-shadow: none !important;
+    }
+
+    /* Placeholder / input text dentro del control Choices */
+    #expertModal .choices__input, #expertModal .choices__input--cloned {
+      color: var(--admin-text-primary, #ffffff) !important;
+      background: transparent !important;
+      caret-color: var(--admin-accent-color, #5e81ff) !important;
+    }
+
+    /* Dropdown con mayor z-index para que no quede debajo del overlay */
+    #expertModal .choices__list--dropdown {
+      background: var(--admin-card-bg, #0b1220) !important;
+      color: var(--admin-text-primary, #ffffff) !important;
+      border: 1px solid var(--admin-border-color, rgba(255,255,255,0.08)) !important;
+      z-index: 2000 !important;
+      box-shadow: 0 8px 24px rgba(2,6,23,0.6) !important;
+      max-height: 220px !important;
+      overflow: auto !important;
+    }
+
+    /* Items del dropdown */
+    #expertModal .choices__list--dropdown .choices__item {
+      background: transparent !important;
+      color: var(--admin-text-primary, #ffffff) !important;
+      padding: 8px 12px !important;
+    }
+
+    /* Hover / selección */
+    #expertModal .choices__list--dropdown .choices__item.is-highlighted,
+    #expertModal .choices__list--dropdown .choices__item.choice--selectable.is-highlighted {
+      background: rgba(94,129,255,0.12) !important;
+      color: #fff !important;
+    }
+
+    /* Asegurar que el botón de eliminar (remove) sea visible */
+    #expertModal .choices__button {
+      color: var(--admin-text-primary, #ffffff) !important;
+      background: rgba(255,255,255,0.02) !important;
+      border-radius: 6px !important;
+    }
+  </style>
+
   <!-- Modal para agregar experto -->
   <div id="expertModal" class="modal-expert" style="display:none;">
 
@@ -1018,14 +1069,12 @@
               <select id="skills" class="modal-expert__input" multiple size="6">
                 <% if (typeof habilidades !=='undefined' && Array.isArray(habilidades) && habilidades.length> 0) { %>
                   <% habilidades.forEach(function(h) { %>
-                    <% const val=(h && (h.nombre || h.name || h.label)) ? (h.nombre || h.name || h.label) : (h && h._id
-                      ? String(h._id) : '' ); %>
-                      <% if (val) { %>
-                        <option value="<%= val %>">
-                          <%= val %>
-                        </option>
-                        <% } %>
-                          <% }); %>
+                    <% const optId = (h && h._id) ? String(h._id) : (h && (h.nombre || h.name || h.label) ? (h.nombre || h.name || h.label) : ''); %>
+                    <% const optLabel = (h && (h.nombre || h.name || h.label)) ? (h.nombre || h.name || h.label) : optId; %>
+                    <% if (optId) { %>
+                      <option value="<%= optId %>"><%= optLabel %></option>
+                    <% } %>
+                  <% }); %>
                             <% } %>
               </select>
               <script>
