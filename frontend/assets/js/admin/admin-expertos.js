@@ -87,7 +87,73 @@ function onDomReady(fn) {
     __adminExpertsDeferredDOMContentLoaded.push(fn);
     return;
   }
-  document.addEventListener("DOMContentLoaded", fn);
+  // If the document is still loading, wait for DOMContentLoaded. Otherwise
+  // the script likely loaded after DOMContentLoaded and the callback must
+  // run immediately so handlers (like #btnAddExpert) attach correctly.
+  try {
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", fn);
+    } else {
+      // already ready
+      try {
+        fn();
+      } catch (e) {}
+    }
+  } catch (e) {
+    // Fallback to event listener if any error
+    try {
+      document.addEventListener("DOMContentLoaded", fn);
+    } catch (err) {}
+  }
+}
+
+// Prevent automatic modal opening during initial page initialization.
+// The bootstrapper will clear this flag once startup handlers have run.
+try {
+  if (typeof window !== "undefined") {
+    window.__ADMIN_EXPERTS_PREVENT_AUTO_OPEN = true;
+  }
+} catch (e) {}
+
+/**
+ * Safely show a modal. Respects global guard flags so that code that may run
+ * during initialization doesn't unintentionally open UI modals. Call with
+ * safeShowModal(modalElement, { force: true }) to bypass the guard.
+ */
+function safeShowModal(modal, opts) {
+  if (!modal) return;
+  opts = opts || {};
+  try {
+    var allowGlobal = false;
+    try {
+      allowGlobal = !!(window && window.__ALLOW_AUTO_OPEN);
+    } catch (e) {}
+    var allowDataAttr = false;
+    try {
+      allowDataAttr = !!(modal.dataset && modal.dataset.autoOpen === "true");
+    } catch (e) {}
+    var preventFlag = false;
+    try {
+      preventFlag = !!(window && window.__ADMIN_EXPERTS_PREVENT_AUTO_OPEN);
+    } catch (e) {}
+
+    if (opts.force || allowGlobal || allowDataAttr || !preventFlag) {
+      modal.style.display = "flex";
+      try {
+        document.body.style.overflow = "hidden";
+      } catch (e) {}
+    }
+  } catch (e) {}
+}
+
+function safeHideModal(modal) {
+  if (!modal) return;
+  try {
+    modal.style.display = "none";
+    try {
+      document.body.style.overflow = "";
+    } catch (e) {}
+  } catch (e) {}
 }
 
 // Debug helper: enabled when window.__ADMIN_EXPERTOS_DEBUG === true
@@ -111,8 +177,7 @@ onDomReady(function () {
       const modal = closeBtn.closest(".modal-expert");
       if (modal) {
         try {
-          modal.style.display = "none";
-          document.body.style.overflow = "";
+          safeHideModal(modal);
           // if modal contains the expertForm, clear edit state and reset title
           const form = modal.querySelector("form#expertForm");
           if (form) {
@@ -131,10 +196,9 @@ onDomReady(function () {
 
     // Close when clicking on backdrop (the modal element itself)
     const modalClicked = e.target.closest(".modal-expert");
-    if (modalClicked && e.target === modalClicked) {
+    if (modalClicked && !e.target.closest(".modal-expert__container")) {
       try {
-        modalClicked.style.display = "none";
-        document.body.style.overflow = "";
+        safeHideModal(modalClicked);
         const form = modalClicked.querySelector("form#expertForm");
         if (form) {
           try {
@@ -158,8 +222,7 @@ onDomReady(function () {
             modal.style &&
             (modal.style.display === "flex" || modal.style.display === "block")
           ) {
-            modal.style.display = "none";
-            document.body.style.overflow = "";
+            safeHideModal(modal);
             const form = modal.querySelector("form#expertForm");
             if (form) {
               try {
@@ -342,8 +405,7 @@ function setupExpertModal() {
   if (!modal || !btnAddExpert) return;
 
   const openModal = () => {
-    modal.style.display = "flex";
-    document.body.style.overflow = "hidden";
+  openExpertAddModal();
     // Ensure expertForm edit state is cleared when opening as "Agregar"
     try {
       const form = document.getElementById("expertForm");
@@ -476,8 +538,7 @@ function setupExpertModal() {
   };
 
   const closeModal = () => {
-    modal.style.display = "none";
-    document.body.style.overflow = "";
+    safeHideModal(modal);
     const form = document.getElementById("expertForm");
     if (form) form.reset();
     // remove edit id and reset title if present
@@ -501,12 +562,91 @@ function setupExpertModal() {
 
   if (modal) {
     modal.addEventListener("click", function (e) {
-      if (e.target === modal) {
+      // if click occurs outside the inner container, treat as backdrop click
+      if (!e.target.closest || !modal) return;
+      if (
+        !e.target.closest(".modal-expert__container") &&
+        e.target.closest(".modal-expert") === modal
+      ) {
         closeModal();
       }
     });
   }
 }
+
+/**
+ * Fallback/global helper to open the "Agregar experto" modal. Exported to be
+ * usable by other modules and used as a delegated click handler when the
+ * direct listener might not attach for any reason (script loaded late, DOM
+ * quirks, etc.). Keeps behavior idempotent and minimal.
+ */
+function openExpertAddModal(opts) {
+  try {
+    const modal = getExpertModal();
+    if (!modal) return;
+  // debug traces removed in production
+    // respect opts.force to bypass global prevent flag
+    try {
+      safeShowModal(modal, opts && opts.force ? { force: true } : {});
+    } catch (e) {
+      // fallback
+      safeShowModal(modal);
+    }
+    try {
+      const form = document.getElementById("expertForm");
+      if (form && form.dataset) delete form.dataset.editId;
+      if (form) form.reset();
+      const titleEl = modal.querySelector(".modal-expert__title");
+      if (titleEl) titleEl.textContent = "Agregar nuevo experto";
+    } catch (e) {}
+    // ensure categories and skills initialization starts in background
+    try {
+      loadAdminCategorias().catch(function () {});
+    } catch (e) {}
+  // removed temporary visual debug outline
+  } catch (e) {}
+}
+
+// Delegated fallback: attach once to body so clicks on dynamically created
+// buttons (or when initial handler failed) still open the modal.
+try {
+  if (typeof document !== "undefined" && document.body) {
+    document.body.addEventListener(
+      "click",
+      function (e) {
+        try {
+          const el = e.target && e.target.closest && e.target.closest("#btnAddExpert");
+          if (el) {
+            // delegated listener detected #btnAddExpert click
+            // Force open to honor explicit user interaction even if the init guard
+            // flag hasn't been cleared yet.
+            openExpertAddModal({ force: true });
+            return;
+          }
+          // Also trace clicks directly on the element if it exists
+          const direct = e.target && e.target.id === 'btnAddExpert';
+          if (direct) {
+            // direct click on #btnAddExpert target
+          }
+        } catch (err) {}
+      },
+      true
+    );
+  }
+} catch (e) {}
+
+// If the button exists at script run time, attach a tiny debug handler as well
+try {
+  if (typeof document !== 'undefined') {
+    const b = document.getElementById('btnAddExpert');
+    if (b && !b.__dbgAttached) {
+      try {
+        // no-op debug handler removed
+        b.__dbgAttached = true;
+      } catch (e) {}
+    }
+  }
+} catch (e) {}
 
 /**
  * Visual fixes for Choices instances restricted to the currently visible modal.
@@ -1039,21 +1179,27 @@ onDomReady(() => {
       sesionesInput.value = tds[5] ? tds[5].textContent.trim() : "";
       calificacionInput.value = tds[6] ? tds[6].textContent.trim() : "";
 
-      modal.style.display = "flex";
+      safeShowModal(modal);
     });
   });
 
   // Cerrar modal con la X
-  closeBtn.addEventListener("click", () => (modal.style.display = "none"));
+  closeBtn.addEventListener("click", () => safeHideModal(modal));
 
   // Cerrar modal con el botón cancelar
   if (cancelBtn) {
-    cancelBtn.addEventListener("click", () => (modal.style.display = "none"));
+    cancelBtn.addEventListener("click", () => safeHideModal(modal));
   }
 
   // Cerrar modal al hacer click fuera del contenido
   window.addEventListener("click", (e) => {
-    if (e.target === modal) modal.style.display = "none";
+    if (!e.target || !modal) return;
+    if (
+      !e.target.closest(".modal-expert__container") &&
+      e.target.closest(".modal-expert") === modal
+    ) {
+      safeHideModal(modal);
+    }
   });
 
   // Evento para guardar
@@ -1061,7 +1207,7 @@ onDomReady(() => {
     .getElementById("formEditarExperto")
     .addEventListener("submit", (e) => {
       e.preventDefault();
-      modal.style.display = "none";
+      safeHideModal(modal);
     });
 });
 
@@ -1091,25 +1237,30 @@ onDomReady(() => {
       rowToInactivate = button.closest("tr");
       const nombre = rowToInactivate.querySelector("h4").textContent.trim();
       nombreInactivar.textContent = nombre;
-      modalInactivar.style.display = "flex";
+      safeShowModal(modalInactivar);
     });
   });
 
   if (closeBtnInactivar) {
-    closeBtnInactivar.addEventListener(
-      "click",
-      () => (modalInactivar.style.display = "none")
+    closeBtnInactivar.addEventListener("click", () =>
+      safeHideModal(modalInactivar)
     );
   }
   if (cancelarBtnInactivar) {
-    cancelarBtnInactivar.addEventListener(
-      "click",
-      () => (modalInactivar.style.display = "none")
+    cancelarBtnInactivar.addEventListener("click", () =>
+      safeHideModal(modalInactivar)
     );
   }
   if (modalInactivar) {
     window.addEventListener("click", (e) => {
-      if (e.target === modalInactivar) modalInactivar.style.display = "none";
+      // if click happened outside the container area inside the modal, hide
+      if (!e.target.closest || !modalInactivar) return;
+      if (
+        !e.target.closest(".modal-expert__container") &&
+        e.target.closest(".modal-expert") === modalInactivar
+      ) {
+        safeHideModal(modalInactivar);
+      }
     });
   }
   if (confirmarBtnInactivar) {
@@ -1122,7 +1273,7 @@ onDomReady(() => {
           statusCell.textContent = "Inactivo";
         }
       }
-      modalInactivar.style.display = "none";
+      safeHideModal(modalInactivar);
     });
   }
 });
@@ -1270,8 +1421,7 @@ function setupExpertVerification() {
 function abrirModalAgregarExperto() {
   const modal = getExpertModal();
   if (modal) {
-    modal.style.display = "flex";
-    document.body.style.overflow = "hidden";
+    safeShowModal(modal);
   }
 }
 
@@ -1478,8 +1628,7 @@ async function agregarExperto(datosExperto) {
 function abrirModalEditarExperto(expertoId) {
   const modal = document.getElementById("editarExperto");
   if (modal) {
-    modal.style.display = "flex";
-    document.body.style.overflow = "hidden";
+    safeShowModal(modal);
 
     // Aquí puedes agregar código para cargar los datos del experto a editar
   }
@@ -1677,8 +1826,7 @@ async function openExpertEditModal(expertoId) {
       if (titleEl) titleEl.textContent = "Editar experto";
     } catch (e) {}
 
-    modal.style.display = "flex";
-    document.body.style.overflow = "hidden";
+    safeShowModal(modal);
   } catch (err) {
     console.error("openExpertEditModal error", err);
     showMessage("No se pudo abrir el modal de edición", "error");
@@ -2334,8 +2482,7 @@ function setupDelegatedActions() {
         console.warn("Error rellenando modal de edición:", e);
       }
 
-      modal.style.display = "flex";
-      document.body.style.overflow = "hidden";
+      safeShowModal(modal);
       return;
     }
 
@@ -2692,8 +2839,7 @@ function setupDelegatedActions() {
       }
 
       if (modalVer) {
-        modalVer.style.display = "flex";
-        document.body.style.overflow = "hidden";
+        safeShowModal(modalVer);
         try {
           // añadir botón 'Editar' en el footer temporalmente (si no existe)
           const footer = modalVer.querySelector(".modal-expert__footer");
@@ -2704,8 +2850,7 @@ function setupDelegatedActions() {
             btn.textContent = "Editar";
             btn.addEventListener("click", function () {
               try {
-                modalVer.style.display = "none";
-                document.body.style.overflow = "";
+                safeHideModal(modalVer);
               } catch (e) {}
               openExpertEditModal(id);
             });
@@ -2933,7 +3078,7 @@ function setupDelegatedActions() {
             showMessage("Experto actualizado", "success");
             await loadExpertos();
             const modal = getExpertModal();
-            if (modal) modal.style.display = "none";
+            if (modal) safeHideModal(modal);
           } catch (e) {
             console.error(e);
             showMessage(e.message || "Error al actualizar experto", "error");
@@ -2941,7 +3086,7 @@ function setupDelegatedActions() {
         } else {
           await agregarExperto(payload);
           const modal = getExpertModal();
-          if (modal) modal.style.display = "none";
+          if (modal) safeHideModal(modal);
         }
       } catch (err) {
         // ya manejado por agregarExperto o arriba
@@ -3253,7 +3398,7 @@ onDomReady(() => {
       }
       showMessage("Experto actualizado", "success");
       const modal = document.getElementById("editarExperto");
-      if (modal) modal.style.display = "none";
+      if (modal) safeHideModal(modal);
       await loadExpertos();
     } catch (err) {
       console.error(err);

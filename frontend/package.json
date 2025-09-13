@@ -10,16 +10,22 @@
     "prestart": "npm run lint:ejs"
   },
   "dependencies": {
+    "connect-redis": "^7.1.0",
     "ejs": "^3.1.10",
     "express": "^4.19.2",
     "express-session": "^1.18.2",
     "http-proxy-middleware": "^3.0.5",
     "mongoose": "^8.17.1",
-    "redis": "^4.6.7",
-    "connect-redis": "^7.1.0"
+    "redis": "^4.6.7"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10",
-    "ejs-lint": "^0.3.0"
+    "ejs-lint": "^0.3.0",
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.10"
+  }
+  ,
+  "jest": {
+    "testEnvironment": "jsdom",
+    "setupFiles": ["<rootDir>/tests/jest.setup.js"]
   }
 }
