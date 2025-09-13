@@ -1117,11 +1117,29 @@
       color: #fff !important;
     }
 
-    /* Asegurar que el botón de eliminar (remove) sea visible */
+    /* Asegurar que el botón de eliminar (remove) sea visible y contrastante */
     #expertModal .choices__button {
-      color: var(--admin-text-primary, #ffffff) !important;
-      background: rgba(255, 255, 255, 0.02) !important;
+      color: #ffffff !important;
+      background: rgba(0, 0, 0, 0.25) !important;
+      border: 1px solid rgba(255, 255, 255, 0.06) !important;
       border-radius: 6px !important;
+      padding: 0 6px !important;
+      margin-left: 6px !important;
+      line-height: 20px !important;
+      box-shadow: none !important;
+    }
+
+    #expertModal .choices__button:hover,
+    #expertModal .choices__button:focus {
+      background: rgba(94, 129, 255, 0.16) !important; /* tint when hovering */
+      color: #ffffff !important;
+      outline: none !important;
+    }
+
+    /* Si el botón contiene un icono SVG/ligero, forzar color contrastado */
+    #expertModal .choices__button i,
+    #expertModal .choices__button svg {
+      color: #ffffff !important;
     }
   </style>
 
