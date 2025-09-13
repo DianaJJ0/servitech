@@ -327,8 +327,8 @@ onDomReady(function () {
       window._adminHabilidades.length > 0
     ) {
       const choicesArray = window._adminHabilidades.map((h) => ({
-        value: (h && h._id) ? String(h._id) : (h.nombre || h.name || h.label || ''),
-        label: h.nombre || h.name || h.label || (h && String(h._id)) || '',
+        value: h && h._id ? String(h._id) : h.nombre || h.name || h.label || "",
+        label: h.nombre || h.name || h.label || (h && String(h._id)) || "",
       }));
       initializeChoicesOn(
         skillsEl,
@@ -368,8 +368,9 @@ onDomReady(function () {
         window._adminHabilidades.length > 0
       ) {
         initOpts.choices = window._adminHabilidades.map((h) => ({
-          value: (h && h._id) ? String(h._id) : (h.nombre || h.name || h.label || ''),
-          label: h.nombre || h.name || h.label || (h && String(h._id)) || '',
+          value:
+            h && h._id ? String(h._id) : h.nombre || h.name || h.label || "",
+          label: h.nombre || h.name || h.label || (h && String(h._id)) || "",
         }));
       }
       initializeChoicesOn(skillsEl, initOpts, "skills");
@@ -475,8 +476,15 @@ function setupExpertModal() {
                 // Convertir a objetos { value, label } para mantener id y nombre
                 skillSuggestions = habs
                   .map((h) => ({
-                    value: (h && h._id) ? String(h._id) : (h.nombre || h.name || h.label || ''),
-                    label: h.nombre || h.name || h.label || ((h && h._id) ? String(h._id) : ''),
+                    value:
+                      h && h._id
+                        ? String(h._id)
+                        : h.nombre || h.name || h.label || "",
+                    label:
+                      h.nombre ||
+                      h.name ||
+                      h.label ||
+                      (h && h._id ? String(h._id) : ""),
                   }))
                   .filter((x) => x && x.value && x.label);
               }
@@ -505,7 +513,7 @@ function setupExpertModal() {
         }
 
         const choicesArray = skillSuggestions.map((s) => {
-          if (typeof s === 'string') return { value: s, label: s };
+          if (typeof s === "string") return { value: s, label: s };
           return { value: s.value, label: s.label };
         });
         // DEBUG: mostrar en consola el origen y cantidad de sugerencias
