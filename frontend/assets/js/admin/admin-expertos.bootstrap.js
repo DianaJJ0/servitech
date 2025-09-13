@@ -37,6 +37,13 @@
               if (typeof fn === "function") fn();
             } catch (e) {}
           });
+          // Allow UI code to open modals automatically after initial deferred
+          // initialization completes. Some handlers rely on this to function
+          // when called during user interaction.
+          try {
+            if (typeof window !== "undefined")
+              window.__ADMIN_EXPERTS_PREVENT_AUTO_OPEN = false;
+          } catch (e) {}
         } catch (e) {}
       };
 
@@ -53,5 +60,18 @@
         runDeferred();
       }
     }
+    // Ensure the prevent-auto-open flag is cleared eventually even if there
+    // are no deferred callbacks or they failed to run. This guarantees UI
+    // interactions can open modals after startup.
+    try {
+      if (typeof window !== 'undefined') {
+        // clear after a short timeout to allow any synchronous init to finish
+        setTimeout(function () {
+          try {
+            window.__ADMIN_EXPERTS_PREVENT_AUTO_OPEN = false;
+          } catch (e) {}
+        }, 50);
+      }
+    } catch (e) {}
   } catch (e) {}
 })();
