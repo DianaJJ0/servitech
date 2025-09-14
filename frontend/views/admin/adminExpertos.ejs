@@ -16,6 +16,8 @@
 </head>
 
 <body>
+
+  <!-- Layout general de admin -->
   <div class="admin-layout">
     <%- include('../componentes/navbarAdmin.ejs') %>
 
@@ -517,63 +519,49 @@
       </main>
   </div>
 
-
-  <!-- Modal para agregar experto -->
+  <!-- CSS Modal para agregar experto -->
   <style>
     /* Modal overlay & container (apply to any .modal-expert instance) */
     .modal-expert {
       position: fixed;
       inset: 0;
-      /* Hidden by default; JS sets inline style.display = 'flex' when opening */
       display: none;
       align-items: center;
       justify-content: center;
       background: rgba(2, 6, 23, 0.6);
       z-index: 1200;
       -webkit-overflow-scrolling: touch;
-
-      /* outer spacing around modal (margin visual). Increased for better separation */
-      /* previously small (10px); now 28px for a clearer gap on desktop */
       padding: 28px;
       box-sizing: border-box;
     }
 
-    /* Container: column flex so footer stays visible */
     .modal-expert .modal-expert__container {
       width: 100%;
-      /* container inner padding: increased slightly and border removed for cleaner look */
       max-width: min(980px, calc(100% - 56px));
       max-height: calc(100vh - 56px);
       margin: 0 auto;
       box-sizing: border-box;
       background: var(--admin-card-bg);
       border: 0;
-      /* removed border to match diagram */
       border-radius: 12px;
       box-shadow: var(--admin-shadow);
       color: #f8fafc;
-      /* Mejor contraste para texto principal */
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      /* give an internal breathing room on very small viewports */
       padding: 20px;
-      /* inner padding: a bit more breathing room */
     }
 
-    /* Safety rules: ensure modal elements receive pointer events and are on top */
     .modal-expert,
     .modal-expert * {
       pointer-events: auto !important;
     }
 
-    /* Ensure container is above overlay and other UI layers */
     .modal-expert .modal-expert__container {
       position: relative;
       z-index: 1220;
     }
 
-    /* Ensure close button is clickable and visually on top */
     .modal-expert .btn-close {
       position: relative;
       z-index: 1230;
@@ -586,7 +574,6 @@
       justify-content: space-between;
       padding: 1rem 1.125rem;
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-      /* Mayor contraste */
       background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent);
     }
 
@@ -595,57 +582,24 @@
       font-size: 1.125rem;
       font-weight: 600;
       color: #f1f5f9;
-      /* Color más claro para mejor legibilidad */
     }
 
     .modal-expert .btn-close {
       background: transparent;
-      background: transparent;
       color: #cbd5e1;
-      /* Mejor contraste */
       width: 40px;
       height: 40px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       border-radius: 8px;
-
-      /* Fix for multiple select visual (remove white default background on some browsers) */
-      #skills,
-      #skills.multiple,
-      select[multiple] {
-        background: transparent !important;
-        color: var(--admin-text-primary) !important;
-        border: 1px solid var(--admin-border-color) !important;
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        appearance: none;
-      }
-
-      /* If Choices is used, force its containers to match modal theme */
-      #skills+.choices,
-      .choices--multiple .choices__inner,
-      .choices--single .choices__inner {
-        background: transparent !important;
-        border: 1px solid var(--admin-border-color) !important;
-        color: var(--admin-text-primary) !important;
-      }
-
-      /* Choices dropdown items (dark theme) */
-      .choices__list--dropdown .choices__item {
-        background: var(--admin-card-bg) !important;
-        color: var(--admin-text-primary) !important;
-      }
-
       cursor: pointer;
-      transition: background .12s ease,
-      color .12s ease;
+      transition: background .12s ease, color .12s ease;
     }
 
     .modal-expert .btn-close:hover {
       background: rgba(255, 255, 255, 0.05);
       color: #f8fafc;
-      /* Color más claro al hacer hover */
     }
 
     /* Body (scrollable) */
@@ -655,34 +609,52 @@
       flex: 1 1 auto;
     }
 
-    /* Form grid */
+    /* Form grid - OPTIMIZADO para mejor organización visual */
     .modal-expert .modal-expert__grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 1rem;
+      gap: 1.5rem;
       align-items: start;
       width: 100%;
       box-sizing: border-box;
+      margin-bottom: 2rem;
     }
 
     .modal-expert .modal-expert__grid .full-width {
       grid-column: 1 / -1;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
     }
 
-    /* Labels and inputs */
+    .modal-expert .modal-expert__grid .full-width:first-child {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: none;
+    }
+
+    /* Grid items - contenedores de campos individuales */
+    .modal-expert .modal-expert__grid>div {
+      display: flex;
+      flex-direction: column;
+      min-height: fit-content;
+    }
+
+    /* Labels and inputs - MODIFICADO para mejor organización */
     .modal-expert .modal-expert__label {
       display: flex;
       align-items: center;
       gap: 0.5rem;
       font-size: 0.9rem;
       color: #e2e8f0;
-      /* Color más claro para mejor legibilidad */
-      margin-bottom: 0.375rem;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
     }
 
     .modal-expert .modal-expert__icon {
       color: #93c5fd;
-      /* Color más vibrante para mejor visibilidad */
+      width: 16px;
+      text-align: center;
     }
 
     .modal-expert .modal-expert__input,
@@ -695,12 +667,10 @@
     .modal-expert .acct-input {
       width: 100%;
       box-sizing: border-box;
-      background: rgba(255, 255, 255, 0.03);
+      background: rgba(255, 255, 255, 0.05);
       color: #f8fafc;
-      /* Texto más claro en inputs */
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      /* Borde más visible */
-      padding: 0.5rem 0.625rem;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 0.75rem 1rem;
       border-radius: 8px;
       font-size: 0.95rem;
       outline: none;
@@ -711,8 +681,7 @@
     .modal-expert select:focus,
     .modal-expert textarea:focus {
       border-color: var(--admin-accent-color);
-      box-shadow: 0 0 0 4px rgba(58, 142, 255, 0.1);
-      /* Sombra más visible */
+      box-shadow: 0 0 0 4px rgba(58, 142, 255, 0.15);
     }
 
     .modal-expert .modal-expert__textarea {
@@ -720,17 +689,16 @@
       resize: vertical;
     }
 
-    /* Price input */
+    /* Price input - MODIFICADO para mejor organización */
     .modal-expert .srv-price-input,
     .modal-expert .price-input {
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      padding: 0.25rem;
+      padding: 0.5rem;
       border-radius: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      /* Borde más visible */
-      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.05);
     }
 
     .modal-expert .srv-currency,
@@ -741,7 +709,6 @@
       min-width: 36px;
       height: 36px;
       color: #f8fafc;
-      /* Texto más claro */
       font-weight: 700;
       font-size: 0.95rem;
     }
@@ -750,40 +717,36 @@
       border: none;
       background: transparent;
       color: #f8fafc;
-      /* Texto más claro */
       padding: 0.5rem 0;
+      flex: 1;
     }
 
     .modal-expert .srv-note,
     .modal-expert .hint,
     .modal-expert .modal-expert__hint {
-      margin: 0.35rem 0 0 0;
+      margin: 0.5rem 0 0 0;
       font-size: 0.82rem;
       color: #cbd5e1;
-      /* Color más claro para mejor legibilidad */
+      line-height: 1.4;
     }
 
-    /* Days selector */
+    /* Days selector - MODIFICADO para mejor organización */
     .modal-expert .srv-days-wrapper {
       display: flex;
-      gap: 0.75rem;
-      align-items: center;
       flex-direction: column;
+      gap: 0.75rem;
     }
 
     .modal-expert .srv-days {
       display: flex;
       gap: 0.4rem;
       flex-wrap: wrap;
-      margin-top: 0.4rem;
     }
 
     .modal-expert .srv-day {
       background: transparent;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      /* Borde más visible */
+      border: 1px solid rgba(255, 255, 255, 0.15);
       color: #e2e8f0;
-      /* Texto más claro */
       width: 40px;
       height: 40px;
       display: inline-flex;
@@ -798,7 +761,6 @@
     .modal-expert .srv-day:hover {
       background: rgba(58, 142, 255, 0.1);
       color: #f8fafc;
-      /* Texto más claro al hacer hover */
       transform: translateY(-1px);
     }
 
@@ -812,16 +774,15 @@
     .modal-expert .srv-days-display {
       font-size: 0.9rem;
       color: #cbd5e1;
-      /* Color más claro para mejor legibilidad */
+      padding: 0.5rem 0;
+      min-height: 1.5rem;
     }
 
-    /* Upload area */
+    /* Upload area - MODIFICADO para mejor organización */
     .modal-expert .modal-expert__upload-wrapper {
       display: flex;
+      flex-direction: column;
       gap: 0.75rem;
-      align-items: flex-start;
-      flex-direction: row;
-      flex-wrap: wrap;
     }
 
     .modal-expert .modal-expert__file-input {
@@ -832,21 +793,19 @@
       display: inline-flex;
       gap: 0.65rem;
       align-items: center;
-      padding: 0.6rem 0.8rem;
+      padding: 1rem;
       border-radius: 8px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px dashed rgba(255, 255, 255, 0.15);
-      /* Borde más visible */
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px dashed rgba(255, 255, 255, 0.2);
       color: #cbd5e1;
-      /* Color más claro */
       cursor: pointer;
       font-size: 0.95rem;
+      transition: background .12s ease, color .12s ease;
     }
 
     .modal-expert .modal-expert__upload-box:hover {
-      background: rgba(255, 255, 255, 0.05);
+      background: rgba(255, 255, 255, 0.08);
       color: #e2e8f0;
-      /* Color más claro al hacer hover */
     }
 
     .modal-expert #profilePreview {
@@ -871,7 +830,6 @@
     .modal-expert #removeProfileBtn {
       display: none;
       background: rgba(0, 0, 0, 0.5);
-      /* Fondo más oscuro para mejor contraste */
       color: #fff;
       border: none;
       border-radius: 6px;
@@ -888,10 +846,8 @@
 
     .modal-expert .acct-toggle {
       background: transparent;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      /* Borde más visible */
+      border: 1px solid rgba(255, 255, 255, 0.15);
       color: #cbd5e1;
-      /* Color más claro */
       padding: 0.45rem 0.6rem;
       border-radius: 8px;
       cursor: pointer;
@@ -900,39 +856,36 @@
     .modal-expert .acct-toggle:hover {
       background: rgba(255, 255, 255, 0.05);
       color: #e2e8f0;
-      /* Color más claro al hacer hover */
     }
 
-    /* Bank section */
+    /* Bank section - MODIFICADO para mejor organización */
     .modal-expert .bank-section {
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent);
-      padding: 0.75rem;
-      border-radius: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      /* Borde más visible */
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent);
+      padding: 1.25rem;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      margin-top: 1rem;
     }
 
     .modal-expert .bank-title {
-      margin: 0 0 0.35rem 0;
-      font-size: 1rem;
+      margin: 0 0 0.5rem 0;
+      font-size: 1.1rem;
       color: #f1f5f9;
-      /* Color más claro para mejor legibilidad */
       display: flex;
       gap: 0.5rem;
       align-items: center;
     }
 
     .modal-expert .bank-sub {
-      margin: 0 0 0.6rem 0;
+      margin: 0 0 1rem 0;
       color: #cbd5e1;
-      /* Color más claro para mejor legibilidad */
-      font-size: 0.88rem;
+      font-size: 0.9rem;
     }
 
     .modal-expert .bank-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 0.75rem;
+      gap: 1rem;
     }
 
     .modal-expert .bank-grid .full-width {
@@ -941,23 +894,20 @@
 
     /* Info box small */
     .modal-expert .info-box.info-sm {
-      margin-top: 0.65rem;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      /* Borde más visible */
-      padding: 0.6rem;
+      margin-top: 1rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 1rem;
       border-radius: 8px;
       color: #cbd5e1;
-      /* Color más claro para mejor legibilidad */
     }
 
     .modal-expert .info-header {
       display: flex;
       gap: 0.5rem;
       align-items: center;
-      margin-bottom: 0.35rem;
+      margin-bottom: 0.5rem;
       color: #e2e8f0;
-      /* Color más claro para mejor legibilidad */
       font-weight: 600;
     }
 
@@ -966,19 +916,25 @@
       padding: 0 0 0 1rem;
       display: block;
       color: #cbd5e1;
-      /* Color más claro para mejor legibilidad */
       font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    .modal-expert .info-list li {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.25rem;
     }
 
     /* Footer (keeps visible) */
     .modal-expert .modal-expert__footer {
       display: flex;
-      gap: 0.5rem;
+      gap: 0.75rem;
       align-items: center;
       justify-content: flex-end;
-      padding: 0.75rem 1rem;
-      border-top: 1px solid rgba(255, 255, 255, 0.05);
-      /* Borde más visible */
+      padding: 1rem 1.25rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
       background: linear-gradient(0deg, rgba(255, 255, 255, 0.03), transparent);
     }
 
@@ -987,26 +943,30 @@
       background: linear-gradient(180deg, var(--admin-accent-color), var(--admin-accent-color));
       color: #fff;
       border: none;
-      padding: 0.6rem 0.9rem;
+      padding: 0.75rem 1.25rem;
       border-radius: 8px;
       font-weight: 600;
       cursor: pointer;
+      transition: transform .1s ease, box-shadow .1s ease;
+    }
+
+    .modal-expert .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
 
     .modal-expert .btn-outline {
       background: transparent;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      /* Borde más visible */
+      border: 1px solid rgba(255, 255, 255, 0.2);
       color: #cbd5e1;
-      /* Color más claro */
-      padding: 0.55rem 0.85rem;
+      padding: 0.75rem 1.25rem;
       border-radius: 8px;
       cursor: pointer;
+      transition: background .12s ease, color .12s ease;
     }
 
     .modal-expert .btn-outline:hover {
       color: #e2e8f0;
-      /* Color más claro al hacer hover */
       background: rgba(255, 255, 255, 0.05);
     }
 
@@ -1019,26 +979,47 @@
 
     .modal-expert .upload-error {
       color: #f87171;
-      /* Color de error más claro para mejor visibilidad */
       margin-top: 0.35rem;
       font-size: 0.9rem;
     }
 
-    /* Responsive adjustments */
+    /* Input with icon */
+    .modal-expert .input-with-icon {
+      position: relative;
+    }
+
+    .modal-expert .input-with-icon::after {
+      content: "\f078";
+      /* Unicode for fa-chevron-down */
+      font-family: "Font Awesome 5 Free";
+      font-weight: 900;
+      position: absolute;
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #cbd5e1;
+      pointer-events: none;
+      font-size: 0.875rem;
+    }
+
+    /* Responsive adjustments - MEJORADO */
     @media (max-width: 880px) {
       .modal-expert {
-        /* tablet: moderate outer gap */
         padding: 20px;
       }
 
       .modal-expert .modal-expert__container {
         max-width: calc(100% - 40px);
         padding: 16px;
-        /* inner padding adjusted for tablet */
       }
 
       .modal-expert .modal-expert__grid {
         grid-template-columns: 1fr;
+        gap: 1.25rem;
+      }
+
+      .modal-expert .modal-expert__grid .full-width {
+        grid-column: auto;
       }
 
       .modal-expert .bank-grid {
@@ -1052,7 +1033,6 @@
 
     @media (max-width: 420px) {
       .modal-expert {
-        /* mobile: small outer gap to maximize space */
         padding: 16px;
       }
 
@@ -1060,7 +1040,6 @@
         border-radius: 8px;
         max-height: calc(100vh - 32px);
         padding: 12px;
-        /* mobile inner padding */
       }
 
       .modal-expert .modal-expert__title {
@@ -1070,95 +1049,375 @@
       .modal-expert .srv-day {
         width: 36px;
         height: 36px;
+        font-size: 0.85rem;
+      }
+
+      .modal-expert .modal-expert__footer {
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 0.75rem;
+      }
+
+      .modal-expert .btn-primary,
+      .modal-expert .btn-outline {
+        width: 100%;
+        text-align: center;
+        padding: 0.875rem 1rem;
+      }
+
+      .modal-expert .modal-expert__grid {
+        gap: 1rem;
+      }
+
+      .modal-expert .srv-days {
+        justify-content: center;
       }
     }
 
-    /* Fix visual para Choices dentro del modal: asegurar fondo, color y z-index */
-
-    /* Afecta el input creado por Choices dentro del modal */
-    #expertModal .choices__inner {
-      background: rgba(255, 255, 255, 0.03) !important;
+    /* Fix visual para Choices dentro del modal - DISEÑO MEJORADO - VERSIÓN UNIVERSAL */
+    .modal-expert .choices__inner {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)) !important;
       color: var(--admin-text-primary, #ffffff) !important;
-      border: 1px solid var(--admin-border-color, rgba(255, 255, 255, 0.12)) !important;
-      min-height: 44px !important;
-      box-shadow: none !important;
+      border: 1px solid rgba(94, 129, 255, 0.2) !important;
+      min-height: 52px !important;
+      box-shadow:
+        0 4px 16px rgba(2, 6, 23, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+      border-radius: 12px !important;
+      padding: 0.75rem 1rem !important;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      position: relative !important;
     }
 
-    /* Placeholder / input text dentro del control Choices */
-    #expertModal .choices__input,
-    #expertModal .choices__input--cloned {
+    .modal-expert .choices__inner:hover {
+      border-color: rgba(94, 129, 255, 0.4) !important;
+      box-shadow:
+        0 8px 24px rgba(2, 6, 23, 0.4),
+        0 0 0 1px rgba(94, 129, 255, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+      transform: translateY(-1px) !important;
+    }
+
+    .modal-expert .choices__inner:focus-within {
+      border-color: var(--admin-accent-color, #5e81ff) !important;
+      box-shadow:
+        0 8px 32px rgba(94, 129, 255, 0.3),
+        0 0 0 3px rgba(94, 129, 255, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+      transform: translateY(-2px) !important;
+    }
+
+    /* Contenedor de elementos seleccionados */
+    .modal-expert .choices__list--multiple {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      gap: 0.5rem !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+
+    /* Tags/Chips de elementos seleccionados - DISEÑO MEJORADO */
+    .modal-expert .choices__list--multiple .choices__item {
+      background: linear-gradient(135deg, var(--admin-accent-color, #5e81ff), #4f46e5) !important;
+      color: #ffffff !important;
+      border: none !important;
+      border-radius: 20px !important;
+      padding: 0.4rem 0.75rem 0.4rem 1rem !important;
+      font-size: 0.85rem !important;
+      font-weight: 500 !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 0.5rem !important;
+      transition: all 0.2s ease !important;
+      box-shadow:
+        0 2px 8px rgba(94, 129, 255, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+      position: relative !important;
+      overflow: hidden !important;
+    }
+
+    .modal-expert .choices__list--multiple .choices__item::before {
+      content: '' !important;
+      position: absolute !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%) !important;
+      transform: translateX(-100%) !important;
+      transition: transform 0.6s ease !important;
+    }
+
+    .modal-expert .choices__list--multiple .choices__item:hover::before {
+      transform: translateX(100%) !important;
+    }
+
+    .modal-expert .choices__list--multiple .choices__item:hover {
+      transform: translateY(-2px) scale(1.05) !important;
+      box-shadow:
+        0 6px 20px rgba(94, 129, 255, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+    }
+
+    /* Input de búsqueda dentro del campo */
+    .modal-expert .choices__input,
+    .modal-expert .choices__input--cloned {
       color: var(--admin-text-primary, #ffffff) !important;
       background: transparent !important;
       caret-color: var(--admin-accent-color, #5e81ff) !important;
+      border: none !important;
+      padding: 0.5rem 0 !important;
+      font-size: 0.95rem !important;
+      min-width: 200px !important;
     }
 
-    /* Dropdown con mayor z-index para que no quede debajo del overlay */
-    #expertModal .choices__list--dropdown {
-      background: var(--admin-card-bg, #0b1220) !important;
+    .modal-expert .choices__input::placeholder {
+      color: rgba(255, 255, 255, 0.5) !important;
+      font-style: italic !important;
+    }
+
+    /* Dropdown mejorado */
+    .modal-expert .choices__list--dropdown {
+      background: rgba(11, 18, 32, 0.95) !important;
+      backdrop-filter: blur(20px) !important;
       color: var(--admin-text-primary, #ffffff) !important;
-      border: 1px solid var(--admin-border-color, rgba(255, 255, 255, 0.08)) !important;
+      border: 1px solid rgba(94, 129, 255, 0.3) !important;
       z-index: 2000 !important;
-      box-shadow: 0 8px 24px rgba(2, 6, 23, 0.6) !important;
-      max-height: 220px !important;
+      box-shadow:
+        0 16px 48px rgba(2, 6, 23, 0.7),
+        0 0 0 1px rgba(94, 129, 255, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+      max-height: 240px !important;
       overflow: auto !important;
+      border-radius: 16px !important;
+      margin-top: 0.5rem !important;
+      animation: dropdownSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
 
-    /* Items del dropdown */
-    #expertModal .choices__list--dropdown .choices__item {
+    @keyframes dropdownSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.95);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .modal-expert .choices__list--dropdown .choices__item {
       background: transparent !important;
       color: var(--admin-text-primary, #ffffff) !important;
-      padding: 8px 12px !important;
-    }
-
-    /* Hover / selección */
-    #expertModal .choices__list--dropdown .choices__item.is-highlighted,
-    #expertModal .choices__list--dropdown .choices__item.choice--selectable.is-highlighted {
-      background: rgba(94, 129, 255, 0.12) !important;
-      color: #fff !important;
-    }
-
-    /* Asegurar que el botón de eliminar (remove) sea visible */
-    #expertModal .choices__button {
-      color: var(--admin-text-primary, #ffffff) !important;
-      background: rgba(255, 255, 255, 0.02) !important;
-      border-radius: 6px !important;
-    }
-
-    /* Reemplazar visualmente el texto 'Remove item' por una X SVG vía pseudo-elemento
-       - mantenemos el texto original para accesibilidad (screen readers)
-       - el pseudo-elemento ::after muestra un SVG inline (data URI) y centrado
-    */
-    #expertModal .choices__button {
+      padding: 1rem 1.25rem !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+      transition: all 0.2s ease !important;
       position: relative !important;
-      color: var(--admin-text-primary, #ffffff) !important;
-      padding: 0.125rem 0.375rem !important;
-      min-width: 1.25rem !important;
-      min-height: 1.25rem !important;
-      overflow: visible !important;
-      white-space: nowrap !important;
+    }
+
+    .modal-expert .choices__list--dropdown .choices__item:last-child {
+      border-bottom: none !important;
+    }
+
+    .modal-expert .choices__list--dropdown .choices__item::before {
+      content: '' !important;
+      position: absolute !important;
+      left: 0 !important;
+      top: 0 !important;
+      bottom: 0 !important;
+      width: 3px !important;
+      background: var(--admin-accent-color, #5e81ff) !important;
+      transform: scaleY(0) !important;
+      transition: transform 0.2s ease !important;
+    }
+
+    .modal-expert .choices__list--dropdown .choices__item.is-highlighted,
+    .modal-expert .choices__list--dropdown .choices__item.choice--selectable.is-highlighted {
+      background: linear-gradient(90deg, rgba(94, 129, 255, 0.15), rgba(94, 129, 255, 0.05)) !important;
+      color: #fff !important;
+      transform: translateX(4px) !important;
+    }
+
+    .modal-expert .choices__list--dropdown .choices__item.is-highlighted::before {
+      transform: scaleY(1) !important;
+    }
+
+    /* Botón de eliminar elemento - DISEÑO MEJORADO */
+    .modal-expert .choices__button {
+      color: rgba(255, 255, 255, 0.8) !important;
+      background: rgba(255, 255, 255, 0.15) !important;
+      border: 1px solid rgba(255, 255, 255, 0.2) !important;
+      border-radius: 50% !important;
+      width: 20px !important;
+      height: 20px !important;
       display: inline-flex !important;
       align-items: center !important;
       justify-content: center !important;
+      padding: 0 !important;
+      margin-left: 0.25rem !important;
+      transition: all 0.2s ease !important;
+      position: relative !important;
+      overflow: hidden !important;
     }
 
-    /* Ensure the inline SVG will be well sized and colored */
-    #expertModal .choices__button svg {
-      width: 0.95rem !important;
-      height: 0.95rem !important;
+    .modal-expert .choices__button::before {
+      content: '' !important;
+      position: absolute !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      background: linear-gradient(45deg, rgba(255, 255, 255, 0.2), transparent) !important;
+      transform: translateX(-100%) !important;
+      transition: transform 0.3s ease !important;
+    }
+
+    .modal-expert .choices__button:hover {
+      background: rgba(239, 68, 68, 0.8) !important;
+      border-color: rgba(239, 68, 68, 1) !important;
+      color: #ffffff !important;
+      transform: scale(1.1) !important;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4) !important;
+    }
+
+    .modal-expert .choices__button:hover::before {
+      transform: translateX(100%) !important;
+    }
+
+    .modal-expert .choices__button svg {
+      width: 12px !important;
+      height: 12px !important;
       display: block !important;
       stroke: currentColor !important;
+      stroke-width: 2 !important;
       fill: none !important;
     }
 
-    /* Hover effect for inline SVG */
-    #expertModal .choices__button:hover svg {
-      filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.2)) brightness(1.05) !important;
+    /* Scrollbar personalizado para dropdown */
+    .modal-expert .choices__list--dropdown::-webkit-scrollbar {
+      width: 6px !important;
+    }
+
+    .modal-expert .choices__list--dropdown::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05) !important;
+      border-radius: 3px !important;
+    }
+
+    .modal-expert .choices__list--dropdown::-webkit-scrollbar-thumb {
+      background: rgba(94, 129, 255, 0.4) !important;
+      border-radius: 3px !important;
+      transition: background 0.2s ease !important;
+    }
+
+    .modal-expert .choices__list--dropdown::-webkit-scrollbar-thumb:hover {
+      background: rgba(94, 129, 255, 0.6) !important;
+    }
+
+    /* Estados especiales */
+    .modal-expert .choices[data-type*="select-multiple"].is-open .choices__inner {
+      border-color: var(--admin-accent-color, #5e81ff) !important;
+      box-shadow:
+        0 8px 32px rgba(94, 129, 255, 0.3),
+        0 0 0 3px rgba(94, 129, 255, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    }
+
+    /* Campo vacío placeholder mejorado */
+    .modal-expert .choices__placeholder {
+      color: rgba(255, 255, 255, 0.6) !important;
+      font-style: italic !important;
+      opacity: 1 !important;
+    }
+
+    /* Animación de entrada para nuevos elementos */
+    .modal-expert .choices__list--multiple .choices__item {
+      animation: tagSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+
+    @keyframes tagSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.8);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* Inline field error messages */
+    .modal-expert .field-error {
+      color: #f87171;
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+      display: block;
+    }
+
+    /* Nuevos estilos para mejorar la organización visual */
+    .modal-expert .form-section {
+      margin-bottom: 1.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .modal-expert .form-section:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .modal-expert .form-section-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #e2e8f0;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Simplified field containers */
+    .modal-expert .form-field {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 1rem;
+    }
+
+    .modal-expert .form-field:last-child {
+      margin-bottom: 0;
+    }
+
+    .modal-expert .form-field label {
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: #e2e8f0;
+    }
+
+    /* Estilos para tooltips e información adicional */
+    .modal-expert .icon-tooltip {
+      cursor: help;
+      position: relative;
+    }
+
+    .modal-expert .icon-tooltip:hover::after {
+      content: attr(title);
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 0.5rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      white-space: nowrap;
+      z-index: 1000;
     }
   </style>
 
   <!-- Modal para agregar experto -->
   <div id="expertModal" class="modal-expert" style="display:none;">
-
     <div class="modal-expert__container">
       <div class="modal-expert__header">
         <h2 class="modal-expert__title">Agregar nuevo experto</h2>
@@ -1167,10 +1426,11 @@
 
       <div class="modal-expert__body">
         <form id="expertForm">
-          <!-- Layout helper: responsive two-column grid for most rows -->
+
+          <!-- Información básica -->
           <div class="modal-expert__grid">
 
-            <!-- Información básica -->
+            <!-- Nombre completo -->
             <div>
               <label class="modal-expert__label" for="name">
                 <i class="fas fa-user modal-expert__icon" aria-hidden="true"></i>
@@ -1179,6 +1439,7 @@
               <input type="text" id="name" placeholder="Nombre y apellidos registrados" class="modal-expert__input" />
             </div>
 
+            <!-- Email registrado -->
             <div>
               <label class="modal-expert__label" for="email">
                 <i class="fas fa-envelope modal-expert__icon" aria-hidden="true"></i>
@@ -1253,7 +1514,6 @@
                   <option value="blockchain">Blockchain</option>
                   <option value="cloud">Cloud Computing</option>
                 </select>
-                <i class="fas fa-chevron-down" aria-hidden="true"></i>
               </div>
               <small class="modal-expert__hint">Selecciona la especialidad principal que describe mejor al
                 experto</small>
@@ -1271,208 +1531,47 @@
                   <option value="pending">Pendiente</option>
                   <option value="inactive">Inactivo</option>
                 </select>
-                <i class="fas fa-chevron-down" aria-hidden="true"></i>
               </div>
               <small class="modal-expert__hint">Define si el experto puede recibir solicitudes</small>
             </div>
 
             <!-- Categorías (full width) -->
             <div class="full-width">
-              <label class="modal-expert__label" for="categorias">
+              <label class="modal-expert__label" for="add_categorias">
                 <i class="fas fa-tags modal-expert__icon" aria-hidden="true"></i>
                 Categorías
               </label>
-              <select id="categorias" class="modal-expert__input modal-expert__select-categorias" multiple size="4"
+              <select id="add_categorias" class="modal-expert__input modal-expert__select-categorias" multiple size="4"
                 aria-label="Categorías">
-                <!-- opciones añadidas dinámicamente -->
+                <% console.log('DEBUG: categorias=', typeof categorias, categorias ? categorias.length : ' undefined');
+                  %>
+                  <% if (typeof categorias !=='undefined' && Array.isArray(categorias) && categorias.length> 0) { %>
+                    <% categorias.forEach(function(c) { %>
+                      <% const catId=(c && c._id) ? String(c._id) : (c && (c.nombre || c.name || c.label) ? (c.nombre ||
+                        c.name || c.label) : '' ); %>
+                        <% const catLabel=(c && (c.nombre || c.name || c.label)) ? (c.nombre || c.name || c.label) :
+                          catId; %>
+                          <% if (catId) { %>
+                            <option value="<%= catId %>">
+                              <%= catLabel %>
+                            </option>
+                            <% } %>
+                              <% }); %>
+                                <% } else { %>
+                                  <!-- DEBUG: No hay categorías disponibles -->
+                                  <option disabled>No hay categorías disponibles</option>
+                                  <% } %>
               </select>
-
-              <script>
-                // Initialize Choices and force visual fixes for the created/cloned input
-                document.addEventListener('DOMContentLoaded', function () {
-                  function applyInputFix(el) {
-                    if (!el || el.dataset.__stylingApplied) return;
-                    try {
-                      el.style.setProperty('background', 'transparent', 'important');
-                      el.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
-                      el.style.setProperty('-webkit-text-fill-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
-                      el.style.setProperty('caret-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-accent-color') || '#5e81ff', 'important');
-                      el.style.setProperty('border', 'none', 'important');
-                      el.style.setProperty('outline', 'none', 'important');
-                      el.style.setProperty('width', 'auto', 'important');
-                      el.style.setProperty('min-width', '22ch', 'important');
-                      el.style.setProperty('font-family', 'inherit', 'important');
-                      el.style.setProperty('padding-left', '42px', 'important');
-                      el.dataset.__stylingApplied = '1';
-                    } catch (e) { }
-                  }
-
-                  // Initialize Choices on categorias (if available)
-                  if (window.Choices) {
-                    const catSelect = document.getElementById('categorias');
-                    if (catSelect && !catSelect.classList.contains('choices-initialized')) {
-                      new Choices(catSelect, {
-                        removeItemButton: true,
-                        delimiter: ',',
-                        editItems: false,
-                        maxItemCount: 10,
-                        duplicateItemsAllowed: false
-                      });
-                      catSelect.classList.add('choices-initialized');
-                    }
-                  }
-
-                  // Try to style existing inputs immediately and observe future clones
-                  function processAll() {
-                    document.querySelectorAll('#expertModal .choices__input, #expertModal .choices__input--cloned, input[placeholder="Selecciona categorías"], input[aria-label="Selecciona categorías"]').forEach(applyInputFix);
-                    document.querySelectorAll('#expertModal .choices__list--dropdown, #expertModal .choices__list--dropdown .choices__item').forEach(function (el) {
-                      try {
-                        el.style.setProperty('background', getComputedStyle(document.documentElement).getPropertyValue('--admin-card-bg') || '#121212', 'important');
-                        el.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
-                        el.style.setProperty('border-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-border-color') || '#333', 'important');
-                      } catch (e) { }
-                    });
-
-                    document.querySelectorAll('#expertModal .choices__inner').forEach(function (inner) {
-                      try {
-                        if (inner.querySelector('.choices__list--multiple')) inner.classList.add('no-icon');
-                        else inner.classList.remove('no-icon');
-                      } catch (e) { }
-                    });
-                  }
-
-                  processAll();
-                  var attempts = 0;
-                  var id = setInterval(function () { processAll(); attempts++; if (attempts > 20) clearInterval(id); }, 150);
-                  var mo = new MutationObserver(function () { processAll(); });
-                  mo.observe(document.body, { childList: true, subtree: true });
-                });
-              </script>
-              <script>
-                // Replace Choices remove button text with an inline SVG for semantic clarity.
-                (function () {
-                  function makeCloseSVG() {
-                    var ns = 'http://www.w3.org/2000/svg';
-                    var svg = document.createElementNS(ns, 'svg');
-                    svg.setAttribute('viewBox', '0 0 24 24');
-                    svg.setAttribute('aria-hidden', 'true');
-                    svg.setAttribute('focusable', 'false');
-                    svg.setAttribute('width', '16');
-                    svg.setAttribute('height', '16');
-                    var line1 = document.createElementNS(ns, 'line');
-                    line1.setAttribute('x1', '18'); line1.setAttribute('y1', '6'); line1.setAttribute('x2', '6'); line1.setAttribute('y2', '18');
-                    line1.setAttribute('stroke-width', '2'); line1.setAttribute('stroke-linecap', 'round'); line1.setAttribute('stroke-linejoin', 'round');
-                    var line2 = document.createElementNS(ns, 'line');
-                    line2.setAttribute('x1', '6'); line2.setAttribute('y1', '6'); line2.setAttribute('x2', '18'); line2.setAttribute('y2', '18');
-                    line2.setAttribute('stroke-width', '2'); line2.setAttribute('stroke-linecap', 'round'); line2.setAttribute('stroke-linejoin', 'round');
-                    svg.appendChild(line1);
-                    svg.appendChild(line2);
-                    return svg;
-                  }
-
-                  function replaceButton(btn) {
-                    if (!btn || btn.dataset.__svgApplied) return;
-                    try {
-                      // Keep aria-label for screen readers
-                      var aria = btn.getAttribute('aria-label') || '';
-                      btn.innerHTML = '';
-                      var svg = makeCloseSVG();
-                      btn.appendChild(svg);
-                      // Preserve the accessible name in a visually-hidden span
-                      var vis = document.createElement('span');
-                      vis.textContent = aria;
-                      vis.style.position = 'absolute';
-                      vis.style.left = '-9999px';
-                      vis.style.width = '1px';
-                      vis.style.height = '1px';
-                      vis.style.overflow = 'hidden';
-                      vis.style.clip = 'rect(1px, 1px, 1px, 1px)';
-                      btn.appendChild(vis);
-                      btn.dataset.__svgApplied = '1';
-                    } catch (e) { }
-                  }
-
-                  function processAllButtons(root) {
-                    root = root || document;
-                    var nodes = root.querySelectorAll('#expertModal .choices__button');
-                    nodes.forEach(replaceButton);
-                  }
-
-                  document.addEventListener('DOMContentLoaded', function () {
-                    processAllButtons(document);
-                    // Observe for future additions (Choices may recreate buttons)
-                    var mo = new MutationObserver(function (mutations) {
-                      mutations.forEach(function (m) {
-                        m.addedNodes.forEach(function (n) {
-                          if (n.nodeType !== 1) return;
-                          if (n.matches && n.matches('#expertModal .choices__button')) replaceButton(n);
-                          else processAllButtons(n);
-                        });
-                      });
-                    });
-                    mo.observe(document.body, { childList: true, subtree: true });
-                  });
-                })();
-              </script>
-              <script>
-                // Diagnóstico: registra en consola la estructura y estilos computados del botón remove
-                (function () {
-                  function diag() {
-                    try {
-                      var btns = document.querySelectorAll('#expertModal .choices__button');
-                      if (!btns || btns.length === 0) {
-                        console.info('[diag] No se encontraron .choices__button dentro de #expertModal');
-                        return;
-                      }
-                      btns.forEach(function (b, i) {
-                        console.info('[diag] choices__button #' + i + ':', b.outerHTML);
-                        var cs = window.getComputedStyle(b);
-                        console.info('[diag] computed (button):', {
-                          display: cs.display,
-                          visibility: cs.visibility,
-                          color: cs.color,
-                          background: cs.backgroundColor || cs['background-color'],
-                          overflow: cs.overflow,
-                          zIndex: cs.zIndex
-                        });
-                        var pa = window.getComputedStyle(b, '::after');
-                        console.info('[diag] computed (::after):', {
-                          content: pa.content,
-                          color: pa.color,
-                          display: pa.display,
-                          visibility: pa.visibility,
-                          zIndex: pa.zIndex,
-                          fontSize: pa.fontSize
-                        });
-                        var pb = window.getComputedStyle(b, '::before');
-                        console.info('[diag] computed (::before):', {
-                          content: pb.content,
-                          color: pb.color
-                        });
-                      });
-                    } catch (e) {
-                      console.error('[diag] error:', e);
-                    }
-                  }
-                  document.addEventListener('DOMContentLoaded', function () {
-                    setTimeout(diag, 600);
-                    // también vuelve a correr cuando se detecta interacción que puede abrir el modal
-                    document.body.addEventListener('click', function (ev) {
-                      if (ev.target.closest('#expertModal') || ev.target.closest('.btn-close')) setTimeout(diag, 300);
-                    }, true);
-                  });
-                })();
-              </script>
               <small class="modal-expert__hint">Selecciona una o varias categorías (Ctrl/Cmd+click)</small>
             </div>
 
             <!-- Habilidades (full width) -->
             <div class="full-width">
-              <label class="modal-expert__label" for="skills">
+              <label class="modal-expert__label" for="add_skills">
                 <i class="fas fa-tools modal-expert__icon" aria-hidden="true"></i>
                 Habilidades
               </label>
-              <select id="skills" class="modal-expert__input" multiple size="6">
+              <select id="add_skills" class="modal-expert__input" multiple size="6">
                 <% if (typeof habilidades !=='undefined' && Array.isArray(habilidades) && habilidades.length> 0) { %>
                   <% habilidades.forEach(function(h) { %>
                     <% const optId=(h && h._id) ? String(h._id) : (h && (h.nombre || h.name || h.label) ? (h.nombre ||
@@ -1487,23 +1586,6 @@
                             <% }); %>
                               <% } %>
               </select>
-              <script>
-                document.addEventListener('DOMContentLoaded', function () {
-                  if (window.Choices) {
-                    const skillsSelect = document.getElementById('skills');
-                    if (skillsSelect && !skillsSelect.classList.contains('choices-initialized')) {
-                      new Choices(skillsSelect, {
-                        removeItemButton: true,
-                        delimiter: ',',
-                        editItems: false,
-                        maxItemCount: 10,
-                        duplicateItemsAllowed: false
-                      });
-                      skillsSelect.classList.add('choices-initialized');
-                    }
-                  }
-                });
-              </script>
               <small class="modal-expert__hint">Selecciona o escribe para añadir nuevas habilidades</small>
             </div>
 
@@ -1552,1112 +1634,1385 @@
             <!-- Espacio reservado para mantener la columna alineada -->
             <div aria-hidden="true"></div>
 
-            <!-- Sección bancaria (tarjeta de ancho completo) -->
-            <div class="full-width">
-              <div class="bank-section">
-                <h3 class="bank-title">
-                  <i class="fas fa-university"></i> Datos Bancarios para Pagos
-                </h3>
-                <p class="bank-sub">Información necesaria para recibir pagos por tus asesorías</p>
+          </div>
+          <!-- Fin del grid principal -->
 
-                <div class="bank-grid">
-                  <div>
-                    <label for="banco">Banco *</label>
-                    <div id="banco-wrapper">
-                      <select id="banco" name="banco" required class="modal-expert__input">
-                        <option value="">Selecciona tu banco</option>
-                        <option value="Banco de Bogotá">Banco de Bogotá</option>
-                        <option value="Bancolombia">Bancolombia</option>
-                        <option value="Banco Popular">Banco Popular</option>
-                        <option value="Banco AV Villas">Banco AV Villas</option>
-                        <option value="Banco Caja Social">Banco Caja Social</option>
-                        <option value="Banco de Occidente">Banco de Occidente</option>
-                        <option value="Banco GNB Sudameris">Banco GNB Sudameris</option>
-                        <option value="Banco Itaú">Banco Itaú</option>
-                        <option value="Banco Pichincha">Banco Pichincha</option>
-                        <option value="Banco Santander">Banco Santander</option>
-                        <option value="Banco Scotiabank Colpatria">Banco Scotiabank Colpatria</option>
-                        <option value="Davivienda">Davivienda</option>
-                        <option value="Banco Agrario">Banco Agrario</option>
-                        <option value="Banco Falabella">Banco Falabella</option>
-                        <option value="Banco Finandina">Banco Finandina</option>
-                        <option value="Banco W">Banco W</option>
-                        <option value="Banco Serfinanza">Banco Serfinanza</option>
-                        <option value="Banco Cooperativo Coopcentral">Banco Cooperativo Coopcentral</option>
-                        <option value="Banco BBVA">Banco BBVA</option>
-                        <option value="Nequi">Nequi</option>
-                        <option value="Daviplata">Daviplata</option>
-                        <option value="Movii">Movii</option>
-                        <option value="Banco de Vivienda">Banco de Vivienda</option>
-                        <option value="Banco ProCredit">Banco ProCredit</option>
-                        <option value="Banco Multibank">Banco Multibank</option>
-                        <option value="Banco Coopcentral">Banco Coopcentral</option>
-                        <option value="Banco Credifinanciera">Banco Credifinanciera</option>
-                        <option value="Banco Mundo Mujer">Banco Mundo Mujer</option>
-                        <option value="Banco Ripley">Banco Ripley</option>
-                        <option value="Banco CrediScotia">Banco CrediScotia</option>
-                      </select>
-                    </div>
-                  </div>
+          <!-- Sección bancaria (tarjeta de ancho completo) -->
+          <div class="full-width">
+            <div class="bank-section">
+              <h3 class="bank-title">
+                <i class="fas fa-university"></i> Datos Bancarios para Pagos
+              </h3>
+              <p class="bank-sub">Información necesaria para recibir pagos por tus asesorías</p>
 
-                  <div>
-                    <label for="tipoCuenta">Tipo de cuenta *</label>
-                    <div id="tipoCuenta-wrapper">
-                      <select id="tipoCuenta" name="tipoCuenta" required class="modal-expert__input">
-                        <option value="">Selecciona el tipo</option>
-                        <option value="Cuenta de Ahorros">Cuenta de Ahorros</option>
-                        <option value="Cuenta Corriente">Cuenta Corriente</option>
-                        <option value="Cuenta de Nómina">Cuenta de Nómina</option>
-                        <option value="Cuenta Digital">Cuenta Digital</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label for="numeroCuenta">Número de cuenta *</label>
-                    <div class="acct-wrap">
-                      <input type="password" id="numeroCuenta" name="numeroCuenta" required
-                        placeholder="Número de cuenta" pattern="[0-9\-]*" title="Solo números y guiones"
-                        class="acct-input">
-                      <button type="button" id="toggleAccountNumber" class="acct-toggle"
-                        aria-label="Mostrar número de cuenta">
-                        <i class="fas fa-eye"></i>
-                      </button>
-                    </div>
-                    <p class="hint">Número completo de tu cuenta</p>
-                  </div>
-
-                  <div>
-                    <label for="titular">Titular de la cuenta *</label>
-                    <input type="text" id="titular" name="titular" required placeholder="Nombre completo del titular"
-                      class="modal-expert__input">
-                    <p class="hint">Debe coincidir con el nombre en la cuenta</p>
-                  </div>
-
-                  <div>
-                    <label for="tipoDocumento">Tipo de documento *</label>
-                    <div id="tipoDocumento-wrapper">
-                      <select id="tipoDocumento" name="tipoDocumento" required class="modal-expert__input">
-                        <option value="">Selecciona el tipo</option>
-                        <option value="Cédula de Ciudadanía">Cédula de Ciudadanía</option>
-                        <option value="Cédula de Extranjería">Cédula de Extranjería</option>
-                        <option value="Pasaporte">Pasaporte</option>
-                        <option value="NIT">NIT (Persona Jurídica)</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label for="numeroDocumento">Número de documento *</label>
-                    <input type="text" id="numeroDocumento" name="numeroDocumento" required
-                      placeholder="Número de identificación" pattern="[0-9\-]*" class="modal-expert__input">
-                    <p class="hint">Documento del titular</p>
-                  </div>
-
-                  <div class="full-width">
-                    <label for="telefonoContacto">Teléfono de contacto</label>
-                    <input type="tel" id="telefonoContacto" name="telefonoContacto" placeholder="+57 300 123 4567"
-                      class="modal-expert__input">
-                    <p class="hint">Opcional: Teléfono para contacto sobre pagos</p>
+              <div class="bank-grid">
+                <div>
+                  <label for="banco">Banco *</label>
+                  <div id="banco-wrapper">
+                    <select id="banco" name="banco" required class="modal-expert__input">
+                      <option value="">Selecciona tu banco</option>
+                      <option value="Banco de Bogotá">Banco de Bogotá</option>
+                      <option value="Bancolombia">Bancolombia</option>
+                      <option value="Banco Popular">Banco Popular</option>
+                      <option value="Banco AV Villas">Banco AV Villas</option>
+                      <option value="Banco Caja Social">Banco Caja Social</option>
+                      <option value="Banco de Occidente">Banco de Occidente</option>
+                      <option value="Banco GNB Sudameris">Banco GNB Sudameris</option>
+                      <option value="Banco Itaú">Banco Itaú</option>
+                      <option value="Banco Pichincha">Banco Pichincha</option>
+                      <option value="Banco Santander">Banco Santander</option>
+                      <option value="Banco Scotiabank Colpatria">Banco Scotiabank Colpatria</option>
+                      <option value="Davivienda">Davivienda</option>
+                      <option value="Banco Agrario">Banco Agrario</option>
+                      <option value="Banco Falabella">Banco Falabella</option>
+                      <option value="Banco Finandina">Banco Finandina</option>
+                      <option value="Banco W">Banco W</option>
+                      <option value="Banco Serfinanza">Banco Serfinanza</option>
+                      <option value="Banco Cooperativo Coopcentral">Banco Cooperativo Coopcentral</option>
+                      <option value="Banco BBVA">Banco BBVA</option>
+                      <option value="Nequi">Nequi</option>
+                      <option value="Daviplata">Daviplata</option>
+                      <option value="Movii">Movii</option>
+                      <option value="Banco de Vivienda">Banco de Vivienda</option>
+                      <option value="Banco ProCredit">Banco ProCredit</option>
+                      <option value="Banco Multibank">Banco Multibank</option>
+                      <option value="Banco Coopcentral">Banco Coopcentral</option>
+                      <option value="Banco Credifinanciera">Banco Credifinanciera</option>
+                      <option value="Banco Mundo Mujer">Banco Mundo Mujer</option>
+                      <option value="Banco Ripley">Banco Ripley</option>
+                      <option value="Banco CrediScotia">Banco CrediScotia</option>
+                    </select>
                   </div>
                 </div>
 
-                <div class="info-box info-sm">
-                  <div class="info-header">
-                    <i class="fas fa-info-circle"></i>
-                    <strong>Información importante sobre pagos</strong>
+                <div>
+                  <label for="tipoCuenta">Tipo de cuenta *</label>
+                  <div id="tipoCuenta-wrapper">
+                    <select id="tipoCuenta" name="tipoCuenta" required class="modal-expert__input">
+                      <option value="">Selecciona el tipo</option>
+                      <option value="Cuenta de Ahorros">Cuenta de Ahorros</option>
+                      <option value="Cuenta Corriente">Cuenta Corriente</option>
+                      <option value="Cuenta de Nómina">Cuenta de Nómina</option>
+                      <option value="Cuenta Digital">Cuenta Digital</option>
+                    </select>
                   </div>
-                  <ul class="info-list">
-                    <li><i class="fas fa-check"></i> Los pagos se procesan cada 15 días</li>
-                    <li><i class="fas fa-check"></i> Se requiere verificación de cuenta</li>
-                    <li><i class="fas fa-check"></i> Datos editables desde tu perfil</li>
-                    <li><i class="fas fa-check"></i> Seguridad garantizada</li>
-                  </ul>
                 </div>
+
+                <div>
+                  <label for="numeroCuenta">Número de cuenta *</label>
+                  <div class="acct-wrap">
+                    <input type="password" id="numeroCuenta" name="numeroCuenta" required placeholder="Número de cuenta"
+                      pattern="[0-9\-]*" title="Solo números y guiones" class="acct-input">
+                    <button type="button" id="toggleAccountNumber" class="acct-toggle"
+                      aria-label="Mostrar número de cuenta">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                  </div>
+                  <p class="hint">Número completo de tu cuenta</p>
+                </div>
+
+                <div>
+                  <label for="titular">Titular de la cuenta *</label>
+                  <input type="text" id="titular" name="titular" required placeholder="Nombre completo del titular"
+                    class="modal-expert__input">
+                  <p class="hint">Debe coincidir con el nombre en la cuenta</p>
+                </div>
+
+                <div>
+                  <label for="tipoDocumento">Tipo de documento *</label>
+                  <div id="tipoDocumento-wrapper">
+                    <select id="tipoDocumento" name="tipoDocumento" required class="modal-expert__input">
+                      <option value="">Selecciona el tipo</option>
+                      <option value="Cédula de Ciudadanía">Cédula de Ciudadanía</option>
+                      <option value="Cédula de Extranjería">Cédula de Extranjería</option>
+                      <option value="Pasaporte">Pasaporte</option>
+                      <option value="NIT">NIT (Persona Jurídica)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label for="numeroDocumento">Número de documento *</label>
+                  <input type="text" id="numeroDocumento" name="numeroDocumento" required
+                    placeholder="Número de identificación" pattern="[0-9\-]*" class="modal-expert__input">
+                  <p class="hint">Documento del titular</p>
+                </div>
+
+                <div class="full-width">
+                  <label for="telefonoContacto">Teléfono de contacto</label>
+                  <input type="tel" id="telefonoContacto" name="telefonoContacto" placeholder="+57 300 123 4567"
+                    class="modal-expert__input">
+                  <p class="hint">Opcional: Teléfono para contacto sobre pagos</p>
+                </div>
+              </div>
+
+              <div class="info-box info-sm">
+                <div class="info-header">
+                  <i class="fas fa-info-circle"></i>
+                  <strong>Información importante sobre pagos</strong>
+                </div>
+                <ul class="info-list">
+                  <li><i class="fas fa-check"></i> Los pagos se procesan cada 15 días</li>
+                  <li><i class="fas fa-check"></i> Se requiere verificación de cuenta</li>
+                  <li><i class="fas fa-check"></i> Datos editables desde tu perfil</li>
+                  <li><i class="fas fa-check"></i> Seguridad garantizada</li>
+                </ul>
               </div>
             </div>
           </div>
         </form>
+
+        <!-- Scripts JavaScript para el modal -->
+        <script>
+          // Input character validators for #expertModal
+          (function () {
+            // helpers
+            function onlyLetters(value) {
+              // allow letters, spaces, accents and common name punctuation (hyphen, apostrophe)
+              return value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\s\-']/g, '');
+            }
+
+            function onlyNumbers(value) {
+              return value.replace(/[^0-9]/g, '');
+            }
+
+            function phoneFilter(value) {
+              // allow digits, spaces, plus, parentheses and hyphens
+              return value.replace(/[^0-9+()\-\s]/g, '');
+            }
+
+            function attachFilter(el, filterFn) {
+              if (!el || el.dataset.__filterAttached) return;
+              function onInput(e) {
+                var start = el.selectionStart;
+                var end = el.selectionEnd;
+                var cleaned = filterFn(el.value);
+                if (cleaned !== el.value) {
+                  el.value = cleaned;
+                  // try to restore caret reasonably
+                  try { el.setSelectionRange(start - 1, start - 1); } catch (err) { }
+                }
+              }
+              function onPaste(e) {
+                var txt = (e.clipboardData || window.clipboardData).getData('text') || '';
+                var cleaned = filterFn(txt);
+                if (cleaned !== txt) {
+                  e.preventDefault();
+                  document.execCommand('insertText', false, cleaned);
+                }
+              }
+              el.addEventListener('input', onInput, { passive: true });
+              el.addEventListener('paste', onPaste);
+              el.dataset.__filterAttached = '1';
+            }
+
+            function processModal() {
+              var modal = document.getElementById('expertModal');
+              if (!modal) return;
+
+              // name and titular => letters only
+              ['name', 'titular'].forEach(function (id) {
+                var el = modal.querySelector('#' + id);
+                if (el) attachFilter(el, onlyLetters);
+              });
+
+              // price, numeroCuenta, numeroDocumento => numbers only
+              ['precio', 'numeroCuenta', 'numeroDocumento'].forEach(function (id) {
+                var el = modal.querySelector('#' + id);
+                if (el) attachFilter(el, onlyNumbers);
+              });
+
+              // telefonoContacto => phone filter
+              var tel = modal.querySelector('#telefonoContacto');
+              if (tel) attachFilter(tel, phoneFilter);
+            }
+
+            document.addEventListener('DOMContentLoaded', function () {
+              processModal();
+              // Observe for dynamic additions inside modal (e.g., if inputs are created later)
+              var mo = new MutationObserver(function (mutations) {
+                var found = false;
+                mutations.forEach(function (m) {
+                  m.addedNodes.forEach(function (n) {
+                    if (n.nodeType !== 1) return;
+                    if (n.closest && n.closest('#expertModal')) found = true;
+                  });
+                });
+                if (found) processModal();
+              });
+              mo.observe(document.body, { childList: true, subtree: true });
+            });
+          })();
+        </script>
+
+        <script>
+          // Submit-time validation and inline error messages
+          (function () {
+            function setError(el, msg) {
+              if (!el) return;
+              var next = el.nextElementSibling;
+              if (next && next.classList && next.classList.contains('field-error')) {
+                next.textContent = msg;
+              } else {
+                var span = document.createElement('span');
+                span.className = 'field-error';
+                span.textContent = msg;
+                el.parentNode.insertBefore(span, el.nextSibling);
+              }
+            }
+
+            function clearError(el) {
+              if (!el) return;
+              var next = el.nextElementSibling;
+              if (next && next.classList && next.classList.contains('field-error')) next.remove();
+            }
+
+            function validateAll() {
+              var ok = true;
+              var modal = document.getElementById('expertModal');
+              if (!modal) return false;
+
+              // Name: required, letters only
+              var name = modal.querySelector('#name');
+              if (name) {
+                var val = name.value.trim();
+                if (!val) { setError(name, 'El nombre es obligatorio'); ok = false; }
+                else if (/[^A-Za-zÀ-ÖØ-öø-ÿ\s\-']/.test(val)) { setError(name, 'Solo letras y espacios permitidos'); ok = false; }
+                else clearError(name);
+              }
+
+              // Precio: required, numeric, min
+              var precio = modal.querySelector('#precio');
+              if (precio) {
+                var p = precio.value.trim();
+                if (!p) { setError(precio, 'El precio es obligatorio'); ok = false; }
+                else if (!/^\d+$/.test(p)) { setError(precio, 'Solo números permitidos'); ok = false; }
+                else if (parseInt(p, 10) < 10000) { setError(precio, 'El precio mínimo es 10.000'); ok = false; }
+                else clearError(precio);
+              }
+
+              // Numero de cuenta: required, digits only
+              var cuenta = modal.querySelector('#numeroCuenta');
+              if (cuenta) {
+                var c = cuenta.value.trim();
+                if (!c) { setError(cuenta, 'El número de cuenta es obligatorio'); ok = false; }
+                else if (!/^\d+$/.test(c)) { setError(cuenta, 'Solo dígitos permitidos'); ok = false; }
+                else clearError(cuenta);
+              }
+
+              // Numero documento: required, digits only
+              var doc = modal.querySelector('#numeroDocumento');
+              if (doc) {
+                var d = doc.value.trim();
+                if (!d) { setError(doc, 'El número de documento es obligatorio'); ok = false; }
+                else if (!/^\d+$/.test(d)) { setError(doc, 'Solo dígitos permitidos'); ok = false; }
+                else clearError(doc);
+              }
+
+              // Titular: required, letters
+              var titular = modal.querySelector('#titular');
+              if (titular) {
+                var t = titular.value.trim();
+                if (!t) { setError(titular, 'El titular es obligatorio'); ok = false; }
+                else if (/[^A-Za-zÀ-ÖØ-öø-ÿ\s\-']/.test(t)) { setError(titular, 'Solo letras y espacios permitidos'); ok = false; }
+                else clearError(titular);
+              }
+
+              return ok;
+            }
+
+            document.addEventListener('DOMContentLoaded', function () {
+              var save = document.getElementById('saveExpert');
+              var form = document.getElementById('expertForm');
+              if (!save || !form) return;
+              save.addEventListener('click', function (ev) {
+                ev.preventDefault();
+                // validate
+                var ok = validateAll();
+                if (!ok) {
+                  // focus first invalid
+                  var first = document.querySelector('#expertModal .field-error');
+                  if (first && first.previousElementSibling) first.previousElementSibling.focus();
+                  return;
+                }
+                // submit form programmatically
+                form.submit();
+              });
+            });
+          })();
+        </script>
+
+        <script>
+          // Initialize Choices and force visual fixes for the created/cloned input
+          document.addEventListener('DOMContentLoaded', function () {
+            function applyInputFix(el) {
+              if (!el || el.dataset.__stylingApplied) return;
+              try {
+                el.style.setProperty('background', 'transparent', 'important');
+                el.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
+                el.style.setProperty('-webkit-text-fill-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
+                el.style.setProperty('caret-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-accent-color') || '#5e81ff', 'important');
+                el.style.setProperty('border', 'none', 'important');
+                el.style.setProperty('outline', 'none', 'important');
+                el.style.setProperty('width', 'auto', 'important');
+                el.style.setProperty('min-width', '22ch', 'important');
+                el.style.setProperty('font-family', 'inherit', 'important');
+                el.style.setProperty('padding-left', '42px', 'important');
+                el.dataset.__stylingApplied = '1';
+              } catch (e) { }
+            }
+
+            // Initialize Choices on categorias (if available)
+            if (window.Choices) {
+              const catSelect = document.getElementById('add_categorias');
+              if (catSelect && !catSelect.classList.contains('choices-initialized')) {
+                new Choices(catSelect, {
+                  removeItemButton: true,
+                  delimiter: ',',
+                  editItems: false,
+                  maxItemCount: 10,
+                  duplicateItemsAllowed: false
+                });
+                catSelect.classList.add('choices-initialized');
+              }
+            }
+
+            // Initialize Choices on skills (if available)
+            if (window.Choices) {
+              const skillsSelect = document.getElementById('add_skills');
+              if (skillsSelect && !skillsSelect.classList.contains('choices-initialized')) {
+                new Choices(skillsSelect, {
+                  removeItemButton: true,
+                  delimiter: ',',
+                  editItems: false,
+                  maxItemCount: 10,
+                  duplicateItemsAllowed: false
+                });
+                skillsSelect.classList.add('choices-initialized');
+              }
+            }
+
+            // Try to style existing inputs immediately and observe future clones
+            function processAll() {
+              document.querySelectorAll('#expertModal .choices__input, #expertModal .choices__input--cloned, input[placeholder="Selecciona categorías"], input[aria-label="Selecciona categorías"]').forEach(applyInputFix);
+              document.querySelectorAll('#expertModal .choices__list--dropdown, #expertModal .choices__list--dropdown .choices__item').forEach(function (el) {
+                try {
+                  el.style.setProperty('background', getComputedStyle(document.documentElement).getPropertyValue('--admin-card-bg') || '#121212', 'important');
+                  el.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
+                  el.style.setProperty('border-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-border-color') || '#333', 'important');
+                } catch (e) { }
+              });
+
+              document.querySelectorAll('#expertModal .choices__inner').forEach(function (inner) {
+                try {
+                  if (inner.querySelector('.choices__list--multiple')) inner.classList.add('no-icon');
+                  else inner.classList.remove('no-icon');
+                } catch (e) { }
+              });
+            }
+
+            processAll();
+            var attempts = 0;
+            var id = setInterval(function () { processAll(); attempts++; if (attempts > 20) clearInterval(id); }, 150);
+            var mo = new MutationObserver(function () { processAll(); });
+            mo.observe(document.body, { childList: true, subtree: true });
+          });
+        </script>
+
       </div>
 
       <!-- Moved footer inside container so it remains visually part of the modal.
-               The container is a column-flex so the body scrolls while footer stays at bottom. -->
+                 The container is a column-flex so the body scrolls while footer stays at bottom. -->
       <div class="modal-expert__footer">
         <button class="btn-outline" data-dismiss="modal" type="button">Cancelar</button>
         <button type="button" class="btn-primary" id="saveExpert">Guardar experto</button>
       </div>
     </div>
-  </div>
 
-  <!--modal editar experto-->
-  <div id="editarExperto" class="modal-expert" style="display:none;">
+    <!--modal editar experto-->
+    <div id="editarExperto" class="modal-expert" style="display:none;">
 
-    <div class="modal-expert__container">
-      <div class="modal-expert__header">
-        <h2 class="modal-expert__title">Editar experto</h2>
-        <button class="btn-close" aria-label="Cerrar"><i class="fas fa-times"></i></button>
-      </div>
+      <div class="modal-expert__container">
+        <div class="modal-expert__header">
+          <h2 class="modal-expert__title">Editar experto</h2>
+          <button class="btn-close" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+        </div>
 
-      <div class="modal-expert__body">
-        <form id="expertForm">
-          <!-- Layout helper: responsive two-column grid for most rows -->
-          <div class="modal-expert__grid">
+        <div class="modal-expert__body">
+          <form id="expertForm">
+            <!-- Layout helper: responsive two-column grid for most rows -->
+            <div class="modal-expert__grid">
 
-            <!-- Información básica -->
-            <div>
-              <label class="modal-expert__label" for="name">
-                <i class="fas fa-user modal-expert__icon" aria-hidden="true"></i>
-                Nombre completo
-              </label>
-              <input type="text" id="name" placeholder="Nombre y apellidos registrados" class="modal-expert__input" />
-            </div>
-
-            <div>
-              <label class="modal-expert__label" for="email">
-                <i class="fas fa-envelope modal-expert__icon" aria-hidden="true"></i>
-                Email registrado
-              </label>
-              <input type="email" id="email" placeholder="Email de la cuenta" class="modal-expert__input" />
-            </div>
-
-            <!-- Precio por hora (columna) -->
-            <div>
-              <label for="precio" class="modal-expert__label">
-                <i class="fas fa-money-bill-wave modal-expert__icon" aria-hidden="true" title="Precio"></i>
-                Precio por hora (COP)
-                <span class="price-tooltip icon-tooltip" title="Ejemplo recomendado: $30.000 - $200.000 COP"
-                  style="margin-left:.5rem;">
-                  <i class="fas fa-info-circle"></i>
-                </span>
-              </label>
-
-              <div class="srv-price-input price-input">
-                <span class="srv-currency currency-symbol">$</span>
-                <input type="number" id="precio" name="precio" min="10000" step="100" required placeholder="Ej: 50000"
-                  class="srv-input price-field" />
-              </div>
-              <p class="srv-note price-note">
-                Tarifa por hora de asesoría (Recomendado: $30.000 - $200.000 COP)
-              </p>
-              <div id="precio-feedback" class="srv-feedback price-feedback" aria-live="polite"></div>
-            </div>
-
-            <!-- Días disponibles (columna) -->
-            <div>
-              <label for="diasDisponibles" class="modal-expert__label">
-                <i class="fas fa-calendar-alt modal-expert__icon" aria-hidden="true"></i>
-                Días disponibles
-              </label>
-
-              <div class="srv-days-wrapper">
-                <div class="srv-days">
-                  <button type="button" class="srv-day" data-day="Lunes" aria-pressed="false">L</button>
-                  <button type="button" class="srv-day" data-day="Martes" aria-pressed="false">M</button>
-                  <button type="button" class="srv-day" data-day="Miércoles" aria-pressed="false">X</button>
-                  <button type="button" class="srv-day" data-day="Jueves" aria-pressed="false">J</button>
-                  <button type="button" class="srv-day" data-day="Viernes" aria-pressed="false">V</button>
-                  <button type="button" class="srv-day" data-day="Sábado" aria-pressed="false">S</button>
-                  <button type="button" class="srv-day" data-day="Domingo" aria-pressed="false">D</button>
-                </div>
-
-                <div class="srv-days-display">
-                  Ningún día seleccionado
-                </div>
+              <!-- Información básica -->
+              <div>
+                <label class="modal-expert__label" for="name">
+                  <i class="fas fa-user modal-expert__icon" aria-hidden="true"></i>
+                  Nombre completo
+                </label>
+                <input type="text" id="name" placeholder="Nombre y apellidos registrados" class="modal-expert__input" />
               </div>
 
-              <input type="hidden" id="diasDisponibles" name="diasDisponibles" />
-            </div>
-
-            <!-- Especialidad principal -->
-            <div>
-              <label class="modal-expert__label" for="specialty">
-                <i class="fas fa-briefcase modal-expert__icon" aria-hidden="true"></i>
-                Especialidad principal
-              </label>
-              <div class="input-with-icon">
-                <select id="specialty" class="modal-expert__input modal-expert__select"
-                  aria-label="Especialidad principal">
-                  <option value="">Seleccionar especialidad</option>
-                  <option value="web">Desarrollo Web</option>
-                  <option value="mobile">Desarrollo Móvil</option>
-                  <option value="data">Ciencia de Datos</option>
-                  <option value="uxui">UX/UI</option>
-                  <option value="devops">DevOps</option>
-                  <option value="blockchain">Blockchain</option>
-                  <option value="cloud">Cloud Computing</option>
-                </select>
-                <i class="fas fa-chevron-down" aria-hidden="true"></i>
+              <div>
+                <label class="modal-expert__label" for="email">
+                  <i class="fas fa-envelope modal-expert__icon" aria-hidden="true"></i>
+                  Email registrado
+                </label>
+                <input type="email" id="email" placeholder="Email de la cuenta" class="modal-expert__input" />
               </div>
-              <small class="modal-expert__hint">Selecciona la especialidad principal que describe mejor al
-                experto</small>
-            </div>
 
-            <!-- Estado -->
-            <div>
-              <label class="modal-expert__label" for="status">
-                <i class="fas fa-toggle-on modal-expert__icon" aria-hidden="true"></i>
-                Estado
-              </label>
-              <div class="input-with-icon">
-                <i class="fas fa-toggle-on" aria-hidden="true"></i>
-                <select id="status" class="modal-expert__input modal-expert__select" aria-label="Estado del experto">
-                  <option value="active">Activo</option>
-                  <option value="pending">Pendiente</option>
-                  <option value="inactive">Inactivo</option>
-                </select>
-                <i class="fas fa-chevron-down" aria-hidden="true"></i>
-              </div>
-              <small class="modal-expert__hint">Define si el experto puede recibir solicitudes</small>
-            </div>
-
-            <!-- Categorías (full width) -->
-            <div class="full-width">
-              <label class="modal-expert__label" for="categorias">
-                <i class="fas fa-tags modal-expert__icon" aria-hidden="true"></i>
-                Categorías
-              </label>
-              <select id="categorias" class="modal-expert__input modal-expert__select-categorias" multiple size="4"
-                aria-label="Categorías">
-                <!-- opciones añadidas dinámicamente -->
-              </select>
-
-              <script>
-                // Initialize Choices and force visual fixes for the created/cloned input
-                document.addEventListener('DOMContentLoaded', function () {
-                  function applyInputFix(el) {
-                    if (!el || el.dataset.__stylingApplied) return;
-                    try {
-                      el.style.setProperty('background', 'transparent', 'important');
-                      el.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
-                      el.style.setProperty('-webkit-text-fill-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
-                      el.style.setProperty('caret-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-accent-color') || '#5e81ff', 'important');
-                      el.style.setProperty('border', 'none', 'important');
-                      el.style.setProperty('outline', 'none', 'important');
-                      el.style.setProperty('width', 'auto', 'important');
-                      el.style.setProperty('min-width', '22ch', 'important');
-                      el.style.setProperty('font-family', 'inherit', 'important');
-                      el.style.setProperty('padding-left', '42px', 'important');
-                      el.dataset.__stylingApplied = '1';
-                    } catch (e) { }
-                  }
-
-                  // Initialize Choices on categorias (if available)
-                  if (window.Choices) {
-                    const catSelect = document.getElementById('categorias');
-                    if (catSelect && !catSelect.classList.contains('choices-initialized')) {
-                      new Choices(catSelect, {
-                        removeItemButton: true,
-                        delimiter: ',',
-                        editItems: false,
-                        maxItemCount: 10,
-                        duplicateItemsAllowed: false
-                      });
-                      catSelect.classList.add('choices-initialized');
-                    }
-                  }
-
-                  // Try to style existing inputs immediately and observe future clones
-                  function processAll() {
-                    document.querySelectorAll('#expertModal .choices__input, #expertModal .choices__input--cloned, input[placeholder="Selecciona categorías"], input[aria-label="Selecciona categorías"]').forEach(applyInputFix);
-                    document.querySelectorAll('#expertModal .choices__list--dropdown, #expertModal .choices__list--dropdown .choices__item').forEach(function (el) {
-                      try {
-                        el.style.setProperty('background', getComputedStyle(document.documentElement).getPropertyValue('--admin-card-bg') || '#121212', 'important');
-                        el.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
-                        el.style.setProperty('border-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-border-color') || '#333', 'important');
-                      } catch (e) { }
-                    });
-
-                    document.querySelectorAll('#expertModal .choices__inner').forEach(function (inner) {
-                      try {
-                        if (inner.querySelector('.choices__list--multiple')) inner.classList.add('no-icon');
-                        else inner.classList.remove('no-icon');
-                      } catch (e) { }
-                    });
-                  }
-
-                  processAll();
-                  var attempts = 0;
-                  var id = setInterval(function () { processAll(); attempts++; if (attempts > 20) clearInterval(id); }, 150);
-                  var mo = new MutationObserver(function () { processAll(); });
-                  mo.observe(document.body, { childList: true, subtree: true });
-                });
-              </script>
-              <script>
-                // Diagnóstico: registra en consola la estructura y estilos computados del botón remove
-                (function () {
-                  function diag() {
-                    try {
-                      var btns = document.querySelectorAll('#expertModal .choices__button');
-                      if (!btns || btns.length === 0) {
-                        console.info('[diag] No se encontraron .choices__button dentro de #expertModal');
-                        return;
-                      }
-                      btns.forEach(function (b, i) {
-                        console.info('[diag] choices__button #' + i + ':', b.outerHTML);
-                        var cs = window.getComputedStyle(b);
-                        console.info('[diag] computed (button):', {
-                          display: cs.display,
-                          visibility: cs.visibility,
-                          color: cs.color,
-                          background: cs.backgroundColor || cs['background-color'],
-                          overflow: cs.overflow,
-                          zIndex: cs.zIndex
-                        });
-                        var pa = window.getComputedStyle(b, '::after');
-                        console.info('[diag] computed (::after):', {
-                          content: pa.content,
-                          color: pa.color,
-                          display: pa.display,
-                          visibility: pa.visibility,
-                          zIndex: pa.zIndex,
-                          fontSize: pa.fontSize
-                        });
-                        var pb = window.getComputedStyle(b, '::before');
-                        console.info('[diag] computed (::before):', {
-                          content: pb.content,
-                          color: pb.color
-                        });
-                      });
-                    } catch (e) {
-                      console.error('[diag] error:', e);
-                    }
-                  }
-                  document.addEventListener('DOMContentLoaded', function () {
-                    setTimeout(diag, 600);
-                    // también vuelve a correr cuando se detecta interacción que puede abrir el modal
-                    document.body.addEventListener('click', function (ev) {
-                      if (ev.target.closest('#expertModal') || ev.target.closest('.btn-close')) setTimeout(diag, 300);
-                    }, true);
-                  });
-                })();
-              </script>
-              <small class="modal-expert__hint">Selecciona una o varias categorías (Ctrl/Cmd+click)</small>
-            </div>
-
-            <!-- Habilidades (full width) -->
-            <div class="full-width">
-              <label class="modal-expert__label" for="skills">
-                <i class="fas fa-tools modal-expert__icon" aria-hidden="true"></i>
-                Habilidades
-              </label>
-              <select id="skills" class="modal-expert__input" multiple size="6">
-                <% if (typeof habilidades !=='undefined' && Array.isArray(habilidades) && habilidades.length> 0) { %>
-                  <% habilidades.forEach(function(h) { %>
-                    <% const val=(h && (h.nombre || h.name || h.label)) ? (h.nombre || h.name || h.label) : (h && h._id
-                      ? String(h._id) : '' ); %>
-                      <% if (val) { %>
-                        <option value="<%= val %>">
-                          <%= val %>
-                        </option>
-                        <% } %>
-                          <% }); %>
-                            <% } %>
-              </select>
-              <script>
-                document.addEventListener('DOMContentLoaded', function () {
-                  if (window.Choices) {
-                    const skillsSelect = document.getElementById('skills');
-                    if (skillsSelect && !skillsSelect.classList.contains('choices-initialized')) {
-                      new Choices(skillsSelect, {
-                        removeItemButton: true,
-                        delimiter: ',',
-                        editItems: false,
-                        maxItemCount: 10,
-                        duplicateItemsAllowed: false
-                      });
-                      skillsSelect.classList.add('choices-initialized');
-                    }
-                  }
-                });
-              </script>
-              <small class="modal-expert__hint">Selecciona o escribe para añadir nuevas habilidades</small>
-            </div>
-
-            <!-- Biografía -->
-            <div class="full-width">
-              <label class="modal-expert__label" for="bio">
-                <i class="fas fa-file-alt modal-expert__icon" aria-hidden="true"></i>
-                Biografía profesional
-              </label>
-              <textarea id="bio" rows="4" placeholder="Descripción breve de experiencia y especialización"
-                class="modal-expert__input modal-expert__textarea"></textarea>
-            </div>
-
-            <!-- Imagen de perfil -->
-            <div class="full-width">
-              <label class="modal-expert__label" for="profileImage">
-                <i class="fas fa-image modal-expert__icon" aria-hidden="true"></i>
-                Imagen de perfil
-              </label>
-
-              <div class="modal-expert__upload-wrapper">
-                <!-- hidden but accessible -->
-                <input type="file" id="profileImage" class="modal-expert__file-input"
-                  aria-label="Seleccionar imagen de perfil" accept="image/*" />
-
-                <!-- visual upload box (acts as label) -->
-                <label for="profileImage" class="modal-expert__upload-box" role="button" aria-haspopup="dialog">
-                  <i class="fas fa-upload" aria-hidden="true"></i>
-                  <span id="uploadLabel">Seleccionar imagen (png, jpg) · Máx 2MB</span>
+              <!-- Precio por hora (columna) -->
+              <div>
+                <label for="precio" class="modal-expert__label">
+                  <i class="fas fa-money-bill-wave modal-expert__icon" aria-hidden="true" title="Precio"></i>
+                  Precio por hora (COP)
+                  <span class="price-tooltip icon-tooltip" title="Ejemplo recomendado: $30.000 - $200.000 COP"
+                    style="margin-left:.5rem;">
+                    <i class="fas fa-info-circle"></i>
+                  </span>
                 </label>
 
-                <!-- preview thumbnail -->
-                <div id="profilePreview" aria-hidden="true" role="img" aria-label="Vista previa de imagen">
-                  <button id="removeProfileBtn" type="button" title="Eliminar imagen" aria-label="Eliminar imagen"
-                    style="display:none;">
-                    <i class="fas fa-times"></i>
-                  </button>
-                  <img src="" alt="Preview" />
+                <div class="srv-price-input price-input">
+                  <span class="srv-currency currency-symbol">$</span>
+                  <input type="number" id="precio" name="precio" min="10000" step="100" required placeholder="Ej: 50000"
+                    class="srv-input price-field" />
+                </div>
+                <p class="srv-note price-note">
+                  Tarifa por hora de asesoría (Recomendado: $30.000 - $200.000 COP)
+                </p>
+                <div id="precio-feedback" class="srv-feedback price-feedback" aria-live="polite"></div>
+              </div>
+
+              <!-- Días disponibles (columna) -->
+              <div>
+                <label for="diasDisponibles" class="modal-expert__label">
+                  <i class="fas fa-calendar-alt modal-expert__icon" aria-hidden="true"></i>
+                  Días disponibles
+                </label>
+
+                <div class="srv-days-wrapper">
+                  <div class="srv-days">
+                    <button type="button" class="srv-day" data-day="Lunes" aria-pressed="false">L</button>
+                    <button type="button" class="srv-day" data-day="Martes" aria-pressed="false">M</button>
+                    <button type="button" class="srv-day" data-day="Miércoles" aria-pressed="false">X</button>
+                    <button type="button" class="srv-day" data-day="Jueves" aria-pressed="false">J</button>
+                    <button type="button" class="srv-day" data-day="Viernes" aria-pressed="false">V</button>
+                    <button type="button" class="srv-day" data-day="Sábado" aria-pressed="false">S</button>
+                    <button type="button" class="srv-day" data-day="Domingo" aria-pressed="false">D</button>
+                  </div>
+
+                  <div class="srv-days-display">
+                    Ningún día seleccionado
+                  </div>
                 </div>
 
-                <div class="upload-meta" id="uploadMeta" aria-live="polite" style="display:none;"></div>
-                <div class="upload-error" id="profileImageError" role="alert" style="display:none;"></div>
+                <input type="hidden" id="diasDisponibles" name="diasDisponibles" />
+              </div>
+
+              <!-- Especialidad principal -->
+              <div>
+                <label class="modal-expert__label" for="specialty">
+                  <i class="fas fa-briefcase modal-expert__icon" aria-hidden="true"></i>
+                  Especialidad principal
+                </label>
+                <div class="input-with-icon">
+                  <select id="specialty" class="modal-expert__input modal-expert__select"
+                    aria-label="Especialidad principal">
+                    <option value="">Seleccionar especialidad</option>
+                    <option value="web">Desarrollo Web</option>
+                    <option value="mobile">Desarrollo Móvil</option>
+                    <option value="data">Ciencia de Datos</option>
+                    <option value="uxui">UX/UI</option>
+                    <option value="devops">DevOps</option>
+                    <option value="blockchain">Blockchain</option>
+                    <option value="cloud">Cloud Computing</option>
+                  </select>
+                </div>
+                <small class="modal-expert__hint">Selecciona la especialidad principal que describe mejor al
+                  experto</small>
+              </div>
+
+              <!-- Estado -->
+              <div>
+                <label class="modal-expert__label" for="status">
+                  <i class="fas fa-toggle-on modal-expert__icon" aria-hidden="true"></i>
+                  Estado
+                </label>
+                <div class="input-with-icon">
+                  <select id="status" class="modal-expert__input modal-expert__select" aria-label="Estado del experto">
+                    <option value="active">Activo</option>
+                    <option value="pending">Pendiente</option>
+                    <option value="inactive">Inactivo</option>
+                  </select>
+                </div>
+                <small class="modal-expert__hint">Define si el experto puede recibir solicitudes</small>
+              </div>
+
+              <!-- Categorías (full width) -->
+              <div class="full-width">
+                <label class="modal-expert__label" for="edit_categorias">
+                  <i class="fas fa-tags modal-expert__icon" aria-hidden="true"></i>
+                  Categorías
+                </label>
+                <select id="edit_categorias" class="modal-expert__input modal-expert__select-categorias" multiple
+                  size="4" aria-label="Categorías">
+                  <% if (typeof categorias !=='undefined' && Array.isArray(categorias) && categorias.length> 0) { %>
+                    <% categorias.forEach(function(c) { %>
+                      <% const catId=(c && c._id) ? String(c._id) : (c && (c.nombre || c.name || c.label) ? (c.nombre ||
+                        c.name || c.label) : '' ); %>
+                        <% const catLabel=(c && (c.nombre || c.name || c.label)) ? (c.nombre || c.name || c.label) :
+                          catId; %>
+                          <% if (catId) { %>
+                            <option value="<%= catId %>">
+                              <%= catLabel %>
+                            </option>
+                            <% } %>
+                              <% }); %>
+                                <% } %>
+                </select>
+
+                <script>
+                  // Initialize Choices and force visual fixes for the created/cloned input
+                  document.addEventListener('DOMContentLoaded', function () {
+                    function applyInputFix(el) {
+                      if (!el || el.dataset.__stylingApplied) return;
+                      try {
+                        el.style.setProperty('background', 'transparent', 'important');
+                        el.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
+                        el.style.setProperty('-webkit-text-fill-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
+                        el.style.setProperty('caret-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-accent-color') || '#5e81ff', 'important');
+                        el.style.setProperty('border', 'none', 'important');
+                        el.style.setProperty('outline', 'none', 'important');
+                        el.style.setProperty('width', 'auto', 'important');
+                        el.style.setProperty('min-width', '22ch', 'important');
+                        el.style.setProperty('font-family', 'inherit', 'important');
+                        el.style.setProperty('padding-left', '42px', 'important');
+                        el.dataset.__stylingApplied = '1';
+                      } catch (e) { }
+                    }
+
+                    // Initialize Choices on categorias (if available)
+                    if (window.Choices) {
+                      const catSelect = document.getElementById('categorias');
+                      if (catSelect && !catSelect.classList.contains('choices-initialized')) {
+                        new Choices(catSelect, {
+                          removeItemButton: true,
+                          delimiter: ',',
+                          editItems: false,
+                          maxItemCount: 10,
+                          duplicateItemsAllowed: false
+                        });
+                        catSelect.classList.add('choices-initialized');
+                      }
+                    }
+
+                    // Try to style existing inputs immediately and observe future clones
+                    function processAll() {
+                      document.querySelectorAll('#expertModal .choices__input, #expertModal .choices__input--cloned, input[placeholder="Selecciona categorías"], input[aria-label="Selecciona categorías"]').forEach(applyInputFix);
+                      document.querySelectorAll('#expertModal .choices__list--dropdown, #expertModal .choices__list--dropdown .choices__item').forEach(function (el) {
+                        try {
+                          el.style.setProperty('background', getComputedStyle(document.documentElement).getPropertyValue('--admin-card-bg') || '#121212', 'important');
+                          el.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
+                          el.style.setProperty('border-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-border-color') || '#333', 'important');
+                        } catch (e) { }
+                      });
+
+                      document.querySelectorAll('#expertModal .choices__inner').forEach(function (inner) {
+                        try {
+                          if (inner.querySelector('.choices__list--multiple')) inner.classList.add('no-icon');
+                          else inner.classList.remove('no-icon');
+                        } catch (e) { }
+                      });
+                    }
+
+                    processAll();
+                    var attempts = 0;
+                    var id = setInterval(function () { processAll(); attempts++; if (attempts > 20) clearInterval(id); }, 150);
+                    var mo = new MutationObserver(function () { processAll(); });
+                    mo.observe(document.body, { childList: true, subtree: true });
+                  });
+                </script>
+                <script>
+                  // Diagnóstico: registra en consola la estructura y estilos computados del botón remove
+                  (function () {
+                    function diag() {
+                      try {
+                        var btns = document.querySelectorAll('#expertModal .choices__button');
+                        if (!btns || btns.length === 0) {
+                          console.info('[diag] No se encontraron .choices__button dentro de #expertModal');
+                          return;
+                        }
+                        btns.forEach(function (b, i) {
+                          console.info('[diag] choices__button #' + i + ':', b.outerHTML);
+                          var cs = window.getComputedStyle(b);
+                          console.info('[diag] computed (button):', {
+                            display: cs.display,
+                            visibility: cs.visibility,
+                            color: cs.color,
+                            background: cs.backgroundColor || cs['background-color'],
+                            overflow: cs.overflow,
+                            zIndex: cs.zIndex
+                          });
+                          var pa = window.getComputedStyle(b, '::after');
+                          console.info('[diag] computed (::after):', {
+                            content: pa.content,
+                            color: pa.color,
+                            display: pa.display,
+                            visibility: pa.visibility,
+                            zIndex: pa.zIndex,
+                            fontSize: pa.fontSize
+                          });
+                          var pb = window.getComputedStyle(b, '::before');
+                          console.info('[diag] computed (::before):', {
+                            content: pb.content,
+                            color: pb.color
+                          });
+                        });
+                      } catch (e) {
+                        console.error('[diag] error:', e);
+                      }
+                    }
+                    document.addEventListener('DOMContentLoaded', function () {
+                      setTimeout(diag, 600);
+                      // también vuelve a correr cuando se detecta interacción que puede abrir el modal
+                      document.body.addEventListener('click', function (ev) {
+                        if (ev.target.closest('#expertModal') || ev.target.closest('.btn-close')) setTimeout(diag, 300);
+                      }, true);
+                    });
+                  })();
+                </script>
+                <small class="modal-expert__hint">Selecciona una o varias categorías (Ctrl/Cmd+click)</small>
+              </div>
+
+              <!-- Habilidades (full width) -->
+              <div class="full-width">
+                <label class="modal-expert__label" for="skills">
+                  <i class="fas fa-tools modal-expert__icon" aria-hidden="true"></i>
+                  Habilidades
+                </label>
+                <select id="skills" class="modal-expert__input" multiple size="6">
+                  <% if (typeof habilidades !=='undefined' && Array.isArray(habilidades) && habilidades.length> 0) { %>
+                    <% habilidades.forEach(function(h) { %>
+                      <% const val=(h && (h.nombre || h.name || h.label)) ? (h.nombre || h.name || h.label) : (h &&
+                        h._id ? String(h._id) : '' ); %>
+                        <% if (val) { %>
+                          <option value="<%= val %>">
+                            <%= val %>
+                          </option>
+                          <% } %>
+                            <% }); %>
+                              <% } %>
+                </select>
+                <script>
+                  document.addEventListener('DOMContentLoaded', function () {
+                    if (window.Choices) {
+                      const skillsSelect = document.getElementById('skills');
+                      if (skillsSelect && !skillsSelect.classList.contains('choices-initialized')) {
+                        new Choices(skillsSelect, {
+                          removeItemButton: true,
+                          delimiter: ',',
+                          editItems: false,
+                          maxItemCount: 10,
+                          duplicateItemsAllowed: false
+                        });
+                        skillsSelect.classList.add('choices-initialized');
+                      }
+                    }
+                  });
+                </script>
+                <small class="modal-expert__hint">Selecciona o escribe para añadir nuevas habilidades</small>
+              </div>
+
+              <!-- Biografía -->
+              <div class="full-width">
+                <label class="modal-expert__label" for="bio">
+                  <i class="fas fa-file-alt modal-expert__icon" aria-hidden="true"></i>
+                  Biografía profesional
+                </label>
+                <textarea id="bio" rows="4" placeholder="Descripción breve de experiencia y especialización"
+                  class="modal-expert__input modal-expert__textarea"></textarea>
+              </div>
+
+              <!-- Imagen de perfil -->
+              <div class="full-width">
+                <label class="modal-expert__label" for="profileImage">
+                  <i class="fas fa-image modal-expert__icon" aria-hidden="true"></i>
+                  Imagen de perfil
+                </label>
+
+                <div class="modal-expert__upload-wrapper">
+                  <!-- hidden but accessible -->
+                  <input type="file" id="profileImage" class="modal-expert__file-input"
+                    aria-label="Seleccionar imagen de perfil" accept="image/*" />
+
+                  <!-- visual upload box (acts as label) -->
+                  <label for="profileImage" class="modal-expert__upload-box" role="button" aria-haspopup="dialog">
+                    <i class="fas fa-upload" aria-hidden="true"></i>
+                    <span id="uploadLabel">Seleccionar imagen (png, jpg) · Máx 2MB</span>
+                  </label>
+
+                  <!-- preview thumbnail -->
+                  <div id="profilePreview" aria-hidden="true" role="img" aria-label="Vista previa de imagen">
+                    <button id="removeProfileBtn" type="button" title="Eliminar imagen" aria-label="Eliminar imagen"
+                      style="display:none;">
+                      <i class="fas fa-times"></i>
+                    </button>
+                    <img src="" alt="Preview" />
+                  </div>
+
+                  <div class="upload-meta" id="uploadMeta" aria-live="polite" style="display:none;"></div>
+                  <div class="upload-error" id="profileImageError" role="alert" style="display:none;"></div>
+                </div>
+              </div>
+
+              <!-- Espacio reservado para mantener la columna alineada -->
+              <div aria-hidden="true"></div>
+
+              <!-- Sección bancaria (tarjeta de ancho completo) -->
+              <div class="full-width">
+                <div class="bank-section">
+                  <h3 class="bank-title">
+                    <i class="fas fa-university"></i> Datos Bancarios para Pagos
+                  </h3>
+                  <p class="bank-sub">Información necesaria para recibir pagos por tus asesorías</p>
+
+                  <div class="bank-grid">
+                    <div>
+                      <label for="banco">Banco *</label>
+                      <div id="banco-wrapper">
+                        <select id="banco" name="banco" required class="modal-expert__input">
+                          <option value="">Selecciona tu banco</option>
+                          <option value="Banco de Bogotá">Banco de Bogotá</option>
+                          <option value="Bancolombia">Bancolombia</option>
+                          <option value="Banco Popular">Banco Popular</option>
+                          <option value="Banco AV Villas">Banco AV Villas</option>
+                          <option value="Banco Caja Social">Banco Caja Social</option>
+                          <option value="Banco de Occidente">Banco de Occidente</option>
+                          <option value="Banco GNB Sudameris">Banco GNB Sudameris</option>
+                          <option value="Banco Itaú">Banco Itaú</option>
+                          <option value="Banco Pichincha">Banco Pichincha</option>
+                          <option value="Banco Santander">Banco Santander</option>
+                          <option value="Banco Scotiabank Colpatria">Banco Scotiabank Colpatria</option>
+                          <option value="Davivienda">Davivienda</option>
+                          <option value="Banco Agrario">Banco Agrario</option>
+                          <option value="Banco Falabella">Banco Falabella</option>
+                          <option value="Banco Finandina">Banco Finandina</option>
+                          <option value="Banco W">Banco W</option>
+                          <option value="Banco Serfinanza">Banco Serfinanza</option>
+                          <option value="Banco Cooperativo Coopcentral">Banco Cooperativo Coopcentral</option>
+                          <option value="Banco BBVA">Banco BBVA</option>
+                          <option value="Nequi">Nequi</option>
+                          <option value="Daviplata">Daviplata</option>
+                          <option value="Movii">Movii</option>
+                          <option value="Banco de Vivienda">Banco de Vivienda</option>
+                          <option value="Banco ProCredit">Banco ProCredit</option>
+                          <option value="Banco Multibank">Banco Multibank</option>
+                          <option value="Banco Coopcentral">Banco Coopcentral</option>
+                          <option value="Banco Credifinanciera">Banco Credifinanciera</option>
+                          <option value="Banco Mundo Mujer">Banco Mundo Mujer</option>
+                          <option value="Banco Ripley">Banco Ripley</option>
+                          <option value="Banco CrediScotia">Banco CrediScotia</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label for="tipoCuenta">Tipo de cuenta *</label>
+                      <div id="tipoCuenta-wrapper">
+                        <select id="tipoCuenta" name="tipoCuenta" required class="modal-expert__input">
+                          <option value="">Selecciona el tipo</option>
+                          <option value="Cuenta de Ahorros">Cuenta de Ahorros</option>
+                          <option value="Cuenta Corriente">Cuenta Corriente</option>
+                          <option value="Cuenta de Nómina">Cuenta de Nómina</option>
+                          <option value="Cuenta Digital">Cuenta Digital</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label for="numeroCuenta">Número de cuenta *</label>
+                      <div class="acct-wrap">
+                        <input type="password" id="numeroCuenta" name="numeroCuenta" required
+                          placeholder="Número de cuenta" pattern="[0-9\-]*" title="Solo números y guiones"
+                          class="acct-input">
+                        <button type="button" id="toggleAccountNumber" class="acct-toggle"
+                          aria-label="Mostrar número de cuenta">
+                          <i class="fas fa-eye"></i>
+                        </button>
+                      </div>
+                      <p class="hint">Número completo de tu cuenta</p>
+                    </div>
+
+                    <div>
+                      <label for="titular">Titular de la cuenta *</label>
+                      <input type="text" id="titular" name="titular" required placeholder="Nombre completo del titular"
+                        class="modal-expert__input">
+                      <p class="hint">Debe coincidir con el nombre en la cuenta</p>
+                    </div>
+
+                    <div>
+                      <label for="tipoDocumento">Tipo de documento *</label>
+                      <div id="tipoDocumento-wrapper">
+                        <select id="tipoDocumento" name="tipoDocumento" required class="modal-expert__input">
+                          <option value="">Selecciona el tipo</option>
+                          <option value="Cédula de Ciudadanía">Cédula de Ciudadanía</option>
+                          <option value="Cédula de Extranjería">Cédula de Extranjería</option>
+                          <option value="Pasaporte">Pasaporte</option>
+                          <option value="NIT">NIT (Persona Jurídica)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label for="numeroDocumento">Número de documento *</label>
+                      <input type="text" id="numeroDocumento" name="numeroDocumento" required
+                        placeholder="Número de identificación" pattern="[0-9\-]*" class="modal-expert__input">
+                      <p class="hint">Documento del titular</p>
+                    </div>
+
+                    <div class="full-width">
+                      <label for="telefonoContacto">Teléfono de contacto</label>
+                      <input type="tel" id="telefonoContacto" name="telefonoContacto" placeholder="+57 300 123 4567"
+                        class="modal-expert__input">
+                      <p class="hint">Opcional: Teléfono para contacto sobre pagos</p>
+                    </div>
+                  </div>
+
+                  <div class="info-box info-sm">
+                    <div class="info-header">
+                      <i class="fas fa-info-circle"></i>
+                      <strong>Información importante sobre pagos</strong>
+                    </div>
+                    <ul class="info-list">
+                      <li><i class="fas fa-check"></i> Los pagos se procesan cada 15 días</li>
+                      <li><i class="fas fa-check"></i> Se requiere verificación de cuenta</li>
+                      <li><i class="fas fa-check"></i> Datos editables desde tu perfil</li>
+                      <li><i class="fas fa-check"></i> Seguridad garantizada</li>
+                    </ul>
+                  </div>
+                </div>
               </div>
             </div>
+          </form>
+        </div>
 
-            <!-- Espacio reservado para mantener la columna alineada -->
-            <div aria-hidden="true"></div>
-
-            <!-- Sección bancaria (tarjeta de ancho completo) -->
-            <div class="full-width">
-              <div class="bank-section">
-                <h3 class="bank-title">
-                  <i class="fas fa-university"></i> Datos Bancarios para Pagos
-                </h3>
-                <p class="bank-sub">Información necesaria para recibir pagos por tus asesorías</p>
-
-                <div class="bank-grid">
-                  <div>
-                    <label for="banco">Banco *</label>
-                    <div id="banco-wrapper">
-                      <select id="banco" name="banco" required class="modal-expert__input">
-                        <option value="">Selecciona tu banco</option>
-                        <option value="Banco de Bogotá">Banco de Bogotá</option>
-                        <option value="Bancolombia">Bancolombia</option>
-                        <option value="Banco Popular">Banco Popular</option>
-                        <option value="Banco AV Villas">Banco AV Villas</option>
-                        <option value="Banco Caja Social">Banco Caja Social</option>
-                        <option value="Banco de Occidente">Banco de Occidente</option>
-                        <option value="Banco GNB Sudameris">Banco GNB Sudameris</option>
-                        <option value="Banco Itaú">Banco Itaú</option>
-                        <option value="Banco Pichincha">Banco Pichincha</option>
-                        <option value="Banco Santander">Banco Santander</option>
-                        <option value="Banco Scotiabank Colpatria">Banco Scotiabank Colpatria</option>
-                        <option value="Davivienda">Davivienda</option>
-                        <option value="Banco Agrario">Banco Agrario</option>
-                        <option value="Banco Falabella">Banco Falabella</option>
-                        <option value="Banco Finandina">Banco Finandina</option>
-                        <option value="Banco W">Banco W</option>
-                        <option value="Banco Serfinanza">Banco Serfinanza</option>
-                        <option value="Banco Cooperativo Coopcentral">Banco Cooperativo Coopcentral</option>
-                        <option value="Banco BBVA">Banco BBVA</option>
-                        <option value="Nequi">Nequi</option>
-                        <option value="Daviplata">Daviplata</option>
-                        <option value="Movii">Movii</option>
-                        <option value="Banco de Vivienda">Banco de Vivienda</option>
-                        <option value="Banco ProCredit">Banco ProCredit</option>
-                        <option value="Banco Multibank">Banco Multibank</option>
-                        <option value="Banco Coopcentral">Banco Coopcentral</option>
-                        <option value="Banco Credifinanciera">Banco Credifinanciera</option>
-                        <option value="Banco Mundo Mujer">Banco Mundo Mujer</option>
-                        <option value="Banco Ripley">Banco Ripley</option>
-                        <option value="Banco CrediScotia">Banco CrediScotia</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label for="tipoCuenta">Tipo de cuenta *</label>
-                    <div id="tipoCuenta-wrapper">
-                      <select id="tipoCuenta" name="tipoCuenta" required class="modal-expert__input">
-                        <option value="">Selecciona el tipo</option>
-                        <option value="Cuenta de Ahorros">Cuenta de Ahorros</option>
-                        <option value="Cuenta Corriente">Cuenta Corriente</option>
-                        <option value="Cuenta de Nómina">Cuenta de Nómina</option>
-                        <option value="Cuenta Digital">Cuenta Digital</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label for="numeroCuenta">Número de cuenta *</label>
-                    <div class="acct-wrap">
-                      <input type="password" id="numeroCuenta" name="numeroCuenta" required
-                        placeholder="Número de cuenta" pattern="[0-9\-]*" title="Solo números y guiones"
-                        class="acct-input">
-                      <button type="button" id="toggleAccountNumber" class="acct-toggle"
-                        aria-label="Mostrar número de cuenta">
-                        <i class="fas fa-eye"></i>
-                      </button>
-                    </div>
-                    <p class="hint">Número completo de tu cuenta</p>
-                  </div>
-
-                  <div>
-                    <label for="titular">Titular de la cuenta *</label>
-                    <input type="text" id="titular" name="titular" required placeholder="Nombre completo del titular"
-                      class="modal-expert__input">
-                    <p class="hint">Debe coincidir con el nombre en la cuenta</p>
-                  </div>
-
-                  <div>
-                    <label for="tipoDocumento">Tipo de documento *</label>
-                    <div id="tipoDocumento-wrapper">
-                      <select id="tipoDocumento" name="tipoDocumento" required class="modal-expert__input">
-                        <option value="">Selecciona el tipo</option>
-                        <option value="Cédula de Ciudadanía">Cédula de Ciudadanía</option>
-                        <option value="Cédula de Extranjería">Cédula de Extranjería</option>
-                        <option value="Pasaporte">Pasaporte</option>
-                        <option value="NIT">NIT (Persona Jurídica)</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label for="numeroDocumento">Número de documento *</label>
-                    <input type="text" id="numeroDocumento" name="numeroDocumento" required
-                      placeholder="Número de identificación" pattern="[0-9\-]*" class="modal-expert__input">
-                    <p class="hint">Documento del titular</p>
-                  </div>
-
-                  <div class="full-width">
-                    <label for="telefonoContacto">Teléfono de contacto</label>
-                    <input type="tel" id="telefonoContacto" name="telefonoContacto" placeholder="+57 300 123 4567"
-                      class="modal-expert__input">
-                    <p class="hint">Opcional: Teléfono para contacto sobre pagos</p>
-                  </div>
-                </div>
-
-                <div class="info-box info-sm">
-                  <div class="info-header">
-                    <i class="fas fa-info-circle"></i>
-                    <strong>Información importante sobre pagos</strong>
-                  </div>
-                  <ul class="info-list">
-                    <li><i class="fas fa-check"></i> Los pagos se procesan cada 15 días</li>
-                    <li><i class="fas fa-check"></i> Se requiere verificación de cuenta</li>
-                    <li><i class="fas fa-check"></i> Datos editables desde tu perfil</li>
-                    <li><i class="fas fa-check"></i> Seguridad garantizada</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        </form>
-      </div>
-
-      <!-- Moved footer inside container so it remains visually part of the modal.
+        <!-- Moved footer inside container so it remains visually part of the modal.
              The container is a column-flex so the body scrolls while footer stays at bottom. -->
-      <div class="modal-expert__footer">
-        <button class="btn-outline" data-dismiss="modal" type="button">Cancelar</button>
-        <button type="button" class="btn-primary" id="saveExpert">Guardar experto</button>
+        <div class="modal-expert__footer">
+          <button class="btn-outline" data-dismiss="modal" type="button">Cancelar</button>
+          <button type="button" class="btn-primary" id="saveExpert">Guardar experto</button>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!--modal ver perfil experto-->
-  <div id="verPerfilExperto" class="modal-expert" style="display:none;">
+    <!--modal ver perfil experto-->
+    <div id="verPerfilExperto" class="modal-expert" style="display:none;">
 
-    <div class="modal-expert__container">
-      <div class="modal-expert__header">
-        <h2 class="modal-expert__title">Perfil del experto</h2>
-        <button class="btn-close" aria-label="Cerrar"><i class="fas fa-times"></i></button>
-      </div>
+      <div class="modal-expert__container">
+        <div class="modal-expert__header">
+          <h2 class="modal-expert__title">Perfil del experto</h2>
+          <button class="btn-close" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+        </div>
 
-      <div class="modal-expert__body">
-        <form id="ver_expertForm">
-          <!-- Layout helper: responsive two-column grid for most rows -->
-          <div class="modal-expert__grid">
+        <div class="modal-expert__body">
+          <form id="ver_expertForm">
+            <!-- Layout helper: responsive two-column grid for most rows -->
+            <div class="modal-expert__grid">
 
-            <!-- Información básica -->
-            <div>
-              <label class="modal-expert__label" for="ver_name">
-                <i class="fas fa-user modal-expert__icon" aria-hidden="true"></i>
-                Nombre completo
-              </label>
-              <input type="text" id="ver_name" placeholder="Nombre y apellidos registrados" class="modal-expert__input"
-                readonly />
-            </div>
-
-            <div>
-              <label class="modal-expert__label" for="ver_email">
-                <i class="fas fa-envelope modal-expert__icon" aria-hidden="true"></i>
-                Email registrado
-              </label>
-              <input type="email" id="ver_email" placeholder="Email de la cuenta" class="modal-expert__input"
-                readonly />
-            </div>
-
-            <!-- Precio por hora (columna) -->
-            <div>
-              <label for="ver_precio" class="modal-expert__label">
-                <i class="fas fa-money-bill-wave modal-expert__icon" aria-hidden="true" title="Precio"></i>
-                Precio por hora (COP)
-                <span class="price-tooltip icon-tooltip" title="Ejemplo recomendado: $30.000 - $200.000 COP"
-                  style="margin-left:.5rem;">
-                  <i class="fas fa-info-circle"></i>
-                </span>
-              </label>
-
-              <div class="srv-price-input price-input">
-                <span class="srv-currency currency-symbol">$</span>
-                <input type="number" id="ver_precio" name="ver_precio" min="10000" step="100" placeholder="Ej: 50000"
-                  class="srv-input price-field" readonly />
-              </div>
-              <p class="srv-note price-note">
-                Tarifa por hora de asesoría (Recomendado: $30.000 - $200.000 COP)
-              </p>
-              <div id="ver_precio-feedback" class="srv-feedback price-feedback" aria-live="polite"></div>
-            </div>
-
-            <!-- Días disponibles (columna) -->
-            <div>
-              <label for="ver_diasDisponibles" class="modal-expert__label">
-                <i class="fas fa-calendar-alt modal-expert__icon" aria-hidden="true"></i>
-                Días disponibles
-              </label>
-
-              <div class="srv-days-wrapper">
-                <div class="srv-days">
-                  <button type="button" class="srv-day" data-day="Lunes" aria-pressed="false" disabled>L</button>
-                  <button type="button" class="srv-day" data-day="Martes" aria-pressed="false" disabled>M</button>
-                  <button type="button" class="srv-day" data-day="Miércoles" aria-pressed="false" disabled>X</button>
-                  <button type="button" class="srv-day" data-day="Jueves" aria-pressed="false" disabled>J</button>
-                  <button type="button" class="srv-day" data-day="Viernes" aria-pressed="false" disabled>V</button>
-                  <button type="button" class="srv-day" data-day="Sábado" aria-pressed="false" disabled>S</button>
-                  <button type="button" class="srv-day" data-day="Domingo" aria-pressed="false" disabled>D</button>
-                </div>
-
-                <div class="srv-days-display">
-                  Ningún día seleccionado
-                </div>
+              <!-- Información básica -->
+              <div>
+                <label class="modal-expert__label" for="ver_name">
+                  <i class="fas fa-user modal-expert__icon" aria-hidden="true"></i>
+                  Nombre completo
+                </label>
+                <input type="text" id="ver_name" placeholder="Nombre y apellidos registrados"
+                  class="modal-expert__input" readonly />
               </div>
 
-              <input type="hidden" id="ver_diasDisponibles" name="ver_diasDisponibles" />
-            </div>
-
-            <!-- Especialidad principal -->
-            <div>
-              <label class="modal-expert__label" for="ver_specialty">
-                <i class="fas fa-briefcase modal-expert__icon" aria-hidden="true"></i>
-                Especialidad principal
-              </label>
-              <div class="input-with-icon">
-                <i class="fas fa-briefcase" aria-hidden="true"></i>
-                <select id="ver_specialty" class="modal-expert__input modal-expert__select"
-                  aria-label="Especialidad principal" disabled>
-                  <option value="">Seleccionar especialidad</option>
-                  <option value="web">Desarrollo Web</option>
-                  <option value="mobile">Desarrollo Móvil</option>
-                  <option value="data">Ciencia de Datos</option>
-                  <option value="uxui">UX/UI</option>
-                  <option value="devops">DevOps</option>
-                  <option value="blockchain">Blockchain</option>
-                  <option value="cloud">Cloud Computing</option>
-                </select>
-                <i class="fas fa-chevron-down" aria-hidden="true"></i>
+              <div>
+                <label class="modal-expert__label" for="ver_email">
+                  <i class="fas fa-envelope modal-expert__icon" aria-hidden="true"></i>
+                  Email registrado
+                </label>
+                <input type="email" id="ver_email" placeholder="Email de la cuenta" class="modal-expert__input"
+                  readonly />
               </div>
-              <small class="modal-expert__hint">Selecciona la especialidad principal que describe mejor al
-                experto</small>
-            </div>
 
-            <!-- Estado -->
-            <div>
-              <label class="modal-expert__label" for="ver_status">
-                <i class="fas fa-toggle-on modal-expert__icon" aria-hidden="true"></i>
-                Estado
-              </label>
-              <div class="input-with-icon">
-                <i class="fas fa-toggle-on" aria-hidden="true"></i>
-                <select id="ver_status" class="modal-expert__input modal-expert__select" aria-label="Estado del experto"
-                  disabled>
-                  <option value="active">Activo</option>
-                  <option value="pending">Pendiente</option>
-                  <option value="inactive">Inactivo</option>
-                </select>
-                <i class="fas fa-chevron-down" aria-hidden="true"></i>
-              </div>
-              <small class="modal-expert__hint">Define si el experto puede recibir solicitudes</small>
-            </div>
-
-            <!-- Categorías (full width) -->
-            <div class="full-width">
-              <label class="modal-expert__label" for="ver_categorias">
-                <i class="fas fa-tags modal-expert__icon" aria-hidden="true"></i>
-                Categorías
-              </label>
-              <select id="ver_categorias" class="modal-expert__input modal-expert__select-categorias" multiple size="4"
-                aria-label="Categorías" disabled>
-                <!-- opciones añadidas dinámicamente -->
-              </select>
-
-              <script>
-                // Initialize Choices and force visual fixes for the created/cloned input
-                document.addEventListener('DOMContentLoaded', function () {
-                  function applyInputFix(el) {
-                    if (!el || el.dataset.__stylingApplied) return;
-                    try {
-                      el.style.setProperty('background', 'transparent', 'important');
-                      el.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
-                      el.style.setProperty('-webkit-text-fill-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
-                      el.style.setProperty('caret-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-accent-color') || '#5e81ff', 'important');
-                      el.style.setProperty('border', 'none', 'important');
-                      el.style.setProperty('outline', 'none', 'important');
-                      el.style.setProperty('width', 'auto', 'important');
-                      el.style.setProperty('min-width', '22ch', 'important');
-                      el.style.setProperty('font-family', 'inherit', 'important');
-                      el.style.setProperty('padding-left', '42px', 'important');
-                      el.dataset.__stylingApplied = '1';
-                    } catch (e) { }
-                  }
-
-                  // Initialize Choices on categorias (if available)
-                  if (window.Choices) {
-                    const catSelect = document.getElementById('categorias');
-                    if (catSelect && !catSelect.classList.contains('choices-initialized')) {
-                      new Choices(catSelect, {
-                        removeItemButton: true,
-                        delimiter: ',',
-                        editItems: false,
-                        maxItemCount: 10,
-                        duplicateItemsAllowed: false
-                      });
-                      catSelect.classList.add('choices-initialized');
-                    }
-                  }
-
-                  // Try to style existing inputs immediately and observe future clones
-                  function processAll() {
-                    document.querySelectorAll('#expertModal .choices__input, #expertModal .choices__input--cloned, input[placeholder="Selecciona categorías"], input[aria-label="Selecciona categorías"]').forEach(applyInputFix);
-                    document.querySelectorAll('#expertModal .choices__list--dropdown, #expertModal .choices__list--dropdown .choices__item').forEach(function (el) {
-                      try {
-                        el.style.setProperty('background', getComputedStyle(document.documentElement).getPropertyValue('--admin-card-bg') || '#121212', 'important');
-                        el.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
-                        el.style.setProperty('border-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-border-color') || '#333', 'important');
-                      } catch (e) { }
-                    });
-
-                    document.querySelectorAll('#expertModal .choices__inner').forEach(function (inner) {
-                      try {
-                        if (inner.querySelector('.choices__list--multiple')) inner.classList.add('no-icon');
-                        else inner.classList.remove('no-icon');
-                      } catch (e) { }
-                    });
-                  }
-
-                  processAll();
-                  var attempts = 0;
-                  var id = setInterval(function () { processAll(); attempts++; if (attempts > 20) clearInterval(id); }, 150);
-                  var mo = new MutationObserver(function () { processAll(); });
-                  mo.observe(document.body, { childList: true, subtree: true });
-                });
-              </script>
-              <script>
-                // Diagnóstico: registra en consola la estructura y estilos computados del botón remove
-                (function () {
-                  function diag() {
-                    try {
-                      var btns = document.querySelectorAll('#expertModal .choices__button');
-                      if (!btns || btns.length === 0) {
-                        console.info('[diag] No se encontraron .choices__button dentro de #expertModal');
-                        return;
-                      }
-                      btns.forEach(function (b, i) {
-                        console.info('[diag] choices__button #' + i + ':', b.outerHTML);
-                        var cs = window.getComputedStyle(b);
-                        console.info('[diag] computed (button):', {
-                          display: cs.display,
-                          visibility: cs.visibility,
-                          color: cs.color,
-                          background: cs.backgroundColor || cs['background-color'],
-                          overflow: cs.overflow,
-                          zIndex: cs.zIndex
-                        });
-                        var pa = window.getComputedStyle(b, '::after');
-                        console.info('[diag] computed (::after):', {
-                          content: pa.content,
-                          color: pa.color,
-                          display: pa.display,
-                          visibility: pa.visibility,
-                          zIndex: pa.zIndex,
-                          fontSize: pa.fontSize
-                        });
-                        var pb = window.getComputedStyle(b, '::before');
-                        console.info('[diag] computed (::before):', {
-                          content: pb.content,
-                          color: pb.color
-                        });
-                      });
-                    } catch (e) {
-                      console.error('[diag] error:', e);
-                    }
-                  }
-                  document.addEventListener('DOMContentLoaded', function () {
-                    setTimeout(diag, 600);
-                    // también vuelve a correr cuando se detecta interacción que puede abrir el modal
-                    document.body.addEventListener('click', function (ev) {
-                      if (ev.target.closest('#expertModal') || ev.target.closest('.btn-close')) setTimeout(diag, 300);
-                    }, true);
-                  });
-                })();
-              </script>
-              <small class="modal-expert__hint">Selecciona una o varias categorías (Ctrl/Cmd+click)</small>
-            </div>
-
-            <!-- Habilidades (full width) -->
-            <div class="full-width">
-              <label class="modal-expert__label" for="skills">
-                <i class="fas fa-tools modal-expert__icon" aria-hidden="true"></i>
-                Habilidades
-              </label>
-              <select id="skills" class="modal-expert__input" multiple size="6">
-                <% if (typeof habilidades !=='undefined' && Array.isArray(habilidades) && habilidades.length> 0) { %>
-                  <% habilidades.forEach(function(h) { %>
-                    <% const val=(h && (h.nombre || h.name || h.label)) ? (h.nombre || h.name || h.label) : (h && h._id
-                      ? String(h._id) : '' ); %>
-                      <% if (val) { %>
-                        <option value="<%= val %>">
-                          <%= val %>
-                        </option>
-                        <% } %>
-                          <% }); %>
-                            <% } %>
-              </select>
-              <script>
-                document.addEventListener('DOMContentLoaded', function () {
-                  if (window.Choices) {
-                    const skillsSelect = document.getElementById('skills');
-                    if (skillsSelect && !skillsSelect.classList.contains('choices-initialized')) {
-                      new Choices(skillsSelect, {
-                        removeItemButton: true,
-                        delimiter: ',',
-                        editItems: false,
-                        maxItemCount: 10,
-                        duplicateItemsAllowed: false
-                      });
-                      skillsSelect.classList.add('choices-initialized');
-                    }
-                  }
-                });
-              </script>
-              <small class="modal-expert__hint">Selecciona o escribe para añadir nuevas habilidades</small>
-            </div>
-
-            <!-- Biografía -->
-            <div class="full-width">
-              <label class="modal-expert__label" for="bio">
-                <i class="fas fa-file-alt modal-expert__icon" aria-hidden="true"></i>
-                Biografía profesional
-              </label>
-              <textarea id="bio" rows="4" placeholder="Descripción breve de experiencia y especialización"
-                class="modal-expert__input modal-expert__textarea"></textarea>
-            </div>
-
-            <!-- Imagen de perfil -->
-            <div class="full-width">
-              <label class="modal-expert__label" for="profileImage">
-                <i class="fas fa-image modal-expert__icon" aria-hidden="true"></i>
-                Imagen de perfil
-              </label>
-
-              <div class="modal-expert__upload-wrapper">
-                <!-- hidden but accessible -->
-                <input type="file" id="profileImage" class="modal-expert__file-input"
-                  aria-label="Seleccionar imagen de perfil" accept="image/*" />
-
-                <!-- visual upload box (acts as label) -->
-                <label for="profileImage" class="modal-expert__upload-box" role="button" aria-haspopup="dialog">
-                  <i class="fas fa-upload" aria-hidden="true"></i>
-                  <span id="uploadLabel">Seleccionar imagen (png, jpg) · Máx 2MB</span>
+              <!-- Precio por hora (columna) -->
+              <div>
+                <label for="ver_precio" class="modal-expert__label">
+                  <i class="fas fa-money-bill-wave modal-expert__icon" aria-hidden="true" title="Precio"></i>
+                  Precio por hora (COP)
+                  <span class="price-tooltip icon-tooltip" title="Ejemplo recomendado: $30.000 - $200.000 COP"
+                    style="margin-left:.5rem;">
+                    <i class="fas fa-info-circle"></i>
+                  </span>
                 </label>
 
-                <!-- preview thumbnail -->
-                <div id="profilePreview" aria-hidden="true" role="img" aria-label="Vista previa de imagen">
-                  <button id="removeProfileBtn" type="button" title="Eliminar imagen" aria-label="Eliminar imagen"
-                    style="display:none;">
-                    <i class="fas fa-times"></i>
-                  </button>
-                  <img src="" alt="Preview" />
+                <div class="srv-price-input price-input">
+                  <span class="srv-currency currency-symbol">$</span>
+                  <input type="number" id="ver_precio" name="ver_precio" min="10000" step="100" placeholder="Ej: 50000"
+                    class="srv-input price-field" readonly />
+                </div>
+                <p class="srv-note price-note">
+                  Tarifa por hora de asesoría (Recomendado: $30.000 - $200.000 COP)
+                </p>
+                <div id="ver_precio-feedback" class="srv-feedback price-feedback" aria-live="polite"></div>
+              </div>
+
+              <!-- Días disponibles (columna) -->
+              <div>
+                <label for="ver_diasDisponibles" class="modal-expert__label">
+                  <i class="fas fa-calendar-alt modal-expert__icon" aria-hidden="true"></i>
+                  Días disponibles
+                </label>
+
+                <div class="srv-days-wrapper">
+                  <div class="srv-days">
+                    <button type="button" class="srv-day" data-day="Lunes" aria-pressed="false" disabled>L</button>
+                    <button type="button" class="srv-day" data-day="Martes" aria-pressed="false" disabled>M</button>
+                    <button type="button" class="srv-day" data-day="Miércoles" aria-pressed="false" disabled>X</button>
+                    <button type="button" class="srv-day" data-day="Jueves" aria-pressed="false" disabled>J</button>
+                    <button type="button" class="srv-day" data-day="Viernes" aria-pressed="false" disabled>V</button>
+                    <button type="button" class="srv-day" data-day="Sábado" aria-pressed="false" disabled>S</button>
+                    <button type="button" class="srv-day" data-day="Domingo" aria-pressed="false" disabled>D</button>
+                  </div>
+
+                  <div class="srv-days-display">
+                    Ningún día seleccionado
+                  </div>
                 </div>
 
-                <div class="upload-meta" id="uploadMeta" aria-live="polite" style="display:none;"></div>
-                <div class="upload-error" id="profileImageError" role="alert" style="display:none;"></div>
+                <input type="hidden" id="ver_diasDisponibles" name="ver_diasDisponibles" />
+              </div>
+
+              <!-- Especialidad principal -->
+              <div>
+                <label class="modal-expert__label" for="ver_specialty">
+                  <i class="fas fa-briefcase modal-expert__icon" aria-hidden="true"></i>
+                  Especialidad principal
+                </label>
+                <div class="input-with-icon">
+                  <select id="ver_specialty" class="modal-expert__input modal-expert__select"
+                    aria-label="Especialidad principal" disabled>
+                    <option value="">Seleccionar especialidad</option>
+                    <option value="web">Desarrollo Web</option>
+                    <option value="mobile">Desarrollo Móvil</option>
+                    <option value="data">Ciencia de Datos</option>
+                    <option value="uxui">UX/UI</option>
+                    <option value="devops">DevOps</option>
+                    <option value="blockchain">Blockchain</option>
+                    <option value="cloud">Cloud Computing</option>
+                  </select>
+                </div>
+                <small class="modal-expert__hint">Selecciona la especialidad principal que describe mejor al
+                  experto</small>
+              </div>
+
+              <!-- Estado -->
+              <div>
+                <label class="modal-expert__label" for="ver_status">
+                  <i class="fas fa-toggle-on modal-expert__icon" aria-hidden="true"></i>
+                  Estado
+                </label>
+                <div class="input-with-icon">
+                  <select id="ver_status" class="modal-expert__input modal-expert__select"
+                    aria-label="Estado del experto" disabled>
+                    <option value="active">Activo</option>
+                    <option value="pending">Pendiente</option>
+                    <option value="inactive">Inactivo</option>
+                  </select>
+                </div>
+                <small class="modal-expert__hint">Define si el experto puede recibir solicitudes</small>
+              </div>
+
+              <!-- Categorías (full width) -->
+              <div class="full-width">
+                <label class="modal-expert__label" for="ver_categorias">
+                  <i class="fas fa-tags modal-expert__icon" aria-hidden="true"></i>
+                  Categorías
+                </label>
+                <select id="ver_categorias" class="modal-expert__input modal-expert__select-categorias" multiple
+                  size="4" aria-label="Categorías" disabled>
+                  <% if (typeof categorias !=='undefined' && Array.isArray(categorias) && categorias.length> 0) { %>
+                    <% categorias.forEach(function(c) { %>
+                      <% const catId=(c && c._id) ? String(c._id) : (c && (c.nombre || c.name || c.label) ? (c.nombre ||
+                        c.name || c.label) : '' ); %>
+                        <% const catLabel=(c && (c.nombre || c.name || c.label)) ? (c.nombre || c.name || c.label) :
+                          catId; %>
+                          <% if (catId) { %>
+                            <option value="<%= catId %>">
+                              <%= catLabel %>
+                            </option>
+                            <% } %>
+                              <% }); %>
+                                <% } %>
+                </select>
+
+                <script>
+                  // Initialize Choices and force visual fixes for the created/cloned input
+                  document.addEventListener('DOMContentLoaded', function () {
+                    function applyInputFix(el) {
+                      if (!el || el.dataset.__stylingApplied) return;
+                      try {
+                        el.style.setProperty('background', 'transparent', 'important');
+                        el.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
+                        el.style.setProperty('-webkit-text-fill-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
+                        el.style.setProperty('caret-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-accent-color') || '#5e81ff', 'important');
+                        el.style.setProperty('border', 'none', 'important');
+                        el.style.setProperty('outline', 'none', 'important');
+                        el.style.setProperty('width', 'auto', 'important');
+                        el.style.setProperty('min-width', '22ch', 'important');
+                        el.style.setProperty('font-family', 'inherit', 'important');
+                        el.style.setProperty('padding-left', '42px', 'important');
+                        el.dataset.__stylingApplied = '1';
+                      } catch (e) { }
+                    }
+
+                    // Initialize Choices on categorias (if available)
+                    if (window.Choices) {
+                      const catSelect = document.getElementById('categorias');
+                      if (catSelect && !catSelect.classList.contains('choices-initialized')) {
+                        new Choices(catSelect, {
+                          removeItemButton: true,
+                          delimiter: ',',
+                          editItems: false,
+                          maxItemCount: 10,
+                          duplicateItemsAllowed: false
+                        });
+                        catSelect.classList.add('choices-initialized');
+                      }
+                    }
+
+                    // Try to style existing inputs immediately and observe future clones
+                    function processAll() {
+                      document.querySelectorAll('#expertModal .choices__input, #expertModal .choices__input--cloned, input[placeholder="Selecciona categorías"], input[aria-label="Selecciona categorías"]').forEach(applyInputFix);
+                      document.querySelectorAll('#expertModal .choices__list--dropdown, #expertModal .choices__list--dropdown .choices__item').forEach(function (el) {
+                        try {
+                          el.style.setProperty('background', getComputedStyle(document.documentElement).getPropertyValue('--admin-card-bg') || '#121212', 'important');
+                          el.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
+                          el.style.setProperty('border-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-border-color') || '#333', 'important');
+                        } catch (e) { }
+                      });
+
+                      document.querySelectorAll('#expertModal .choices__inner').forEach(function (inner) {
+                        try {
+                          if (inner.querySelector('.choices__list--multiple')) inner.classList.add('no-icon');
+                          else inner.classList.remove('no-icon');
+                        } catch (e) { }
+                      });
+                    }
+
+                    processAll();
+                    var attempts = 0;
+                    var id = setInterval(function () { processAll(); attempts++; if (attempts > 20) clearInterval(id); }, 150);
+                    var mo = new MutationObserver(function () { processAll(); });
+                    mo.observe(document.body, { childList: true, subtree: true });
+                  });
+                </script>
+                <script>
+                  // Diagnóstico: registra en consola la estructura y estilos computados del botón remove
+                  (function () {
+                    function diag() {
+                      try {
+                        var btns = document.querySelectorAll('#expertModal .choices__button');
+                        if (!btns || btns.length === 0) {
+                          console.info('[diag] No se encontraron .choices__button dentro de #expertModal');
+                          return;
+                        }
+                        btns.forEach(function (b, i) {
+                          console.info('[diag] choices__button #' + i + ':', b.outerHTML);
+                          var cs = window.getComputedStyle(b);
+                          console.info('[diag] computed (button):', {
+                            display: cs.display,
+                            visibility: cs.visibility,
+                            color: cs.color,
+                            background: cs.backgroundColor || cs['background-color'],
+                            overflow: cs.overflow,
+                            zIndex: cs.zIndex
+                          });
+                          var pa = window.getComputedStyle(b, '::after');
+                          console.info('[diag] computed (::after):', {
+                            content: pa.content,
+                            color: pa.color,
+                            display: pa.display,
+                            visibility: pa.visibility,
+                            zIndex: pa.zIndex,
+                            fontSize: pa.fontSize
+                          });
+                          var pb = window.getComputedStyle(b, '::before');
+                          console.info('[diag] computed (::before):', {
+                            content: pb.content,
+                            color: pb.color
+                          });
+                        });
+                      } catch (e) {
+                        console.error('[diag] error:', e);
+                      }
+                    }
+                    document.addEventListener('DOMContentLoaded', function () {
+                      setTimeout(diag, 600);
+                      // también vuelve a correr cuando se detecta interacción que puede abrir el modal
+                      document.body.addEventListener('click', function (ev) {
+                        if (ev.target.closest('#expertModal') || ev.target.closest('.btn-close')) setTimeout(diag, 300);
+                      }, true);
+                    });
+                  })();
+                </script>
+                <small class="modal-expert__hint">Selecciona una o varias categorías (Ctrl/Cmd+click)</small>
+              </div>
+
+              <!-- Habilidades (full width) -->
+              <div class="full-width">
+                <label class="modal-expert__label" for="skills">
+                  <i class="fas fa-tools modal-expert__icon" aria-hidden="true"></i>
+                  Habilidades
+                </label>
+                <select id="skills" class="modal-expert__input" multiple size="6">
+                  <% if (typeof habilidades !=='undefined' && Array.isArray(habilidades) && habilidades.length> 0) { %>
+                    <% habilidades.forEach(function(h) { %>
+                      <% const val=(h && (h.nombre || h.name || h.label)) ? (h.nombre || h.name || h.label) : (h &&
+                        h._id ? String(h._id) : '' ); %>
+                        <% if (val) { %>
+                          <option value="<%= val %>">
+                            <%= val %>
+                          </option>
+                          <% } %>
+                            <% }); %>
+                              <% } %>
+                </select>
+                <script>
+                  document.addEventListener('DOMContentLoaded', function () {
+                    if (window.Choices) {
+                      const skillsSelect = document.getElementById('skills');
+                      if (skillsSelect && !skillsSelect.classList.contains('choices-initialized')) {
+                        new Choices(skillsSelect, {
+                          removeItemButton: true,
+                          delimiter: ',',
+                          editItems: false,
+                          maxItemCount: 10,
+                          duplicateItemsAllowed: false
+                        });
+                        skillsSelect.classList.add('choices-initialized');
+                      }
+                    }
+                  });
+                </script>
+                <small class="modal-expert__hint">Selecciona o escribe para añadir nuevas habilidades</small>
+              </div>
+
+              <!-- Biografía -->
+              <div class="full-width">
+                <label class="modal-expert__label" for="bio">
+                  <i class="fas fa-file-alt modal-expert__icon" aria-hidden="true"></i>
+                  Biografía profesional
+                </label>
+                <textarea id="bio" rows="4" placeholder="Descripción breve de experiencia y especialización"
+                  class="modal-expert__input modal-expert__textarea"></textarea>
+              </div>
+
+              <!-- Imagen de perfil -->
+              <div class="full-width">
+                <label class="modal-expert__label" for="profileImage">
+                  <i class="fas fa-image modal-expert__icon" aria-hidden="true"></i>
+                  Imagen de perfil
+                </label>
+
+                <div class="modal-expert__upload-wrapper">
+                  <!-- hidden but accessible -->
+                  <input type="file" id="profileImage" class="modal-expert__file-input"
+                    aria-label="Seleccionar imagen de perfil" accept="image/*" />
+
+                  <!-- visual upload box (acts as label) -->
+                  <label for="profileImage" class="modal-expert__upload-box" role="button" aria-haspopup="dialog">
+                    <i class="fas fa-upload" aria-hidden="true"></i>
+                    <span id="uploadLabel">Seleccionar imagen (png, jpg) · Máx 2MB</span>
+                  </label>
+
+                  <!-- preview thumbnail -->
+                  <div id="profilePreview" aria-hidden="true" role="img" aria-label="Vista previa de imagen">
+                    <button id="removeProfileBtn" type="button" title="Eliminar imagen" aria-label="Eliminar imagen"
+                      style="display:none;">
+                      <i class="fas fa-times"></i>
+                    </button>
+                    <img src="" alt="Preview" />
+                  </div>
+
+                  <div class="upload-meta" id="uploadMeta" aria-live="polite" style="display:none;"></div>
+                  <div class="upload-error" id="profileImageError" role="alert" style="display:none;"></div>
+                </div>
+              </div>
+
+              <!-- Espacio reservado para mantener la columna alineada -->
+              <div aria-hidden="true"></div>
+
+              <!-- Sección bancaria (tarjeta de ancho completo) -->
+              <div class="full-width">
+                <div class="bank-section">
+                  <h3 class="bank-title">
+                    <i class="fas fa-university"></i> Datos Bancarios para Pagos
+                  </h3>
+                  <p class="bank-sub">Información necesaria para recibir pagos por tus asesorías</p>
+
+                  <div class="bank-grid">
+                    <div>
+                      <label for="banco">Banco *</label>
+                      <div id="banco-wrapper">
+                        <select id="banco" name="banco" required class="modal-expert__input">
+                          <option value="">Selecciona tu banco</option>
+                          <option value="Banco de Bogotá">Banco de Bogotá</option>
+                          <option value="Bancolombia">Bancolombia</option>
+                          <option value="Banco Popular">Banco Popular</option>
+                          <option value="Banco AV Villas">Banco AV Villas</option>
+                          <option value="Banco Caja Social">Banco Caja Social</option>
+                          <option value="Banco de Occidente">Banco de Occidente</option>
+                          <option value="Banco GNB Sudameris">Banco GNB Sudameris</option>
+                          <option value="Banco Itaú">Banco Itaú</option>
+                          <option value="Banco Pichincha">Banco Pichincha</option>
+                          <option value="Banco Santander">Banco Santander</option>
+                          <option value="Banco Scotiabank Colpatria">Banco Scotiabank Colpatria</option>
+                          <option value="Davivienda">Davivienda</option>
+                          <option value="Banco Agrario">Banco Agrario</option>
+                          <option value="Banco Falabella">Banco Falabella</option>
+                          <option value="Banco Finandina">Banco Finandina</option>
+                          <option value="Banco W">Banco W</option>
+                          <option value="Banco Serfinanza">Banco Serfinanza</option>
+                          <option value="Banco Cooperativo Coopcentral">Banco Cooperativo Coopcentral</option>
+                          <option value="Banco BBVA">Banco BBVA</option>
+                          <option value="Nequi">Nequi</option>
+                          <option value="Daviplata">Daviplata</option>
+                          <option value="Movii">Movii</option>
+                          <option value="Banco de Vivienda">Banco de Vivienda</option>
+                          <option value="Banco ProCredit">Banco ProCredit</option>
+                          <option value="Banco Multibank">Banco Multibank</option>
+                          <option value="Banco Coopcentral">Banco Coopcentral</option>
+                          <option value="Banco Credifinanciera">Banco Credifinanciera</option>
+                          <option value="Banco Mundo Mujer">Banco Mundo Mujer</option>
+                          <option value="Banco Ripley">Banco Ripley</option>
+                          <option value="Banco CrediScotia">Banco CrediScotia</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label for="tipoCuenta">Tipo de cuenta *</label>
+                      <div id="tipoCuenta-wrapper">
+                        <select id="tipoCuenta" name="tipoCuenta" required class="modal-expert__input">
+                          <option value="">Selecciona el tipo</option>
+                          <option value="Cuenta de Ahorros">Cuenta de Ahorros</option>
+                          <option value="Cuenta Corriente">Cuenta Corriente</option>
+                          <option value="Cuenta de Nómina">Cuenta de Nómina</option>
+                          <option value="Cuenta Digital">Cuenta Digital</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label for="numeroCuenta">Número de cuenta *</label>
+                      <div class="acct-wrap">
+                        <input type="password" id="numeroCuenta" name="numeroCuenta" required
+                          placeholder="Número de cuenta" pattern="[0-9\-]*" title="Solo números y guiones"
+                          class="acct-input">
+                        <button type="button" id="toggleAccountNumber" class="acct-toggle"
+                          aria-label="Mostrar número de cuenta">
+                          <i class="fas fa-eye"></i>
+                        </button>
+                      </div>
+                      <p class="hint">Número completo de tu cuenta</p>
+                    </div>
+
+                    <div>
+                      <label for="titular">Titular de la cuenta *</label>
+                      <input type="text" id="titular" name="titular" required placeholder="Nombre completo del titular"
+                        class="modal-expert__input">
+                      <p class="hint">Debe coincidir con el nombre en la cuenta</p>
+                    </div>
+
+                    <div>
+                      <label for="tipoDocumento">Tipo de documento *</label>
+                      <div id="tipoDocumento-wrapper">
+                        <select id="tipoDocumento" name="tipoDocumento" required class="modal-expert__input">
+                          <option value="">Selecciona el tipo</option>
+                          <option value="Cédula de Ciudadanía">Cédula de Ciudadanía</option>
+                          <option value="Cédula de Extranjería">Cédula de Extranjería</option>
+                          <option value="Pasaporte">Pasaporte</option>
+                          <option value="NIT">NIT (Persona Jurídica)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label for="numeroDocumento">Número de documento *</label>
+                      <input type="text" id="numeroDocumento" name="numeroDocumento" required
+                        placeholder="Número de identificación" pattern="[0-9\-]*" class="modal-expert__input">
+                      <p class="hint">Documento del titular</p>
+                    </div>
+
+                    <div class="full-width">
+                      <label for="telefonoContacto">Teléfono de contacto</label>
+                      <input type="tel" id="telefonoContacto" name="telefonoContacto" placeholder="+57 300 123 4567"
+                        class="modal-expert__input">
+                      <p class="hint">Opcional: Teléfono para contacto sobre pagos</p>
+                    </div>
+                  </div>
+
+                  <div class="info-box info-sm">
+                    <div class="info-header">
+                      <i class="fas fa-info-circle"></i>
+                      <strong>Información importante sobre pagos</strong>
+                    </div>
+                    <ul class="info-list">
+                      <li><i class="fas fa-check"></i> Los pagos se procesan cada 15 días</li>
+                      <li><i class="fas fa-check"></i> Se requiere verificación de cuenta</li>
+                      <li><i class="fas fa-check"></i> Datos editables desde tu perfil</li>
+                      <li><i class="fas fa-check"></i> Seguridad garantizada</li>
+                    </ul>
+                  </div>
+                </div>
               </div>
             </div>
+          </form>
+        </div>
 
-            <!-- Espacio reservado para mantener la columna alineada -->
-            <div aria-hidden="true"></div>
-
-            <!-- Sección bancaria (tarjeta de ancho completo) -->
-            <div class="full-width">
-              <div class="bank-section">
-                <h3 class="bank-title">
-                  <i class="fas fa-university"></i> Datos Bancarios para Pagos
-                </h3>
-                <p class="bank-sub">Información necesaria para recibir pagos por tus asesorías</p>
-
-                <div class="bank-grid">
-                  <div>
-                    <label for="banco">Banco *</label>
-                    <div id="banco-wrapper">
-                      <select id="banco" name="banco" required class="modal-expert__input">
-                        <option value="">Selecciona tu banco</option>
-                        <option value="Banco de Bogotá">Banco de Bogotá</option>
-                        <option value="Bancolombia">Bancolombia</option>
-                        <option value="Banco Popular">Banco Popular</option>
-                        <option value="Banco AV Villas">Banco AV Villas</option>
-                        <option value="Banco Caja Social">Banco Caja Social</option>
-                        <option value="Banco de Occidente">Banco de Occidente</option>
-                        <option value="Banco GNB Sudameris">Banco GNB Sudameris</option>
-                        <option value="Banco Itaú">Banco Itaú</option>
-                        <option value="Banco Pichincha">Banco Pichincha</option>
-                        <option value="Banco Santander">Banco Santander</option>
-                        <option value="Banco Scotiabank Colpatria">Banco Scotiabank Colpatria</option>
-                        <option value="Davivienda">Davivienda</option>
-                        <option value="Banco Agrario">Banco Agrario</option>
-                        <option value="Banco Falabella">Banco Falabella</option>
-                        <option value="Banco Finandina">Banco Finandina</option>
-                        <option value="Banco W">Banco W</option>
-                        <option value="Banco Serfinanza">Banco Serfinanza</option>
-                        <option value="Banco Cooperativo Coopcentral">Banco Cooperativo Coopcentral</option>
-                        <option value="Banco BBVA">Banco BBVA</option>
-                        <option value="Nequi">Nequi</option>
-                        <option value="Daviplata">Daviplata</option>
-                        <option value="Movii">Movii</option>
-                        <option value="Banco de Vivienda">Banco de Vivienda</option>
-                        <option value="Banco ProCredit">Banco ProCredit</option>
-                        <option value="Banco Multibank">Banco Multibank</option>
-                        <option value="Banco Coopcentral">Banco Coopcentral</option>
-                        <option value="Banco Credifinanciera">Banco Credifinanciera</option>
-                        <option value="Banco Mundo Mujer">Banco Mundo Mujer</option>
-                        <option value="Banco Ripley">Banco Ripley</option>
-                        <option value="Banco CrediScotia">Banco CrediScotia</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label for="tipoCuenta">Tipo de cuenta *</label>
-                    <div id="tipoCuenta-wrapper">
-                      <select id="tipoCuenta" name="tipoCuenta" required class="modal-expert__input">
-                        <option value="">Selecciona el tipo</option>
-                        <option value="Cuenta de Ahorros">Cuenta de Ahorros</option>
-                        <option value="Cuenta Corriente">Cuenta Corriente</option>
-                        <option value="Cuenta de Nómina">Cuenta de Nómina</option>
-                        <option value="Cuenta Digital">Cuenta Digital</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label for="numeroCuenta">Número de cuenta *</label>
-                    <div class="acct-wrap">
-                      <input type="password" id="numeroCuenta" name="numeroCuenta" required
-                        placeholder="Número de cuenta" pattern="[0-9\-]*" title="Solo números y guiones"
-                        class="acct-input">
-                      <button type="button" id="toggleAccountNumber" class="acct-toggle"
-                        aria-label="Mostrar número de cuenta">
-                        <i class="fas fa-eye"></i>
-                      </button>
-                    </div>
-                    <p class="hint">Número completo de tu cuenta</p>
-                  </div>
-
-                  <div>
-                    <label for="titular">Titular de la cuenta *</label>
-                    <input type="text" id="titular" name="titular" required placeholder="Nombre completo del titular"
-                      class="modal-expert__input">
-                    <p class="hint">Debe coincidir con el nombre en la cuenta</p>
-                  </div>
-
-                  <div>
-                    <label for="tipoDocumento">Tipo de documento *</label>
-                    <div id="tipoDocumento-wrapper">
-                      <select id="tipoDocumento" name="tipoDocumento" required class="modal-expert__input">
-                        <option value="">Selecciona el tipo</option>
-                        <option value="Cédula de Ciudadanía">Cédula de Ciudadanía</option>
-                        <option value="Cédula de Extranjería">Cédula de Extranjería</option>
-                        <option value="Pasaporte">Pasaporte</option>
-                        <option value="NIT">NIT (Persona Jurídica)</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label for="numeroDocumento">Número de documento *</label>
-                    <input type="text" id="numeroDocumento" name="numeroDocumento" required
-                      placeholder="Número de identificación" pattern="[0-9\-]*" class="modal-expert__input">
-                    <p class="hint">Documento del titular</p>
-                  </div>
-
-                  <div class="full-width">
-                    <label for="telefonoContacto">Teléfono de contacto</label>
-                    <input type="tel" id="telefonoContacto" name="telefonoContacto" placeholder="+57 300 123 4567"
-                      class="modal-expert__input">
-                    <p class="hint">Opcional: Teléfono para contacto sobre pagos</p>
-                  </div>
-                </div>
-
-                <div class="info-box info-sm">
-                  <div class="info-header">
-                    <i class="fas fa-info-circle"></i>
-                    <strong>Información importante sobre pagos</strong>
-                  </div>
-                  <ul class="info-list">
-                    <li><i class="fas fa-check"></i> Los pagos se procesan cada 15 días</li>
-                    <li><i class="fas fa-check"></i> Se requiere verificación de cuenta</li>
-                    <li><i class="fas fa-check"></i> Datos editables desde tu perfil</li>
-                    <li><i class="fas fa-check"></i> Seguridad garantizada</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        </form>
-      </div>
-
-      <!-- Moved footer inside container so it remains visually part of the modal.
+        <!-- Moved footer inside container so it remains visually part of the modal.
                The container is a column-flex so the body scrolls while footer stays at bottom. -->
-      <div class="modal-expert__footer">
-        <button class="btn-outline" data-dismiss="modal" type="button">Cerrar</button>
-        <button type="button" class="btn-primary" id="editExpertFromView">Editar experto</button>
+        <div class="modal-expert__footer">
+          <button class="btn-outline" data-dismiss="modal" type="button">Cerrar</button>
+          <button type="button" class="btn-primary" id="editExpertFromView">Editar experto</button>
+        </div>
       </div>
     </div>
-  </div>
 
-
-  <!-- Modal inactivar experto -->
-  <div id="modalInactivarExperto" class="modal-expert">
-    <div class="modal-expert__content">
-      <div class="modal-expert__header">
-        <h2 class="modal-expert__title">Inactivar experto</h2>
-        <button class="btn-close"><i class="fas fa-times"></i></button>
-      </div>
-      <div class="modal-expert__body">
-        <p id="modalInactivarExpertoNombre" class="modal-expert__nombre-destacado"></p>
-        <p>
-          ¿Está seguro que desea inactivar este usuario?<br />
-          <span class="modal-expert__texto-secundario">
-            El usuario <b>no se eliminará</b> de la base de datos, solo pasará
-            a estado <b>inactivo</b>.
-          </span>
-        </p>
-      </div>
-      <div class="modal-expert__footer">
-        <button type="button" class="btn-outline modal-inactivar-cancelar">
-          Cancelar
-        </button>
-        <button type="button" class="btn-primary modal-inactivar-confirmar">
-          Inactivar
-        </button>
+    <!-- Modal inactivar experto -->
+    <div id="modalInactivarExperto" class="modal-expert">
+      <div class="modal-expert__content">
+        <div class="modal-expert__header">
+          <h2 class="modal-expert__title">Inactivar experto</h2>
+          <button class="btn-close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-expert__body">
+          <p id="modalInactivarExpertoNombre" class="modal-expert__nombre-destacado"></p>
+          <p>
+            ¿Está seguro que desea inactivar este usuario?<br />
+            <span class="modal-expert__texto-secundario">
+              El usuario <b>no se eliminará</b> de la base de datos, solo pasará
+              a estado <b>inactivo</b>.
+            </span>
+          </p>
+        </div>
+        <div class="modal-expert__footer">
+          <button type="button" class="btn-outline modal-inactivar-cancelar">
+            Cancelar
+          </button>
+          <button type="button" class="btn-primary modal-inactivar-confirmar">
+            Inactivar
+          </button>
+        </div>
       </div>
     </div>
-  </div>
 
-
-  <script src="/assets/js/admin/admin-common.js"></script>
-  <script src="/assets/js/admin/admin-expertos.js"></script>
-  <script src="/assets/js/admin/admin-expertos.bootstrap.js"></script>
+    <script src="/assets/js/admin/admin-common.js"></script>
+    <script src="/assets/js/admin/admin-expertos.js"></script>
+    <script src="/assets/js/admin/admin-expertos.bootstrap.js"></script>
 
 </body>
 

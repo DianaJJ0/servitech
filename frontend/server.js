@@ -953,7 +953,7 @@ app.get("/admin/adminExpertos", requireAdmin, async (req, res) => {
     const catRes = await fetch("http://localhost:5020/api/categorias");
     categorias = catRes.ok ? await catRes.json() : [];
   } catch (e) {
-    habilidades = [];
+    categorias = [];
   }
   // Intentar obtener listado inicial de expertos poblados (solo en entorno dev si está permitido)
   try {
@@ -1098,12 +1098,21 @@ app.get("/dev/admin/adminExpertos", async (req, res) => {
   const fetch = (...args) =>
     import("node-fetch").then(({ default: fetch }) => fetch(...args));
   let habilidades = [];
+  let categorias = [];
   let initialExpertos = [];
   try {
     const habRes = await fetch("http://localhost:5020/api/habilidades");
     habilidades = habRes.ok ? await habRes.json() : [];
   } catch (e) {
     habilidades = [];
+  }
+
+  // Obtener categorías para filtros
+  try {
+    const catRes = await fetch("http://localhost:5020/api/categorias");
+    categorias = catRes.ok ? await catRes.json() : [];
+  } catch (e) {
+    categorias = [];
   }
 
   try {
@@ -1186,6 +1195,7 @@ app.get("/dev/admin/adminExpertos", async (req, res) => {
   return res.render("admin/adminExpertos", {
     user: {},
     habilidades,
+    categorias,
     initialExpertos,
   });
 });
