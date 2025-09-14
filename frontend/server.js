@@ -933,6 +933,25 @@ app.get(["/admin", "/admin/"], (req, res) => {
 app.get("/admin/admin", requireAdmin, (req, res) => {
   res.render("admin/admin", { user: req.session.user || {} });
 });
+
+// DEBUG: Ruta temporal para verificar categorías
+app.get("/debug/categorias", async (req, res) => {
+  const fetch = (...args) =>
+    import("node-fetch").then(({ default: fetch }) => fetch(...args));
+
+  let categorias = [];
+  try {
+    const catRes = await fetch("http://localhost:5020/api/categorias");
+    categorias = catRes.ok ? await catRes.json() : [];
+    console.log("DEBUG: Categorías obtenidas:", categorias.length);
+  } catch (e) {
+    console.log("DEBUG: Error obteniendo categorías:", e.message);
+    categorias = [];
+  }
+
+  res.render("debug-categorias", { categorias });
+});
+
 app.get("/admin/adminClientes", requireAdmin, (req, res) => {
   res.render("admin/adminClientes", { user: req.session.user || {} });
 });

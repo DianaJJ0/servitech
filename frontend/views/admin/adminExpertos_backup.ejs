@@ -1113,22 +1113,31 @@
 
     /* Mejor indicación visual para campos múltiples */
     .modal-expert .choices[data-type*="select-multiple"] .choices__inner::before {
-      /* Oculto para un diseño más limpio */
-      content: none !important;
-      display: none !important;
+      content: "Múltiple" !important;
+      position: absolute !important;
+      top: -8px !important;
+      right: 12px !important;
+      background: linear-gradient(135deg, var(--admin-accent-color, #5e81ff), #4f46e5) !important;
+      color: #ffffff !important;
+      font-size: 10px !important;
+      font-weight: 600 !important;
+      padding: 2px 8px !important;
+      border-radius: 8px !important;
+      letter-spacing: 0.5px !important;
+      text-transform: uppercase !important;
+      box-shadow: 0 2px 6px rgba(94, 129, 255, 0.4) !important;
+      z-index: 10 !important;
     }
 
     /* Contenedor de elementos seleccionados - optimizado para múltiple */
     .modal-expert .choices__list--multiple {
       display: flex !important;
       flex-wrap: wrap !important;
-      gap: 0.4rem !important;
+      gap: 0.5rem !important;
       margin: 0 !important;
-      padding: 0.5rem 0.6rem !important;
+      padding: 0 !important;
       max-height: 120px !important;
       overflow-y: auto !important;
-      align-items: flex-start !important;
-      align-content: flex-start !important;
     }
 
     /* Scrollbar para contenedor de seleccionados */
@@ -1144,153 +1153,6 @@
     .modal-expert .choices__list--multiple::-webkit-scrollbar-thumb {
       background: rgba(94, 129, 255, 0.3) !important;
       border-radius: 2px !important;
-    }
-
-    /* Mejorar el contenedor principal cuando hay muchos elementos */
-    .modal-expert .choices__inner {
-      min-height: 46px !important;
-      padding: 0.3rem 0.5rem !important;
-    }
-
-    /* Texto de placeholder cuando está vacío */
-    .modal-expert .choices__placeholder {
-      color: rgba(255, 255, 255, 0.5) !important;
-      font-style: italic !important;
-      margin: 0.5rem 0.6rem !important;
-    }
-
-    /* Campo de input para búsqueda */
-    .modal-expert .choices__input {
-      background: transparent !important;
-      border: none !important;
-      color: var(--admin-text-primary) !important;
-      font-size: 0.9rem !important;
-      padding: 0.4rem 0.6rem !important;
-      margin: 0 !important;
-      min-width: 100px !important;
-      flex-grow: 1 !important;
-    }
-
-    .modal-expert .choices__input::placeholder {
-      color: rgba(255, 255, 255, 0.4) !important;
-    }
-
-    /* Mejorar dropdown de opciones */
-    .modal-expert .choices__list--dropdown {
-      background: var(--admin-card-bg) !important;
-      border: 1px solid var(--admin-border-color) !important;
-      border-radius: 8px !important;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
-      max-height: 200px !important;
-      overflow-y: auto !important;
-      z-index: 1000 !important;
-      margin-top: 2px !important;
-    }
-
-    .modal-expert .choices__list--dropdown .choices__item {
-      padding: 0.7rem 1rem !important;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
-      transition: all 0.2s ease !important;
-      font-size: 0.9rem !important;
-      color: var(--admin-text-primary) !important;
-    }
-
-    .modal-expert .choices__list--dropdown .choices__item:last-child {
-      border-bottom: none !important;
-    }
-
-    .modal-expert .choices__list--dropdown .choices__item:hover,
-    .modal-expert .choices__list--dropdown .choices__item.is-highlighted {
-      background: var(--admin-accent-color) !important;
-      color: #ffffff !important;
-      transform: translateX(2px) !important;
-    }
-
-    .modal-expert .choices__list--dropdown .choices__item[aria-selected="true"] {
-      background: rgba(94, 129, 255, 0.2) !important;
-      color: var(--admin-accent-color) !important;
-      position: relative !important;
-    }
-
-    .modal-expert .choices__list--dropdown .choices__item[aria-selected="true"]::after {
-      content: '✓' !important;
-      position: absolute !important;
-      right: 1rem !important;
-      font-weight: bold !important;
-    }
-
-    /* Animación para el contenedor cuando se abre */
-    .modal-expert .choices[data-type*="select-multiple"].is-open .choices__inner {
-      border-color: var(--admin-accent-color) !important;
-      box-shadow: 0 0 0 2px rgba(94, 129, 255, 0.2) !important;
-    }
-
-    /* Estilos para scrollbar personalizado en el dropdown */
-    .modal-expert .choices__list--dropdown::-webkit-scrollbar {
-      width: 6px !important;
-    }
-
-    .modal-expert .choices__list--dropdown::-webkit-scrollbar-track {
-      background: rgba(0, 0, 0, 0.1) !important;
-      border-radius: 3px !important;
-    }
-
-    .modal-expert .choices__list--dropdown::-webkit-scrollbar-thumb {
-      background: var(--admin-accent-color) !important;
-      border-radius: 3px !important;
-    }
-
-    .modal-expert .choices__list--dropdown::-webkit-scrollbar-thumb:hover {
-      background: rgba(94, 129, 255, 0.8) !important;
-    }
-
-    /* Mensaje cuando no hay opciones */
-    .modal-expert .choices__placeholder {
-      opacity: 0.6 !important;
-      font-style: italic !important;
-    }
-
-    /* Estilos para cuando el dropdown está vacío */
-    .modal-expert .choices__list--dropdown .choices__item--choice.has-no-choices {
-      color: rgba(255, 255, 255, 0.4) !important;
-      font-style: italic !important;
-      pointer-events: none !important;
-    }
-
-    /* Mejora la transición al abrir/cerrar el dropdown */
-    .modal-expert .choices__list--dropdown {
-      opacity: 0 !important;
-      transform: translateY(-10px) !important;
-      transition: all 0.2s ease !important;
-    }
-
-    .modal-expert .choices.is-open .choices__list--dropdown {
-      opacity: 1 !important;
-      transform: translateY(0) !important;
-    }
-
-    /* Estilo para el contador de elementos seleccionados */
-    .modal-expert .field-label-wrapper {
-      position: relative !important;
-    }
-
-    .modal-expert .selection-count {
-      position: absolute !important;
-      right: 0 !important;
-      top: 50% !important;
-      transform: translateY(-50%) !important;
-      background: var(--admin-accent-color) !important;
-      color: white !important;
-      padding: 0.2rem 0.5rem !important;
-      border-radius: 12px !important;
-      font-size: 0.7rem !important;
-      font-weight: bold !important;
-      opacity: 0 !important;
-      transition: opacity 0.3s ease !important;
-    }
-
-    .modal-expert .choices.has-items+.selection-count {
-      opacity: 1 !important;
     }
 
     /* Tags/Chips de elementos seleccionados - DISEÑO MEJORADO PARA MÚLTIPLES */
@@ -1413,23 +1275,19 @@
       background: linear-gradient(135deg, var(--admin-accent-color, #5e81ff), #4f46e5) !important;
       color: #ffffff !important;
       border: none !important;
-      border-radius: 16px !important;
+      border-radius: 20px !important;
       padding: 0.4rem 0.75rem 0.4rem 1rem !important;
-      font-size: 0.8rem !important;
+      font-size: 0.85rem !important;
       font-weight: 500 !important;
       display: inline-flex !important;
       align-items: center !important;
-      gap: 0.4rem !important;
-      margin: 0.2rem 0.3rem 0.2rem 0 !important;
+      gap: 0.5rem !important;
       transition: all 0.2s ease !important;
       box-shadow:
-        0 2px 6px rgba(94, 129, 255, 0.25),
-        inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+        0 2px 8px rgba(94, 129, 255, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
       position: relative !important;
       overflow: hidden !important;
-      max-width: 200px !important;
-      text-overflow: ellipsis !important;
-      white-space: nowrap !important;
     }
 
     .modal-expert .choices__list--multiple .choices__item::before {
@@ -1439,50 +1297,7 @@
       left: 0 !important;
       right: 0 !important;
       bottom: 0 !important;
-      background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.08) 50%, transparent 70%) !important;
-      opacity: 0 !important;
-      transition: opacity 0.3s ease !important;
-    }
-
-    .modal-expert .choices__list--multiple .choices__item:hover::before {
-      opacity: 1 !important;
-    }
-
-    .modal-expert .choices__list--multiple .choices__item:hover {
-      transform: translateY(-1px) !important;
-      box-shadow:
-        0 4px 12px rgba(94, 129, 255, 0.35),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
-    }
-
-    /* Botón de eliminar en los chips */
-    .modal-expert .choices__list--multiple .choices__item .choices__button {
-      background: rgba(255, 255, 255, 0.2) !important;
-      border: none !important;
-      border-radius: 50% !important;
-      color: #ffffff !important;
-      width: 16px !important;
-      height: 16px !important;
-      padding: 0 !important;
-      margin-left: 0.3rem !important;
-      font-size: 10px !important;
-      line-height: 1 !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      transition: all 0.2s ease !important;
-      cursor: pointer !important;
-    }
-
-    .modal-expert .choices__list--multiple .choices__item .choices__button:hover {
-      background: rgba(255, 77, 87, 0.9) !important;
-      transform: scale(1.1) !important;
-    }
-
-    .modal-expert .choices__list--multiple .choices__item .choices__button:before {
-      content: '×' !important;
-      font-size: 12px !important;
-      font-weight: bold !important;
+      background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%) !important;
       transform: translateX(-100%) !important;
       transition: transform 0.6s ease !important;
     }
@@ -1532,59 +1347,6 @@
       margin-top: 0.5rem !important;
       animation: dropdownSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
-
-    /* === MEJORAS ESPECÍFICAS PARA VISIBILIDAD DEL DROPDOWN === */
-    .modal-expert .choices__list--dropdown {
-      background: var(--admin-bg-secondary, #1a1d29) !important;
-      border: 1px solid rgba(94, 129, 255, 0.3) !important;
-      border-radius: 12px !important;
-      box-shadow:
-        0 10px 40px rgba(0, 0, 0, 0.5),
-        0 2px 16px rgba(94, 129, 255, 0.2) !important;
-      backdrop-filter: blur(16px) !important;
-      z-index: 9999 !important;
-      max-height: 300px !important;
-      overflow-y: auto !important;
-    }
-
-    /* Mejorar contraste de opciones */
-    .modal-expert .choices__list--dropdown .choices__item {
-      background: transparent !important;
-      color: var(--admin-text-primary, #ffffff) !important;
-      padding: 0.875rem 1.25rem !important;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-      font-size: 0.925rem !important;
-      font-weight: 500 !important;
-      transition: all 0.15s ease !important;
-      cursor: pointer !important;
-    }
-
-    /* Hover más visible */
-    .modal-expert .choices__list--dropdown .choices__item:hover,
-    .modal-expert .choices__list--dropdown .choices__item.is-highlighted {
-      background: linear-gradient(90deg, rgba(94, 129, 255, 0.25), rgba(94, 129, 255, 0.15)) !important;
-      color: #ffffff !important;
-      transform: translateX(6px) !important;
-      border-left: 3px solid var(--admin-accent-color, #5e81ff) !important;
-    }
-
-    /* Opciones seleccionadas */
-    .modal-expert .choices__list--dropdown .choices__item[aria-selected="true"] {
-      background: linear-gradient(90deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.1)) !important;
-      color: #ffffff !important;
-      border-left: 3px solid #22c55e !important;
-    }
-
-    .modal-expert .choices__list--dropdown .choices__item[aria-selected="true"]::after {
-      content: "✓" !important;
-      position: absolute !important;
-      right: 1.25rem !important;
-      color: #22c55e !important;
-      font-weight: bold !important;
-      font-size: 1rem !important;
-    }
-
-    /* === FIN MEJORAS DROPDOWN === */
 
     @keyframes dropdownSlideIn {
       from {
@@ -1806,89 +1568,6 @@
       white-space: nowrap;
       z-index: 1000;
     }
-
-    /* CSS ESPECÍFICO PARA HABILIDADES - Asegurar que se vean igual que las categorías */
-    .modal-expert__select-habilidades {
-      position: relative !important;
-    }
-
-    /* Forzar el estilo de Choices.js en habilidades */
-    .modal-expert .modal-expert__select-habilidades:not(.choices-initialized) {
-      /* Mientras no esté inicializado con Choices.js, mantenerlo usable */
-      opacity: 1 !important;
-      pointer-events: auto !important;
-    }
-
-    /* Al estar inicializado con Choices, ocultar el select nativo */
-    .modal-expert select.choices-initialized,
-    .modal-expert .modal-expert__select-habilidades.choices-initialized,
-    .modal-expert .modal-expert__select-categorias.choices-initialized {
-      display: none !important;
-      opacity: 0 !important;
-      pointer-events: none !important;
-    }
-
-    /* Asegurar que el contenedor Choices tome todo el ancho */
-    .modal-expert .choices {
-      width: 100% !important;
-      margin-top: 0 !important;
-    }
-
-    /* Aplicar el mismo CSS de Choices.js a ambos tipos */
-    .modal-expert [data-select="habilidades"] .choices__inner,
-    .modal-expert [data-select="categorias"] .choices__inner,
-    .modal-expert #habilidades+.choices .choices__inner,
-    .modal-expert #categorias+.choices .choices__inner,
-    .modal-expert #skills+.choices .choices__inner,
-    .modal-expert #edit_categorias+.choices .choices__inner,
-    .modal-expert #ver_habilidades+.choices .choices__inner,
-    .modal-expert #ver_categorias+.choices .choices__inner {
-      background: var(--admin-card-bg) !important;
-      border: 1px solid var(--admin-border-color) !important;
-      color: var(--admin-text-primary) !important;
-      border-radius: 8px !important;
-      min-height: 44px !important;
-      padding: 8px 12px !important;
-    }
-
-    /* CSS adicional para mejorar la apariencia mientras se carga Choices.js */
-    .modal-expert__select-habilidades option {
-      background: var(--admin-card-bg) !important;
-      color: var(--admin-text-primary) !important;
-      padding: 8px 12px !important;
-    }
-
-    .modal-expert__select-habilidades:focus {
-      outline: 2px solid var(--admin-accent-color) !important;
-      outline-offset: 2px !important;
-    }
-
-    /* Estilo temporal mientras Choices.js se inicializa */
-    .modal-expert__select-habilidades:not(.choices-initialized) {
-      background: var(--admin-card-bg) !important;
-      border: 1px solid var(--admin-border-color) !important;
-      color: var(--admin-text-primary) !important;
-      border-radius: 8px !important;
-      padding: 8px 12px !important;
-      min-height: 44px !important;
-      font-size: 14px !important;
-    }
-
-    /* Tooltip fuera del bloque anterior */
-    .modal-expert .icon-tooltip:hover::after {
-      content: attr(title);
-      position: absolute;
-      bottom: 100%;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.8);
-      color: white;
-      padding: 0.5rem;
-      border-radius: 4px;
-      font-size: 0.8rem;
-      white-space: nowrap;
-      z-index: 1000;
-    }
   </style>
 
   <!-- Modal para agregar experto -->
@@ -1910,8 +1589,7 @@
                 <i class="fas fa-user modal-expert__icon" aria-hidden="true"></i>
                 Nombre completo
               </label>
-              <input type="text" id="add_name" placeholder="Nombre y apellidos registrados"
-                class="modal-expert__input" />
+              <input type="text" id="add_name" placeholder="Nombre y apellidos registrados" class="modal-expert__input" />
             </div>
 
             <div>
@@ -2011,48 +1689,149 @@
 
             <!-- Categorías (full width) -->
             <div class="full-width">
-              <label class="modal-expert__label" for="categorias">
+              <label class="modal-expert__label" for="edit_categorias">
                 <i class="fas fa-tags modal-expert__icon" aria-hidden="true"></i>
                 Categorías
               </label>
-              <select id="categorias" class="modal-expert__input modal-expert__select-categorias" multiple size="4"
+              <select id="edit_categorias" class="modal-expert__input modal-expert__select-categorias" multiple size="4"
                 aria-label="Categorías">
-                <!-- DEBUG: Verificación de categorías -->
-                <!-- Tipo categorias: <%= typeof categorias %> -->
-                <!-- Es array: <%= Array.isArray(categorias) %> -->
-                <!-- Cantidad: <%= (categorias && categorias.length) || 'N/A' %> -->
                 <% if (typeof categorias !=='undefined' && Array.isArray(categorias) && categorias.length> 0) { %>
-                  <!-- Categorías encontradas: <%= categorias.length %> -->
-                  <% categorias.forEach(function(c, index) { %>
+                  <% categorias.forEach(function(c) { %>
                     <% const catId=(c && c._id) ? String(c._id) : (c && (c.nombre || c.name || c.label) ? (c.nombre ||
                       c.name || c.label) : '' ); %>
                       <% const catLabel=(c && (c.nombre || c.name || c.label)) ? (c.nombre || c.name || c.label) :
                         catId; %>
-                        <!-- Debug cat <%= index %>: id="<%= catId %>", label="<%= catLabel %>" -->
                         <% if (catId) { %>
                           <option value="<%= catId %>">
                             <%= catLabel %>
                           </option>
                           <% } %>
                             <% }); %>
-                              <% } else { %>
-                                <!-- Debug: No hay categorías. Tipo: <%= typeof categorias %>, Array: <%= Array.isArray(categorias) %>, Length: <%= (categorias && categorias.length) || 'N/A' %> -->
-                                <option disabled>No hay categorías disponibles</option>
-                                <% } %>
+                              <% } %>
               </select>
 
+              <script>
+                // Initialize Choices and force visual fixes for the created/cloned input
+                document.addEventListener('DOMContentLoaded', function () {
+                  function applyInputFix(el) {
+                    if (!el || el.dataset.__stylingApplied) return;
+                    try {
+                      el.style.setProperty('background', 'transparent', 'important');
+                      el.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
+                      el.style.setProperty('-webkit-text-fill-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
+                      el.style.setProperty('caret-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-accent-color') || '#5e81ff', 'important');
+                      el.style.setProperty('border', 'none', 'important');
+                      el.style.setProperty('outline', 'none', 'important');
+                      el.style.setProperty('width', 'auto', 'important');
+                      el.style.setProperty('min-width', '22ch', 'important');
+                      el.style.setProperty('font-family', 'inherit', 'important');
+                      el.style.setProperty('padding-left', '42px', 'important');
+                      el.dataset.__stylingApplied = '1';
+                    } catch (e) { }
+                  }
+
+                  // Initialize Choices on categorias (if available)
+                  if (window.Choices) {
+                    const catSelect = document.getElementById('categorias');
+                    if (catSelect && !catSelect.classList.contains('choices-initialized')) {
+                      new Choices(catSelect, {
+                        removeItemButton: true,
+                        delimiter: ',',
+                        editItems: false,
+                        maxItemCount: 10,
+                        duplicateItemsAllowed: false
+                      });
+                      catSelect.classList.add('choices-initialized');
+                    }
+                  }
+
+                  // Try to style existing inputs immediately and observe future clones
+                  function processAll() {
+                    document.querySelectorAll('#expertModal .choices__input, #expertModal .choices__input--cloned, input[placeholder="Selecciona categorías"], input[aria-label="Selecciona categorías"]').forEach(applyInputFix);
+                    document.querySelectorAll('#expertModal .choices__list--dropdown, #expertModal .choices__list--dropdown .choices__item').forEach(function (el) {
+                      try {
+                        el.style.setProperty('background', getComputedStyle(document.documentElement).getPropertyValue('--admin-card-bg') || '#121212', 'important');
+                        el.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
+                        el.style.setProperty('border-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-border-color') || '#333', 'important');
+                      } catch (e) { }
+                    });
+
+                    document.querySelectorAll('#expertModal .choices__inner').forEach(function (inner) {
+                      try {
+                        if (inner.querySelector('.choices__list--multiple')) inner.classList.add('no-icon');
+                        else inner.classList.remove('no-icon');
+                      } catch (e) { }
+                    });
+                  }
+
+                  processAll();
+                  var attempts = 0;
+                  var id = setInterval(function () { processAll(); attempts++; if (attempts > 20) clearInterval(id); }, 150);
+                  var mo = new MutationObserver(function () { processAll(); });
+                  mo.observe(document.body, { childList: true, subtree: true });
+                });
+              </script>
+              <script>
+                // Diagnóstico: registra en consola la estructura y estilos computados del botón remove
+                (function () {
+                  function diag() {
+                    try {
+                      var btns = document.querySelectorAll('#expertModal .choices__button');
+                      if (!btns || btns.length === 0) {
+                        console.info('[diag] No se encontraron .choices__button dentro de #expertModal');
+                        return;
+                      }
+                      btns.forEach(function (b, i) {
+                        console.info('[diag] choices__button #' + i + ':', b.outerHTML);
+                        var cs = window.getComputedStyle(b);
+                        console.info('[diag] computed (button):', {
+                          display: cs.display,
+                          visibility: cs.visibility,
+                          color: cs.color,
+                          background: cs.backgroundColor || cs['background-color'],
+                          overflow: cs.overflow,
+                          zIndex: cs.zIndex
+                        });
+                        var pa = window.getComputedStyle(b, '::after');
+                        console.info('[diag] computed (::after):', {
+                          content: pa.content,
+                          color: pa.color,
+                          display: pa.display,
+                          visibility: pa.visibility,
+                          zIndex: pa.zIndex,
+                          fontSize: pa.fontSize
+                        });
+                        var pb = window.getComputedStyle(b, '::before');
+                        console.info('[diag] computed (::before):', {
+                          content: pb.content,
+                          color: pb.color
+                        });
+                      });
+                    } catch (e) {
+                      console.error('[diag] error:', e);
+                    }
+                  }
+                  document.addEventListener('DOMContentLoaded', function () {
+                    setTimeout(diag, 600);
+                    // también vuelve a correr cuando se detecta interacción que puede abrir el modal
+                    document.body.addEventListener('click', function (ev) {
+                      if (ev.target.closest('#expertModal') || ev.target.closest('.btn-close')) setTimeout(diag, 300);
+                    }, true);
+                  });
+                })();
+              </script>
               <small class="modal-expert__hint">Selecciona una o varias categorías (Ctrl/Cmd+click)</small>
             </div>
 
             <!-- Habilidades (full width) -->
             <div class="full-width">
-              <label class="modal-expert__label" for="habilidades">
+              <label class="modal-expert__label" for="skills">
                 <i class="fas fa-tools modal-expert__icon" aria-hidden="true"></i>
                 Habilidades
               </label>
-              <select id="habilidades" class="modal-expert__input modal-expert__select-habilidades" multiple size="6">
+              <select id="skills" class="modal-expert__input" multiple size="6">
                 <% if (typeof habilidades !=='undefined' && Array.isArray(habilidades) && habilidades.length> 0) { %>
-                  <% habilidades.forEach(function(h, idx) { %>
+                  <% habilidades.forEach(function(h) { %>
                     <% const val=(h && (h.nombre || h.name || h.label)) ? (h.nombre || h.name || h.label) : (h && h._id
                       ? String(h._id) : '' ); %>
                       <% if (val) { %>
@@ -2061,11 +1840,25 @@
                         </option>
                         <% } %>
                           <% }); %>
-                            <% } else { %>
-                              <!-- Debug habilidades: tipo=<%= typeof habilidades %>, esArray=<%= Array.isArray(habilidades) %>, cantidad=<%= (habilidades && habilidades.length) || 'N/A' %> -->
-                              <option disabled>No hay habilidades disponibles</option>
-                              <% } %>
+                            <% } %>
               </select>
+              <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                  if (window.Choices) {
+                    const skillsSelect = document.getElementById('skills');
+                    if (skillsSelect && !skillsSelect.classList.contains('choices-initialized')) {
+                      new Choices(skillsSelect, {
+                        removeItemButton: true,
+                        delimiter: ',',
+                        editItems: false,
+                        maxItemCount: 10,
+                        duplicateItemsAllowed: false
+                      });
+                      skillsSelect.classList.add('choices-initialized');
+                    }
+                  }
+                });
+              </script>
               <small class="modal-expert__hint">Selecciona o escribe para añadir nuevas habilidades</small>
             </div>
 
@@ -2240,70 +2033,6 @@
             </div>
           </div>
         </form>
-
-        <!-- DEBUG: Botón temporal para testing -->
-        <div style="margin-top: 20px; padding: 10px; background: #333; border-radius: 5px;">
-          <button type="button" onclick="window.forceInitChoices()"
-            style="background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; margin-right: 10px;">
-            🔧 Forzar Init Choices.js
-          </button>
-          <button type="button" onclick="console.log('Window.Choices:', !!window.Choices)"
-            style="background: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 4px; margin-right: 10px;">
-            ✅ Test Choices.js
-          </button>
-          <button type="button" onclick="console.log('Habilidades select:', document.getElementById('habilidades'))"
-            style="background: #ffc107; color: black; border: none; padding: 8px 16px; border-radius: 4px;">
-            📋 Test Elemento
-          </button>
-          <button type="button" onclick="initializeHabilidadesDirectly()"
-            style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 4px; margin-left: 10px;">
-            🚨 Init Habilidades DIRECTO
-          </button>
-        </div>
-
-        <script>
-          // Función de emergencia para inicializar habilidades directamente
-          function initializeHabilidadesDirectly() {
-            console.log('🚨 Inicializando habilidades DIRECTAMENTE...');
-
-            const habilidadesSelect = document.getElementById('habilidades');
-            if (!habilidadesSelect) {
-              console.error('❌ No se encontró el select de habilidades');
-              return;
-            }
-
-            if (!window.Choices) {
-              console.error('❌ Choices.js no está disponible');
-              return;
-            }
-
-            try {
-              // Destruir instancia previa si existe
-              if (habilidadesSelect.choices) {
-                habilidadesSelect.choices.destroy();
-              }
-
-              // Crear nueva instancia
-              const choicesInstance = new Choices(habilidadesSelect, {
-                allowHTML: true,
-                removeItemButton: true,
-                placeholderValue: 'Selecciona habilidades',
-                searchPlaceholderValue: 'Buscar habilidades...',
-                noResultsText: 'No se encontraron resultados',
-                itemSelectText: 'Presiona para seleccionar',
-                duplicateItemsAllowed: false,
-                searchEnabled: true
-              });
-
-              habilidadesSelect.classList.add('choices-initialized');
-              console.log('✅ Habilidades inicializadas DIRECTAMENTE!');
-
-              return choicesInstance;
-            } catch (error) {
-              console.error('❌ Error en inicialización directa:', error);
-            }
-          }
-        </script>
       </div>
 
       <!-- Moved footer inside container so it remains visually part of the modal.
@@ -2456,16 +2185,126 @@
                               <% } %>
               </select>
 
+              <script>
+                // Initialize Choices and force visual fixes for the created/cloned input
+                document.addEventListener('DOMContentLoaded', function () {
+                  function applyInputFix(el) {
+                    if (!el || el.dataset.__stylingApplied) return;
+                    try {
+                      el.style.setProperty('background', 'transparent', 'important');
+                      el.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
+                      el.style.setProperty('-webkit-text-fill-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
+                      el.style.setProperty('caret-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-accent-color') || '#5e81ff', 'important');
+                      el.style.setProperty('border', 'none', 'important');
+                      el.style.setProperty('outline', 'none', 'important');
+                      el.style.setProperty('width', 'auto', 'important');
+                      el.style.setProperty('min-width', '22ch', 'important');
+                      el.style.setProperty('font-family', 'inherit', 'important');
+                      el.style.setProperty('padding-left', '42px', 'important');
+                      el.dataset.__stylingApplied = '1';
+                    } catch (e) { }
+                  }
+
+                  // Initialize Choices on categorias (if available)
+                  if (window.Choices) {
+                    const catSelect = document.getElementById('categorias');
+                    if (catSelect && !catSelect.classList.contains('choices-initialized')) {
+                      new Choices(catSelect, {
+                        removeItemButton: true,
+                        delimiter: ',',
+                        editItems: false,
+                        maxItemCount: 10,
+                        duplicateItemsAllowed: false
+                      });
+                      catSelect.classList.add('choices-initialized');
+                    }
+                  }
+
+                  // Try to style existing inputs immediately and observe future clones
+                  function processAll() {
+                    document.querySelectorAll('#expertModal .choices__input, #expertModal .choices__input--cloned, input[placeholder="Selecciona categorías"], input[aria-label="Selecciona categorías"]').forEach(applyInputFix);
+                    document.querySelectorAll('#expertModal .choices__list--dropdown, #expertModal .choices__list--dropdown .choices__item').forEach(function (el) {
+                      try {
+                        el.style.setProperty('background', getComputedStyle(document.documentElement).getPropertyValue('--admin-card-bg') || '#121212', 'important');
+                        el.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
+                        el.style.setProperty('border-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-border-color') || '#333', 'important');
+                      } catch (e) { }
+                    });
+
+                    document.querySelectorAll('#expertModal .choices__inner').forEach(function (inner) {
+                      try {
+                        if (inner.querySelector('.choices__list--multiple')) inner.classList.add('no-icon');
+                        else inner.classList.remove('no-icon');
+                      } catch (e) { }
+                    });
+                  }
+
+                  processAll();
+                  var attempts = 0;
+                  var id = setInterval(function () { processAll(); attempts++; if (attempts > 20) clearInterval(id); }, 150);
+                  var mo = new MutationObserver(function () { processAll(); });
+                  mo.observe(document.body, { childList: true, subtree: true });
+                });
+              </script>
+              <script>
+                // Diagnóstico: registra en consola la estructura y estilos computados del botón remove
+                (function () {
+                  function diag() {
+                    try {
+                      var btns = document.querySelectorAll('#expertModal .choices__button');
+                      if (!btns || btns.length === 0) {
+                        console.info('[diag] No se encontraron .choices__button dentro de #expertModal');
+                        return;
+                      }
+                      btns.forEach(function (b, i) {
+                        console.info('[diag] choices__button #' + i + ':', b.outerHTML);
+                        var cs = window.getComputedStyle(b);
+                        console.info('[diag] computed (button):', {
+                          display: cs.display,
+                          visibility: cs.visibility,
+                          color: cs.color,
+                          background: cs.backgroundColor || cs['background-color'],
+                          overflow: cs.overflow,
+                          zIndex: cs.zIndex
+                        });
+                        var pa = window.getComputedStyle(b, '::after');
+                        console.info('[diag] computed (::after):', {
+                          content: pa.content,
+                          color: pa.color,
+                          display: pa.display,
+                          visibility: pa.visibility,
+                          zIndex: pa.zIndex,
+                          fontSize: pa.fontSize
+                        });
+                        var pb = window.getComputedStyle(b, '::before');
+                        console.info('[diag] computed (::before):', {
+                          content: pb.content,
+                          color: pb.color
+                        });
+                      });
+                    } catch (e) {
+                      console.error('[diag] error:', e);
+                    }
+                  }
+                  document.addEventListener('DOMContentLoaded', function () {
+                    setTimeout(diag, 600);
+                    // también vuelve a correr cuando se detecta interacción que puede abrir el modal
+                    document.body.addEventListener('click', function (ev) {
+                      if (ev.target.closest('#expertModal') || ev.target.closest('.btn-close')) setTimeout(diag, 300);
+                    }, true);
+                  });
+                })();
+              </script>
               <small class="modal-expert__hint">Selecciona una o varias categorías (Ctrl/Cmd+click)</small>
             </div>
 
             <!-- Habilidades (full width) -->
             <div class="full-width">
-              <label class="modal-expert__label" for="editSkills">
+              <label class="modal-expert__label" for="skills">
                 <i class="fas fa-tools modal-expert__icon" aria-hidden="true"></i>
                 Habilidades
               </label>
-              <select id="editSkills" class="modal-expert__input" multiple size="6">
+              <select id="skills" class="modal-expert__input" multiple size="6">
                 <% if (typeof habilidades !=='undefined' && Array.isArray(habilidades) && habilidades.length> 0) { %>
                   <% habilidades.forEach(function(h) { %>
                     <% const val=(h && (h.nombre || h.name || h.label)) ? (h.nombre || h.name || h.label) : (h && h._id
@@ -2478,6 +2317,23 @@
                           <% }); %>
                             <% } %>
               </select>
+              <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                  if (window.Choices) {
+                    const skillsSelect = document.getElementById('skills');
+                    if (skillsSelect && !skillsSelect.classList.contains('choices-initialized')) {
+                      new Choices(skillsSelect, {
+                        removeItemButton: true,
+                        delimiter: ',',
+                        editItems: false,
+                        maxItemCount: 10,
+                        duplicateItemsAllowed: false
+                      });
+                      skillsSelect.classList.add('choices-initialized');
+                    }
+                  }
+                });
+              </script>
               <small class="modal-expert__hint">Selecciona o escribe para añadir nuevas habilidades</small>
             </div>
 
@@ -2807,16 +2663,126 @@
                               <% } %>
               </select>
 
+              <script>
+                // Initialize Choices and force visual fixes for the created/cloned input
+                document.addEventListener('DOMContentLoaded', function () {
+                  function applyInputFix(el) {
+                    if (!el || el.dataset.__stylingApplied) return;
+                    try {
+                      el.style.setProperty('background', 'transparent', 'important');
+                      el.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
+                      el.style.setProperty('-webkit-text-fill-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
+                      el.style.setProperty('caret-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-accent-color') || '#5e81ff', 'important');
+                      el.style.setProperty('border', 'none', 'important');
+                      el.style.setProperty('outline', 'none', 'important');
+                      el.style.setProperty('width', 'auto', 'important');
+                      el.style.setProperty('min-width', '22ch', 'important');
+                      el.style.setProperty('font-family', 'inherit', 'important');
+                      el.style.setProperty('padding-left', '42px', 'important');
+                      el.dataset.__stylingApplied = '1';
+                    } catch (e) { }
+                  }
+
+                  // Initialize Choices on categorias (if available)
+                  if (window.Choices) {
+                    const catSelect = document.getElementById('categorias');
+                    if (catSelect && !catSelect.classList.contains('choices-initialized')) {
+                      new Choices(catSelect, {
+                        removeItemButton: true,
+                        delimiter: ',',
+                        editItems: false,
+                        maxItemCount: 10,
+                        duplicateItemsAllowed: false
+                      });
+                      catSelect.classList.add('choices-initialized');
+                    }
+                  }
+
+                  // Try to style existing inputs immediately and observe future clones
+                  function processAll() {
+                    document.querySelectorAll('#expertModal .choices__input, #expertModal .choices__input--cloned, input[placeholder="Selecciona categorías"], input[aria-label="Selecciona categorías"]').forEach(applyInputFix);
+                    document.querySelectorAll('#expertModal .choices__list--dropdown, #expertModal .choices__list--dropdown .choices__item').forEach(function (el) {
+                      try {
+                        el.style.setProperty('background', getComputedStyle(document.documentElement).getPropertyValue('--admin-card-bg') || '#121212', 'important');
+                        el.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--admin-text-primary') || '#ffffff', 'important');
+                        el.style.setProperty('border-color', getComputedStyle(document.documentElement).getPropertyValue('--admin-border-color') || '#333', 'important');
+                      } catch (e) { }
+                    });
+
+                    document.querySelectorAll('#expertModal .choices__inner').forEach(function (inner) {
+                      try {
+                        if (inner.querySelector('.choices__list--multiple')) inner.classList.add('no-icon');
+                        else inner.classList.remove('no-icon');
+                      } catch (e) { }
+                    });
+                  }
+
+                  processAll();
+                  var attempts = 0;
+                  var id = setInterval(function () { processAll(); attempts++; if (attempts > 20) clearInterval(id); }, 150);
+                  var mo = new MutationObserver(function () { processAll(); });
+                  mo.observe(document.body, { childList: true, subtree: true });
+                });
+              </script>
+              <script>
+                // Diagnóstico: registra en consola la estructura y estilos computados del botón remove
+                (function () {
+                  function diag() {
+                    try {
+                      var btns = document.querySelectorAll('#expertModal .choices__button');
+                      if (!btns || btns.length === 0) {
+                        console.info('[diag] No se encontraron .choices__button dentro de #expertModal');
+                        return;
+                      }
+                      btns.forEach(function (b, i) {
+                        console.info('[diag] choices__button #' + i + ':', b.outerHTML);
+                        var cs = window.getComputedStyle(b);
+                        console.info('[diag] computed (button):', {
+                          display: cs.display,
+                          visibility: cs.visibility,
+                          color: cs.color,
+                          background: cs.backgroundColor || cs['background-color'],
+                          overflow: cs.overflow,
+                          zIndex: cs.zIndex
+                        });
+                        var pa = window.getComputedStyle(b, '::after');
+                        console.info('[diag] computed (::after):', {
+                          content: pa.content,
+                          color: pa.color,
+                          display: pa.display,
+                          visibility: pa.visibility,
+                          zIndex: pa.zIndex,
+                          fontSize: pa.fontSize
+                        });
+                        var pb = window.getComputedStyle(b, '::before');
+                        console.info('[diag] computed (::before):', {
+                          content: pb.content,
+                          color: pb.color
+                        });
+                      });
+                    } catch (e) {
+                      console.error('[diag] error:', e);
+                    }
+                  }
+                  document.addEventListener('DOMContentLoaded', function () {
+                    setTimeout(diag, 600);
+                    // también vuelve a correr cuando se detecta interacción que puede abrir el modal
+                    document.body.addEventListener('click', function (ev) {
+                      if (ev.target.closest('#expertModal') || ev.target.closest('.btn-close')) setTimeout(diag, 300);
+                    }, true);
+                  });
+                })();
+              </script>
               <small class="modal-expert__hint">Selecciona una o varias categorías (Ctrl/Cmd+click)</small>
             </div>
 
             <!-- Habilidades (full width) -->
             <div class="full-width">
-              <label class="modal-expert__label" for="ver_habilidades">
+              <label class="modal-expert__label" for="skills">
                 <i class="fas fa-tools modal-expert__icon" aria-hidden="true"></i>
                 Habilidades
               </label>
-              <select id="ver_habilidades" class="modal-expert__input" multiple size="6">
+              <select id="skills" class="modal-expert__input" multiple size="6">
                 <% if (typeof habilidades !=='undefined' && Array.isArray(habilidades) && habilidades.length> 0) { %>
                   <% habilidades.forEach(function(h) { %>
                     <% const val=(h && (h.nombre || h.name || h.label)) ? (h.nombre || h.name || h.label) : (h && h._id
@@ -2829,6 +2795,23 @@
                           <% }); %>
                             <% } %>
               </select>
+              <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                  if (window.Choices) {
+                    const skillsSelect = document.getElementById('skills');
+                    if (skillsSelect && !skillsSelect.classList.contains('choices-initialized')) {
+                      new Choices(skillsSelect, {
+                        removeItemButton: true,
+                        delimiter: ',',
+                        editItems: false,
+                        maxItemCount: 10,
+                        duplicateItemsAllowed: false
+                      });
+                      skillsSelect.classList.add('choices-initialized');
+                    }
+                  }
+                });
+              </script>
               <small class="modal-expert__hint">Selecciona o escribe para añadir nuevas habilidades</small>
             </div>
 
@@ -3047,532 +3030,226 @@
 
   <!-- Script para inicializar Choices.js -->
   <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      console.log('🚀 Sistema centralizado de Choices.js iniciado');
-
-      // TEST INMEDIATO: Verificar Choices.js
-      console.log('🔍 Test de Choices.js:', {
-        libraryAvailable: typeof Choices !== 'undefined',
-        libraryVersion: typeof Choices !== 'undefined' ? Choices.VERSION || 'unknown' : 'N/A'
-      });
-
-      if (typeof Choices === 'undefined') {
-        console.error('❌ PROBLEMA: Choices.js no está cargado!');
-        return;
-      }
-
-      // TEST: Inicializar habilidades inmediatamente para debug
-      setTimeout(function () {
-        const habilidadesSelect = document.getElementById('habilidades');
-        console.log('🔍 Estado del select habilidades:', {
-          exists: !!habilidadesSelect,
-          isVisible: habilidadesSelect ? habilidadesSelect.offsetParent !== null : false,
-          hasOptions: habilidadesSelect ? habilidadesSelect.options.length : 0,
-          multiple: habilidadesSelect ? habilidadesSelect.multiple : false,
-          className: habilidadesSelect ? habilidadesSelect.className : 'N/A'
-        });
-
-        if (habilidadesSelect && habilidadesSelect.options.length > 0) {
-          console.log('🔧 TEST: Forzando Choices.js en habilidades...');
-
-          try {
-            // Limpiar cualquier instancia previa
-            if (habilidadesSelect.choices) {
-              habilidadesSelect.choices.destroy();
-            }
-
-            const choicesInstance = new Choices(habilidadesSelect, {
-              allowHTML: true,
-              removeItemButton: true,
-              placeholderValue: 'Selecciona habilidades...',
-              searchPlaceholderValue: 'Buscar habilidades...',
-              noResultsText: 'No se encontraron resultados',
-              itemSelectText: 'Presiona para seleccionar',
-              duplicateItemsAllowed: false,
-              searchEnabled: true
-            });
-
-            habilidadesSelect.classList.add('choices-initialized');
-            console.log('✅ TEST EXITOSO: Habilidades con Choices.js funcionando!');
-
-          } catch (error) {
-            console.error('❌ TEST FALLIDO:', error);
-          }
-        } else {
-          console.warn('⚠️ Select habilidades no está listo para Choices.js');
-        }
-      }, 2000); // Dar tiempo suficiente para que todo cargue
-
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('🚀 Inicializando Choices.js para campos de selección múltiple');
+      
       // Debug específico: mostrar qué datos llegaron del servidor
       console.log('📊 Datos del servidor:');
       console.log('  Categorías:', JSON.parse('<%- JSON.stringify(JSON.stringify(categorias || [])) %>'));
       console.log('  Habilidades:', JSON.parse('<%- JSON.stringify(JSON.stringify(habilidades || [])) %>'));
-
-      // Mapeo de IDs a configuraciones específicas
-      const fieldConfigurations = {
-        // Modal agregar experto
-        'categorias': {
-          type: 'categories',
-          placeholder: 'Selecciona categorías',
-          searchPlaceholder: 'Buscar categorías...',
-          modal: '#expertModal'
-        },
-        'habilidades': {
-          type: 'skills',
-          placeholder: 'Selecciona habilidades',
-          searchPlaceholder: 'Buscar habilidades...',
-          modal: '#expertModal'
-        },
-        // Modal editar experto
-        'edit_categorias': {
-          type: 'categories',
-          placeholder: 'Selecciona categorías',
-          searchPlaceholder: 'Buscar categorías...',
-          modal: '#editExpertModal'
-        },
-        'editSkills': {
-          type: 'skills',
-          placeholder: 'Selecciona habilidades',
-          searchPlaceholder: 'Buscar habilidades...',
-          modal: '#editExpertModal'
-        },
-        // Modal ver experto
-        'ver_categorias': {
-          type: 'categories',
-          placeholder: 'Categorías del experto',
-          searchPlaceholder: 'Buscar categorías...',
-          modal: '#verPerfilExperto',
-          readonly: true
-        },
-        'ver_habilidades': {
-          type: 'skills',
-          placeholder: 'Habilidades del experto',
-          searchPlaceholder: 'Buscar habilidades...',
-          modal: '#verPerfilExperto',
-          readonly: true
-        }
-      };
-
-      // Función centralizada para aplicar estilos CSS
-      function applyChoicesStyles(modalSelector) {
-        console.log(`🎨 Aplicando estilos CSS para modal: ${modalSelector}`);
-
-        // Solo aplicar clases CSS, no estilos inline para evitar conflictos
-        document.querySelectorAll(`${modalSelector} .choices`).forEach(choicesEl => {
-          if (choicesEl) {
-            choicesEl.classList.add('choices-styled');
+      
+      // Diagnóstico: verificar qué elementos están disponibles
+      function diagnosticElements() {
+        const allSelects = document.querySelectorAll('select[multiple]');
+        console.log('📋 Elementos select[multiple] encontrados:', allSelects.length);
+        allSelects.forEach((el, i) => {
+          console.log(`  ${i + 1}. ID: ${el.id}, Options: ${el.options.length}, Visible: ${el.offsetParent !== null}`);
+          
+          // Mostrar las opciones que tiene cada select
+          if (el.options.length > 0) {
+            console.log(`    Opciones de ${el.id}:`);
+            for (let j = 0; j < el.options.length; j++) {
+              console.log(`      ${j + 1}. "${el.options[j].text}" (value: "${el.options[j].value}")`);
+            }
+          } else {
+            console.warn(`    ⚠️ ${el.id} no tiene opciones!`);
           }
         });
-
-        // Verificar que los elementos existan y estén visibles
-        const choicesElements = document.querySelectorAll(`${modalSelector} .choices`);
-        console.log(`🔍 Elementos Choices encontrados en ${modalSelector}:`, choicesElements.length);
-
-        choicesElements.forEach((el, index) => {
-          console.log(`  - Elemento ${index + 1}:`, {
-            id: el.id || 'sin-id',
-            visible: el.offsetWidth > 0 && el.offsetHeight > 0,
-            classes: el.className,
-            hasMultiple: el.querySelector('[multiple]') !== null
-          });
+        
+        const targets = ['edit_categorias', 'add_categorias', 'skills', 'add_skills'];
+        targets.forEach(id => {
+          const el = document.getElementById(id);
+          console.log(`🔍 ${id}:`, el ? 'ENCONTRADO' : 'NO ENCONTRADO', el ? `(${el.options.length} opciones)` : '');
         });
+        
+        // También mostrar diagnóstico visual en la página
+        let debugDiv = document.getElementById('choices-debug');
+        if (!debugDiv) {
+          debugDiv = document.createElement('div');
+          debugDiv.id = 'choices-debug';
+          debugDiv.style.cssText = 'position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.9); color: white; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 11px; z-index: 9999; max-width: 350px; max-height: 400px; overflow-y: auto;';
+          document.body.appendChild(debugDiv);
+        }
+        
+        let debugInfo = `<strong>Choices.js Debug:</strong><br>`;
+        debugInfo += `API Categorías: <%= (categorias && categorias.length) || 0 %><br>`;
+        debugInfo += `API Habilidades: <%= (habilidades && habilidades.length) || 0 %><br>`;
+        debugInfo += `Total selects: ${allSelects.length}<br><br>`;
+        
+        allSelects.forEach((el, i) => {
+          const status = el.classList.contains('choices-initialized') ? '✅ INIT' : '⚠️ PLAIN';
+          debugInfo += `${i + 1}. ${el.id || 'sin-id'}: ${status} (${el.options.length} opts)<br>`;
+        });
+        
+        debugDiv.innerHTML = debugInfo;
       }
-
-
-      // Función para inicializar un campo específico
-      function initializeChoicesField(elementId, config) {
+      
+      function initializeChoicesForElement(elementId, placeholder) {
         const element = document.getElementById(elementId);
-
         if (!element) {
-          console.warn(`⚠️ Elemento ${elementId} no encontrado`);
+          console.log(`⚠️ Elemento ${elementId} no encontrado`);
           return null;
         }
-
+        
         if (element.classList.contains('choices-initialized')) {
-          console.log(`ℹ️ Elemento ${elementId} ya está inicializado`);
+          console.log(`✅ ${elementId} ya está inicializado`);
           return null;
         }
-
+        
+        console.log(`🔧 Inicializando Choices.js para: ${elementId} (${element.options.length} opciones)`);
+        
         try {
-          const choicesConfig = {
-            allowHTML: true,
-            removeItemButton: !config.readonly,
-            placeholderValue: config.placeholder,
-            searchPlaceholderValue: config.searchPlaceholder,
-            noResultsText: 'No se encontraron resultados',
-            itemSelectText: 'Presiona para seleccionar',
+          const choicesInstance = new Choices(element, {
+            removeItemButton: true,
+            delimiter: ',',
+            editItems: false,
+            maxItemCount: 15,
             duplicateItemsAllowed: false,
-            searchEnabled: true
-          };
-
-          if (config.readonly) {
-            choicesConfig.searchEnabled = false;
-            choicesConfig.removeItemButton = false;
-          }
-
-          const choicesInstance = new Choices(element, choicesConfig);
+            searchEnabled: true,
+            searchPlaceholderValue: `Buscar ${placeholder.toLowerCase()}...`,
+            noResultsText: `No se encontraron ${placeholder.toLowerCase()}`,
+            noChoicesText: `No hay más ${placeholder.toLowerCase()} disponibles`,
+            itemSelectText: 'Click para seleccionar',
+            addItems: true,
+            allowHTML: false,
+            shouldSort: false,
+            placeholder: true,
+            placeholderValue: `Selecciona ${placeholder.toLowerCase()}...`
+          });
+          
           element.classList.add('choices-initialized');
-
-          console.log(`✅ Choices.js inicializado correctamente para ${elementId} (${config.type})`);
-
-          // Aplicar estilos específicos del modal
-          setTimeout(() => applyChoicesStyles(config.modal), 100);
-          setTimeout(() => applyChoicesStyles(config.modal), 500);
-
+          console.log(`✅ Choices.js inicializado correctamente para ${elementId}`);
+          
           return choicesInstance;
-
         } catch (error) {
           console.error(`❌ Error inicializando Choices.js para ${elementId}:`, error);
           return null;
         }
       }
 
-      // Función principal de inicialización
-      function initializeAllChoicesFields() {
-        console.log('🔄 Inicializando todos los campos Choices.js...');
-        console.log('🔍 Verificando elementos disponibles...');
-
-        Object.keys(fieldConfigurations).forEach(elementId => {
-          const element = document.getElementById(elementId);
-          console.log(`📋 Elemento ${elementId}:`, {
-            exists: !!element,
-            hasOptions: element ? element.options.length : 0,
-            isVisible: element ? (element.offsetWidth > 0 && element.offsetHeight > 0) : false
-          });
-
-          const config = fieldConfigurations[elementId];
-          initializeChoicesField(elementId, config);
+      // Función para intentar inicializar campos cuando estén disponibles
+      function tryInitialize() {
+        diagnosticElements();
+        
+        // Estrategia alternativa: inicializar TODOS los select[multiple] que no estén inicializados
+        const allMultipleSelects = document.querySelectorAll('select[multiple]:not(.choices-initialized)');
+        console.log(`🔄 Intentando inicializar ${allMultipleSelects.length} campos select[multiple]`);
+        
+        allMultipleSelects.forEach((element, index) => {
+          if (!element.id) {
+            element.id = `auto-choice-${index}-${Date.now()}`;
+          }
+          
+          const isCategory = element.id.includes('categoria') || element.querySelector('option[value*="categoria"]') || element.getAttribute('aria-label') === 'Categorías';
+          const placeholder = isCategory ? 'categorías' : 'habilidades';
+          
+          console.log(`🔧 Auto-inicializando: ${element.id} como ${placeholder} (${element.options.length} opciones)`);
+          
+          try {
+            const choicesInstance = new Choices(element, {
+              removeItemButton: true,
+              delimiter: ',',
+              editItems: false,
+              maxItemCount: 15,
+              duplicateItemsAllowed: false,
+              searchEnabled: true,
+              searchPlaceholderValue: `Buscar ${placeholder.toLowerCase()}...`,
+              noResultsText: `No se encontraron ${placeholder.toLowerCase()}`,
+              noChoicesText: `No hay más ${placeholder.toLowerCase()} disponibles`,
+              itemSelectText: 'Click para seleccionar',
+              addItems: true,
+              allowHTML: false,
+              shouldSort: false,
+              placeholder: true,
+              placeholderValue: `Selecciona ${placeholder.toLowerCase()}...`
+            });
+            
+            element.classList.add('choices-initialized');
+            console.log(`✅ Auto-inicializado: ${element.id}`);
+          } catch (error) {
+            console.error(`❌ Error auto-inicializando ${element.id}:`, error);
+          }
         });
-
-        // Aplicar estilos para todos los modales
-        setTimeout(() => {
-          applyChoicesStyles('#expertModal');
-          applyChoicesStyles('#editExpertModal');
-          applyChoicesStyles('#verPerfilExperto');
-        }, 1000);
-      }
-
-      // Carga de respaldo: poblar habilidades si llegaron vacías
-      async function populateHabilidadesIfEmpty() {
-        try {
-          const sel = document.getElementById('habilidades');
-          if (!sel) {
-            console.warn('⚠️ No se encontró el select #habilidades');
-            return;
-          }
-          if (sel.options && sel.options.length > 0) {
-            // Ya hay opciones renderizadas por el servidor
-            return;
-          }
-          console.log('🪄 Poblando habilidades desde /api/habilidades (respaldo)...');
-          const resp = await fetch('/api/habilidades');
-          if (!resp.ok) {
-            console.warn('⚠️ No se pudieron obtener habilidades. Status:', resp.status);
-            return;
-          }
-          const list = await resp.json().catch(() => []);
-          if (!Array.isArray(list) || list.length === 0) {
-            console.warn('⚠️ /api/habilidades devolvió vacío');
-            return;
-          }
-          // Repoblar opciones
-          sel.innerHTML = '';
-          list.forEach((h) => {
-            const val = (h && (h.nombre || h.name || h.label))
-              ? (h.nombre || h.name || h.label)
-              : (h && h._id ? String(h._id) : '');
-            if (val) {
-              const opt = document.createElement('option');
-              opt.value = val;
-              opt.textContent = val;
-              sel.appendChild(opt);
+        
+        // También intentar los IDs específicos por si acaso
+        const targets = ['edit_categorias', 'add_categorias', 'skills', 'add_skills'];
+        targets.forEach(id => {
+          const element = document.getElementById(id);
+          if (element && !element.classList.contains('choices-initialized')) {
+            const placeholder = id.includes('categoria') ? 'categorías' : 'habilidades';
+            console.log(`🔧 Inicializando específico: ${id} como ${placeholder}`);
+            
+            try {
+              const choicesInstance = new Choices(element, {
+                removeItemButton: true,
+                delimiter: ',',
+                editItems: false,
+                maxItemCount: 15,
+                duplicateItemsAllowed: false,
+                searchEnabled: true,
+                searchPlaceholderValue: `Buscar ${placeholder.toLowerCase()}...`,
+                noResultsText: `No se encontraron ${placeholder.toLowerCase()}`,
+                noChoicesText: `No hay más ${placeholder.toLowerCase()} disponibles`,
+                itemSelectText: 'Click para seleccionar',
+                addItems: true,
+                allowHTML: false,
+                shouldSort: false,
+                placeholder: true,
+                placeholderValue: `Selecciona ${placeholder.toLowerCase()}...`
+              });
+              
+              element.classList.add('choices-initialized');
+              console.log(`✅ Inicializado específico: ${id}`);
+            } catch (error) {
+              console.error(`❌ Error inicializando específico ${id}:`, error);
             }
-          });
-          console.log(`✅ Habilidades poblabas: ${sel.options.length}`);
-        } catch (e) {
-          console.error('❌ Error poblando habilidades de respaldo:', e);
+          }
+        });
+        
+        // Verificar si hay campos que no se iniciaron y programar otro intento
+        const pendientes = document.querySelectorAll('select[multiple]:not(.choices-initialized)');
+        
+        if (pendientes.length > 0) {
+          console.log('⏳ Campos pendientes de inicializar:', pendientes.length);
+          setTimeout(tryInitialize, 500);
+        } else {
+          console.log('✅ Todos los campos Choices.js han sido inicializados');
         }
       }
 
-      // Diagnóstico y debugging
-      function showDiagnostics() {
-        const allSelects = document.querySelectorAll('select[multiple]');
-        const habilidadesSelect = document.getElementById('habilidades');
-
-        console.log('📋 Diagnóstico de elementos:', {
-          total: allSelects.length,
-          initialized: document.querySelectorAll('select[multiple].choices-initialized').length,
-          categories: JSON.parse('<%- JSON.stringify(JSON.stringify(categorias || [])) %>').length,
-          skills: JSON.parse('<%- JSON.stringify(JSON.stringify(habilidades || [])) %>').length
-        });
-
-        console.log('🔍 Estado específico de habilidades:', {
-          exists: !!habilidadesSelect,
-          hasOptions: habilidadesSelect ? habilidadesSelect.options.length : 0,
-          isInitialized: habilidadesSelect ? habilidadesSelect.classList.contains('choices-initialized') : false,
-          hasChoicesInstance: habilidadesSelect ? !!habilidadesSelect.choices : false
-        });
-
-        if (habilidadesSelect) {
-          console.log('📝 Opciones de habilidades:', Array.from(habilidadesSelect.options).map(opt => opt.text));
-        }
-      }
-
-      // Inicializar inmediatamente
-      if (window.Choices) {
-        console.log('✅ Choices.js library detectada, inicializando...');
-        populateHabilidadesIfEmpty().then(() => {
-          initializeAllChoicesFields();
-          showDiagnostics();
-        });
-      } else {
-        console.error('❌ Choices.js library no está disponible');
-        console.log('🔍 Esperando a que se cargue Choices.js...');
-
-        // Esperar a que se cargue Choices.js
+      // Verificar si Choices.js está disponible
+      if (typeof Choices === 'undefined') {
+        console.error('❌ Choices.js no está disponible. Verificando cada 100ms...');
         let attempts = 0;
         const checkChoices = setInterval(() => {
           attempts++;
-          if (window.Choices) {
-            console.log(`✅ Choices.js cargado después de ${attempts} intentos`);
+          if (typeof Choices !== 'undefined') {
             clearInterval(checkChoices);
-            populateHabilidadesIfEmpty().then(() => {
-              initializeAllChoicesFields();
-              showDiagnostics();
-            });
-          } else if (attempts > 50) {
-            console.error('❌ Timeout esperando Choices.js');
+            console.log('✅ Choices.js cargado, iniciando inicialización');
+            tryInitialize();
+          } else if (attempts > 50) { // 5 segundos máximo
             clearInterval(checkChoices);
+            console.error('❌ Choices.js no se pudo cargar después de 5 segundos');
           }
         }, 100);
+      } else {
+        console.log('✅ Choices.js disponible, iniciando inmediatamente');
+        tryInitialize();
       }
 
-      // Función de emergencia para inicializar manualmente
-      window.forceInitChoices = function () {
-        console.log('🚨 Forzando inicialización manual...');
-        if (window.Choices) {
-          initializeAllChoicesFields();
-          showDiagnostics();
-        } else {
-          console.error('❌ Choices.js no disponible para inicialización manual');
-        }
-      };
-
-      // Re-aplicar estilos cuando se abran los modales
-      document.addEventListener('click', function (event) {
-        const modalTriggers = ['[data-modal="expertModal"]', '[data-modal="editExpertModal"]', '[data-modal="verPerfilExperto"]'];
-
-        if (modalTriggers.some(selector => event.target.closest(selector))) {
-          setTimeout(() => {
-            applyChoicesStyles('#expertModal');
-            applyChoicesStyles('#editExpertModal');
-            applyChoicesStyles('#verPerfilExperto');
-          }, 300);
+      // También intentar cuando se abran modales
+      document.addEventListener('click', function(e) {
+        if (e.target.matches('#btnAddExpert, [data-action="edit"], [data-action="view"]')) {
+          console.log('🔄 Modal abierto, re-intentando inicialización...');
+          setTimeout(tryInitialize, 100);
         }
       });
-
-      console.log('✅ Sistema centralizado de Choices.js listo');
-
-      // SCRIPT ESPECÍFICO PARA FORZAR INICIALIZACIÓN DE HABILIDADES
-      document.addEventListener('DOMContentLoaded', function () {
-        setTimeout(function () {
-          // Forzar inicialización específica para habilidades si no está funcionando
-          const habilidadesFields = ['habilidades', 'skills', 'ver_habilidades'];
-
-          habilidadesFields.forEach(fieldId => {
-            const element = document.getElementById(fieldId);
-            if (element && !element.classList.contains('choices-initialized')) {
-              console.log(`🔧 Forzando inicialización de ${fieldId}...`);
-
-              try {
-                const choicesInstance = new Choices(element, {
-                  allowHTML: true,
-                  removeItemButton: true,
-                  placeholderValue: 'Selecciona habilidades',
-                  searchPlaceholderValue: 'Buscar habilidades...',
-                  noResultsText: 'No se encontraron resultados',
-                  itemSelectText: 'Presiona para seleccionar',
-                  duplicateItemsAllowed: false,
-                  searchEnabled: true
-                });
-
-                element.classList.add('choices-initialized');
-                console.log(`✅ ${fieldId} inicializado correctamente con Choices.js`);
-
-                // Aplicar estilos específicos
-                setTimeout(() => {
-                  const modalId = element.closest('.modal-expert').id;
-                  applyChoicesStyles('#' + modalId);
-                }, 100);
-
-              } catch (error) {
-                console.error(`❌ Error forzando inicialización de ${fieldId}:`, error);
-              }
-            }
-          });
-        }, 1500); // Esperar un poco más para asegurar que todo esté cargado
-      });
-
-      // OBSERVER PARA DETECTAR CUANDO SE ABRE EL MODAL Y FORZAR HABILIDADES
-      const modalObserver = new MutationObserver(function (mutations) {
-        mutations.forEach(function (mutation) {
-          if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
-            const target = mutation.target;
-            if (target.id === 'expertModal' && target.style.display === 'flex') {
-              console.log('👁️ Modal detectado abierto, verificando habilidades...');
-
-              setTimeout(function () {
-                const habilidadesSelect = document.getElementById('habilidades');
-                if (habilidadesSelect && !habilidadesSelect.classList.contains('choices-initialized')) {
-                  console.log('🔧 Observer: Inicializando habilidades...');
-
-                  try {
-                    const choicesInstance = new Choices(habilidadesSelect, {
-                      allowHTML: true,
-                      removeItemButton: true,
-                      placeholderValue: 'Selecciona habilidades',
-                      searchPlaceholderValue: 'Buscar habilidades...',
-                      noResultsText: 'No se encontraron resultados',
-                      itemSelectText: 'Presiona para seleccionar',
-                      duplicateItemsAllowed: false,
-                      searchEnabled: true
-                    });
-
-                    habilidadesSelect.classList.add('choices-initialized');
-                    console.log('✅ Observer: Habilidades inicializadas!');
-
-                    applyChoicesStyles('#expertModal');
-
-                  } catch (error) {
-                    console.error('❌ Observer: Error inicializando habilidades:', error);
-                  }
-                } else if (habilidadesSelect && habilidadesSelect.classList.contains('choices-initialized')) {
-                  console.log('🔄 Observer: Reactivando habilidades en modal abierto...');
-
-                  // Asegurar que el campo sea funcional
-                  const choicesContainer = habilidadesSelect.parentNode.querySelector('.choices');
-                  if (choicesContainer) {
-                    choicesContainer.style.display = 'block';
-                    choicesContainer.style.opacity = '1';
-                    choicesContainer.style.pointerEvents = 'auto';
-
-                    // Forzar re-render
-                    if (habilidadesSelect.choices && habilidadesSelect.choices.enable) {
-                      habilidadesSelect.choices.enable();
-                    }
-
-                    console.log('✅ Observer: Habilidades reactivadas!');
-                  }
-                }
-              }, 300);
-            }
-          }
-        });
-      });
-
-      // Observar el modal
-      const expertModal = document.getElementById('expertModal');
-      if (expertModal) {
-        modalObserver.observe(expertModal, {
-          attributes: true,
-          attributeFilter: ['style']
-        });
-        console.log('👁️ Observer activado para expertModal');
-      }
     });
   </script>
 
   <script src="/assets/js/admin/admin-common.js"></script>
   <script src="/assets/js/admin/admin-expertos.js"></script>
   <script src="/assets/js/admin/admin-expertos.bootstrap.js"></script>
-
-  <!-- Debug script -->
-  <script>
-    console.log('🔍 Debug: Verificando datos inyectados');
-    const expertosScript = document.getElementById('initial-expertos');
-    if (expertosScript) {
-      const data = JSON.parse(expertosScript.textContent);
-      console.log('📊 Expertos inyectados:', data);
-      console.log('📊 Cantidad de expertos:', data ? data.length : 0);
-    } else {
-      console.warn('⚠️ No se encontró el script initial-expertos');
-    }
-
-    // Debug esencial - verificar elementos principales
-    const btnAdd = document.getElementById('btnAddExpert');
-    const modal = document.getElementById('expertModal');
-    const tbody = document.querySelector('.admin-table tbody');
-
-    console.log('� Verificación elementos:', {
-      btnAddExpert: btnAdd ? '✅' : '❌',
-      modal: modal ? '✅' : '❌',
-      tabla: tbody ? '✅' : '❌'
-    });
-
-    // Event listener directo como respaldo
-    document.addEventListener('DOMContentLoaded', function () {
-      const btnAddExpert = document.getElementById('btnAddExpert');
-      if (btnAddExpert) {
-        btnAddExpert.addEventListener('click', function () {
-          console.log('🔘 Abriendo modal directamente...');
-          const modal = document.getElementById('expertModal');
-          if (modal) {
-            modal.style.display = 'flex';
-            console.log('✅ Modal abierto');
-
-            // FORZAR INICIALIZACIÓN DE HABILIDADES INMEDIATAMENTE
-            setTimeout(function () {
-              const habilidadesSelect = document.getElementById('habilidades');
-              if (habilidadesSelect && !habilidadesSelect.classList.contains('choices-initialized')) {
-                console.log('🔧 Inicializando habilidades directamente...');
-
-                try {
-                  // Destruir cualquier instancia previa
-                  if (habilidadesSelect.choices) {
-                    habilidadesSelect.choices.destroy();
-                  }
-
-                  const choicesInstance = new Choices(habilidadesSelect, {
-                    allowHTML: true,
-                    removeItemButton: true,
-                    placeholderValue: 'Selecciona habilidades',
-                    searchPlaceholderValue: 'Buscar habilidades...',
-                    noResultsText: 'No se encontraron resultados',
-                    itemSelectText: 'Presiona para seleccionar',
-                    duplicateItemsAllowed: false,
-                    searchEnabled: true,
-                    addItemText: (value) => `Presiona Enter para añadir <b>"${value}"</b>`,
-                    maxItemText: (maxItemCount) => `Solo se pueden seleccionar ${maxItemCount} elementos`,
-                    uniqueItemText: 'Solo se pueden añadir valores únicos'
-                  });
-
-                  habilidadesSelect.classList.add('choices-initialized');
-                  console.log('✅ Habilidades inicializadas correctamente!');
-
-                  // Aplicar estilos
-                  applyChoicesStyles('#expertModal');
-
-                } catch (error) {
-                  console.error('❌ Error inicializando habilidades:', error);
-                }
-              } else if (habilidadesSelect && habilidadesSelect.classList.contains('choices-initialized')) {
-                console.log('ℹ️ Habilidades ya están inicializadas');
-
-                // Asegurar que el campo funcione correctamente
-                const choicesContainer = habilidadesSelect.parentNode.querySelector('.choices');
-                if (choicesContainer) {
-                  choicesContainer.style.opacity = '1';
-                  choicesContainer.style.pointerEvents = 'auto';
-                  console.log('✅ Habilidades reactivadas en modal abierto');
-                }
-              }
-            }, 200); // Ejecutar después de que el modal se abra
-          }
-        });
-        console.log('✅ Event listener de respaldo activado');
-      }
-    });
-  </script>
 
 </body>
 
