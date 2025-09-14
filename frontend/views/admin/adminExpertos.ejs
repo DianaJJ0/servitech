@@ -3149,18 +3149,23 @@
         return;
       }
 
-      // TEST: Inicializar habilidades inmediatamente para debug
+      // TEST: Inicializar habilidades inmediatamente para debug (con fallback si solo hay placeholder)
       setTimeout(function () {
         const habilidadesSelect = document.getElementById('habilidades');
         console.log('🔍 Estado del select habilidades:', {
           exists: !!habilidadesSelect,
           isVisible: habilidadesSelect ? habilidadesSelect.offsetParent !== null : false,
           hasOptions: habilidadesSelect ? habilidadesSelect.options.length : 0,
+          selectable: habilidadesSelect ? countSelectableOptions(habilidadesSelect) : 0,
           multiple: habilidadesSelect ? habilidadesSelect.multiple : false,
           className: habilidadesSelect ? habilidadesSelect.className : 'N/A'
         });
-
-        if (habilidadesSelect && habilidadesSelect.options.length > 0) {
+        const ensureInit = () => {
+          if (!habilidadesSelect) return;
+          if (countSelectableOptions(habilidadesSelect) === 0) {
+            console.warn('⚠️ Aún no hay opciones seleccionables en #habilidades tras fallback');
+            return;
+          }
           console.log('🔧 TEST: Forzando Choices.js en habilidades...');
 
           try {
@@ -3186,9 +3191,15 @@
           } catch (error) {
             console.error('❌ TEST FALLIDO:', error);
           }
-        } else {
-          console.warn('⚠️ Select habilidades no está listo para Choices.js');
-        }
+        };
+
+        (async () => {
+          if (habilidadesSelect && countSelectableOptions(habilidadesSelect) === 0) {
+            console.log('🪄 Intentando poblar habilidades (fallback) antes de inicializar...');
+            await populateHabilidadesIfEmpty('habilidades');
+          }
+          ensureInit();
+        })();
       }, 2000); // Dar tiempo suficiente para que todo cargue
 
       // Debug específico: mostrar qué datos llegaron del servidor
@@ -3216,13 +3227,13 @@
           type: 'categories',
           placeholder: 'Selecciona categorías',
           searchPlaceholder: 'Buscar categorías...',
-          modal: '#editExpertModal'
+          modal: '#editarExperto'
         },
         'editSkills': {
           type: 'skills',
           placeholder: 'Selecciona habilidades',
           searchPlaceholder: 'Buscar habilidades...',
-          modal: '#editExpertModal'
+          modal: '#editarExperto'
         },
         // Modal ver experto
         'ver_categorias': {
@@ -3264,6 +3275,12 @@
             hasMultiple: el.querySelector('[multiple]') !== null
           });
         });
+      }
+
+      // Utilidad: contar opciones seleccionables (no deshabilitadas y con valor)
+      function countSelectableOptions(selectEl) {
+        if (!selectEl || !selectEl.options) return 0;
+        return Array.from(selectEl.options).filter(o => !o.disabled && String(o.value || '').trim() !== '').length;
       }
 
 
@@ -3335,24 +3352,25 @@
         // Aplicar estilos para todos los modales
         setTimeout(() => {
           applyChoicesStyles('#expertModal');
-          applyChoicesStyles('#editExpertModal');
+          applyChoicesStyles('#editarExperto');
           applyChoicesStyles('#verPerfilExperto');
         }, 1000);
       }
 
-      // Carga de respaldo: poblar habilidades si llegaron vacías
-      async function populateHabilidadesIfEmpty() {
+      // Carga de respaldo: poblar habilidades si llegaron vacías o solo con placeholders
+      async function populateHabilidadesIfEmpty(selectId = 'habilidades') {
         try {
-          const sel = document.getElementById('habilidades');
+          const sel = document.getElementById(selectId);
           if (!sel) {
-            console.warn('⚠️ No se encontró el select #habilidades');
+            console.warn(`⚠️ No se encontró el select #${selectId}`);
             return;
           }
-          if (sel.options && sel.options.length > 0) {
-            // Ya hay opciones renderizadas por el servidor
+          const selectableCount = countSelectableOptions(sel);
+          if (sel.options && sel.options.length > 0 && selectableCount > 0) {
+            // Ya hay opciones seleccionables renderizadas por el servidor
             return;
           }
-          console.log('🪄 Poblando habilidades desde /api/habilidades (respaldo)...');
+          console.log(`🪄 Poblando ${selectId} desde /api/habilidades (respaldo)...`);
           const resp = await fetch('/api/habilidades');
           if (!resp.ok) {
             console.warn('⚠️ No se pudieron obtener habilidades. Status:', resp.status);
@@ -3376,7 +3394,7 @@
               sel.appendChild(opt);
             }
           });
-          console.log(`✅ Habilidades poblabas: ${sel.options.length}`);
+          console.log(`✅ Opciones pobladas en #${selectId}: ${sel.options.length}`);
         } catch (e) {
           console.error('❌ Error poblando habilidades de respaldo:', e);
         }
@@ -3409,10 +3427,15 @@
       // Inicializar inmediatamente
       if (window.Choices) {
         console.log('✅ Choices.js library detectada, inicializando...');
-        populateHabilidadesIfEmpty().then(() => {
-          initializeAllChoicesFields();
-          showDiagnostics();
-        });
+        // Poblar habilidades en todos los selects relevantes si están vacíos (o solo con placeholder deshabilitado)
+        Promise.resolve()
+          .then(() => populateHabilidadesIfEmpty('habilidades'))
+          .then(() => populateHabilidadesIfEmpty('editSkills'))
+          .then(() => populateHabilidadesIfEmpty('ver_habilidades'))
+          .then(() => {
+            initializeAllChoicesFields();
+            showDiagnostics();
+          });
       } else {
         console.error('❌ Choices.js library no está disponible');
         console.log('🔍 Esperando a que se cargue Choices.js...');
@@ -3424,10 +3447,14 @@
           if (window.Choices) {
             console.log(`✅ Choices.js cargado después de ${attempts} intentos`);
             clearInterval(checkChoices);
-            populateHabilidadesIfEmpty().then(() => {
-              initializeAllChoicesFields();
-              showDiagnostics();
-            });
+            Promise.resolve()
+              .then(() => populateHabilidadesIfEmpty('habilidades'))
+              .then(() => populateHabilidadesIfEmpty('editSkills'))
+              .then(() => populateHabilidadesIfEmpty('ver_habilidades'))
+              .then(() => {
+                initializeAllChoicesFields();
+                showDiagnostics();
+              });
           } else if (attempts > 50) {
             console.error('❌ Timeout esperando Choices.js');
             clearInterval(checkChoices);
@@ -3448,12 +3475,12 @@
 
       // Re-aplicar estilos cuando se abran los modales
       document.addEventListener('click', function (event) {
-        const modalTriggers = ['[data-modal="expertModal"]', '[data-modal="editExpertModal"]', '[data-modal="verPerfilExperto"]'];
+        const modalTriggers = ['[data-modal="expertModal"]', '[data-modal="editarExperto"]', '[data-modal="verPerfilExperto"]'];
 
         if (modalTriggers.some(selector => event.target.closest(selector))) {
           setTimeout(() => {
             applyChoicesStyles('#expertModal');
-            applyChoicesStyles('#editExpertModal');
+            applyChoicesStyles('#editarExperto');
             applyChoicesStyles('#verPerfilExperto');
           }, 300);
         }
@@ -3465,7 +3492,7 @@
       document.addEventListener('DOMContentLoaded', function () {
         setTimeout(function () {
           // Forzar inicialización específica para habilidades si no está funcionando
-          const habilidadesFields = ['habilidades', 'skills', 'ver_habilidades'];
+          const habilidadesFields = ['habilidades', 'editSkills', 'ver_habilidades'];
 
           habilidadesFields.forEach(fieldId => {
             const element = document.getElementById(fieldId);
