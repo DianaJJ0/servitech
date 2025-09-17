@@ -44,6 +44,15 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   updateSelectedDays();
+
+  // Event listener para el botón cancelar
+  const cancelarBtn = document.getElementById("cancelarEdicion");
+  if (cancelarBtn) {
+    cancelarBtn.addEventListener("click", function() {
+      // Redirigir al perfil del usuario
+      window.location.href = "/perfil";
+    });
+  }
 });
 
 document.addEventListener("DOMContentLoaded", function () {
