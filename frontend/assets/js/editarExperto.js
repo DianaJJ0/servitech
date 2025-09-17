@@ -48,7 +48,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // Event listener para el botón cancelar
   const cancelarBtn = document.getElementById("cancelarEdicion");
   if (cancelarBtn) {
-    cancelarBtn.addEventListener("click", function() {
+    cancelarBtn.addEventListener("click", function () {
       // Redirigir al perfil del usuario
       window.location.href = "/perfil";
     });
