@@ -107,16 +107,15 @@
                     placeholder="Tu experiencia y enfoque profesional"></textarea>
                 </div>
 
-                <!-- Segunda fila horizontal: Categorías, Especialidad y Habilidades distribuidos en columnas -->
-                <div class="form-row triple">
+                <!-- Categorías -->
+                <div class="form-row single">
                   <div class="form-group compact">
-                    <!-- Categorías -->
-                    <label for="categorias"></label>
-                    <i class="fas fa-layer-group"></i> <span class="categorias-label-text">Categorías</span>
-                    <span class="form-tooltip"
-                      title="Selecciona las áreas tecnológicas en las que tienes experiencia"></span>
-                    <i class="fas fa-info-circle"></i>
-                    </span>
+                    <label for="categorias">
+                      <i class="fas fa-layer-group"></i> <span class="categorias-label-text">Categorías</span>
+                      <span class="form-tooltip"
+                        title="Selecciona las áreas tecnológicas en las que tienes experiencia">
+                        <i class="fas fa-info-circle"></i>
+                      </span>
                     </label>
                     <select id="categorias" name="categorias" multiple class="select-multiple categorias-modern">
                       <% if (categorias && categorias.length) { categorias.forEach(function(categoria) { %>
@@ -125,51 +124,6 @@
                     </select>
                     <div id="categoriasTags" class="tags-container"></div>
                     <p class="form-hint">Selecciona una o más categorías tecnológicas</p>
-                  </div>
-
-                  <!-- Especialidad -->
-                  <div class="form-group compact">
-                    <label for="especialidad">
-                      <i class="fas fa-star" aria-hidden="true"></i>
-                      <span class="especialidad-label-text">Especialidad</span>
-                      <span class="form-tooltip" title="Tu principal área de especialización">
-                        <i class="fas fa-info-circle" aria-hidden="true"></i>
-                      </span>
-                    </label>
-                    <div class="especialidad-select-container">
-                      <select id="especialidad" name="especialidad" required class="especialidad-modern">
-                        <option value="">Selecciona especialidad</option>
-                        <% if (especialidades && especialidades.length> 0) { %>
-                          <% especialidades.forEach(function(especialidad) { %>
-                            <option value="<%= especialidad._id %>">
-                              <%= especialidad.nombre %>
-                            </option>
-                            <% }); %>
-                              <% } %>
-                      </select>
-                      <i class="fas fa-chevron-down select-arrow" aria-hidden="true"></i>
-                    </div>
-                  </div>
-
-                  <!-- Habilidades -->
-                  <div class="form-group compact">
-                    <label for="skills">
-                      <i class="fas fa-bolt"></i> <span class="skills-label-text">Habilidades</span>
-                      <span class="form-tooltip" title="Selecciona habilidades tecnológicas">
-                        <i class="fas fa-info-circle"></i>
-                      </span>
-                    </label>
-                    <select id="skills" name="skills" multiple class="select-multiple skills-modern">
-                      <% if (habilidades && habilidades.length> 0) { %>
-                        <% habilidades.forEach(function(habilidad) { %>
-                          <option value="<%= habilidad._id %>">
-                            <%= habilidad.nombre %>
-                          </option>
-                          <% }); %>
-                            <% } %>
-                    </select>
-                    <div id="skillsTags" class="tags-container"></div>
-                    <p class="form-hint">Selecciona habilidades tecnológicas</p>
                   </div>
                 </div>
 

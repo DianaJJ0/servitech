@@ -1,0 +1,143 @@
+/* Admin-expertos.css
+   Canonical Choices.js styles for admin modal (modal-expert)
+   This file centralizes all choices-related rules used by adminExpertos.ejs
+   Keep it minimal, specific to .modal-expert to avoid global overrides.
+*/
+
+.modal-expert .choices {
+  width: 100%;
+  min-height: 46px;
+  box-sizing: border-box;
+}
+
+.modal-expert .choices__inner {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 8px;
+  min-height: 46px;
+  position: relative;
+}
+
+.modal-expert .choices__input,
+.modal-expert .choices__input--cloned {
+  background: transparent;
+  border: none;
+  color: var(--admin-text-primary, #e6eef8);
+  font-size: 0.95rem;
+  padding: 0.4rem 0.6rem;
+  z-index: 2;
+  position: relative;
+}
+
+.modal-expert .choices__placeholder {
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
+  pointer-events: none;
+}
+
+.modal-expert .choices__list--multiple {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0.4rem;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.modal-expert .choices__list--dropdown {
+  position: absolute;
+  z-index: 1300;
+  background: var(--admin-card-bg, #1a1d29);
+  color: var(--admin-text-primary, #e6eef8);
+  border: 1px solid rgba(94, 129, 255, 0.12);
+  border-radius: 10px;
+  min-width: 240px;
+  max-height: 240px;
+  overflow-y: auto;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity 0.12s ease, transform 0.12s ease;
+  pointer-events: none;
+}
+
+.modal-expert .choices.is-open .choices__list--dropdown {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.modal-expert .choices__list--dropdown .choices__item {
+  padding: 0.6rem 0.9rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  font-size: 0.95rem;
+  color: var(--admin-text-primary);
+  cursor: pointer;
+}
+
+.modal-expert .choices__list--dropdown .choices__item.is-highlighted,
+.modal-expert .choices__list--dropdown .choices__item:hover {
+  background: var(--admin-accent-color, #5e81ff);
+  color: #fff;
+}
+
+.modal-expert .choices__list--dropdown .choices__item[aria-selected="true"] {
+  background: rgba(94, 129, 255, 0.18);
+  color: #fff;
+}
+
+.modal-expert .choices__list--multiple .choices__item {
+  background: linear-gradient(
+    135deg,
+    var(--admin-accent-color, #5e81ff),
+    #4f46e5
+  );
+  color: #fff;
+  border-radius: 16px;
+  padding: 0.35rem 0.8rem;
+  font-size: 0.85rem;
+}
+
+/* small helper to separate categorias/habilidades dropdown stacking when both open */
+.modal-expert #habilidades + .choices .choices__list--dropdown {
+  z-index: 1310;
+}
+.modal-expert #categorias + .choices .choices__list--dropdown {
+  z-index: 1305;
+}
+
+/* Additional canonical rules moved from adminExpertos.ejs to avoid duplication */
+.modal-expert .choices__button {
+  background: transparent;
+  border: none;
+  color: var(--admin-text-primary, #e6eef8);
+  cursor: pointer;
+}
+
+.modal-expert .choices__button::before {
+  content: "\00d7"; /* multiplication sign */
+  display: inline-block;
+  font-weight: 700;
+  margin-right: 0.25rem;
+}
+
+.modal-expert .choices__list--dropdown .choices__item--choice.has-no-choices {
+  color: rgba(255, 255, 255, 0.55);
+  cursor: default;
+}
+
+/* Hide native selects once Choices has initialized */
+.modal-expert select.choices-initialized,
+.modal-expert .modal-expert__select-habilidades.choices-initialized,
+.modal-expert .modal-expert__select-categorias.choices-initialized {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Ensure .choices takes the full width inside modal */
+.modal-expert .choices {
+  width: 100%;
+  margin-top: 0;
+}

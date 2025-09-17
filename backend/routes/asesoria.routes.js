@@ -173,25 +173,9 @@ router.get(
 
 /**
  * @swagger
- * /api/asesorias/estadisticas/resenas:
- *   get:
- *     summary: Estadísticas de reseñas (admin)
- *     tags: [Asesorías]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Estadísticas de reseñas por experto
- */
-router.get(
-  "/estadisticas/resenas",
-  apiKeyMiddleware,
-  authMiddleware.autenticar,
-  authMiddleware.asegurarRol("admin"),
-  asesoriaController.estadisticasResenas
-);
-
-/**
+ * /api/asesorias/{id}:
+ *   put:
+ *     summary: Actualizar asesoría (admin)
  * @swagger
  * /api/asesorias/{id}:
  *   put:
@@ -217,32 +201,6 @@ router.put(
   authMiddleware.autenticar,
   authMiddleware.asegurarRol("admin"),
   asesoriaController.actualizarAsesoria
-);
-
-/**
- * @swagger
- * /api/asesorias/recalcular/{email}:
- *   post:
- *     summary: Recalcular promedio de calificaciones por experto (admin)
- *     tags: [Asesorías]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: email
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Recálculo iniciado
- */
-router.post(
-  "/recalcular/:email",
-  apiKeyMiddleware,
-  authMiddleware.autenticar,
-  authMiddleware.asegurarRol("admin"),
-  asesoriaController.recalcularPromedioEndpoint
 );
 
 /**

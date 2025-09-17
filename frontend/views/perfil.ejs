@@ -112,31 +112,15 @@
                     </div>
                   </div>
 
-                  <!-- Sección de especialización -->
+                  <!-- Sección de categorías -->
                   <div class="expert-info-section">
-                    <h3><i class="fas fa-star"></i> Especialización</h3>
-                    <div class="info-item">
-                      <strong>Especialidad:</strong>
-                      <p>
-                        <%= user.infoExperto.especialidad %>
-                      </p>
-                    </div>
+                    <h3><i class="fas fa-tags"></i> Categorías</h3>
                     <div class="info-item">
                       <strong>Categorías:</strong>
                       <div class="tags-container">
                         <% (user.infoExperto.categorias || []).forEach(function(categoria) { %>
                           <span class="tag">
                             <%= categoria %>
-                          </span>
-                          <% }); %>
-                      </div>
-                    </div>
-                    <div class="info-item">
-                      <strong>Habilidades:</strong>
-                      <div class="tags-container">
-                        <% (user.infoExperto.skills || []).forEach(function(skill) { %>
-                          <span class="tag">
-                            <%= skill %>
                           </span>
                           <% }); %>
                       </div>

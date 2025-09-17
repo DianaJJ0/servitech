@@ -87,7 +87,7 @@ const listarExpertos = async (req, res) => {
     // parsear y normalizar parámetros de paginación y filtros
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 10;
-    const { nombre, categoria, especialidad, estado, minRating } = req.query;
+    const { nombre, categoria, especialidad, estado } = req.query;
     const filtro = { roles: "experto" };
 
     // Filtrar por nombre
@@ -115,24 +115,7 @@ const listarExpertos = async (req, res) => {
       console.warn("Categoria no válida recibida en query:", categoria);
     }
 
-    // Si se solicita filtrar por calificación mínima y el campo existe en el modelo
-    let aplicarFiltroEnDB = false;
-    let min = null;
-    if (typeof minRating !== "undefined" && !isNaN(Number(minRating))) {
-      min = Number(minRating);
-      // Detectar si el campo 'calificacion' está definido en el esquema de Usuario
-      if (
-        Usuario &&
-        Usuario.schema &&
-        Usuario.schema.path &&
-        Usuario.schema.path("calificacion")
-      ) {
-        aplicarFiltroEnDB = true;
-        filtro.calificacion = { $gte: min };
-      }
-    }
-
-    // Realizar la consulta (si filtramos por calificación en DB ya está incluido en 'filtro')
+    // Realizar la consulta
     // Usar populate para devolver los nombres de las categorías en infoExperto.categorias
     let query = Usuario.find(filtro)
       .select("-passwordHash")
@@ -197,14 +180,6 @@ const listarExpertos = async (req, res) => {
 
     let expertosFinal = expertos;
 
-    // Si no aplicamos el filtro en DB pero se solicitó minRating, filtrar en memoria
-    if (!aplicarFiltroEnDB && min !== null) {
-      expertosFinal = expertos.filter((e) => {
-        const cal = Number(e.calificacion) || 0;
-        return cal >= min;
-      });
-    }
-
     let total = 0;
     try {
       total = await Usuario.countDocuments(filtro);
@@ -223,7 +198,7 @@ const listarExpertos = async (req, res) => {
       }
       return res.status(500).json({ mensaje: "Error al listar expertos." });
     }
-    // retornar la página ya filtrada por minRating (si se aplicó)
+    // retornar la página de expertos
     res.json({ expertos: expertosFinal || expertos, total });
   } catch (error) {
     console.error("Error al listar expertos:", error);
