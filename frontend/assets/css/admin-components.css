@@ -243,7 +243,8 @@ input[type="color"] {
   width: min(48rem, 95%);
   max-width: 48rem;
   box-shadow: var(--admin-shadow);
-  overflow: hidden;
+  /* Allow dropdowns (Choices.js) to extend beyond the modal container instead of being clipped */
+  overflow: visible;
 }
 
 .admin-filtros__btn,
