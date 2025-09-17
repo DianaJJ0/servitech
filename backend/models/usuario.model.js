@@ -9,11 +9,9 @@ const { Schema } = mongoose;
 
 /**
  * @typedef {Object} InfoExperto
- * @property {string} especialidad - Especialidad tecnológica del experto
  * @property {string} descripcion - Descripción del perfil profesional
  * @property {Array<ObjectId>} categorias - Referencias a categorías de especialización
  * @property {number} precioPorHora - Tarifa por hora en COP
- * @property {Array<string>} skills - Habilidades técnicas
  * @property {Object} horario - Horario de disponibilidad flexible
  * @property {string} banco - Entidad bancaria
  * @property {string} tipoCuenta - Tipo de cuenta bancaria
@@ -27,11 +25,9 @@ const { Schema } = mongoose;
 
 // Sub-esquema para la información específica de un experto.
 const expertoSubSchema = new Schema({
-  especialidad: { type: String, required: true, trim: true },
   descripcion: { type: String, required: true, maxlength: 1000 },
   categorias: [{ type: Schema.Types.ObjectId, ref: "Categoria" }],
   precioPorHora: { type: Number, required: true, min: 0 },
-  skills: [{ type: String, trim: true }],
   horario: {
     type: Schema.Types.Mixed, // Horario flexible
     default: null,
@@ -57,8 +53,6 @@ const expertoSubSchema = new Schema({
  * @property {Array<string>} roles - Roles del usuario: cliente, experto, admin
  * @property {string} estado - Estado de la cuenta: activo, inactivo, suspendido, pendiente-verificacion
  * @property {InfoExperto} infoExperto - Información adicional si es experto
- * @property {number} calificacion - Promedio de calificaciones (0-5)
- * @property {number} calificacionesCount - Cantidad de reseñas
  * @property {string} passwordResetToken - Token para recuperación de contraseña
  * @property {Date} passwordResetExpires - Expiración del token de recuperación
  */
@@ -108,18 +102,6 @@ const usuarioSchema = new Schema(
     infoExperto: {
       type: expertoSubSchema, // Usar el sub-esquema definido arriba
       default: null,
-    },
-    // Promedio de calificaciones públicas para este usuario (si es experto)
-    calificacion: {
-      type: Number,
-      min: 0,
-      max: 5,
-      default: 0,
-    },
-    // Cantidad de reseñas consideradas para el promedio
-    calificacionesCount: {
-      type: Number,
-      default: 0,
     },
     passwordResetToken: String,
     passwordResetExpires: Date,
@@ -173,9 +155,6 @@ usuarioSchema.pre("save", function (next) {
   }
   next();
 });
-
-// Índice para optimizar búsquedas por calificación
-usuarioSchema.index({ calificacion: -1 });
 
 /**
  * @openapi
