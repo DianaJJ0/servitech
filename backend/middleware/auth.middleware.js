@@ -25,6 +25,17 @@ function verificarToken(token) {
  */
 function autenticar(req, res, next) {
   const authHeader = req.headers["authorization"];
+  // Debug: log presence of Authorization header (dev only)
+  try {
+    if (authHeader) {
+      // show only prefix for privacy
+      const preview = String(authHeader).slice(0, 30);
+      console.log("auth.middleware: Authorization header present:", preview);
+    } else {
+      console.log("auth.middleware: No Authorization header in request");
+    }
+  } catch (e) {}
+
   if (!authHeader) {
     return res.status(401).send("Token requerido");
   }
@@ -40,6 +51,13 @@ function autenticar(req, res, next) {
     if (req.usuario && !req.usuario._id && req.usuario.id) {
       req.usuario._id = req.usuario.id;
     }
+    // Debug: log that token verification succeeded and minimal payload
+    try {
+      console.log(
+        "auth.middleware: token verificado, usuario id:",
+        req.usuario && (req.usuario._id || req.usuario.id || "<no-id>")
+      );
+    } catch (e) {}
     return next();
   } catch (err) {
     return res.status(401).send("Token inválido o expirado");

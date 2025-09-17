@@ -584,6 +584,14 @@ const resetearPassword = async (req, res) => {
 const actualizarPerfilUsuario = async (req, res) => {
   try {
     const datos = req.body;
+    // Guardas: asegurar que req.usuario existe y tenga _id.
+    if (!req.usuario || !req.usuario._id) {
+      console.error(
+        "actualizarPerfilUsuario: req.usuario ausente o sin _id - headers:",
+        req.headers && { authorization: req.headers.authorization }
+      );
+      return res.status(401).json({ mensaje: "No autenticado" });
+    }
     const usuario = await Usuario.findById(req.usuario._id);
 
     if (!usuario) {

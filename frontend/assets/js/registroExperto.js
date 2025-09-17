@@ -757,8 +757,9 @@ document.addEventListener("DOMContentLoaded", function () {
       if (categoriasSelect) {
         try {
           // ensure dropdown is appended inside the page container so scoped CSS applies
-          var categoriasAppendTarget =
-            categoriasSelect.closest(".registroExperto-main") || document.body;
+          // Always append the Choices dropdown to document.body so it's not clipped
+          // by any parent with overflow:hidden/auto. Also prefer a stable position
+          // and do not reorder user options (shouldSort: false).
           new Choices(categoriasSelect, {
             removeItemButton: true,
             searchEnabled: true,
@@ -767,7 +768,9 @@ document.addEventListener("DOMContentLoaded", function () {
             noResultsText: "No hay resultados",
             noChoicesText: "No hay opciones",
             itemSelectText: "Seleccionar",
-            appendTo: categoriasAppendTarget,
+            appendTo: document.body,
+            position: "bottom",
+            shouldSort: false,
             classNames: {
               containerInner: "choices-container",
               input: "choices-input",
