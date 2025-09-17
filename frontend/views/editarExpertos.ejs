@@ -46,13 +46,11 @@
                 </div>
               </div>
 
-              <form id="registroExpertoForm" class="registroExperto-form">
-                <% // fallback helpers: prefer experto.infoExperto fields, then root experto const info=(typeof experto
-                  !=='undefined' && experto && experto.infoExperto) ? experto.infoExperto : {}; const dias=(info &&
-                  Array.isArray(info.diasDisponibles) && info.diasDisponibles.length) ? info.diasDisponibles : (experto
-                  && Array.isArray(experto.horario) ? experto.horario : (experto && experto.horario ? experto.horario :
-                  [])); const precioVal=(info && (info.precioPorHora || info.precio)) || (experto && experto.precio) ||
-                  0; %>
+              <form id="registroExpertoForm" class="registroExperto-form" method="post" action="/editarExperto"
+                enctype="multipart/form-data">
+                <% /* Nota: Las variables `info`, `dias`, `precioVal`, `banco`, `tipoCuenta` y `tipoDocumento` se
+                  preparan en el servidor (ver `frontend/server.js`) y se pasan a la vista. Evitamos lógica JS compleja
+                  dentro del template para prevenir errores al formatear/guardar. */ %>
                   <!-- Primera fila horizontal -->
                   <div class="form-row triple">
                     <!-- Email -->
@@ -131,14 +129,22 @@
                       </span>
                       </label>
                       <select id="categorias" name="categorias" multiple class="select-multiple categorias-modern">
-                        <% if (categorias && categorias.length) { categorias.forEach(function(categoria) { var
-                          isSelected=false; if (info && Array.isArray(info.categorias)) { // info.categorias may contain
-                          ids or nombres depending on backend normalization const catValues=info.categorias.map(String);
-                          const catId=String(categoria.id || categoria._id); const catNombre=String(categoria.nombre);
-                          isSelected=catValues.includes(catId) || catValues.includes(catNombre); } %>
-                          <option value="<%= categoria.id || categoria._id %>" <%=isSelected ? 'selected' : '' %>><%-
-                              categoria.nombre %></option>
-                          <% }); } %>
+                        <% if (categorias && categorias.length) { %>
+                          <% categorias.forEach(function(categoria) { %>
+                            <%
+                              var isSelected = false;
+                              if (info && Array.isArray(info.categorias)) {
+                                // info.categorias puede contener ids o nombres dependiendo de la normalización del backend
+                                var catValues = info.categorias.map(String);
+                                var catId = String(categoria.id || categoria._id);
+                                var catNombre = String(categoria.nombre);
+                                isSelected = catValues.includes(catId) || catValues.includes(catNombre);
+                              }
+                            %>
+                              <option value="<%= categoria.id || categoria._id %>" <%=isSelected ? 'selected' : '' %>
+                                ><%- categoria.nombre %></option>
+                              <% }); %>
+                                <% } %>
                       </select>
                       <div id="categoriasTags" class="tags-container"></div>
                       <p class="form-hint">Selecciona una o más categorías tecnológicas</p>
@@ -208,8 +214,7 @@
                       <div class="form-group compact">
                         <label for="banco">Banco *</label>
                         <select id="banco" name="banco" required>
-                          <% var banco=(experto && experto.infoExperto && experto.infoExperto.banco) || (experto &&
-                            experto.banco) || '' ; %>
+                          <% /* `banco` proviene del servidor: ver frontend/server.js prepareExpertView */ %>
                             <option value="">Selecciona tu banco</option>
                             <option value="Banco de Bogotá" <%=banco==='Banco de Bogotá' ? 'selected' : '' %>>Banco de
                               Bogotá</option>
@@ -273,8 +278,7 @@
                       <div class="form-group compact">
                         <label for="tipoCuenta">Tipo de cuenta *</label>
                         <select id="tipoCuenta" name="tipoCuenta" required>
-                          <% var tipoCuenta=(experto && experto.infoExperto && experto.infoExperto.tipoCuenta) ||
-                            (experto && experto.tipoCuenta) || '' ; %>
+                          <% /* `tipoCuenta` proviene del servidor: ver frontend/server.js prepareExpertView */ %>
                             <option value="">Selecciona el tipo</option>
                             <option value="Cuenta de Ahorros" <%=tipoCuenta==='Cuenta de Ahorros' ? 'selected' : '' %>
                               >Cuenta de Ahorros</option>
@@ -318,8 +322,7 @@
                       <div class="form-group compact">
                         <label for="tipoDocumento">Tipo de documento *</label>
                         <select id="tipoDocumento" name="tipoDocumento" required>
-                          <% var tipoDocumento=(info && info.tipoDocumento) || (experto && experto.tipoDocumento) || ''
-                            ; %>
+                          <% /* `tipoDocumento` proviene del servidor: ver frontend/server.js prepareExpertView */ %>
                             <option value="">Selecciona el tipo</option>
                             <option value="Cédula de Ciudadanía" <%=tipoDocumento==='Cédula de Ciudadanía' ? 'selected'
                               : '' %>>Cédula de
@@ -386,6 +389,7 @@
   </main>
 
   <script src="/assets/js/editarExperto.js"></script>
+  
 </body>
 
 </html>

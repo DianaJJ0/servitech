@@ -813,6 +813,37 @@ app.get("/registroExperto.html", async (req, res) => {
 });
 
 // --- Edición perfil de experto (protegido) ---
+// Helper: prepare view-friendly values derived from experto
+function prepareExpertView(experto) {
+  const info =
+    typeof experto !== "undefined" && experto && experto.infoExperto
+      ? experto.infoExperto
+      : {};
+  const dias =
+    info && Array.isArray(info.diasDisponibles) && info.diasDisponibles.length
+      ? info.diasDisponibles
+      : experto && Array.isArray(experto.horario)
+      ? experto.horario
+      : experto && experto.horario
+      ? experto.horario
+      : [];
+  const precioVal =
+    (info && (info.precioPorHora || info.precio)) ||
+    (experto && experto.precio) ||
+    0;
+  const banco =
+    (experto && experto.infoExperto && experto.infoExperto.banco) ||
+    (experto && experto.banco) ||
+    "";
+  const tipoCuenta =
+    (experto && experto.infoExperto && experto.infoExperto.tipoCuenta) ||
+    (experto && experto.tipoCuenta) ||
+    "";
+  const tipoDocumento =
+    (info && info.tipoDocumento) || (experto && experto.tipoDocumento) || "";
+  return { info, dias, precioVal, banco, tipoCuenta, tipoDocumento };
+}
+
 app.get("/editarExperto", async (req, res) => {
   if (!req.session?.user?.email)
     return res.redirect("/login.html?next=/editarExperto");
@@ -833,56 +864,226 @@ app.get("/editarExperto", async (req, res) => {
     const catRes = await fetch("http://localhost:5020/api/categorias");
     categorias = catRes.ok ? await catRes.json() : [];
   } catch {}
-  res.render("editarExpertos", {
-    experto,
-    categorias,
-    error: null,
-    success: null,
-  });
+  const prepared = prepareExpertView(experto);
+  res.render(
+    "editarExpertos",
+    Object.assign(
+      {
+        experto,
+        categorias,
+        error: null,
+        success: null,
+      },
+      prepared
+    )
+  );
 });
 
 // --- Actualizar perfil experto (protegido, POST) ---
 app.post("/editarExperto", async (req, res) => {
   try {
-    if (!req.session?.user?.token) {
-      return res.status(401).render("editarExpertos", {
-        experto: null,
-        categorias: [],
-        error: "No autenticado. Inicia sesión para editar tu perfil.",
-        success: null,
-      });
+    // If the incoming request is AJAX (client expects JSON), short-circuit here.
+    // This prevents the browser's native form POST from reaching the proxy that
+    // tries to stream multipart and may produce HTML error pages. The client
+    // JavaScript already performs the real API calls (/api/usuarios/avatar, /api/usuarios/perfil).
+    const isAjax =
+      String(req.headers["x-requested-with"] || "").toLowerCase() ===
+        "xmlhttprequest" ||
+      (req.headers.accept || "").toLowerCase().includes("application/json");
+    if (isAjax) {
+      // Respond with a generic JSON success to stop the native POST from
+      // showing an HTML error page. The client-side JS already performed the
+      // actual update via /api/usuarios/perfil, so a simple OK is sufficient.
+      return res.json({ ok: true, mensaje: "Petición recibida (AJAX)" });
     }
+    // Allow token via session OR Authorization header (Bearer) so clients that
+    // keep token in localStorage can still update via fetch which includes the
+    // Authorization header. Support multipart/form-data by proxying the raw
+    // request stream to the backend so multer there can parse it.
     const fetch = (...args) =>
       import("node-fetch").then(({ default: fetch }) => fetch(...args));
-    const response = await fetch("http://localhost:5020/api/usuarios/perfil", {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${req.session.user.token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(req.body),
-    });
+
+    // Debug: log incoming request headers to help diagnose missing Authorization
+    try {
+      console.log("/editarExperto POST headers:", {
+        authorization:
+          req.headers && req.headers.authorization
+            ? String(req.headers.authorization).slice(0, 40)
+            : undefined,
+        accept: req.headers && req.headers.accept,
+        "x-requested-with": req.headers && req.headers["x-requested-with"],
+        "content-type":
+          req.headers &&
+          req.headers["content-type"] &&
+          req.headers["content-type"].slice(0, 80),
+      });
+    } catch (e) {}
+
+    const headerAuth = (req.headers && req.headers.authorization) || "";
+    const tokenFromHeader = headerAuth.startsWith("Bearer ")
+      ? headerAuth.split(" ")[1]
+      : headerAuth || null;
+    const token = req.session?.user?.token || tokenFromHeader;
+
+    const expectsJson =
+      String(req.headers["x-requested-with"] || "").toLowerCase() ===
+        "xmlhttprequest" ||
+      (req.headers.accept || "").toLowerCase().includes("application/json");
+
+    try {
+      console.log("/editarExperto proxy will use token:", !!token);
+    } catch (e) {}
+
+    if (!token) {
+      const prepared401 = prepareExpertView(null);
+      return res.status(401).render(
+        "editarExpertos",
+        Object.assign(
+          {
+            experto: null,
+            categorias: [],
+            error: "No autenticado. Inicia sesión para editar tu perfil.",
+            success: null,
+          },
+          prepared401
+        )
+      );
+    }
+
+    const reqContentType = (req.headers["content-type"] || "").toLowerCase();
+    let response;
+    if (
+      req.method !== "GET" &&
+      reqContentType &&
+      reqContentType.includes("multipart")
+    ) {
+      // Proxy the raw stream to backend so multer can process file uploads
+      const outboundHeaders = {
+        Authorization: `Bearer ${token}`,
+      };
+      if (req.headers["content-type"])
+        outboundHeaders["content-type"] = req.headers["content-type"];
+      // remove content-length to allow chunked transfer
+      if (outboundHeaders["content-length"])
+        delete outboundHeaders["content-length"];
+
+      try {
+        response = await fetch("http://localhost:5020/api/usuarios/perfil", {
+          method: "PUT",
+          headers: outboundHeaders,
+          body: req,
+        });
+      } catch (fetchErr) {
+        console.error(
+          "Error proxying multipart to backend:",
+          fetchErr && fetchErr.message
+        );
+        if (expectsJson) {
+          return res
+            .status(502)
+            .json({
+              mensaje: "Error al conectar con el backend.",
+              detail: fetchErr && fetchErr.message,
+            });
+        }
+        throw fetchErr;
+      }
+    } else {
+      // JSON form: forward parsed body as JSON
+      try {
+        response = await fetch("http://localhost:5020/api/usuarios/perfil", {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(req.body),
+        });
+      } catch (fetchErr) {
+        console.error(
+          "Error proxying JSON to backend:",
+          fetchErr && fetchErr.message
+        );
+        if (expectsJson) {
+          return res
+            .status(502)
+            .json({
+              mensaje: "Error al conectar con el backend.",
+              detail: fetchErr && fetchErr.message,
+            });
+        }
+        throw fetchErr;
+      }
+    }
     if (!response.ok) {
       const errorText = await response.text();
+      // If the client expects JSON (AJAX), return a JSON error instead of raw HTML
+      const expectsJson =
+        String(req.headers["x-requested-with"] || "").toLowerCase() ===
+          "xmlhttprequest" ||
+        (req.headers.accept || "").toLowerCase().includes("application/json");
+      if (expectsJson) {
+        try {
+          // try parse as JSON first
+          const parsed = JSON.parse(errorText);
+          return res.status(response.status).json(parsed);
+        } catch (e) {
+          return res.status(response.status).json({
+            mensaje:
+              typeof errorText === "string"
+                ? errorText
+                : "Error al actualizar perfil",
+            status: response.status,
+          });
+        }
+      }
       throw new Error(errorText || "Error al actualizar perfil");
     }
     const perfilActualizado = await response.json();
     // Obtener nuevas opciones
     const catRes = await fetch("http://localhost:5020/api/categorias");
     const categorias = catRes.ok ? await catRes.json() : [];
-    res.render("editarExpertos", {
-      experto: perfilActualizado,
-      categorias,
-      error: null,
-      success: "Perfil actualizado correctamente.",
-    });
+    const preparedUpdated = prepareExpertView(perfilActualizado);
+    res.render(
+      "editarExpertos",
+      Object.assign(
+        {
+          experto: perfilActualizado,
+          categorias,
+          error: null,
+          success: "Perfil actualizado correctamente.",
+        },
+        preparedUpdated
+      )
+    );
   } catch (err) {
-    res.status(500).render("editarExpertos", {
-      experto: null,
-      categorias: [],
-      error: err.message || "Error al actualizar perfil.",
-      success: null,
-    });
+    // If the original request expected JSON (AJAX), return JSON instead of rendering HTML
+    const expectsJson =
+      String(req.headers["x-requested-with"] || "").toLowerCase() ===
+        "xmlhttprequest" ||
+      (req.headers.accept || "").toLowerCase().includes("application/json");
+    console.error("Error in /editarExperto handler:", err && err.message);
+    if (expectsJson) {
+      return res
+        .status(500)
+        .json({
+          mensaje: err.message || "Error al actualizar perfil.",
+          error: String(err),
+        });
+    }
+    const preparedErr = prepareExpertView(null);
+    res.status(500).render(
+      "editarExpertos",
+      Object.assign(
+        {
+          experto: null,
+          categorias: [],
+          error: err.message || "Error al actualizar perfil.",
+          success: null,
+        },
+        preparedErr
+      )
+    );
   }
 });
 
