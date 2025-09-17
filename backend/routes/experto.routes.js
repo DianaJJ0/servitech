@@ -58,11 +58,6 @@ const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
  *         schema:
  *           type: string
  *         description: Filtro por especialidad
- *       - in: query
- *         name: minRating
- *         schema:
- *           type: number
- *         description: Calificación mínima
  *     responses:
  *       200:
  *         description: Lista de expertos

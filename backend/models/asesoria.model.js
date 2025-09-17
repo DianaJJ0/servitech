@@ -40,7 +40,6 @@ const infoParticipanteSchema = new Schema(
  * @property {number} duracionMinutos - Duración en minutos (30, 60, 90)
  * @property {Object} pago - Información del pago
  * @property {Object} videollamada - Información de la videollamada
- * @property {Object} reseña - Reseña y calificación
  */
 
 const asesoriaSchema = new Schema(
@@ -107,12 +106,6 @@ const asesoriaSchema = new Schema(
       salaUrl: String,
       iniciadaEn: Date,
       finalizadaEn: Date,
-    },
-    // La reseña asociada a esta asesoría
-    reseña: {
-      calificacion: { type: Number, min: 1, max: 5 },
-      comentario: String,
-      fecha: Date,
     },
   },
   {

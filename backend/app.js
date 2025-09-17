@@ -18,8 +18,6 @@ const notificacionRoutes = require("./routes/notificacion.routes.js");
 const logRoutes = require("./routes/log.routes.js");
 const expertoRoutes = require("./routes/experto.routes.js");
 const expertoController = require("./controllers/experto.controller.js");
-const especialidadRoutes = require("./routes/especialidad.routes.js");
-const habilidadRoutes = require("./routes/habilidad.routes.js");
 const asesoriaRoutes = require("./routes/asesoria.routes.js");
 const devRoutes = require("./routes/dev.routes.js");
 const { autenticar, asegurarRol } = require("./middleware/auth.middleware");
@@ -153,9 +151,6 @@ app.use("/api/usuarios/expertos", expertoRoutes);
 // RUTA PÚBLICA: exponer listado de expertos para la página pública sin requerir autenticación
 app.get("/api/expertos", expertoController.listarExpertos);
 app.use("/api/usuarios", usuarioRoutes);
-app.use("/api/especialidades", especialidadRoutes);
-console.log("Mounting route: /api/habilidades");
-app.use("/api/habilidades", habilidadRoutes);
 app.use("/api/asesorias", asesoriaRoutes);
 // Rutas de desarrollo (solo en entornos no productivos)
 app.use("/api/dev", devRoutes);

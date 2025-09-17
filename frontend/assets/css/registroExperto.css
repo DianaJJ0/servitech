@@ -661,49 +661,6 @@ textarea {
   font-weight: 600;
 }
 
-/* Ajuste visual para Choices.js en modo oscuro - scoped to registro-experto/registroExperto to avoid !important */
-.registro-experto .choices__list--dropdown,
-.registroExperto .choices__list--dropdown,
-.registro-experto .choices__list[role="listbox"],
-.registroExperto .choices__list[role="listbox"] {
-  background-color: var(--card-bg);
-}
-.registro-experto .choices__item,
-.registroExperto .choices__item,
-.registro-experto .choices__item--selectable,
-.registroExperto .choices__item--selectable {
-  color: var(--text-color);
-}
-.registro-experto .choices__item--disabled,
-.registroExperto .choices__item--disabled {
-  color: var(--text-light);
-}
-.registro-experto .choices__input,
-.registroExperto .choices__input {
-  background-color: var(--input-bg);
-  color: var(--text-color);
-}
-.registro-experto .choices__inner,
-.registroExperto .choices__inner {
-  background-color: var(--input-bg);
-  color: var(--text-color);
-  border-radius: var(--input-radius);
-}
-.registro-experto .choices__placeholder,
-.registroExperto .choices__placeholder {
-  color: var(--text-light);
-}
-
-/* Fondo y texto usando variables para opción seleccionada y hover en Choices.js */
-.registro-experto .choices__item--selectable.is-highlighted,
-.registroExperto .choices__item--selectable.is-highlighted,
-.registro-experto .choices__item--selectable:hover,
-.registroExperto .choices__item--selectable:hover {
-  background-color: var(--accent-color);
-  /* use a dark color for text on the light accent background for better contrast */
-  color: var(--background);
-}
-
 .skills-label-text {
   color: var(--accent-color);
   font-weight: 600;
