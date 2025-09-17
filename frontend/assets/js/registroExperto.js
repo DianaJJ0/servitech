@@ -80,33 +80,41 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // --- Inicio: lógica de preview y subida de imagen (movida desde plantilla) ---
   (function () {
-    const input = document.getElementById('fotoPerfil');
-    const previewWrap = document.getElementById('epPreview');
-    const img = document.getElementById('epImg');
-    const removeBtn = document.getElementById('epRemove');
-    const meta = document.getElementById('fotoMeta');
-    const nombre = document.getElementById('fotoNombre');
-    const tamano = document.getElementById('fotoTamano');
-    const errorBox = document.getElementById('fotoError');
+    const input = document.getElementById("fotoPerfil");
+    const previewWrap = document.getElementById("epPreview");
+    const img = document.getElementById("epImg");
+    const removeBtn = document.getElementById("epRemove");
+    const meta = document.getElementById("fotoMeta");
+    const nombre = document.getElementById("fotoNombre");
+    const tamano = document.getElementById("fotoTamano");
+    const errorBox = document.getElementById("fotoError");
 
     if (!input) return;
 
     function formatBytes(bytes) {
-      if (!bytes) return '0 B';
-      const units = ['B', 'KB', 'MB', 'GB'];
+      if (!bytes) return "0 B";
+      const units = ["B", "KB", "MB", "GB"];
       const i = Math.floor(Math.log(bytes) / Math.log(1024));
-      return (bytes / Math.pow(1024, i)).toFixed((i === 0) ? 0 : 1) + ' ' + units[i];
+      return (
+        (bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 1) + " " + units[i]
+      );
     }
 
     function clearPreview() {
-      input.value = '';
-      try { if (img.src && img.src.startsWith('blob:')) URL.revokeObjectURL(img.src); } catch (e) { }
-      img.src = '';
-      if (previewWrap) previewWrap.setAttribute('aria-hidden', 'true');
-      if (previewWrap) previewWrap.classList.remove('show');
-      if (removeBtn) removeBtn.classList.remove('show');
+      input.value = "";
+      try {
+        if (img.src && img.src.startsWith("blob:"))
+          URL.revokeObjectURL(img.src);
+      } catch (e) {}
+      img.src = "";
+      if (previewWrap) previewWrap.setAttribute("aria-hidden", "true");
+      if (previewWrap) previewWrap.classList.remove("show");
+      if (removeBtn) removeBtn.classList.remove("show");
       if (meta) meta.hidden = true;
-      if (errorBox) { errorBox.hidden = true; errorBox.textContent = ''; }
+      if (errorBox) {
+        errorBox.hidden = true;
+        errorBox.textContent = "";
+      }
     }
 
     function showError(msg) {
@@ -115,68 +123,89 @@ document.addEventListener("DOMContentLoaded", function () {
       errorBox.hidden = false;
     }
 
-    input.addEventListener('change', function () {
-      if (!input.files || !input.files[0]) { clearPreview(); return; }
+    input.addEventListener("change", function () {
+      if (!input.files || !input.files[0]) {
+        clearPreview();
+        return;
+      }
       const file = input.files[0];
       errorBox && (errorBox.hidden = true);
 
       const maxSize = 5 * 1024 * 1024; // 5MB
       if (!/^image\//.test(file.type)) {
-        showError('Solo se permiten imágenes (JPG, PNG, etc.).');
+        showError("Solo se permiten imágenes (JPG, PNG, etc.).");
         clearPreview();
         return;
       }
       if (file.size > maxSize) {
-        showError('La imagen excede el tamaño máximo de 5 MB.');
+        showError("La imagen excede el tamaño máximo de 5 MB.");
         clearPreview();
         return;
       }
 
       const url = URL.createObjectURL(file);
       if (img) img.src = url;
-      if (previewWrap) previewWrap.setAttribute('aria-hidden', 'false');
-      if (previewWrap) previewWrap.classList.add('show');
-      if (removeBtn) removeBtn.classList.add('show');
+      if (previewWrap) previewWrap.setAttribute("aria-hidden", "false");
+      if (previewWrap) previewWrap.classList.add("show");
+      if (removeBtn) removeBtn.classList.add("show");
       if (nombre) nombre.textContent = file.name;
       if (tamano) tamano.textContent = formatBytes(file.size);
       if (meta) meta.hidden = false;
 
       (async function uploadAvatar() {
         try {
-          const token = localStorage.getItem('token');
-          if (!token || token === 'null') { showError('Debes iniciar sesión para subir la imagen.'); return; }
+          const token = localStorage.getItem("token");
+          if (!token || token === "null") {
+            showError("Debes iniciar sesión para subir la imagen.");
+            return;
+          }
           const fd = new FormData();
-          fd.append('avatar', file);
-          const res = await fetch('/api/usuarios/avatar', {
-            method: 'POST',
+          fd.append("avatar", file);
+          const res = await fetch("/api/usuarios/avatar", {
+            method: "POST",
             body: fd,
             headers: { Authorization: `Bearer ${token}` },
-            credentials: 'include'
+            credentials: "include",
           });
           const data = await res.json().catch(() => null);
-          if (!res.ok) { showError((data && data.mensaje) || 'Error subiendo la imagen'); return; }
-          const avatarInput = document.getElementById('avatarUrl');
+          if (!res.ok) {
+            showError((data && data.mensaje) || "Error subiendo la imagen");
+            return;
+          }
+          const avatarInput = document.getElementById("avatarUrl");
           if (avatarInput && data && data.avatarUrl) {
             avatarInput.value = data.avatarUrl;
             if (img) img.src = data.avatarUrl;
           }
-        } catch (err) { console.error('Upload error', err); showError('Error subiendo la imagen. Intenta de nuevo.'); }
+        } catch (err) {
+          console.error("Upload error", err);
+          showError("Error subiendo la imagen. Intenta de nuevo.");
+        }
       })();
     });
 
-    removeBtn && removeBtn.addEventListener('click', function () { try { if (img.src) URL.revokeObjectURL(img.src); } catch (e) {} clearPreview(); });
+    removeBtn &&
+      removeBtn.addEventListener("click", function () {
+        try {
+          if (img.src) URL.revokeObjectURL(img.src);
+        } catch (e) {}
+        clearPreview();
+      });
 
-    document.querySelectorAll('.ep-box').forEach(function (el) {
-      el.addEventListener('keydown', function (evt) { if (evt.key === 'Enter' || evt.key === ' ') { evt.preventDefault(); el.click(); } });
+    document.querySelectorAll(".ep-box").forEach(function (el) {
+      el.addEventListener("keydown", function (evt) {
+        if (evt.key === "Enter" || evt.key === " ") {
+          evt.preventDefault();
+          el.click();
+        }
+      });
     });
   })();
   // --- Fin: lógica de preview y subida ---
 });
 
 // Elementos del formulario
-const especialidadSelect = document.getElementById("especialidad");
 const categoriasSelect = document.getElementById("categorias");
-const skillsSelect = document.getElementById("skills");
 
 // Envío del formulario experto
 const form = document.getElementById("registroExpertoForm");
@@ -209,14 +238,6 @@ if (form) {
       missingFields.push("categorias");
     }
 
-    if (!especialidadSelect || !especialidadSelect.value) {
-      missingFields.push("especialidad");
-    }
-
-    if (!skillsSelect || skillsSelect.selectedOptions.length === 0) {
-      missingFields.push("skills");
-    }
-
     // Validar días disponibles
     const diasDisponibles = document.getElementById("diasDisponibles").value;
     if (
@@ -241,8 +262,6 @@ if (form) {
       categorias: Array.from(categoriasSelect.selectedOptions).map(
         (o) => o.value
       ),
-      especialidad: especialidadSelect.value,
-      skills: Array.from(skillsSelect.selectedOptions).map((o) => o.value),
       banco: document.getElementById("banco").value,
       tipoCuenta: document.getElementById("tipoCuenta").value,
       numeroCuenta: document.getElementById("numeroCuenta").value,
@@ -756,30 +775,6 @@ document.addEventListener("DOMContentLoaded", function () {
           });
         } catch (e) {
           console.error("Choices init failed for categorias", e);
-        }
-      }
-      var skillsSelect = document.getElementById("skills");
-      if (skillsSelect) {
-        try {
-          // append inside page container so scoped CSS (under .registroExperto-main) reaches the dropdown
-          var skillsAppendTarget =
-            skillsSelect.closest(".registroExperto-main") || document.body;
-          new Choices(skillsSelect, {
-            removeItemButton: true,
-            searchEnabled: true,
-            placeholder: true,
-            placeholderValue: "Selecciona habilidades",
-            noResultsText: "No hay resultados",
-            noChoicesText: "No hay opciones",
-            itemSelectText: "Seleccionar",
-            appendTo: skillsAppendTarget,
-            classNames: {
-              containerInner: "choices-container",
-              input: "choices-input",
-            },
-          });
-        } catch (e) {
-          console.error("Choices init failed for skills", e);
         }
       }
     })
