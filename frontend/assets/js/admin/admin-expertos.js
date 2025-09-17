@@ -1038,7 +1038,6 @@ onDomReady(() => {
   const estadoSelect = document.getElementById("estadoExperto");
   const fechaRegistroInput = document.getElementById("fechaRegistroExperto");
   const sesionesInput = document.getElementById("sesionesExperto");
-  const calificacionInput = document.getElementById("calificacionExperto");
 
   // Abrir modal con datos del experto
   document.querySelectorAll(".edit-btn").forEach((button) => {
@@ -1060,7 +1059,6 @@ onDomReady(() => {
       estadoSelect.value = estado;
       fechaRegistroInput.value = fechaRegistro;
       sesionesInput.value = tds[5] ? tds[5].textContent.trim() : "";
-      calificacionInput.value = tds[6] ? tds[6].textContent.trim() : "";
 
       modal.style.display = "flex";
     });
@@ -1164,22 +1162,15 @@ function setupExpertFilters() {
   const categorySelect =
     document.getElementById("filterCategoria") ||
     container.querySelectorAll("select")[1];
-  const ratingSelect =
-    container.querySelector("select:nth-of-type(3)") ||
-    container.querySelectorAll("select")[2];
-
   const applyBtn = container.querySelector(".expertos-filtros__btn");
 
   const applyFilters = () => {
     const status = statusSelect ? statusSelect.value : "";
     const category = categorySelect ? categorySelect.value : "";
-    const minRating =
-      ratingSelect && ratingSelect.value ? Number(ratingSelect.value) : null;
-    // Normalize to backend param names: estado, categoria, minRating
+    // Normalize to backend param names: estado, categoria
     window._adminFilters = {
       estado: status || null,
       categoria: category || null,
-      minRating,
     };
     // resetear a primera página al aplicar filtros
     window._adminCurrentPage = 1;

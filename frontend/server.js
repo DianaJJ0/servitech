@@ -232,25 +232,21 @@ app.use("/api", async (req, res) => {
       // If the client included infoExperto in the request body, decide whether
       // to perform an admin PUT to populate the expert profile. Accept both
       // a full profile (with banking fields) and a minimal admin-provided
-      // profile (especialidad, categorias, skills, descripcion). The backend
+      // profile (categorias, descripcion). The backend
       // admin PUT handler supports partial merges, so performing the PUT with
       // partial data is safe and improves admin UX.
       const body = req.body || {};
       const info = body.infoExperto || null;
       const hasMinimalExpertFields =
         info &&
-        (info.especialidad ||
-          (Array.isArray(info.categorias) && info.categorias.length > 0) ||
-          (Array.isArray(info.skills) && info.skills.length > 0) ||
+        ((Array.isArray(info.categorias) && info.categorias.length > 0) ||
           info.descripcion);
 
       const hasFullExpertFields =
         info &&
         info.descripcion &&
         info.precioPorHora &&
-        info.especialidad &&
         info.categorias &&
-        info.skills &&
         info.banco &&
         info.tipoCuenta &&
         info.numeroCuenta &&
@@ -782,23 +778,15 @@ app.get("/registroExperto", async (req, res) => {
   }
   const fetch = (...args) =>
     import("node-fetch").then(({ default: fetch }) => fetch(...args));
-  let categorias = [],
-    especialidades = [],
-    habilidades = [];
+  let categorias = [];
   try {
     const catRes = await fetch("http://localhost:5020/api/categorias");
     categorias = catRes.ok ? await catRes.json() : [];
-    const espRes = await fetch("http://localhost:5020/api/especialidades");
-    especialidades = espRes.ok ? await espRes.json() : [];
-    const habRes = await fetch("http://localhost:5020/api/habilidades");
-    habilidades = habRes.ok ? await habRes.json() : [];
   } catch {}
   res.render("registroExperto", {
     user: req.session.user,
     email: req.session.user.email,
     categorias,
-    especialidades,
-    habilidades,
     error: null,
   });
 });
@@ -811,23 +799,15 @@ app.get("/registroExperto.html", async (req, res) => {
   }
   const fetch = (...args) =>
     import("node-fetch").then(({ default: fetch }) => fetch(...args));
-  let categorias = [],
-    especialidades = [],
-    habilidades = [];
+  let categorias = [];
   try {
     const catRes = await fetch("http://localhost:5020/api/categorias");
     categorias = catRes.ok ? await catRes.json() : [];
-    const espRes = await fetch("http://localhost:5020/api/especialidades");
-    especialidades = espRes.ok ? await espRes.json() : [];
-    const habRes = await fetch("http://localhost:5020/api/habilidades");
-    habilidades = habRes.ok ? await habRes.json() : [];
   } catch {}
   res.render("registroExperto", {
     user: req.session.user,
     email: req.session.user.email,
     categorias,
-    especialidades,
-    habilidades,
     error: null,
   });
 });
@@ -839,9 +819,7 @@ app.get("/editarExperto", async (req, res) => {
   const fetch = (...args) =>
     import("node-fetch").then(({ default: fetch }) => fetch(...args));
   let experto = null,
-    categorias = [],
-    especialidades = [],
-    habilidades = [];
+    categorias = [];
   try {
     if (req.session.user && req.session.user.token) {
       const perfilRes = await fetch(
@@ -854,16 +832,10 @@ app.get("/editarExperto", async (req, res) => {
     }
     const catRes = await fetch("http://localhost:5020/api/categorias");
     categorias = catRes.ok ? await catRes.json() : [];
-    const espRes = await fetch("http://localhost:5020/api/especialidades");
-    especialidades = espRes.ok ? await espRes.json() : [];
-    const habRes = await fetch("http://localhost:5020/api/habilidades");
-    habilidades = habRes.ok ? await habRes.json() : [];
   } catch {}
   res.render("editarExpertos", {
     experto,
     categorias,
-    especialidades,
-    habilidades,
     error: null,
     success: null,
   });
@@ -876,8 +848,6 @@ app.post("/editarExperto", async (req, res) => {
       return res.status(401).render("editarExpertos", {
         experto: null,
         categorias: [],
-        especialidades: [],
-        habilidades: [],
         error: "No autenticado. Inicia sesión para editar tu perfil.",
         success: null,
       });
@@ -900,15 +870,9 @@ app.post("/editarExperto", async (req, res) => {
     // Obtener nuevas opciones
     const catRes = await fetch("http://localhost:5020/api/categorias");
     const categorias = catRes.ok ? await catRes.json() : [];
-    const espRes = await fetch("http://localhost:5020/api/especialidades");
-    const especialidades = espRes.ok ? await espRes.json() : [];
-    const habRes = await fetch("http://localhost:5020/api/habilidades");
-    const habilidades = habRes.ok ? await habRes.json() : [];
     res.render("editarExpertos", {
       experto: perfilActualizado,
       categorias,
-      especialidades,
-      habilidades,
       error: null,
       success: "Perfil actualizado correctamente.",
     });
@@ -916,8 +880,6 @@ app.post("/editarExperto", async (req, res) => {
     res.status(500).render("editarExpertos", {
       experto: null,
       categorias: [],
-      especialidades: [],
-      habilidades: [],
       error: err.message || "Error al actualizar perfil.",
       success: null,
     });
@@ -958,14 +920,7 @@ app.get("/admin/adminClientes", requireAdmin, (req, res) => {
 app.get("/admin/adminExpertos", requireAdmin, async (req, res) => {
   const fetch = (...args) =>
     import("node-fetch").then(({ default: fetch }) => fetch(...args));
-  let habilidades = [];
   let initialExpertos = [];
-  try {
-    const habRes = await fetch("http://localhost:5020/api/habilidades");
-    habilidades = habRes.ok ? await habRes.json() : [];
-  } catch (e) {
-    habilidades = [];
-  }
   // Obtener categorías para filtros
   let categorias = [];
   try {
@@ -1094,7 +1049,6 @@ app.get("/admin/adminExpertos", requireAdmin, async (req, res) => {
   }
   res.render("admin/adminExpertos", {
     user: req.session.user || {},
-    habilidades,
     initialExpertos,
     categorias,
   });
@@ -1116,16 +1070,8 @@ app.get("/dev/admin/adminExpertos", async (req, res) => {
 
   const fetch = (...args) =>
     import("node-fetch").then(({ default: fetch }) => fetch(...args));
-  let habilidades = [];
   let categorias = [];
   let initialExpertos = [];
-  try {
-    const habRes = await fetch("http://localhost:5020/api/habilidades");
-    habilidades = habRes.ok ? await habRes.json() : [];
-  } catch (e) {
-    habilidades = [];
-  }
-
   // Obtener categorías para filtros
   try {
     const catRes = await fetch("http://localhost:5020/api/categorias");
@@ -1213,7 +1159,6 @@ app.get("/dev/admin/adminExpertos", async (req, res) => {
 
   return res.render("admin/adminExpertos", {
     user: {},
-    habilidades,
     categorias,
     initialExpertos,
   });
