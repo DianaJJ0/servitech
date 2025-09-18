@@ -1,67 +1,148 @@
 /**
- * ARCHIVO PRINCIPAL DEL SERVIDOR API - SERVITECH
+ * ARCHIVO PRINCIPAL DEL SERVIDOR API - SERVITECH (rama develop)
+ * - Express API con CORS seguro
+ * - Swagger (swagger-jsdoc + swagger-ui-express) con esquema bearerAuth
+
  */
+
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const conectarDB = require("./config/database.js");
-const multer = require("multer");
 const path = require("path");
-const backup = require("./config/backup.js"); // Importar el módulo de backup
-const cron = require("node-cron"); // Importar cron para programar tareas
+const session = require("express-session");
 
-// se llaman todas las rutas
+// DB
+const conectarDB = require("./config/database.js");
+
+// Middlewares de auth
+const { asegurarRol } = require("./middleware/auth.middleware");
+
+// Rutas
 const usuarioRoutes = require("./routes/usuario.routes.js");
 const categoriaRoutes = require("./routes/categoria.routes.js");
 const pagoRoutes = require("./routes/pago.routes.js");
 const notificacionRoutes = require("./routes/notificacion.routes.js");
 const logRoutes = require("./routes/log.routes.js");
 const expertoRoutes = require("./routes/experto.routes.js");
-const expertoController = require("./controllers/experto.controller.js");
 const asesoriaRoutes = require("./routes/asesoria.routes.js");
+const perfilExpertoRoutes = require("./routes/perfilExperto.js");
 const devRoutes = require("./routes/dev.routes.js");
-const { autenticar, asegurarRol } = require("./middleware/auth.middleware");
 
-// Conectar a la base de datos
+// Conecta a la base de datos
 conectarDB();
+
 const app = express();
-const session = require("express-session");
+
+// --- Nuevo: log simple de peticiones API para depuración de Authorization ---
+app.use((req, res, next) => {
+  try {
+    if (String(req.path || "").startsWith("/api")) {
+      const auth =
+        req.headers && (req.headers.authorization || req.headers.Authorization);
+      console.log(
+        `API request -> ${req.method} ${req.originalUrl} | Authorization: ${
+          auth ? "present" : "missing"
+        }`
+      );
+      // opcional: para menos ruido, comentar la siguiente línea
+      // console.debug("Headers:", Object.keys(req.headers).reduce((o,k)=> (o[k]=req.headers[k],o), {}));
+    }
+  } catch (e) {}
+  next();
+});
+
+// Aviso si no hay fetch nativo en este runtime
+if (typeof globalThis.fetch !== "function") {
+  console.warn(
+    "Aviso: global fetch no disponible en este runtime. Se recomienda Node >= 18 para usar fetch nativo."
+  );
+}
+
+const PROXY_MODE =
+  String(process.env.PROXY_MODE || "false").toLowerCase() === "true";
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5021";
+
+// Activar CORS únicamente en desarrollo cuando no usamos proxy.
+// Si PROXY_MODE=true asumimos que el frontend hará proxy y no necesitamos abrir CORS en producción.
+if (!PROXY_MODE && process.env.NODE_ENV !== "production") {
+  app.use(
+    cors({
+      origin: (origin, cb) => {
+        if (!origin || origin === FRONTEND_URL) return cb(null, true);
+        return cb(new Error("Origen no permitido por CORS"));
+      },
+      credentials: true,
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+      allowedHeaders: [
+        "Content-Type",
+        "Authorization",
+        "X-Requested-With",
+        "x-api-key",
+      ],
+      exposedHeaders: ["Content-Disposition"],
+    })
+  );
+  console.log(
+    "CORS habilitado en entorno de desarrollo, origen permitido:",
+    FRONTEND_URL
+  );
+} else {
+  console.log(
+    `CORS deshabilitado (PROXY_MODE=${PROXY_MODE}, NODE_ENV=${process.env.NODE_ENV})`
+  );
+}
+
+// Parsers
+app.use(express.json({ limit: "5mb" }));
+app.use(express.urlencoded({ extended: true }));
+
+// Sesión simple (si usas Redis, configúralo en otra capa)
 app.use(
   session({
-    secret: "servitech-secret",
+    secret: process.env.SESSION_SECRET || "servitech-secret",
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: false,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
     },
   })
 );
 
-// Integración de Swagger (swagger-jsdoc + swagger-ui-express)
+// Salud
+/**
+ * @openapi
+ * /api/health:
+ *   get:
+ *     tags: [Sistema]
+ *     summary: Verifica el estado de la API
+ *     responses:
+ *       200:
+ *         description: OK
+ */
+app.get("/api/health", (req, res) => res.status(200).json({ ok: true }));
+
+// Health simple (útil para checks desde frontend / infra)
+app.get("/health", (req, res) => res.status(200).json({ ok: true }));
+
+// Swagger (swagger-jsdoc + swagger-ui-express)
 try {
   const swaggerJSDoc = require("swagger-jsdoc");
   const swaggerUi = require("swagger-ui-express");
-  const swaggerOptions = require("./config/swagger");
+  const swaggerOptions = require("./config/swagger"); // Archivo aparte con opciones
   const swaggerSpec = swaggerJSDoc(swaggerOptions);
 
-  // Añadir security definitions al spec para habilitar el botón Authorize
+  // Security Schemes
   if (!swaggerSpec.components) swaggerSpec.components = {};
   if (!swaggerSpec.components.securitySchemes) {
     swaggerSpec.components.securitySchemes = {
-      bearerAuth: {
-        type: "http",
-        scheme: "bearer",
-        bearerFormat: "JWT",
-      },
+      bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" },
     };
   }
-  // Seguridad global para que Swagger UI muestre el botón Authorize
   swaggerSpec.security = [{ bearerAuth: [] }];
 
-  // Proteger las rutas de documentación con autenticación JWT y rol admin
+  // Protege documentación con JWT + admin
   if (process.env.JWT_SECRET) {
-    // Requerir siempre autenticación y rol admin para /api-docs
     app.use(
       "/api-docs",
       autenticar,
@@ -76,7 +157,7 @@ try {
       res.send(swaggerSpec);
     });
   } else {
-    // Si no hay JWT_SECRET, usar el middleware swaggerAuth como fallback (Basic)
+    // Fallback básico si falta JWT_SECRET
     const swaggerAuth = require("./middleware/swaggerAuth.middleware");
     app.use(
       "/api-docs",
@@ -91,78 +172,72 @@ try {
       res.send(swaggerSpec);
     });
   }
-} catch (err) {
-  console.warn(
-    "Advertencia: no se pudo cargar swagger-jsdoc o swagger-ui-express. Ejecuta: npm install swagger-jsdoc swagger-ui-express"
-  );
+} catch (e) {
+  console.warn("Swagger no inicializado:", e && e.message);
 }
 
-// Middleware de registro de solicitudes
-app.use((req, res, next) => {
-  console.log(`${req.method} ${req.url} - ${new Date().toISOString()}`);
-  next();
-});
+// Corregir import del middleware de auth - usar destructuring para obtener la función autenticar
+console.log("DEBUG: Importando middleware de autenticación...");
+const { autenticar } = require("./middleware/auth.middleware");
+console.log("DEBUG: Middleware de autenticación importado correctamente");
 
-app.use(
-  cors({
-    origin: ["http://localhost:5021", "http://127.0.0.1:5021"],
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
-  })
-);
+// Asegurar que el middleware de auth se aplique a rutas API
+// Aplicar middleware de auth a todas las rutas /api
+console.log("DEBUG: Aplicando middleware de autenticación a /api");
+app.use("/api", autenticar);
 
-// Configuración de vistas
-app.set("views", path.join(__dirname, "../frontend/views"));
-app.set("view engine", "ejs");
-// Limitar tamaño del body y manejar JSON malformado de forma explícita
-//PARA PETICIONES JSON
-app.use(express.json({ limit: "100kb" }));
-
-// Servir archivos subidos (avatars) desde backend/uploads
-const uploadsPath = process.env.UPLOAD_PATH || "uploads";
-const uploadsFullPath = path.join(__dirname, uploadsPath);
-try {
-  // Ensure directory exists
-  const fs = require("fs");
-  if (!fs.existsSync(uploadsFullPath))
-    fs.mkdirSync(uploadsFullPath, { recursive: true });
-} catch (e) {}
-app.use("/uploads", express.static(uploadsFullPath));
-
-// Middleware para interceptar SyntaxError de body-parser (JSON inválido)
-app.use((err, req, res, next) => {
-  if (err && err.type === "entity.parse.failed") {
-    console.warn("JSON inválido en request:", req.method, req.url);
-    return res
-      .status(400)
-      .json({ mensaje: "JSON inválido en el cuerpo de la petición" });
-  }
-  next(err);
-});
-
-// Rutas de la API
+// Rutas de dominio
+app.use("/api/usuarios", usuarioRoutes);
 app.use("/api/categorias", categoriaRoutes);
 app.use("/api/pagos", pagoRoutes);
 app.use("/api/notificaciones", notificacionRoutes);
 app.use("/api/logs", logRoutes);
-// Registrar rutas de expertos antes de las rutas generales de usuarios
-app.use("/api/usuarios/expertos", expertoRoutes);
-// RUTA PÚBLICA: exponer listado de expertos para la página pública sin requerir autenticación
-app.get("/api/expertos", expertoController.listarExpertos);
-app.use("/api/usuarios", usuarioRoutes);
+app.use("/api/expertos", expertoRoutes);
 app.use("/api/asesorias", asesoriaRoutes);
-// Rutas de desarrollo (solo en entornos no productivos)
+app.use("/api/perfil-experto", perfilExpertoRoutes);
 app.use("/api/dev", devRoutes);
 
-const PORT = process.env.PORT || 5020;
-app.listen(PORT, () => {
-  console.log(
-    `Servidor API (Backend) ejecutándose en modo ${process.env.NODE_ENV} en el puerto ${PORT}`
-  );
+// 404 controlado
+app.use((req, res) => {
+  res.status(404).json({ error: "No encontrado" });
 });
 
-// Nota: anteriormente había un fetch() aquí que se ejecutaba en el entorno Node
-// y causaba errores al iniciar el servidor (intento de usar fetch con URL relativa).
-// El código de set-session debe ejecutarse desde el cliente (navegador) o implementarse
-// como una ruta propia en el servidor si se necesita para tests.
+// Manejo de errores
+app.use((err, req, res, next) => {
+  console.error("Error:", err && (err.stack || err.message || err));
+  const status = err.status || 500;
+  res.status(status).json({
+    error: "Error interno",
+    message:
+      process.env.NODE_ENV === "production"
+        ? undefined
+        : err.message || "Internal Server Error",
+  });
+});
+
+// --- Nuevo: handlers globales para errores no capturados ---
+process.on("uncaughtException", (err) => {
+  console.error("uncaughtException:", err && (err.stack || err.message || err));
+  // Notar: normalmente conviene reiniciar el proceso; aquí solo logueamos para depuración.
+});
+
+process.on("unhandledRejection", (reason, p) => {
+  console.error(
+    "unhandledRejection at:",
+    p,
+    "reason:",
+    reason && (reason.stack || reason)
+  );
+  // Notar: registra razones de promesas rechazadas sin catch.
+});
+
+module.exports = app;
+
+// Si se ejecuta este archivo directamente (node app.js), arrancar el servidor.
+// Por defecto usa el puerto 5020 si no hay process.env.PORT definido.
+if (require.main === module) {
+  const PORT = parseInt(process.env.PORT, 10) || 5020;
+  app.listen(PORT, () => {
+    console.log(`Servidor backend escuchando en http://localhost:${PORT}`);
+  });
+}

@@ -99,10 +99,6 @@
   font-size: 0.85rem;
 }
 
-/* small helper to separate categorias/habilidades dropdown stacking when both open */
-.modal-expert #habilidades + .choices .choices__list--dropdown {
-  z-index: 1310;
-}
 .modal-expert #categorias + .choices .choices__list--dropdown {
   z-index: 1305;
 }
@@ -129,7 +125,6 @@
 
 /* Hide native selects once Choices has initialized */
 .modal-expert select.choices-initialized,
-.modal-expert .modal-expert__select-habilidades.choices-initialized,
 .modal-expert .modal-expert__select-categorias.choices-initialized {
   display: none !important;
   opacity: 0 !important;

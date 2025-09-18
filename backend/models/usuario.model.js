@@ -26,7 +26,12 @@ const { Schema } = mongoose;
 // Sub-esquema para la información específica de un experto.
 const expertoSubSchema = new Schema({
   descripcion: { type: String, required: true, maxlength: 1000 },
-  categorias: [{ type: Schema.Types.ObjectId, ref: "Categoria" }],
+  categorias: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Categoria", // Asegurar que la referencia sea correcta
+    },
+  ],
   precioPorHora: { type: Number, required: true, min: 0 },
   horario: {
     type: Schema.Types.Mixed, // Horario flexible
