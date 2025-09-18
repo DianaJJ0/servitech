@@ -6,12 +6,16 @@ node_modules/
 coverage/
 *.lcov
 
-# Logs
+# Excluir carpeta de backups (no subir al repositorio)
+backup/
+
+# Excluir archivos temporales de backup
+*.zip
+*.gz
+backup_*
+
+# Ignorar carpeta de logs generados en backend
 logs/
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 
 # Environment variables
 .env

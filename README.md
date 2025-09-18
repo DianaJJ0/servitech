@@ -25,15 +25,15 @@ ServiTech es una aplicación full-stack que facilita la conexión entre usuarios
 ### Para Usuarios
 
 - ✅ Registro y login seguro
-- 🔍 Búsqueda de expertos por especialidad
+- 🔍 Exploración de expertos por categoría
 - 📅 Agendamiento de citas en tiempo real
 - 💳 Pagos integrados y seguros
 - 📧 Notificaciones automáticas por email
 
 ### Para Expertos
 
-- 📋 Gestión de perfil profesional
-- ⏰ Control de disponibilidad
+- 📋 Gestión de perfil profesional (incluye descripción, tarifas y categorías)
+- ⏰ Control de disponibilidad (ver disponibilidad requiere autenticación)
 - 💼 Administración de servicios
 - 📊 Dashboard de citas y ganancias
 
@@ -59,35 +59,36 @@ ServiTech es una aplicación full-stack que facilita la conexión entre usuarios
 
 ---
 
-## ⚡ Inicio Rápido
+## 🖥️ Frontend / Proxy importante
 
-### Prerrequisitos
+- El frontend puede ejecutarse en modo proxy donde todas las rutas /api se proxean al backend. Para desarrollo con proxy:
+  - En el frontend: PROXY_MODE=true BACKEND_URL=http://localhost:5020 NODE_ENV=development npm run dev:proxy
 
-- Node.js 18+ y npm 9+
-- Git
-- Cuenta MongoDB Atlas (gratuita)
+---
 
-### Instalación en 5 pasos
+## ⚡ Inicio Rápido (resumen)
 
-```bash
-# 1. Clonar repositorio
-git clone https://github.com/DianaJJ0/servitech.git
-cd servitech
+# Backend
 
-# 2. Instalar dependencias del backend
-cd backend && npm install
+cd backend
+npm install
 
-# 3. Instalar dependencias del frontend
-cd ../frontend && npm install
+# configurar backend/.env
 
-# 4. Configurar variables de entorno (ver INSTALL.md)
-# Crear backend/.env con tus datos de MongoDB y email
+node app.js # o npm start
 
-# 5. Ejecutar aplicación
-cd ../backend && npm start
-# para admin:
-cd ../frontend &&
-```API_KEY=8g-X4JgECIPNcQ59tMN node server.js
+# Frontend (modo proxy recomendado en desarrollo)
+
+cd frontend
+npm install
+
+# ejemplo:
+
+cross-env PROXY_MODE=true BACKEND_URL=http://localhost:5020 NODE_ENV=development nodemon server.js
+
+# o:
+
+npm run dev:proxy
 
 ### Acceso
 
