@@ -10,7 +10,6 @@ class CalendarioAsesorias {
     this.horaSeleccionada = null;
     this.expertoActual = {
       nombre: "María Rodríguez",
-      especialidad: "Desarrollo Web",
       avatar: "MR",
       experiencia: "10 años de experiencia",
       rating: "★★★★★",
@@ -282,9 +281,6 @@ class CalendarioAsesorias {
           break;
         case "Experto:":
           value.textContent = this.expertoActual.nombre;
-          break;
-        case "Servicio:":
-          value.textContent = this.expertoActual.especialidad;
           break;
       }
     });

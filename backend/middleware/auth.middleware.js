@@ -24,6 +24,27 @@ function verificarToken(token) {
  * Middleware que exige un Bearer token válido y adjunta req.usuario
  */
 function autenticar(req, res, next) {
+  // Permitir accesos públicos sin token (GETs públicos) antes de exigir autorización
+  try {
+    if (req.method === "GET") {
+      // Usar req.originalUrl o req.url para capturar la ruta completa con query params
+      const fullPath = String(req.originalUrl || req.url || req.path || "");
+      console.log(`auth.middleware: evaluando ruta pública GET: ${fullPath}`);
+
+      const publicGetPaths = [
+        /^\/api\/expertos/, // /api/expertos (cualquier cosa después)
+        /^\/api\/categorias/, // /api/categorias (cualquier cosa después)
+      ];
+
+      if (publicGetPaths.some((rx) => rx.test(fullPath))) {
+        console.log(`auth.middleware: ruta pública permitida: ${fullPath}`);
+        return next();
+      }
+    }
+  } catch (e) {
+    console.error("auth.middleware: error en check público:", e);
+  }
+
   const authHeader = req.headers["authorization"];
   // Debug: log presence of Authorization header (dev only)
   try {

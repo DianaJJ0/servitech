@@ -2,8 +2,6 @@
 <html lang="es">
 
 <head>
-
-
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Registro | Servitech</title>
@@ -11,24 +9,20 @@
   <link rel="stylesheet" href="/assets/css/registroExperto.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <!-- Choices.js CDN -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
-
 </head>
 
 <body>
-
   <main class="registroExperto-main">
     <section class="registroExperto-section">
-      <% if (typeof error !=='undefined' ) { %>
+      <% if (typeof error !=='undefined' && error) { %>
         <div class="alert alert-danger">
           <%= error %>
         </div>
         <% } %>
-          <% if (typeof success !=='undefined' ) { %>
+          <% if (typeof success !=='undefined' && success) { %>
             <div class="alert alert-success">
-              <%= success %><br>
-                Serás redirigido a tu panel de experto en unos segundos...
+              <%= success %><br />Serás redirigido a tu panel de experto en unos segundos...
             </div>
             <% } %>
 
@@ -42,281 +36,145 @@
                 </div>
                 <span id="currentDate" class="registro-fecha"></span>
                 <div class="back-home-center">
-                  <a href="/" class="back-link">
-                    <i class="fas fa-arrow-left"></i>Volver al inicio
-                  </a>
+                  <a href="/" class="back-link"><i class="fas fa-arrow-left"></i>Volver al inicio</a>
                 </div>
               </div>
 
               <form id="registroExpertoForm" class="registroExperto-form">
-                <!-- Primera fila horizontal -->
                 <div class="form-row triple">
-                  <!-- Email -->
                   <div class="form-group compact email-group">
-                    <label for="email">
-                      <i class="fas fa-envelope"></i>
-                      Email registrado
-                    </label>
+                    <label for="email"><i class="fas fa-envelope"></i> Email registrado</label>
                     <div class="email-field">
                       <%= typeof email !=='undefined' && email ? email : (user && user.email ? user.email
                         : 'No disponible' ) %>
                     </div>
-                    <p class="form-hint">
-                      Email de tu cuenta
-                    </p>
+                    <p class="form-hint">Email de tu cuenta</p>
                   </div>
 
                   <div class="form-group compact price-group">
-                    <label for="precio">
-                      Precio por hora (COP)
-                      <span class="price-tooltip" title="Ejemplo recomendado: $30.000 - $200.000 COP">
-                        <i class="fas fa-info-circle"></i>
-                      </span>
+                    <label for="precio">Precio por hora (COP)
+                      <span class="price-tooltip" title="Ejemplo recomendado: $30.000 - $200.000 COP"><i
+                          class="fas fa-info-circle"></i></span>
                     </label>
                     <div class="price-input">
                       <span class="currency">$</span>
                       <input type="number" id="precio" name="precio" min="10000" step="100" required
                         placeholder="Ej: 50000" inputmode="numeric" pattern="[0-9]*">
                     </div>
-                    <p class="form-hint">Tarifa por hora de asesoría (Recomendado: $30.000 - $200.000 COP)</p>
-                    <div id="precio-feedback"></div>
+                    <p class="form-hint">Define un precio proporcional a tu experiencia</p>
                   </div>
 
+                  <div class="form-group compact">
+                    <label for="telefonoContacto"><i class="fas fa-phone"></i> Teléfono de contacto</label>
+                    <input type="tel" id="telefonoContacto" name="telefonoContacto" placeholder="Ej: 3001234567">
+                    <p class="form-hint">Usado para coordinar asesorías</p>
+                  </div>
+                </div>
 
-                  <div class="form-group compact days-group">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="descripcion">Descripción profesional</label>
+                    <textarea id="descripcion" name="descripcion" rows="5"
+                      placeholder="Cuentanos tu experiencia, herramientas y tipos de proyectos"></textarea>
+                    <p class="form-hint">Sé concreto y específico</p>
+                  </div>
+                </div>
+
+                <div class="form-row double">
+                  <div class="form-group">
+                    <label for="categorias">Categorías</label>
+                    <select id="categorias" name="categorias" multiple
+                      placeholder="Selecciona tus categorías principales"></select>
+                  </div>
+
+                  <div class="form-group">
                     <label>Días disponibles</label>
                     <div class="days-selector">
-                      <div class="day-option" data-day="Lunes">L</div>
-                      <div class="day-option" data-day="Martes">M</div>
-                      <div class="day-option" data-day="Miércoles">X</div>
-                      <div class="day-option" data-day="Jueves">J</div>
-                      <div class="day-option" data-day="Viernes">V</div>
-                      <div class="day-option" data-day="Sábado">S</div>
-                      <div class="day-option" data-day="Domingo">D</div>
+                      <button type="button" class="day-option" data-day="Lunes">Lunes</button>
+                      <button type="button" class="day-option" data-day="Martes">Martes</button>
+                      <button type="button" class="day-option" data-day="Miércoles">Miércoles</button>
+                      <button type="button" class="day-option" data-day="Jueves">Jueves</button>
+                      <button type="button" class="day-option" data-day="Viernes">Viernes</button>
+                      <button type="button" class="day-option" data-day="Sábado">Sábado</button>
+                      <button type="button" class="day-option" data-day="Domingo">Domingo</button>
                     </div>
-                    <div class="days-selected-display"></div>
-                    <input type="hidden" id="diasDisponibles" name="diasDisponibles">
-                  </div>
-
-                </div>
-
-                <!-- Descripción -->
-                <div class="form-group full-width">
-                  <label for="descripcion">Descripción profesional</label>
-                  <textarea id="descripcion" name="descripcion" required rows="3"
-                    placeholder="Tu experiencia y enfoque profesional"></textarea>
-                </div>
-
-                <!-- Categorías -->
-                <div class="form-row single">
-                  <div class="form-group compact">
-                    <label for="categorias">
-                      <i class="fas fa-layer-group"></i> <span class="categorias-label-text">Categorías</span>
-                      <span class="form-tooltip"
-                        title="Selecciona las áreas tecnológicas en las que tienes experiencia">
-                        <i class="fas fa-info-circle"></i>
-                      </span>
-                    </label>
-                    <select id="categorias" name="categorias" multiple class="select-multiple categorias-modern">
-                      <% if (categorias && categorias.length) { categorias.forEach(function(categoria) { %>
-                        <option value="<%= categoria.id || categoria._id %>"><%- categoria.nombre %></option>
-                        <% }); } %>
-                    </select>
-                    <div id="categoriasTags" class="tags-container"></div>
-                    <p class="form-hint">Selecciona una o más categorías tecnológicas</p>
+                    <input type="hidden" id="diasDisponibles" name="diasDisponibles" value="">
+                    <div class="days-selected-display">Selecciona tus días disponibles</div>
                   </div>
                 </div>
 
-                <!-- Sección de subida y vista previa de imagen de perfil -->
-                <div class="form-group ep-section" id="fotoPerfilSection">
-                  <!-- Fieldset para semántica y mejor estructura -->
-                  <fieldset class="ep-fieldset">
-                    <legend class="ep-legend">
-                      <i class="fas fa-image ep-icon" aria-hidden="true"></i>
-                      Foto de perfil
-                    </legend>
-
-                    <!-- Texto de ayuda -->
-                    <p class="ep-help">Sube una foto clara para tu perfil (JPG/PNG). Tamaño máximo recomendado: 5MB.</p>
-
-                    <!-- Contenedor principal del uploader -->
-                    <div class="ep-uploader">
-                      <!-- Input de archivo oculto (accesible por el label) -->
-                      <input type="file" accept="image/*" id="fotoPerfil" name="fotoPerfil" class="ep-file"
-                        aria-describedby="fotoMeta">
-                      <input type="hidden" id="avatarUrl" name="avatarUrl">
-
-                      <!-- Label que funciona como botón visual para seleccionar archivo -->
-                      <label for="fotoPerfil" class="ep-box" tabindex="0">
-                        <i class="fas fa-upload" aria-hidden="true"></i>
-                        Seleccionar imagen
-                      </label>
-
-                      <!-- Vista previa de la imagen seleccionada -->
-                      <div class="ep-preview" id="epPreview" aria-hidden="true">
-                        <img src="" alt="Vista previa de la foto de perfil" class="ep-img" id="epImg">
-                        <button type="button" class="ep-remove" id="epRemove" title="Eliminar imagen"
-                          aria-label="Eliminar imagen">
-                          <i class="fas fa-times"></i>
-                        </button>
-                      </div>
-
-                      <!-- Meta (nombre de archivo, tamaño) -->
-                      <div class="ep-meta" id="fotoMeta" aria-live="polite" hidden>
-                        <div id="fotoNombre"></div>
-                        <div id="fotoTamano" style="font-size:0.85rem;color:var(--text-light)"></div>
-                      </div>
-                    </div>
-
-                    <!-- Mensaje de error de subida -->
-                    <div class="ep-error" id="fotoError" hidden></div>
-                  </fieldset>
-                </div>
-
-                <!-- Lógica de preview/subida de imagen movida a /assets/js/registroExperto.js -->
-
-
-                <!-- Datos Bancarios -->
-                <div class="form-section">
-                  <h3 class="section-title">
-                    <i class="fas fa-university"></i>
-                    Datos Bancarios para Pagos
-                  </h3>
-                  <p class="section-subtitle">Información necesaria para recibir pagos por tus asesorías</p>
-
-                  <!-- Primera fila bancos -->
-                  <div class="form-row double">
-                    <div class="form-group compact">
-                      <label for="banco">Banco *</label>
-                      <select id="banco" name="banco" required>
-                        <option value="">Selecciona tu banco</option>
-                        <option value="Banco de Bogotá">Banco de Bogotá</option>
-                        <option value="Bancolombia">Bancolombia</option>
-                        <option value="Banco Popular">Banco Popular</option>
-                        <option value="Banco AV Villas">Banco AV Villas</option>
-                        <option value="Banco Caja Social">Banco Caja Social</option>
-                        <option value="Banco de Occidente">Banco de Occidente</option>
-                        <option value="Banco GNB Sudameris">Banco GNB Sudameris</option>
-                        <option value="Banco Itaú">Banco Itaú</option>
-                        <option value="Banco Pichincha">Banco Pichincha</option>
-                        <option value="Banco Santander">Banco Santander</option>
-                        <option value="Banco Scotiabank Colpatria">Banco Scotiabank Colpatria</option>
-                        <option value="Davivienda">Davivienda</option>
-                        <option value="Banco Agrario">Banco Agrario</option>
-                        <option value="Banco Falabella">Banco Falabella</option>
-                        <option value="Banco Finandina">Banco Finandina</option>
-                        <option value="Banco W">Banco W</option>
-                        <option value="Banco Serfinanza">Banco Serfinanza</option>
-                        <option value="Banco Cooperativo Coopcentral">Banco Cooperativo Coopcentral</option>
-                        <option value="Banco BBVA">Banco BBVA</option>
-                        <option value="Nequi">Nequi</option>
-                        <option value="Daviplata">Daviplata</option>
-                        <option value="Movii">Movii</option>
-                        <option value="Banco de Vivienda">Banco de Vivienda</option>
-                        <option value="Banco ProCredit">Banco ProCredit</option>
-                        <option value="Banco Multibank">Banco Multibank</option>
-                        <option value="Banco Coopcentral">Banco Coopcentral</option>
-                        <option value="Banco Credifinanciera">Banco Credifinanciera</option>
-                        <option value="Banco Mundo Mujer">Banco Mundo Mujer</option>
-                        <option value="Banco Ripley">Banco Ripley</option>
-                        <option value="Banco CrediScotia">Banco CrediScotia</option>
-                      </select>
-                    </div>
-
-                    <div class="form-group compact">
-                      <label for="tipoCuenta">Tipo de cuenta *</label>
-                      <select id="tipoCuenta" name="tipoCuenta" required>
-                        <option value="">Selecciona el tipo</option>
-                        <option value="Cuenta de Ahorros">Cuenta de Ahorros</option>
-                        <option value="Cuenta Corriente">Cuenta Corriente</option>
-                        <option value="Cuenta de Nómina">Cuenta de Nómina</option>
-                        <option value="Cuenta Digital">Cuenta Digital</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <!-- Segunda fila bancos -->
-                  <div class="form-row double">
-                    <div class="form-group compact">
-                      <label for="numeroCuenta">Número de cuenta *</label>
-                      <div class="cuenta-container">
-                        <input type="password" id="numeroCuenta" name="numeroCuenta" required
-                          placeholder="Número de cuenta" pattern="[0-9\-]*" title="Solo números y guiones"
-                          class="input-cuenta" inputmode="numeric">
-                        <button type="button" id="toggleAccountNumber" class="btn-toggle-cuenta">
-                          <i class="fas fa-eye"></i>
-                        </button>
-                      </div>
-                      <p class="form-hint">Número completo de tu cuenta</p>
-                    </div>
-
-                    <div class="form-group compact">
-                      <label for="titular">Titular de la cuenta *</label>
-                      <input type="text" id="titular" name="titular" required placeholder="Nombre completo del titular"
-                        pattern="^[A-Za-zÀ-ÿ\s.'-]+$" title="Solo letras y espacios">
-                      <p class="form-hint">Debe coincidir con el nombre en la cuenta</p>
-                    </div>
-                  </div>
-
-                  <!-- Tercera fila bancos -->
-                  <div class="form-row double">
-                    <div class="form-group compact">
-                      <label for="tipoDocumento">Tipo de documento *</label>
-                      <select id="tipoDocumento" name="tipoDocumento" required>
-                        <option value="">Selecciona el tipo</option>
-                        <option value="Cédula de Ciudadanía">Cédula de Ciudadanía</option>
-                        <option value="Cédula de Extranjería">Cédula de Extranjería</option>
-                        <option value="Pasaporte">Pasaporte</option>
-                        <option value="NIT">NIT (Persona Jurídica)</option>
-                      </select>
-                    </div>
-
-                    <div class="form-group compact">
-                      <label for="numeroDocumento">Número de documento *</label>
-                      <input type="text" id="numeroDocumento" name="numeroDocumento" required
-                        placeholder="Número de identificación" pattern="[0-9\-]*" inputmode="numeric"
-                        title="Solo números y guiones">
-                      <p class="form-hint">Documento del titular</p>
-                    </div>
-                  </div>
-
-                  <!-- Contacto -->
+                <div class="form-row double">
                   <div class="form-group">
-                    <label for="telefonoContacto">Teléfono de contacto</label>
-                    <input type="tel" id="telefonoContacto" name="telefonoContacto" placeholder="+57 300 123 4567"
-                      inputmode="tel" pattern="[0-9+()\s-]*" title="Solo números, espacios y los símbolos + - ( )">
-                    <p class="form-hint">Opcional: Teléfono para contacto sobre pagos</p>
+                    <label for="fotoPerfil"><i class="fas fa-image"></i> Foto de perfil</label>
+                    <input type="file" id="fotoPerfil" accept="image/*">
+                    <div id="epPreview" class="avatar-preview">
+                      <img id="epImg" alt="Vista previa" />
+                      <div id="fotoMeta" class="file-meta">
+                        <span id="fotoNombre"></span>
+                        <span id="fotoTamano"></span>
+                      </div>
+                      <button type="button" id="epRemove" class="btn btn-secondary btn-sm">Quitar</button>
+                    </div>
+                    <div id="fotoError" class="alert alert-danger" style="display:none;"></div>
                   </div>
 
-                  <!-- Info card -->
-                  <div class="info-card compact">
-                    <div class="info-card-header">
-                      <i class="fas fa-info-circle"></i>
-                      <strong>Información importante sobre pagos</strong>
+                  <div class="form-group">
+                    <label>Datos bancarios</label>
+                    <div class="bank-grid">
+                      <div>
+                        <label for="banco">Banco</label>
+                        <input type="text" id="banco" name="banco" placeholder="Banco">
+                      </div>
+                      <div>
+                        <label for="tipoCuenta">Tipo de cuenta</label>
+                        <select id="tipoCuenta" name="tipoCuenta">
+                          <option value="">Selecciona</option>
+                          <option value="Ahorros">Ahorros</option>
+                          <option value="Corriente">Corriente</option>
+                          <option value="Nequi">Nequi</option>
+                          <option value="Daviplata">Daviplata</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label for="numeroCuenta">Número de cuenta</label>
+                        <div class="password-wrapper">
+                          <input type="password" id="numeroCuenta" name="numeroCuenta" placeholder="********">
+                          <button type="button" id="toggleAccountNumber" class="btn-icon" title="Mostrar/ocultar">
+                            <i class="fas fa-eye"></i>
+                          </button>
+                        </div>
+                      </div>
+                      <div>
+                        <label for="titular">Titular</label>
+                        <input type="text" id="titular" name="titular" placeholder="Nombre del titular">
+                      </div>
+                      <div>
+                        <label for="tipoDocumento">Tipo de documento</label>
+                        <select id="tipoDocumento" name="tipoDocumento">
+                          <option value="">Selecciona</option>
+                          <option value="CC">Cédula</option>
+                          <option value="CE">Cédula de extranjería</option>
+                          <option value="PAS">Pasaporte</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label for="numeroDocumento">Número de documento</label>
+                        <input type="text" id="numeroDocumento" name="numeroDocumento" placeholder="Ej: 1234567890">
+                      </div>
                     </div>
-                    <ul class="info-list">
-                      <li><i class="fas fa-check"></i> Los pagos se procesan cada 15 días</li>
-                      <li><i class="fas fa-check"></i> Se requiere verificación de cuenta</li>
-                      <li><i class="fas fa-check"></i> Datos editables desde tu perfil</li>
-                      <li><i class="fas fa-check"></i> Seguridad garantizada</li>
-                    </ul>
                   </div>
                 </div>
 
-                <!-- Botón de envío -->
-                <div class="form-footer">
-                  <button type="submit" id="submitExperto" class="btn btn-primary">
-                    <span>Enviar solicitud</span>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
+                <div class="form-actions">
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Guardar y continuar
                   </button>
                 </div>
               </form>
     </section>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
   <script src="/assets/js/registroExperto.js"></script>
 </body>
 

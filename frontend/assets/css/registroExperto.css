@@ -610,35 +610,6 @@ textarea {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
-.registro-experto .especialidad-select-container,
-.registroExperto .especialidad-select-container,
-.registroExperto-form .especialidad-select-container {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.especialidad-modern,
-.skills-modern {
-  width: 100%;
-  padding-right: 36px; /* make room for custom chevron */
-  border-radius: var(--input-radius);
-  border: 1px solid var(--border-color);
-  font-size: 15px;
-  background: var(--input-bg);
-  color: var(--text-color);
-  transition: border-color 0.2s;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-}
-
-.especialidad-modern:focus,
-.skills-modern:focus {
-  border-color: var(--accent-color);
-  outline: none;
-}
-
 .registro-experto .select-arrow,
 .registroExperto .select-arrow,
 .registroExperto-form .select-arrow {

@@ -5,7 +5,6 @@
  */
 const express = require("express");
 const router = express.Router();
-
 const expertoController = require("../controllers/experto.controller");
 const authMiddleware = require("../middleware/auth.middleware");
 const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
@@ -54,15 +53,13 @@ const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
  *           type: string
  *         description: Filtro por categoría
  *       - in: query
- *         name: especialidad
- *         schema:
- *           type: string
- *         description: Filtro por especialidad
  *     responses:
  *       200:
  *         description: Lista de expertos
  */
-router.get("/", authMiddleware.autenticar, expertoController.listarExpertos);
+router.get("/", authMiddleware.autenticar, (req, res, next) =>
+  expertoController.listarExpertos(req, res, next)
+);
 
 /**
  * @swagger
@@ -89,7 +86,7 @@ router.get(
   apiKeyMiddleware,
   authMiddleware.autenticar,
   authMiddleware.asegurarRol("admin"),
-  expertoController.obtenerExpertoPorEmail
+  (req, res, next) => expertoController.obtenerExpertoPorEmail(req, res, next)
 );
 
 /**
@@ -117,7 +114,7 @@ router.delete(
   apiKeyMiddleware,
   authMiddleware.autenticar,
   authMiddleware.asegurarRol("admin"),
-  expertoController.eliminarExpertoPorEmail
+  (req, res, next) => expertoController.eliminarExpertoPorEmail(req, res, next)
 );
 
 /**
@@ -141,10 +138,6 @@ router.delete(
  *                 type: number
  *               categorias:
  *                 type: array
- *               especialidad:
- *                 type: string
- *               skills:
- *                 type: array
  *               banco:
  *                 type: string
  *               tipoCuenta:
@@ -157,10 +150,67 @@ router.delete(
  *       400:
  *         description: Datos faltantes
  */
+router.put("/perfil", authMiddleware.autenticar, (req, res, next) =>
+  expertoController.actualizarPerfilExperto(req, res, next)
+);
+
+// Helper defensivo para asegurarnos de pasar funciones a router
+function wrapMiddleware(mw, name) {
+  // si es función, devolverla tal cual
+  if (typeof mw === "function") return mw;
+  // si recibimos undefined u otro tipo, devolver middleware que pasa error a next
+  return function (req, res, next) {
+    const err = new TypeError(
+      `Middleware inválido${
+        name ? " (" + name + ")" : ""
+      } - se esperaba una función`
+    );
+    // opcional: logear para debug (no lanzar directamente)
+    if (req && req.app && req.app.get) {
+      // ...no-op, sólo para mantener posible integración con logger
+    }
+    next(err);
+  };
+}
+
+// Rutas usando wrapper defensivo
+router.get(
+  "/",
+  wrapMiddleware(authMiddleware.autenticar, "authMiddleware.autenticar"),
+  (req, res, next) => expertoController.listarExpertos(req, res, next)
+);
+
+router.get(
+  "/:email",
+  wrapMiddleware(apiKeyMiddleware, "apiKeyMiddleware"),
+  wrapMiddleware(authMiddleware.autenticar, "authMiddleware.autenticar"),
+  wrapMiddleware(
+    // asegurarRol suele ser una fábrica que devuelve middleware; llamarla sólo si existe
+    typeof authMiddleware.asegurarRol === "function"
+      ? authMiddleware.asegurarRol("admin")
+      : undefined,
+    'authMiddleware.asegurarRol("admin")'
+  ),
+  (req, res, next) => expertoController.obtenerExpertoPorEmail(req, res, next)
+);
+
+router.delete(
+  "/:email",
+  wrapMiddleware(apiKeyMiddleware, "apiKeyMiddleware"),
+  wrapMiddleware(authMiddleware.autenticar, "authMiddleware.autenticar"),
+  wrapMiddleware(
+    typeof authMiddleware.asegurarRol === "function"
+      ? authMiddleware.asegurarRol("admin")
+      : undefined,
+    'authMiddleware.asegurarRol("admin")'
+  ),
+  (req, res, next) => expertoController.eliminarExpertoPorEmail(req, res, next)
+);
+
 router.put(
   "/perfil",
-  authMiddleware.autenticar,
-  expertoController.actualizarPerfilExperto
+  wrapMiddleware(authMiddleware.autenticar, "authMiddleware.autenticar"),
+  (req, res, next) => expertoController.actualizarPerfilExperto(req, res, next)
 );
 
 module.exports = router;
