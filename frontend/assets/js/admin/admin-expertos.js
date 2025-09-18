@@ -1,24 +1,13 @@
 /**
  * @fileoverview
- * Funcionalidad del panel de administración para la gestión de expertos en Servitech.
- * Permite listar, filtrar, agregar, editar, verificar y eliminar expertos desde la interfaz de administrador.
- *
- * Autor: Diana Carolina Jimenez
- * Fecha: 2025-06-04
+ * Admin expertos.
+ * Se mantiene: categorías, precio, días disponibles, estado, verificación, eliminación, paginación.
  */
 
-/**
- * Inicializa la lógica y eventos de la página de administración de expertos.
- */
-/**
- * Carga dinámica de Choices.js (CDN) una sola vez y devuelve una promesa.
- * También se encarga de inyectar la hoja de estilos si falta.
- */
 function ensureChoicesLoaded() {
   if (window._choicesLoadedPromise) return window._choicesLoadedPromise;
   window._choicesLoadedPromise = new Promise((resolve, reject) => {
     if (typeof Choices !== "undefined") return resolve();
-    // Preferir assets locales bajo /assets/vendor/choices/, fallback CDN
     const localCss = "/assets/vendor/choices/choices.min.css";
     const localScript = "/assets/vendor/choices/choices.min.js";
     const cdnCss =
@@ -32,18 +21,16 @@ function ensureChoicesLoaded() {
       link.href = href;
       document.head.appendChild(link);
     }
-
     function tryLoadScript(href) {
       return new Promise((res, rej) => {
         const s = document.createElement("script");
         s.src = href;
-        s.onload = () => setTimeout(() => res(), 50);
+        s.onload = () => setTimeout(res, 50);
         s.onerror = (e) => rej(e || new Error("failed to load script"));
         document.head.appendChild(s);
       });
     }
 
-    // inject CSS: prefer local but don't fail if missing
     try {
       const exists = Array.from(document.getElementsByTagName("link")).some(
         (l) =>
@@ -52,7 +39,6 @@ function ensureChoicesLoaded() {
             l.href.indexOf("/assets/vendor/choices/choices.min.css") !== -1)
       );
       if (!exists) {
-        // try local first
         try {
           injectCss(localCss);
         } catch (e) {
@@ -61,7 +47,6 @@ function ensureChoicesLoaded() {
       }
     } catch (e) {}
 
-    // try local script first, then CDN
     tryLoadScript(localScript)
       .catch(() => tryLoadScript(cdnScript))
       .then(() => resolve())
@@ -70,9 +55,7 @@ function ensureChoicesLoaded() {
   return window._choicesLoadedPromise;
 }
 
-// Lightweight test-detection and DOM-ready wrapper.
-// In Jest (JSDOM) we avoid registering DOMContentLoaded handlers automatically
-// so tests can import functions and control when initialization runs.
+// Entorno tests
 var __ADMIN_EXPERTS_IS_TEST = false;
 try {
   __ADMIN_EXPERTS_IS_TEST =
@@ -90,7 +73,6 @@ function onDomReady(fn) {
   document.addEventListener("DOMContentLoaded", fn);
 }
 
-// Debug helper: enabled when window.__ADMIN_EXPERTOS_DEBUG === true
 function debugLog() {
   try {
     if (typeof window !== "undefined" && window.__ADMIN_EXPERTOS_DEBUG) {
@@ -100,9 +82,8 @@ function debugLog() {
   } catch (e) {}
 }
 
-// Global modal close helpers: handle any .modal-expert instances (covers duplicates)
+// Cierre de modales
 onDomReady(function () {
-  // Close by clicking .btn-close or [data-dismiss="modal"] inside any modal
   document.body.addEventListener("click", function (e) {
     const closeBtn =
       e.target.closest(".btn-close") ||
@@ -113,7 +94,6 @@ onDomReady(function () {
         try {
           modal.style.display = "none";
           document.body.style.overflow = "";
-          // if modal contains the expertForm, clear edit state and reset title
           const form = modal.querySelector("form#expertForm");
           if (form) {
             try {
@@ -129,7 +109,6 @@ onDomReady(function () {
       return;
     }
 
-    // Close when clicking on backdrop (the modal element itself)
     const modalClicked = e.target.closest(".modal-expert");
     if (modalClicked && e.target === modalClicked) {
       try {
@@ -149,7 +128,6 @@ onDomReady(function () {
     }
   });
 
-  // Close visible modals on Escape
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape" || e.key === "Esc") {
       document.querySelectorAll(".modal-expert").forEach((modal) => {
@@ -177,7 +155,7 @@ onDomReady(function () {
   });
 });
 
-// Exports para permitir pruebas controladas (CommonJS)
+// Exports test
 try {
   if (typeof module !== "undefined" && module.exports) {
     module.exports = module.exports || {};
@@ -189,10 +167,6 @@ try {
   }
 } catch (e) {}
 
-/**
- * Inicializa (o re-inicializa) Choices.js en un elemento dado.
- * idOrElement puede ser id o elemento DOM. key es la clave para almacenar instancia.
- */
 function initializeChoicesOn(idOrElement, options = {}, key) {
   const id =
     typeof idOrElement === "string"
@@ -215,7 +189,6 @@ function initializeChoicesOn(idOrElement, options = {}, key) {
           } catch (e) {}
           window._choicesInstances[instanceKey] = null;
         }
-        // Only initialize if Choices constructor available
         if (typeof Choices !== "undefined") {
           window._choicesInstances[instanceKey] = new Choices(
             el,
@@ -229,92 +202,18 @@ function initializeChoicesOn(idOrElement, options = {}, key) {
     .catch((e) => console.error("Failed loading Choices.js for", id, e));
 }
 
+// Cargar datos inyectados y configurar
 onDomReady(function () {
-  // Leer habilidades inyectadas por el servidor (si existen)
-  try {
-    const node = document.getElementById("admin-habilidades");
-    if (node && node.textContent) {
-      try {
-        const parsed = JSON.parse(node.textContent);
-        if (Array.isArray(parsed)) window._adminHabilidades = parsed;
-      } catch (e) {
-        // ignore parse errors
-      }
-    }
-  } catch (e) {}
-  // Leer expertos iniciales inyectados por el servidor (dev) para evitar esperar al fetch
   try {
     const nodeEx = document.getElementById("initial-expertos");
     if (nodeEx && nodeEx.textContent) {
       try {
         const parsed = JSON.parse(nodeEx.textContent);
         if (Array.isArray(parsed)) window._adminExpertos = parsed;
-      } catch (e) {
-        // ignore parse errors
-      }
-    }
-  } catch (e) {}
-  // Si ya tenemos habilidades inyectadas, inicializar Choices básico para que las opciones existan
-  try {
-    const skillsEl = document.getElementById("skills");
-    if (
-      skillsEl &&
-      window._adminHabilidades &&
-      Array.isArray(window._adminHabilidades) &&
-      window._adminHabilidades.length > 0
-    ) {
-      const choicesArray = window._adminHabilidades.map((h) => ({
-        value: h.nombre || h.name || h.label || String(h._id),
-        label: h.nombre || h.name || h.label || String(h._id),
-      }));
-      initializeChoicesOn(
-        skillsEl,
-        Object.assign(
-          {
-            removeItemButton: true,
-            searchEnabled: true,
-            addItems: true,
-            placeholder: true,
-            placeholderValue: "Selecciona habilidades",
-          },
-          { choices: choicesArray }
-        ),
-        "skills"
-      );
+      } catch (e) {}
     }
   } catch (e) {}
 
-  // Inicializar Choices en #skills siempre al cargar la página.
-  try {
-    const skillsEl = document.getElementById("skills");
-    if (skillsEl) {
-      const baseOpts = {
-        removeItemButton: true,
-        searchEnabled: true,
-        addItems: true,
-        duplicateItemsAllowed: false,
-        placeholder: true,
-        placeholderValue: "Selecciona habilidades",
-        noResultsText: "No hay resultados",
-        noChoicesText: "No hay opciones",
-      };
-      let initOpts = Object.assign({}, baseOpts);
-      if (
-        window._adminHabilidades &&
-        Array.isArray(window._adminHabilidades) &&
-        window._adminHabilidades.length > 0
-      ) {
-        initOpts.choices = window._adminHabilidades.map((h) => ({
-          value: h.nombre || h.name || h.label || String(h._id),
-          label: h.nombre || h.name || h.label || String(h._id),
-        }));
-      }
-      initializeChoicesOn(skillsEl, initOpts, "skills");
-    }
-  } catch (e) {}
-  // Cargar categorías de admin en background para poblar tanto el modal
-  // como el filtro de categoría en la UI. Esto asegura que el filtro
-  // funcione incluso si la ruta dev no inyectó `categorias` en el HTML.
   try {
     loadAdminCategorias().catch(() => {});
   } catch (e) {}
@@ -323,14 +222,11 @@ onDomReady(function () {
   setupExpertFilters();
   setupExpertActions();
   setupExpertVerification();
-  // cargar lista real de expertos y registrar manejadores delegados
   loadExpertos();
   setupDelegatedActions();
 });
 
-/**
- * Configura la funcionalidad del modal para agregar/editar expertos
- */
+// Modal agregar/editar experto
 function setupExpertModal() {
   const modal = getExpertModal();
   const btnAddExpert = document.getElementById("btnAddExpert");
@@ -338,141 +234,33 @@ function setupExpertModal() {
   const btnCancel = modal
     ? modal.querySelector('[data-dismiss="modal"]')
     : null;
-
   if (!modal || !btnAddExpert) return;
 
   const openModal = () => {
     modal.style.display = "flex";
     document.body.style.overflow = "hidden";
-    // Ensure expertForm edit state is cleared when opening as "Agregar"
     try {
       const form = document.getElementById("expertForm");
-      if (form && form.dataset) {
-        delete form.dataset.editId;
-      }
+      if (form && form.dataset) delete form.dataset.editId;
       const titleEl = modal.querySelector(".modal-expert__title");
       if (titleEl) titleEl.textContent = "Agregar nuevo experto";
     } catch (e) {}
-    // cargar categorías disponibles para el modal (si no cargadas)
-    // también inicializar Choices en #categorias de forma idempotente
-    loadAdminCategorias().catch((err) =>
-      console.error("Error cargando categorias:", err)
-    );
-    const skillsEl = document.getElementById("skills");
-    if (skillsEl) {
-      (async () => {
-        let skillSuggestions = [];
-        // ensure categories are loaded and initialized for the modal
-        try {
-          await loadAdminCategorias().catch(function () {});
-          const categoriasEl = document.getElementById("categorias");
-          if (categoriasEl) {
-            try {
-              if (
-                !(
-                  window._choicesInstances &&
-                  window._choicesInstances["categorias"]
-                )
-              ) {
-                initializeChoicesOn(
-                  "categorias",
-                  {
-                    removeItemButton: true,
-                    searchEnabled: true,
-                    placeholder: true,
-                    placeholderValue: "Selecciona categorías",
-                  },
-                  "categorias"
-                );
-              }
-            } catch (e) {}
-          }
-        } catch (e) {}
-        // Preferir listado inyectado por servidor (más eficiente)
-        try {
-          if (
-            window._adminHabilidades &&
-            Array.isArray(window._adminHabilidades) &&
-            window._adminHabilidades.length > 0
-          ) {
-            skillSuggestions = window._adminHabilidades
-              .map((h) => h.nombre || h.name || h.label || String(h._id))
-              .filter(Boolean);
-          }
-        } catch (e) {}
-
-        // Si no hubo inyección, intentar la API pública
-        if (!skillSuggestions || skillSuggestions.length === 0) {
-          try {
-            const res = await fetch("/api/habilidades", {
-              credentials: "same-origin",
-            });
-            if (res && res.ok) {
-              const habs = await res.json();
-              if (Array.isArray(habs) && habs.length > 0) {
-                skillSuggestions = habs
-                  .map((h) => h.nombre || h.name || h.label || String(h._id))
-                  .filter(Boolean);
-              }
-            }
-          } catch (e) {
-            // ignore and fallback
-          }
-        }
-
-        // Si aun no hay sugerencias, usar datos ya cargados en la página como último recurso
-        if (!skillSuggestions || skillSuggestions.length === 0) {
-          try {
-            const experts = window._adminExpertos || [];
-            const allSkills = experts.flatMap((ex) => {
-              if (ex && ex.infoExperto && Array.isArray(ex.infoExperto.skills))
-                return ex.infoExperto.skills;
-              if (ex && Array.isArray(ex.skills)) return ex.skills;
-              return [];
-            });
-            skillSuggestions = Array.from(new Set(allSkills))
-              .filter(Boolean)
-              .slice(0, 200);
-          } catch (e) {
-            skillSuggestions = [];
-          }
-        }
-
-        const choicesArray = skillSuggestions.map((s) => ({
-          value: s,
-          label: s,
-        }));
-        // DEBUG: mostrar en consola el origen y cantidad de sugerencias
-        try {
-          console.log(
-            "adminExpertos: window._adminHabilidades present?",
-            Array.isArray(window._adminHabilidades)
-              ? window._adminHabilidades.length
-              : false
-          );
-          console.log(
-            "adminExpertos: skillSuggestions count",
-            skillSuggestions.length,
-            skillSuggestions.slice(0, 10)
-          );
-        } catch (e) {}
+    // Cargar categorías e inicializar Choices en #categorias
+    loadAdminCategorias().then(() => {
+      const categoriasEl = document.getElementById("categorias");
+      if (categoriasEl) {
         initializeChoicesOn(
-          skillsEl,
+          "categorias",
           {
             removeItemButton: true,
             searchEnabled: true,
-            addItems: true,
-            duplicateItemsAllowed: false,
             placeholder: true,
-            placeholderValue: "Selecciona habilidades",
-            noResultsText: "No hay resultados",
-            noChoicesText: "No hay opciones",
-            choices: choicesArray,
+            placeholderValue: "Selecciona categorías",
           },
-          "skills"
+          "categorias"
         );
-      })();
-    }
+      }
+    });
   };
 
   const closeModal = () => {
@@ -480,7 +268,6 @@ function setupExpertModal() {
     document.body.style.overflow = "";
     const form = document.getElementById("expertForm");
     if (form) form.reset();
-    // remove edit id and reset title if present
     try {
       if (form && form.dataset && form.dataset.editId)
         delete form.dataset.editId;
@@ -490,28 +277,16 @@ function setupExpertModal() {
   };
 
   btnAddExpert.addEventListener("click", openModal);
-
-  if (btnCloseModal) {
-    btnCloseModal.addEventListener("click", closeModal);
-  }
-
-  if (btnCancel) {
-    btnCancel.addEventListener("click", closeModal);
-  }
-
+  if (btnCloseModal) btnCloseModal.addEventListener("click", closeModal);
+  if (btnCancel) btnCancel.addEventListener("click", closeModal);
   if (modal) {
     modal.addEventListener("click", function (e) {
-      if (e.target === modal) {
-        closeModal();
-      }
+      if (e.target === modal) closeModal();
     });
   }
 }
 
-/**
- * Visual fixes for Choices instances restricted to the currently visible modal.
- * Centralizes the logic previously duplicated inline in the EJS template.
- */
+// Fixes visuales Choices dentro del modal visible
 function applyChoicesVisualFixesWithinVisibleModal() {
   function applyInputFix(el) {
     if (!el || el.dataset.__stylingApplied) return;
@@ -545,11 +320,8 @@ function applyChoicesVisualFixesWithinVisibleModal() {
       el.style.setProperty("font-family", "inherit", "important");
       el.style.setProperty("padding-left", "42px", "important");
       el.dataset.__stylingApplied = "1";
-    } catch (e) {
-      /* ignore */
-    }
+    } catch (e) {}
   }
-
   function findVisibleModal() {
     return Array.from(document.querySelectorAll(".modal-expert")).find(
       function (m) {
@@ -568,11 +340,9 @@ function applyChoicesVisualFixesWithinVisibleModal() {
       }
     );
   }
-
   function processAll() {
     const visibleModal = findVisibleModal();
     if (!visibleModal) return;
-
     try {
       visibleModal
         .querySelectorAll(
@@ -608,7 +378,6 @@ function applyChoicesVisualFixesWithinVisibleModal() {
             );
           } catch (e) {}
         });
-
       visibleModal
         .querySelectorAll(".choices__inner")
         .forEach(function (inner) {
@@ -618,46 +387,8 @@ function applyChoicesVisualFixesWithinVisibleModal() {
             else inner.classList.remove("no-icon");
           } catch (e) {}
         });
-    } catch (e) {
-      /* ignore */
-    }
+    } catch (e) {}
   }
-
-  // Diagnostics: log choices button computed styles inside visible modal
-  function diag() {
-    try {
-      const visibleModal = findVisibleModal();
-      if (!visibleModal) {
-        console.info("[diag] No hay modal visible para inspeccionar");
-        return;
-      }
-      const btns = visibleModal.querySelectorAll(".choices__button");
-      if (!btns || btns.length === 0) {
-        console.info(
-          "[diag] No se encontraron .choices__button dentro del modal visible"
-        );
-        return;
-      }
-      btns.forEach(function (b, i) {
-        try {
-          console.info("[diag] choices__button #" + i + ":", b.outerHTML);
-          var cs = window.getComputedStyle(b);
-          console.info("[diag] computed (button):", {
-            display: cs.display,
-            visibility: cs.visibility,
-            color: cs.color,
-            background: cs.backgroundColor || cs["background-color"],
-            overflow: cs.overflow,
-            zIndex: cs.zIndex,
-          });
-        } catch (e) {}
-      });
-    } catch (e) {
-      console.error("[diag] error:", e);
-    }
-  }
-
-  // Run now and observe for dynamic clones
   try {
     processAll();
     let attempts = 0;
@@ -670,32 +401,15 @@ function applyChoicesVisualFixesWithinVisibleModal() {
       processAll();
     });
     mo.observe(document.body, { childList: true, subtree: true });
-
-    // also attach a lightweight click to re-run diag when modal interactions occur
-    document.body.addEventListener(
-      "click",
-      function (ev) {
-        if (
-          ev.target.closest(".modal-expert") ||
-          ev.target.closest(".btn-close")
-        )
-          setTimeout(diag, 300);
-      },
-      true
-    );
-  } catch (e) {
-    /* ignore */
-  }
+  } catch (e) {}
 }
-
-// Auto-run visual fixes after DOM ready so inline scripts can be removed
 onDomReady(function () {
   try {
     applyChoicesVisualFixesWithinVisibleModal();
   } catch (e) {}
 });
 
-// Profile image preview and upload helpers (moved from inline view)
+// Preview de imagen de perfil
 onDomReady(function profileImagePreview() {
   try {
     var input = document.getElementById("profileImage");
@@ -704,7 +418,6 @@ onDomReady(function profileImagePreview() {
     var removeBtn = document.getElementById("removeProfileBtn");
     var meta = document.getElementById("uploadMeta");
     var err = document.getElementById("profileImageError");
-    var label = document.getElementById("uploadLabel");
 
     function reset() {
       if (input) input.value = "";
@@ -720,24 +433,21 @@ onDomReady(function profileImagePreview() {
         err.textContent = "";
       }
     }
-
     function showError(message) {
       if (err) {
         err.textContent = message;
         err.style.display = "block";
       }
     }
-
     function setFileInfo(file) {
       if (!meta) return;
       meta.style.display = "block";
       meta.textContent =
         file.name + " · " + Math.round(file.size / 1024) + "KB";
     }
-
     if (!input) return;
 
-    input.addEventListener("change", function (e) {
+    input.addEventListener("change", function () {
       var f = input.files && input.files[0];
       if (!f) {
         reset();
@@ -774,26 +484,20 @@ onDomReady(function profileImagePreview() {
         reset();
       });
     }
-
     if (meta) {
       meta.addEventListener("keydown", function (ev) {
         if (ev.key === "Delete" || ev.key === "Backspace") reset();
       });
     }
-
-    // hide preview initial
     if (document.readyState === "loading")
       document.addEventListener("DOMContentLoaded", reset);
     else reset();
-  } catch (e) {
-    /* ignore */
-  }
+  } catch (e) {}
 });
 
-// Days selector, price feedback and account toggle centralization
+// Días disponibles, toggle cuenta, feedback precio
 onDomReady(function uiHelpers() {
   try {
-    // Days selector
     function readHidden() {
       var h = document.getElementById("diasDisponibles");
       if (!h) return [];
@@ -897,49 +601,6 @@ onDomReady(function uiHelpers() {
       }
     };
 
-    // Force inline styles for days container (fallback)
-    function applyDaysInline() {
-      try {
-        var containers = document.querySelectorAll(".srv-days");
-        containers.forEach(function (c) {
-          c.style.setProperty("display", "flex", "important");
-          c.style.setProperty("flex-direction", "row", "important");
-          c.style.setProperty("flex-wrap", "wrap", "important");
-          c.style.setProperty("gap", "0.5rem", "important");
-          c.style.setProperty("align-items", "center", "important");
-          c.style.setProperty("justify-content", "flex-start", "important");
-          c.style.setProperty("margin-top", "0.35rem", "important");
-          c.style.setProperty("padding", "0", "important");
-        });
-        document.querySelectorAll(".srv-day").forEach(function (n) {
-          n.style.setProperty("display", "inline-flex", "important");
-          n.style.setProperty("align-items", "center", "important");
-          n.style.setProperty("justify-content", "center", "important");
-          n.style.setProperty("width", "40px", "important");
-          n.style.setProperty("height", "40px", "important");
-          n.style.setProperty("min-width", "40px", "important");
-          n.style.setProperty("padding", "0", "important");
-          n.style.setProperty("margin", "0", "important");
-          n.style.setProperty("box-sizing", "border-box", "important");
-          n.style.setProperty("line-height", "1", "important");
-          n.style.setProperty("position", "relative", "important");
-        });
-      } catch (e) {}
-    }
-    applyDaysInline();
-    var ddAttempts = 0;
-    var ddId = setInterval(function () {
-      applyDaysInline();
-      ddAttempts++;
-      if (ddAttempts > 25) clearInterval(ddId);
-    }, 120);
-    var ddMo = new MutationObserver(function () {
-      applyDaysInline();
-    });
-    ddMo.observe(document.body, { childList: true, subtree: true });
-    window.addEventListener("resize", applyDaysInline);
-
-    // Toggle account number visibility
     try {
       var toggleBtn = document.getElementById("toggleAccountNumber");
       var acctInput = document.getElementById("numeroCuenta");
@@ -958,7 +619,6 @@ onDomReady(function uiHelpers() {
       }
     } catch (e) {}
 
-    // Price feedback (simple validation/display)
     try {
       var precioEl = document.getElementById("precio");
       var feedback = document.getElementById("precio-feedback");
@@ -988,24 +648,11 @@ onDomReady(function uiHelpers() {
   } catch (e) {}
 });
 
-/**
- * Helper: devuelve el modal de experto preferido.
- * Prioriza el id "expertModal" si existe, si no devuelve el primer elemento con
- * la clase `.modal-expert` en el documento.
- */
-function getExpertModal() {
-  try {
-    const byId = document.getElementById("expertModal");
-    if (byId) return byId;
-    return document.querySelector(".modal-expert");
-  } catch (e) {
-    return null;
-  }
-}
-
-/* editar experto */
+// Modal editar simple (tolerante si faltan campos antiguos)
 onDomReady(() => {
   const modal = document.getElementById("editarExperto");
+  if (!modal) return;
+
   const closeBtn = modal.querySelector(".btn-close");
   const cancelBtn = modal.querySelector(".modal-editar-cancelar");
 
@@ -1017,13 +664,11 @@ onDomReady(() => {
   const sesionesInput = document.getElementById("sesionesExperto");
   const calificacionInput = document.getElementById("calificacionExperto");
 
-  // Abrir modal con datos del experto
   document.querySelectorAll(".edit-btn").forEach((button) => {
     button.addEventListener("click", () => {
       const row = button.closest("tr");
-      const nombre = row.querySelector("h4").textContent.trim();
-      const correo = row.querySelector("span").textContent.trim();
-      // Use td cell indexes to avoid relying on children[] which shifts when columns change
+      const nombre = row?.querySelector("h4")?.textContent?.trim() || "";
+      const correo = row?.querySelector("span")?.textContent?.trim() || "";
       const tds = row ? Array.from(row.querySelectorAll("td")) : [];
       const especialidad = tds[3] ? tds[3].textContent.trim() : "";
       const estado = row.querySelector(".status")
@@ -1031,56 +676,58 @@ onDomReady(() => {
         : "";
       const fechaRegistro = tds[4] ? tds[4].textContent.trim() : "";
 
-      nombreInput.value = nombre;
-      correoInput.value = correo;
-      especialidadInput.value = especialidad;
-      estadoSelect.value = estado;
-      fechaRegistroInput.value = fechaRegistro;
-      sesionesInput.value = tds[5] ? tds[5].textContent.trim() : "";
-      calificacionInput.value = tds[6] ? tds[6].textContent.trim() : "";
+      if (nombreInput) nombreInput.value = nombre;
+      if (correoInput) correoInput.value = correo;
+      if (especialidadInput) especialidadInput.value = especialidad; // si no existe, no falla
+      if (estadoSelect) estadoSelect.value = estado || "activo";
+      if (fechaRegistroInput) fechaRegistroInput.value = fechaRegistro;
+      if (sesionesInput)
+        sesionesInput.value = tds[5] ? tds[5].textContent.trim() : "";
+      if (calificacionInput)
+        calificacionInput.value = tds[6] ? tds[6].textContent.trim() : "";
 
       modal.style.display = "flex";
+      document.body.style.overflow = "hidden";
     });
   });
 
-  // Cerrar modal con la X
-  closeBtn.addEventListener("click", () => (modal.style.display = "none"));
-
-  // Cerrar modal con el botón cancelar
-  if (cancelBtn) {
+  if (closeBtn)
+    closeBtn.addEventListener("click", () => (modal.style.display = "none"));
+  if (cancelBtn)
     cancelBtn.addEventListener("click", () => (modal.style.display = "none"));
-  }
-
-  // Cerrar modal al hacer click fuera del contenido
   window.addEventListener("click", (e) => {
     if (e.target === modal) modal.style.display = "none";
   });
 
-  // Evento para guardar
-  document
-    .getElementById("formEditarExperto")
-    .addEventListener("submit", (e) => {
+  const formEditar = document.getElementById("formEditarExperto");
+  if (formEditar) {
+    formEditar.addEventListener("submit", (e) => {
       e.preventDefault();
       modal.style.display = "none";
     });
+  }
 });
 
-// The delegated handler in setupDelegatedActions() covers 'Ver perfil' actions
-// and fills the #verPerfilExperto modal using scoped queries. No duplicate
-// initialization is necessary here.
+function getExpertModal() {
+  try {
+    const byId = document.getElementById("expertModal");
+    if (byId) return byId;
+    return document.querySelector(".modal-expert");
+  } catch (e) {
+    return null;
+  }
+}
 
 onDomReady(() => {
-  // Modal inactivar experto
   const modalInactivar = document.getElementById("modalInactivarExperto");
-  const closeBtnInactivar = modalInactivar
-    ? modalInactivar.querySelector(".btn-close")
-    : null;
-  const cancelarBtnInactivar = modalInactivar
-    ? modalInactivar.querySelector(".modal-inactivar-cancelar")
-    : null;
-  const confirmarBtnInactivar = modalInactivar
-    ? modalInactivar.querySelector(".modal-inactivar-confirmar")
-    : null;
+  if (!modalInactivar) return;
+  const closeBtnInactivar = modalInactivar.querySelector(".btn-close");
+  const cancelarBtnInactivar = modalInactivar.querySelector(
+    ".modal-inactivar-cancelar"
+  );
+  const confirmarBtnInactivar = modalInactivar.querySelector(
+    ".modal-inactivar-confirmar"
+  );
   const nombreInactivar = document.getElementById(
     "modalInactivarExpertoNombre"
   );
@@ -1089,8 +736,9 @@ onDomReady(() => {
   document.querySelectorAll(".btn-icon[title='Eliminar']").forEach((button) => {
     button.addEventListener("click", () => {
       rowToInactivate = button.closest("tr");
-      const nombre = rowToInactivate.querySelector("h4").textContent.trim();
-      nombreInactivar.textContent = nombre;
+      const nombre =
+        rowToInactivate?.querySelector("h4")?.textContent?.trim() || "";
+      if (nombreInactivar) nombreInactivar.textContent = nombre;
       modalInactivar.style.display = "flex";
     });
   });
@@ -1107,15 +755,12 @@ onDomReady(() => {
       () => (modalInactivar.style.display = "none")
     );
   }
-  if (modalInactivar) {
-    window.addEventListener("click", (e) => {
-      if (e.target === modalInactivar) modalInactivar.style.display = "none";
-    });
-  }
+  window.addEventListener("click", (e) => {
+    if (e.target === modalInactivar) modalInactivar.style.display = "none";
+  });
   if (confirmarBtnInactivar) {
     confirmarBtnInactivar.addEventListener("click", () => {
       if (rowToInactivate) {
-        // Cambia el estado visualmente a inactivo
         const statusCell = rowToInactivate.querySelector(".status");
         if (statusCell) {
           statusCell.className = "status inactive";
@@ -1127,14 +772,11 @@ onDomReady(() => {
   }
 });
 
-/**
- * Configura los filtros para la lista de expertos
- */
+// Filtros
 function setupExpertFilters() {
   const container = document.querySelector(".expertos-filtros");
   if (!container) return;
 
-  // Prefer explicit ids for robustness
   const statusSelect =
     container.querySelector("select#filterEstado") ||
     container.querySelectorAll("select")[0];
@@ -1152,13 +794,12 @@ function setupExpertFilters() {
     const category = categorySelect ? categorySelect.value : "";
     const minRating =
       ratingSelect && ratingSelect.value ? Number(ratingSelect.value) : null;
-    // Normalize to backend param names: estado, categoria, minRating
+
     window._adminFilters = {
       estado: status || null,
       categoria: category || null,
       minRating,
     };
-    // resetear a primera página al aplicar filtros
     window._adminCurrentPage = 1;
     loadExpertos();
   };
@@ -1170,17 +811,14 @@ function setupExpertFilters() {
     });
   }
 
-  // permitir aplicar automáticamente al cambiar un select
   [statusSelect, categorySelect, ratingSelect].forEach((sel) => {
     if (!sel) return;
     sel.addEventListener("change", () => {
-      // ligero debounce: esperar 120ms para evitar múltiples llamadas seguidas
       if (sel._filterTimer) clearTimeout(sel._filterTimer);
       sel._filterTimer = setTimeout(() => applyFilters(), 120);
     });
   });
 
-  // Si no existe un botón de reset, crear uno al lado del aplicar
   let resetBtn = container.querySelector(".expertos-filtros__reset");
   if (!resetBtn) {
     resetBtn = document.createElement("button");
@@ -1200,9 +838,7 @@ function setupExpertFilters() {
   });
 }
 
-/**
- * Configura las acciones para la gestión de expertos
- */
+// Acciones básicas
 function setupExpertActions() {
   const editButtons = document.querySelectorAll(".expert-edit");
   editButtons.forEach((button) => {
@@ -1233,40 +869,29 @@ function setupExpertActions() {
   });
 }
 
-/**
- * Configura la funcionalidad para verificar expertos
- */
+// Verificación (UI)
 function setupExpertVerification() {
   const verifyButtons = document.querySelectorAll(".verify-expert");
-
   verifyButtons.forEach((button) => {
     button.addEventListener("click", function () {
-      const expertId = this.getAttribute("data-id");
       const expertName = this.getAttribute("data-name");
-
       this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
       this.disabled = true;
-
       setTimeout(() => {
         this.innerHTML = '<i class="fas fa-check-circle"></i> Verificado';
         this.classList.remove("btn-warning");
         this.classList.add("btn-success");
-
         const statusCell = this.closest("tr").querySelector(".status");
         if (statusCell) {
           statusCell.innerHTML =
             '<span class="status verified">Verificado</span>';
         }
-
         console.log(`Experto verificado: ${expertName}`);
       }, 1500);
     });
   });
 }
 
-/**
- * Abre el modal para agregar un nuevo experto.
- */
 function abrirModalAgregarExperto() {
   const modal = getExpertModal();
   if (modal) {
@@ -1275,15 +900,10 @@ function abrirModalAgregarExperto() {
   }
 }
 
-/**
- * Envía los datos del nuevo experto al backend y actualiza la tabla.
- */
+// Crear experto (sin skills/especialidad)
 async function agregarExperto(datosExperto) {
   try {
-    // Registrar usuario usando el endpoint de registro y asignando rol 'experto'.
-    // Generamos una contraseña temporal que el experto podrá resetear luego.
     const randomPassword = Math.random().toString(36).slice(-10) + "A1!";
-    // datosExperto podría contener nombre completo en `nombre`.
     const fullName = datosExperto.nombre || datosExperto.name || "";
     const parts = fullName.split(" ");
     const nombre = parts.shift() || fullName;
@@ -1298,7 +918,6 @@ async function agregarExperto(datosExperto) {
     };
 
     const headers = await getHeaders();
-    // provide UI feedback if called from modal save button
     const saveBtn = document.getElementById("saveExpert");
     const prevSaveTxt = saveBtn && saveBtn.textContent;
     if (saveBtn) {
@@ -1314,12 +933,10 @@ async function agregarExperto(datosExperto) {
     });
 
     if (!res.ok) {
-      // Intentar extraer un mensaje de error legible del backend.
       let errBody = null;
       try {
         errBody = await res.json();
       } catch (e) {
-        // si no es JSON, leer como texto
         try {
           const t = await res.text();
           errBody = t || null;
@@ -1327,8 +944,6 @@ async function agregarExperto(datosExperto) {
           errBody = null;
         }
       }
-
-      // Priorizar campos comunes: 'mensaje', 'message', 'error'
       let userMessage = "Error al registrar experto";
       if (errBody) {
         if (typeof errBody === "string") userMessage = errBody;
@@ -1337,7 +952,6 @@ async function agregarExperto(datosExperto) {
         else if (errBody.error) userMessage = errBody.error;
         else userMessage = JSON.stringify(errBody);
       }
-      // Mostrar mensaje al usuario y propagar error para el flujo llamador
       showMessage(userMessage, "error", 5000);
       throw new Error(userMessage);
     }
@@ -1350,35 +964,18 @@ async function agregarExperto(datosExperto) {
       6000
     );
 
-    // Si el modal contenía campos de perfil de experto, enviar un PUT
-    // para garantizar que el subdocumento infoExperto se persista completamente
+    // Completar infoExperto básica: descripcion, categorias, precio/banco si están en el modal
     try {
       const headers = await getHeaders();
-      // prep headers and include x-api-key if present globally
       if (window.API_KEY) headers["x-api-key"] = window.API_KEY;
 
-      // Construir payload minimo para infoExperto tomando valores del modal si existen
-      // Si `datosExperto.infoExperto` fue pasado desde el modal (save handler), usarlo como base
       const maybeInfo = Object.assign({}, datosExperto.infoExperto || {});
       try {
-        // Preferir valores ya calculados en `datosExperto.infoExperto` o en el modal estándar
-        if (!maybeInfo.especialidad) {
-          const specialSel =
-            document.getElementById("specialty") ||
-            document.getElementById("especialidadInput");
-          if (specialSel && specialSel.value)
-            maybeInfo.especialidad = specialSel.value;
-        }
-      } catch (e) {}
-      try {
         if (!maybeInfo.descripcion) {
-          const bioEl =
-            document.getElementById("bio") ||
-            document.getElementById("descripcionInput");
+          const bioEl = document.getElementById("bio");
           if (bioEl && bioEl.value) maybeInfo.descripcion = bioEl.value;
         }
       } catch (e) {}
-      // categorias select puede venir como select multiple con option:selected
       try {
         const categoriasEl = document.getElementById("categorias");
         if (categoriasEl) {
@@ -1389,13 +986,28 @@ async function agregarExperto(datosExperto) {
         }
       } catch (e) {}
       try {
-        const skillsInst =
-          window._choicesInstances && window._choicesInstances["skills"];
-        if (skillsInst && Array.isArray(skillsInst.getValue(true)))
-          maybeInfo.skills = skillsInst.getValue(true);
+        const precioEl =
+          document.getElementById("precioPorHora") ||
+          document.getElementById("precio");
+        if (precioEl && precioEl.value) {
+          const v = parseFloat(precioEl.value);
+          if (!Number.isNaN(v)) maybeInfo.precioPorHora = v;
+        }
       } catch (e) {}
+      // Bancarios opcionales
+      [
+        "banco",
+        "tipoCuenta",
+        "numeroCuenta",
+        "titular",
+        "tipoDocumento",
+        "numeroDocumento",
+        "telefonoContacto",
+      ].forEach((k) => {
+        const el = document.getElementById(k);
+        if (el && el.value) maybeInfo[k] = el.value.trim();
+      });
 
-      // Si tenemos al menos una propiedad en maybeInfo, enviar PUT para completar infoExperto
       if (Object.keys(maybeInfo).length > 0) {
         const putPayload = { roles: ["experto"], infoExperto: maybeInfo };
         try {
@@ -1418,28 +1030,6 @@ async function agregarExperto(datosExperto) {
               "infoExperto persisted via PUT for",
               datosExperto.email
             );
-            // Verificación adicional: obtener el usuario actualizado y loguearlo
-            try {
-              const verifyRes = await fetch(
-                `/api/usuarios/${encodeURIComponent(datosExperto.email)}`,
-                {
-                  method: "GET",
-                  headers: await getHeaders(),
-                  credentials: "same-origin",
-                }
-              );
-              if (verifyRes.ok) {
-                const userUpdated = await verifyRes.json();
-                console.log("Verified user after PUT:", userUpdated);
-              } else {
-                console.warn(
-                  "Could not verify user after PUT",
-                  verifyRes.status
-                );
-              }
-            } catch (ve) {
-              console.warn("Error fetching user for verification", ve);
-            }
           }
         } catch (e) {
           console.warn("Error persisting infoExperto via PUT:", e);
@@ -1449,7 +1039,6 @@ async function agregarExperto(datosExperto) {
       console.warn("No se pudo completar PUT infoExperto post-creacion:", e);
     }
 
-    // recargar lista de expertos
     try {
       await loadExpertos();
     } finally {
@@ -1462,7 +1051,6 @@ async function agregarExperto(datosExperto) {
   } catch (error) {
     console.error("Error:", error);
     showMessage(error.message || "Error al agregar experto", "error");
-    // ensure UI restores button state
     const saveBtnErr = document.getElementById("saveExpert");
     if (saveBtnErr) {
       saveBtnErr.disabled = false;
@@ -1472,22 +1060,7 @@ async function agregarExperto(datosExperto) {
   }
 }
 
-/**
- * Abre el modal para editar un experto existente.
- */
-function abrirModalEditarExperto(expertoId) {
-  const modal = document.getElementById("editarExperto");
-  if (modal) {
-    modal.style.display = "flex";
-    document.body.style.overflow = "hidden";
-
-    // Aquí puedes agregar código para cargar los datos del experto a editar
-  }
-}
-
-/**
- * Abre y rellena el modal común de edición `.modal-expert` para el experto dado.
- */
+// Edit común con tolerancia a campos ausentes (especialidad/skills removidos)
 async function openExpertEditModal(expertoId) {
   try {
     const expertos = window._adminExpertos || [];
@@ -1496,7 +1069,6 @@ async function openExpertEditModal(expertoId) {
     const modal = getExpertModal();
     if (!modal) return;
 
-    // Reutilizar el mismo mapeo que antes (precio, dias, bio, categorias, skills, avatar, bank)
     const assign = (sel, value) => {
       try {
         const el = document.getElementById(sel);
@@ -1543,10 +1115,6 @@ async function openExpertEditModal(expertoId) {
       });
     } catch (e) {}
 
-    assign(
-      "specialty",
-      (ex.infoExperto && ex.infoExperto.especialidad) || ex.especialidad || ""
-    );
     assign("status", ex.estado || "active");
     const descripcion =
       (ex.infoExperto && (ex.infoExperto.descripcion || ex.infoExperto.bio)) ||
@@ -1572,29 +1140,6 @@ async function openExpertEditModal(expertoId) {
         const avatarInput = document.getElementById("avatarUrl");
         if (avatarInput) avatarInput.value = avatarUrl || "";
       }
-    } catch (e) {}
-
-    try {
-      const bankKeys = [
-        "banco",
-        "tipoCuenta",
-        "numeroCuenta",
-        "titular",
-        "tipoDocumento",
-        "numeroDocumento",
-        "telefonoContacto",
-      ];
-      bankKeys.forEach((k) => {
-        try {
-          const el = document.getElementById(k);
-          if (!el) return;
-          const val =
-            (ex.infoExperto && typeof ex.infoExperto[k] !== "undefined"
-              ? ex.infoExperto[k]
-              : ex[k]) || "";
-          el.value = val;
-        } catch (e) {}
-      });
     } catch (e) {}
 
     try {
@@ -1631,45 +1176,6 @@ async function openExpertEditModal(expertoId) {
       }
     } catch (e) {}
 
-    try {
-      const skillsEl = document.getElementById("skills");
-      if (skillsEl) {
-        const skillsArr =
-          (ex.infoExperto &&
-            Array.isArray(ex.infoExperto.skills) &&
-            ex.infoExperto.skills) ||
-          ex.skills ||
-          [];
-        skillsEl.innerHTML = "";
-        (Array.isArray(skillsArr) ? skillsArr : []).forEach((s) => {
-          try {
-            const opt = document.createElement("option");
-            if (typeof s === "object")
-              opt.value =
-                s.nombre || s.name || s._id || s.id || JSON.stringify(s);
-            else opt.value = s;
-            opt.textContent =
-              typeof s === "object"
-                ? s.nombre || s.name || s._id || s.id || String(opt.value)
-                : s;
-            opt.selected = true;
-            skillsEl.appendChild(opt);
-          } catch (e) {}
-        });
-        initializeChoicesOn(
-          "skills",
-          {
-            removeItemButton: true,
-            searchEnabled: true,
-            addItems: true,
-            placeholder: true,
-            placeholderValue: "Selecciona habilidades",
-          },
-          "skills"
-        );
-      }
-    } catch (e) {}
-
     const form = document.getElementById("expertForm");
     if (form) form.dataset.editId = expertoId;
     try {
@@ -1685,9 +1191,6 @@ async function openExpertEditModal(expertoId) {
   }
 }
 
-/**
- * Verifica o desverifica un experto.
- */
 async function cambiarVerificacionExperto(expertoId, verificado) {
   try {
     const headers = await getHeaders();
@@ -1696,29 +1199,18 @@ async function cambiarVerificacionExperto(expertoId, verificado) {
       headers: Object.assign({ "Content-Type": "application/json" }, headers),
       credentials: "same-origin",
     });
-
-    if (!response.ok) {
+    if (!response.ok)
       throw new Error("Error al cambiar verificación del experto");
-    }
-
-    const expertoActualizado = await response.json();
-    console.log("Estado de verificación actualizado:", expertoActualizado);
-
-    // Aquí puedes agregar código para actualizar el estado de verificación en la tabla
+    await response.json().catch(() => ({}));
   } catch (error) {
     console.error("Error:", error);
   }
 }
 
-/**
- * Elimina un experto de la base de datos.
- */
 async function eliminarExperto(expertoId) {
   try {
-    // El backend espera el email en la ruta: /api/usuarios/expertos/:email
     const identifier = expertoId || "";
     const encoded = encodeURIComponent(identifier);
-    // Provide UI feedback: find button in row and disable it
     let btn = null;
     try {
       btn =
@@ -1757,18 +1249,14 @@ async function eliminarExperto(expertoId) {
   }
 }
 
-// --- Helpers: loadExpertos, getHeaders, escapeHtml, showMessage, edit submit handler
+// Carga y render de expertos
 async function loadExpertos() {
   try {
-    // ensure categories available for mapping ids -> names
     if (!window._adminCategorias || !Array.isArray(window._adminCategorias)) {
       try {
         await loadAdminCategorias();
-      } catch (e) {
-        // ignore errors, we'll still render ids as fallback
-      }
+      } catch (e) {}
     }
-    // show loading placeholder immediately so the user sees feedback
     const tbody = document.querySelector(
       ".expertos-grid__tabla .admin-table tbody"
     );
@@ -1776,7 +1264,6 @@ async function loadExpertos() {
       tbody.innerHTML = `<tr class="placeholder-row"><td colspan="8" style="text-align:center;padding:24px;color:#9aa0a6;">Cargando expertos...</td></tr>`;
     }
 
-    // Si ya tenemos expertos inyectados desde el servidor (dev), renderizarlos inmediatamente
     if (
       Array.isArray(window._adminExpertos) &&
       window._adminExpertos.length > 0
@@ -1791,11 +1278,11 @@ async function loadExpertos() {
       }
     }
 
-    // construir query params para paginación server-side y filtros
     if (!window._adminCurrentPage) window._adminCurrentPage = 1;
     if (!window._adminPageSize) window._adminPageSize = 7;
     const page = parseInt(window._adminCurrentPage, 10) || 1;
     const limit = parseInt(window._adminPageSize, 10) || 7;
+
     const params = new URLSearchParams();
     params.set("page", String(page));
     params.set("limit", String(limit));
@@ -1805,6 +1292,7 @@ async function loadExpertos() {
     if (typeof filters.minRating === "number" && !isNaN(filters.minRating))
       params.set("minRating", String(filters.minRating));
 
+    // Conservamos ruta actual usada en admin (/api/usuarios/expertos)
     const url = `/api/usuarios/expertos?${params.toString()}`;
     const res = await fetch(url, {
       headers: await getHeaders(),
@@ -1812,12 +1300,11 @@ async function loadExpertos() {
     });
     if (!res.ok) {
       console.error("Error al obtener expertos", res.status);
-      // Si no estamos autenticados como admin, informar al usuario claramente
       const status = res.status;
       const tbody = document.querySelector(
         ".expertos-grid__tabla .admin-table tbody"
       );
-      if (tbody) tbody.innerHTML = ""; // eliminar filas estáticas si las hay
+      if (tbody) tbody.innerHTML = "";
       if (status === 401 || status === 403) {
         showMessage(
           "Necesitas iniciar sesión como administrador para ver la lista de expertos.",
@@ -1830,14 +1317,11 @@ async function loadExpertos() {
       return;
     }
     const data = await res.json();
-    // El backend devuelve { expertos: [...], total } para paginación server-side.
     const expertos = Array.isArray(data) ? data : data.expertos || [];
     const total = typeof data.total === "number" ? data.total : expertos.length;
-    // guardar lista actual de la página (útil para acciones en fila)
     window._adminExpertos = expertos;
     window._adminExpertosTotal = total;
 
-    // DEBUG: mostrar una muestra del primer experto y categorias disponibles
     try {
       debugLog("adminExpertos: sample experto:", expertos[0]);
       debugLog(
@@ -1846,14 +1330,12 @@ async function loadExpertos() {
       );
     } catch (e) {}
 
-    // servidor devuelve la página solicitada (experts) y el total
     const pageSize = parseInt(window._adminPageSize, 10) || 7;
     const currentPage = parseInt(window._adminCurrentPage, 10) || 1;
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
     const safePage = Math.min(Math.max(1, currentPage), totalPages);
     window._adminCurrentPage = safePage;
 
-    // Delegar render a helper para mantener código consistente
     renderExpertos(expertos, total);
   } catch (err) {
     console.error("Error cargando expertos:", err);
@@ -1861,10 +1343,6 @@ async function loadExpertos() {
   }
 }
 
-/**
- * Renderiza la UI de paginación (info y controles) dentro de la sección de paginación
- * Parámetros: { total, pageSize, currentPage, totalPages, showingStart, showingEnd }
- */
 function renderPagination(opts) {
   const containerInfo = document.querySelector(".expertos-paginacion__info");
   const containerControls = document.querySelector(
@@ -1884,7 +1362,6 @@ function renderPagination(opts) {
     showingEnd || 0
   } de ${total} expertos`;
 
-  // Limpiar controles y construir prev, páginas y next
   containerControls.innerHTML = "";
 
   const prevBtn = document.createElement("button");
@@ -1900,7 +1377,6 @@ function renderPagination(opts) {
   });
   containerControls.appendChild(prevBtn);
 
-  // Mostrar hasta 5 páginas alrededor del actual
   const maxButtons = 5;
   let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
   let endPage = Math.min(totalPages, startPage + maxButtons - 1);
@@ -1951,17 +1427,13 @@ function renderPagination(opts) {
   containerControls.appendChild(nextBtn);
 }
 
-/**
- * Renderiza la lista de expertos en la tabla principal.
- * Maneja mapeo de categorías (ids o objetos poblados) y especialidad.
- */
+// Render de filas (columna de especialidad se mantiene como visual "legacy")
 function renderExpertos(expertos, total) {
   const tbody = document.querySelector(
     ".expertos-grid__tabla .admin-table tbody"
   );
   if (!tbody) return;
 
-  // Calcular paginación consistente con loadExpertos
   const pageSize = parseInt(window._adminPageSize, 10) || 7;
   const currentPage = parseInt(window._adminCurrentPage, 10) || 1;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
@@ -2002,25 +1474,7 @@ function renderExpertos(expertos, total) {
         })
         .filter(Boolean);
 
-      if (names.length === 0 && Array.isArray(cats) && cats.length > 0) {
-        const fallbackNames = cats
-          .map((c) => {
-            try {
-              if (!c) return null;
-              if (typeof c === "object")
-                return c.nombre || c.name || (c._id ? String(c._id) : null);
-              return String(c);
-            } catch (er) {
-              return null;
-            }
-          })
-          .filter(Boolean);
-        if (fallbackNames.length > 0) {
-          catsHtml = `<div class="user-cats">${fallbackNames
-            .map((n) => `<span class="badge">${escapeHtml(n)}</span>`)
-            .join(" ")}</div>`;
-        }
-      } else if (names.length > 0) {
+      if (names.length > 0) {
         catsHtml = `<div class="user-cats">${names
           .map((n) => `<span class="badge">${escapeHtml(n)}</span>`)
           .join(" ")}</div>`;
@@ -2029,6 +1483,7 @@ function renderExpertos(expertos, total) {
       catsHtml = "";
     }
 
+    // especialidad legacy -> si no existe, mostrar "-"
     let especialidadDisplay = "-";
     try {
       if (
@@ -2041,7 +1496,7 @@ function renderExpertos(expertos, total) {
         especialidadDisplay = ex.especialidad;
       }
     } catch (e) {
-      especialidadDisplay = ex.especialidad || "-";
+      especialidadDisplay = "-";
     }
 
     tr.innerHTML = `
@@ -2061,7 +1516,6 @@ function renderExpertos(expertos, total) {
       <td>${escapeHtml(especialidadDisplay || "-")}</td>
       <td>${escapeHtml((ex.fechaRegistro || "").split("T")[0] || "")}</td>
       <td>${ex.sesionesCount || 0}</td>
-      <td>${escapeHtml(ex.calificacion || "Sin calificaciones")}</td>
       <td><span class="status ${
         ex.estado === "inactive" ? "inactive" : "active"
       }">${escapeHtml(ex.estado || "Activo")}</span></td>
@@ -2085,7 +1539,6 @@ function renderExpertos(expertos, total) {
     `;
     tbody.appendChild(tr);
 
-    // Log para depuración rápida en caso de filas sin infoExperto
     if (!ex.infoExperto) {
       try {
         debugLog("adminExpertos: experto sin infoExperto", ex.email || ex._id);
@@ -2106,17 +1559,13 @@ function renderExpertos(expertos, total) {
   showMessage("Expertos cargados.", "info", 800);
 }
 
-/**
- * Manejador delegado para acciones dinámicas en la tabla de expertos.
- * Usa event delegation para cubrir filas cargadas dinámicamente.
- */
+// Delegación de acciones en tabla
 function setupDelegatedActions() {
   const tbody = document.querySelector(
     ".expertos-grid__tabla .admin-table tbody"
   );
   if (!tbody) return;
 
-  // Click delegation
   tbody.addEventListener("click", async (e) => {
     const btn = e.target.closest("button");
     if (!btn) return;
@@ -2125,16 +1574,13 @@ function setupDelegatedActions() {
     const id = btn.dataset.id || (row && row.dataset.id);
 
     if (title === "Editar" || btn.classList.contains("expert-edit")) {
-      // Abrir el modal común de "Agregar/Editar" experto (.modal-expert)
       const expertos = window._adminExpertos || [];
       const ex = expertos.find((x) => String(x._id) === String(id));
       if (!ex) return showMessage("Experto no encontrado", "error");
       const modal = getExpertModal();
       if (!modal) return;
 
-      // Rellenar los campos del modal con la información registrada por el experto
       try {
-        // Helper seguro para asignar values
         const assign = (sel, value) => {
           try {
             const el = document.getElementById(sel);
@@ -2148,7 +1594,6 @@ function setupDelegatedActions() {
         assign("name", ex.nombre || ex.email || "");
         assign("email", ex.email || "");
 
-        // Precio
         const precioVal =
           (ex.infoExperto &&
             (ex.infoExperto.precioPorHora || ex.infoExperto.precio)) ||
@@ -2157,7 +1602,6 @@ function setupDelegatedActions() {
           "";
         assign("precio", precioVal);
 
-        // Días disponibles
         try {
           const dias =
             (ex.infoExperto && ex.infoExperto.diasDisponibles) ||
@@ -2183,15 +1627,7 @@ function setupDelegatedActions() {
           });
         } catch (e) {}
 
-        // Especialidad, estado y bio/descripcion
-        assign(
-          "specialty",
-          (ex.infoExperto && ex.infoExperto.especialidad) ||
-            ex.especialidad ||
-            ""
-        );
         assign("status", ex.estado || "active");
-        // registro uses 'descripcion' field name; modal uses 'bio'
         const descripcion =
           (ex.infoExperto &&
             (ex.infoExperto.descripcion || ex.infoExperto.bio)) ||
@@ -2200,7 +1636,6 @@ function setupDelegatedActions() {
           "";
         assign("bio", descripcion);
 
-        // Avatar / preview
         try {
           const preview = document.getElementById("profilePreview");
           if (preview) {
@@ -2215,37 +1650,11 @@ function setupDelegatedActions() {
             if (removeBtn)
               removeBtn.style.display = avatarUrl ? "inline-block" : "none";
             preview.style.display = avatarUrl ? "block" : "none";
-            // set hidden avatarUrl input if present
             const avatarInput = document.getElementById("avatarUrl");
             if (avatarInput) avatarInput.value = avatarUrl || "";
           }
         } catch (e) {}
 
-        // Datos bancarios
-        try {
-          const bankKeys = [
-            "banco",
-            "tipoCuenta",
-            "numeroCuenta",
-            "titular",
-            "tipoDocumento",
-            "numeroDocumento",
-            "telefonoContacto",
-          ];
-          bankKeys.forEach((k) => {
-            try {
-              const el = document.getElementById(k);
-              if (!el) return;
-              const val =
-                (ex.infoExperto && typeof ex.infoExperto[k] !== "undefined"
-                  ? ex.infoExperto[k]
-                  : ex[k]) || "";
-              el.value = val;
-            } catch (e) {}
-          });
-        } catch (e) {}
-
-        // Categorías: asegurar opciones y marcar las seleccionadas
         try {
           await loadAdminCategorias();
           const categoriasEl = document.getElementById("categorias");
@@ -2280,52 +1689,8 @@ function setupDelegatedActions() {
           }
         } catch (e) {}
 
-        // Habilidades: reconstruir opciones seleccionadas y reiniciar Choices
-        try {
-          const skillsEl = document.getElementById("skills");
-          if (skillsEl) {
-            const skillsArr =
-              (ex.infoExperto &&
-                Array.isArray(ex.infoExperto.skills) &&
-                ex.infoExperto.skills) ||
-              ex.skills ||
-              [];
-            skillsEl.innerHTML = "";
-            (Array.isArray(skillsArr) ? skillsArr : []).forEach((s) => {
-              try {
-                const opt = document.createElement("option");
-                // si s es objeto intentar extraer nombre o id
-                if (typeof s === "object")
-                  opt.value =
-                    s.nombre || s.name || s._id || s.id || JSON.stringify(s);
-                else opt.value = s;
-                opt.textContent =
-                  typeof s === "object"
-                    ? s.nombre || s.name || s._id || s.id || String(opt.value)
-                    : s;
-                opt.selected = true;
-                skillsEl.appendChild(opt);
-              } catch (e) {}
-            });
-            initializeChoicesOn(
-              "skills",
-              {
-                removeItemButton: true,
-                searchEnabled: true,
-                addItems: true,
-                placeholder: true,
-                placeholderValue: "Selecciona habilidades",
-              },
-              "skills"
-            );
-          }
-        } catch (e) {}
-
-        // Indicar que el modal está en modo edición asignando edit id al form
         const form = document.getElementById("expertForm");
         if (form) form.dataset.editId = id;
-
-        // Ajustar título del modal para reflejar edición
         try {
           const titleEl = modal.querySelector(".modal-expert__title");
           if (titleEl) titleEl.textContent = "Editar experto";
@@ -2334,8 +1699,10 @@ function setupDelegatedActions() {
         console.warn("Error rellenando modal de edición:", e);
       }
 
-      modal.style.display = "flex";
-      document.body.style.overflow = "hidden";
+      if (modal) {
+        modal.style.display = "flex";
+        document.body.style.overflow = "hidden";
+      }
       return;
     }
 
@@ -2344,23 +1711,17 @@ function setupDelegatedActions() {
       const ex = expertos.find((x) => String(x._id) === String(id));
       if (!ex) return showMessage("Experto no encontrado", "error");
 
-      // find modal root first so we can scope queries and avoid duplicate ID conflicts
       const modalVer = document.getElementById("verPerfilExperto");
-
-      // Mapear datos del experto a los campos dentro de `modalVer`
       try {
         const setIf = (idSel, val) => {
           try {
-            // preferir elementos dentro del modal (ids renombrados con ver_ prefix)
             const prefixed = `ver_${idSel}`;
             let el = null;
             if (modalVer) {
-              // dentro del modal: probar prefixed, luego fallback a idSinPrefijo dentro del mismo modal
               el =
                 modalVer.querySelector(`#${prefixed}`) ||
                 modalVer.querySelector(`#${idSel}`);
             } else {
-              // fuera del modal: probar prefixed globalmente, luego id sin prefijo
               el =
                 document.getElementById(prefixed) ||
                 document.getElementById(idSel);
@@ -2375,7 +1736,6 @@ function setupDelegatedActions() {
         setIf("name", ex.nombre || ex.email || "");
         setIf("email", ex.email || "");
 
-        // Precio por hora
         const precioVal =
           (ex.infoExperto &&
             (ex.infoExperto.precioPorHora || ex.infoExperto.precio)) ||
@@ -2383,7 +1743,6 @@ function setupDelegatedActions() {
           "";
         setIf("precio", precioVal);
 
-        // Días disponibles: oculto + botones visuales (scoped)
         try {
           const dias =
             (ex.infoExperto &&
@@ -2419,19 +1778,9 @@ function setupDelegatedActions() {
           });
         } catch (e) {}
 
-        // Especialidad y estado
-        setIf(
-          "specialty",
-          (ex.infoExperto && ex.infoExperto.especialidad) ||
-            ex.especialidad ||
-            ""
-        );
         setIf("status", ex.estado || "");
-
-        // Biografía
         setIf("bio", (ex.infoExperto && ex.infoExperto.descripcion) || "");
 
-        // Perfil / imagen (scoped)
         try {
           const preview = modalVer
             ? modalVer.querySelector("#ver_profilePreview")
@@ -2451,39 +1800,7 @@ function setupDelegatedActions() {
           }
         } catch (e) {}
 
-        // Datos bancarios (si existen) (scoped) — preferir campos con prefijo 'ver_'
-        try {
-          const bankFields = [
-            "banco",
-            "tipoCuenta",
-            "numeroCuenta",
-            "titular",
-            "tipoDocumento",
-            "numeroDocumento",
-            "telefonoContacto",
-          ];
-          bankFields.forEach((k) => {
-            try {
-              const prefId = `ver_${k}`;
-              let el = null;
-              if (modalVer)
-                el =
-                  modalVer.querySelector(`#${prefId}`) ||
-                  modalVer.querySelector(`#${k}`);
-              else
-                el =
-                  document.getElementById(prefId) || document.getElementById(k);
-              if (!el) return;
-              const v =
-                ex.infoExperto && typeof ex.infoExperto[k] !== "undefined"
-                  ? ex.infoExperto[k]
-                  : ex[k];
-              if (typeof v !== "undefined" && v !== null) el.value = v;
-            } catch (e) {}
-          });
-        } catch (e) {}
-
-        // Categorías: asegurar opciones cargadas y marcar las seleccionadas (scoped)
+        // Categorías (display + selección)
         try {
           await loadAdminCategorias();
           const categoriasEl = modalVer
@@ -2508,7 +1825,6 @@ function setupDelegatedActions() {
             Array.from(categoriasEl.options).forEach((opt) => {
               opt.selected = vals.indexOf(String(opt.value)) !== -1;
             });
-            // Re-inicializar Choices para reflejar selección visual
             initializeChoicesOn(
               categoriasEl,
               {
@@ -2520,49 +1836,7 @@ function setupDelegatedActions() {
               "categorias"
             );
           }
-        } catch (e) {}
 
-        // Habilidades: poblar select con las habilidades del experto (scoped)
-        try {
-          const skillsEl = modalVer
-            ? modalVer.querySelector("#ver_skills")
-            : document.getElementById("ver_skills") ||
-              document.getElementById("skills");
-          if (skillsEl) {
-            const skillsArr =
-              (ex.infoExperto &&
-                Array.isArray(ex.infoExperto.skills) &&
-                ex.infoExperto.skills) ||
-              ex.skills ||
-              [];
-            // reconstruir opciones para mostrar las habilidades actuales
-            skillsEl.innerHTML = "";
-            (Array.isArray(skillsArr) ? skillsArr : []).forEach((s) => {
-              try {
-                const opt = document.createElement("option");
-                opt.value = s;
-                opt.textContent = s;
-                opt.selected = true;
-                skillsEl.appendChild(opt);
-              } catch (e) {}
-            });
-            initializeChoicesOn(
-              skillsEl,
-              {
-                removeItemButton: true,
-                searchEnabled: true,
-                addItems: true,
-                placeholder: true,
-                placeholderValue: "Selecciona habilidades",
-              },
-              "skills"
-            );
-          }
-        } catch (e) {}
-
-        // Render visual-only badges for categorias and skills as a fallback
-        try {
-          // Categorías display
           const categoriasForDisplay =
             (ex.infoExperto &&
               Array.isArray(ex.infoExperto.categorias) &&
@@ -2580,7 +1854,6 @@ function setupDelegatedActions() {
                 if (!c) return null;
                 if (typeof c === "object")
                   return c.nombre || c.name || (c._id ? String(c._id) : null);
-                // buscar nombre en adminCats
                 const found = adminCats.find(
                   (ac) =>
                     String(ac._id) === String(c) || String(ac.id) === String(c)
@@ -2594,14 +1867,11 @@ function setupDelegatedActions() {
             })
             .filter(Boolean);
 
-          const catDisplayId = modalVer
-            ? "ver_categorias_display"
-            : "ver_categorias_display";
+          const catDisplayId = "ver_categorias_display";
           let catDisplayEl = modalVer
             ? modalVer.querySelector(`#${catDisplayId}`)
             : document.getElementById(catDisplayId);
           if (!catDisplayEl) {
-            // intentar insertar cerca del select de categorias si existe
             const insertAfter = modalVer
               ? modalVer.querySelector("#ver_categorias") ||
                 modalVer.querySelector("#categorias")
@@ -2626,67 +1896,7 @@ function setupDelegatedActions() {
                   .map((n) => `<span class="badge">${escapeHtml(n)}</span>`)
                   .join(" ")
               : '<span class="muted">Sin categorías</span>';
-
-          // Skills display
-          const skillsForDisplay =
-            (ex.infoExperto &&
-              Array.isArray(ex.infoExperto.skills) &&
-              ex.infoExperto.skills) ||
-            ex.skills ||
-            [];
-          const skillsNames = (
-            Array.isArray(skillsForDisplay) ? skillsForDisplay : []
-          )
-            .map((s) => {
-              try {
-                if (!s) return null;
-                if (typeof s === "object")
-                  return (
-                    s.nombre ||
-                    s.name ||
-                    (s._id ? String(s._id) : JSON.stringify(s))
-                  );
-                return String(s);
-              } catch (e) {
-                return null;
-              }
-            })
-            .filter(Boolean);
-
-          const skillsDisplayId = modalVer
-            ? "ver_skills_display"
-            : "ver_skills_display";
-          let skillsDisplayEl = modalVer
-            ? modalVer.querySelector(`#${skillsDisplayId}`)
-            : document.getElementById(skillsDisplayId);
-          if (!skillsDisplayEl) {
-            const insertAfterSkills = modalVer
-              ? modalVer.querySelector("#ver_skills") ||
-                modalVer.querySelector("#skills")
-              : document.getElementById("skills");
-            skillsDisplayEl = document.createElement("div");
-            skillsDisplayEl.id = skillsDisplayId;
-            skillsDisplayEl.className = "user-skills";
-            if (insertAfterSkills && insertAfterSkills.parentNode)
-              insertAfterSkills.parentNode.insertBefore(
-                skillsDisplayEl,
-                insertAfterSkills.nextSibling
-              );
-            else if (modalVer && modalVer.querySelector(".modal-expert__body"))
-              modalVer
-                .querySelector(".modal-expert__body")
-                .appendChild(skillsDisplayEl);
-            else document.body.appendChild(skillsDisplayEl);
-          }
-          skillsDisplayEl.innerHTML =
-            skillsNames.length > 0
-              ? skillsNames
-                  .map((n) => `<span class="badge">${escapeHtml(n)}</span>`)
-                  .join(" ")
-              : '<span class="muted">Sin habilidades</span>';
-        } catch (e) {
-          // no bloquear la visualización por errores al renderizar badges
-        }
+        } catch (e) {}
       } catch (e) {
         console.warn("Error al rellenar modal de ver perfil:", e);
       }
@@ -2695,7 +1905,6 @@ function setupDelegatedActions() {
         modalVer.style.display = "flex";
         document.body.style.overflow = "hidden";
         try {
-          // añadir botón 'Editar' en el footer temporalmente (si no existe)
           const footer = modalVer.querySelector(".modal-expert__footer");
           if (footer && !footer.querySelector(".ver-to-edit")) {
             const btn = document.createElement("button");
@@ -2719,7 +1928,6 @@ function setupDelegatedActions() {
     if (title === "Eliminar" || btn.classList.contains("expert-delete")) {
       const name = btn.dataset.name || "este experto";
       if (!confirm(`¿Eliminar al experto "${name}"?`)) return;
-      // Preferir email (ruta esperada por el backend), si existe en el atributo dataset
       const email = btn.dataset.email || null;
       const identifier = email || id;
       if (!identifier)
@@ -2731,94 +1939,27 @@ function setupDelegatedActions() {
     }
   });
 
-  // Guardar nuevo experto desde modal
   const saveBtn = document.getElementById("saveExpert");
   if (saveBtn) {
     saveBtn.addEventListener("click", async (e) => {
       e.preventDefault();
-      const name = document.getElementById("name").value.trim();
-      const email = document.getElementById("email").value.trim();
-      const specialty = document.getElementById("specialty").value;
-      const status = document.getElementById("status").value;
-      let skills = [];
-      try {
-        const skillsEl = document.getElementById("skills");
-        if (skillsEl) {
-          // If Choices instance exists, use it
-          const inst =
-            window._choicesInstances && window._choicesInstances["skills"];
-          if (inst && typeof inst.getValue === "function")
-            skills = inst.getValue(true) || [];
-          else
-            skills = skillsEl.value
-              ? skillsEl.value
-                  .split(",")
-                  .map((s) => s.trim())
-                  .filter(Boolean)
-              : [];
-        }
-      } catch (e) {
-        skills = [];
-      }
-      const bio = document.getElementById("bio").value.trim();
-      // Build payload for registration. If the modal contains enough
-      // expert-profile fields, include an `infoExperto` object so the
-      // frontend proxy (server) can call the admin PUT to complete the profile.
+      const name = (document.getElementById("name")?.value || "").trim();
+      const email = (document.getElementById("email")?.value || "").trim();
+      const status = document.getElementById("status")?.value || "";
+      const bio = (document.getElementById("bio")?.value || "").trim();
+
       const payload = {
         nombre: name,
         email,
         estado: status,
       };
 
-      // Optional lightweight infoExperto from modal
       const maybeInfo = {};
-      if (specialty) maybeInfo.especialidad = specialty;
       if (bio) maybeInfo.descripcion = bio;
-      if (skills && skills.length > 0) maybeInfo.skills = skills;
 
-      // The backend requires many fields to accept infoExperto on PUT as admin.
-      // We only attach infoExperto if the user filled a minimal subset (descripcion, precioPorHora, especialidad, categorias, skills, banco, tipoCuenta, numeroCuenta, titular, tipoDocumento, numeroDocumento).
-      // Since the modal is simple, attach only when the form includes the required banking fields (optional enhancements later).
-      const bankFieldsPresent =
-        document.getElementById("banco") &&
-        document.getElementById("numeroCuenta") &&
-        document.getElementById("tipoCuenta") &&
-        document.getElementById("titular") &&
-        document.getElementById("tipoDocumento") &&
-        document.getElementById("numeroDocumento");
-      if (bankFieldsPresent) {
-        // collect banking and full fields if present in DOM
-        maybeInfo.banco = document.getElementById("banco").value.trim();
-        maybeInfo.tipoCuenta = document
-          .getElementById("tipoCuenta")
-          .value.trim();
-        maybeInfo.numeroCuenta = document
-          .getElementById("numeroCuenta")
-          .value.trim();
-        maybeInfo.titular = document.getElementById("titular").value.trim();
-        maybeInfo.tipoDocumento = document
-          .getElementById("tipoDocumento")
-          .value.trim();
-        maybeInfo.numeroDocumento = document
-          .getElementById("numeroDocumento")
-          .value.trim();
-        maybeInfo.precioPorHora =
-          parseFloat(document.getElementById("precioPorHora").value) ||
-          undefined;
-        // categorias expected as ids; try to parse CSV from input if present
-        const catsInput = document.getElementById("categorias");
-        if (catsInput)
-          maybeInfo.categorias = catsInput.value
-            .split(",")
-            .map((c) => c.trim())
-            .filter(Boolean);
-      }
-
-      // siempre intentar leer el select #categorias del modal si existe
       try {
         const catsSelect = document.getElementById("categorias");
         if (catsSelect) {
-          // si es multiple, tomar ids seleccionadas; si no, tomar valor único
           if (catsSelect.multiple) {
             const selected = Array.from(catsSelect.selectedOptions)
               .map((o) => o.value)
@@ -2828,72 +1969,28 @@ function setupDelegatedActions() {
             maybeInfo.categorias = [catsSelect.value];
           }
         }
-      } catch (e) {
-        // ignore
-      }
+      } catch (e) {}
 
-      // Decide whether to attach infoExperto. For admin creation we allow
-      // attaching a minimal profile (especialidad, categorias, skills, descripcion)
-      // so that the expert appears correctly in the list immediately.
-      const minimalKeys = [
-        "especialidad",
-        "categorias",
-        "skills",
-        "descripcion",
-      ];
-      let hasMinimal = minimalKeys.some((k) => {
-        if (k === "descripcion")
-          return (
-            (maybeInfo.descripcion || bio) &&
-            String(maybeInfo.descripcion || bio).trim() !== ""
-          );
+      // Adjuntar perfil mínimo si hay al menos infoExperto.descripcion o categorias
+      const minimalKeys = ["categorias", "descripcion"];
+      const hasMinimal = minimalKeys.some((k) => {
         const v = maybeInfo[k];
+        if (k === "descripcion") return v && String(v).trim() !== "";
         if (Array.isArray(v)) return v.length > 0;
         return (
           typeof v !== "undefined" && v !== null && String(v).trim() !== ""
         );
       });
 
-      // If admin didn't provide any minimal expert data, attach a safe default
-      // using the first available category (if any) so the created user has
-      // a non-null infoExperto and will appear on the public listing immediately.
-      if (!hasMinimal) {
-        try {
-          const cats = window._adminCategorias || [];
-          if (cats && cats.length > 0) {
-            const first = cats[0];
-            maybeInfo.categorias = [first._id || first.id || String(first)];
-            // Use category name as a reasonable default for especialidad when missing
-            if (!maybeInfo.especialidad)
-              maybeInfo.especialidad = first.nombre || first.name || "General";
-            // keep descripcion empty if none provided
-            if (!maybeInfo.descripcion) maybeInfo.descripcion = "";
-            if (!maybeInfo.skills) maybeInfo.skills = [];
-            hasMinimal = true;
-          }
-        } catch (e) {
-          // ignore — fall back to not attaching infoExperto
-        }
-      }
-
-      // Always create with role 'experto'
       payload.roles = ["experto"];
-      if (hasMinimal) {
-        // attach provided profile fields so the admin sees especialidad/categorias/skills
-        payload.infoExperto = Object.assign({}, maybeInfo);
-      }
+      if (hasMinimal) payload.infoExperto = Object.assign({}, maybeInfo);
+
       try {
-        // Si el form tiene dataset.editId -> modo edición: enviar PUT
         const form = document.getElementById("expertForm");
         const editId = form && form.dataset ? form.dataset.editId : null;
         if (editId) {
-          // construir payload para actualizar
           const putPayload = { infoExperto: {} };
-          if (specialty) putPayload.infoExperto.especialidad = specialty;
           if (bio) putPayload.infoExperto.descripcion = bio;
-          if (skills && skills.length > 0)
-            putPayload.infoExperto.skills = skills;
-          // categorias (multiple)
           try {
             const catsSelect = document.getElementById("categorias");
             if (catsSelect) {
@@ -2906,7 +2003,6 @@ function setupDelegatedActions() {
             }
           } catch (e) {}
 
-          // enviar PUT
           try {
             const headers = await getHeaders();
             const res = await fetch(
@@ -2944,16 +2040,13 @@ function setupDelegatedActions() {
           if (modal) modal.style.display = "none";
         }
       } catch (err) {
-        // ya manejado por agregarExperto o arriba
+        // manejado arriba
       }
     });
   }
 }
 
 async function getHeaders() {
-  // Authorization and x-api-key are handled server-side by the frontend proxy
-  // for admin sessions. Obtain CSRF token from the frontend server and include
-  // it on mutating requests so the proxy can validate it.
   if (window._csrfToken) {
     return {
       "Content-Type": "application/json",
@@ -2970,13 +2063,11 @@ async function getHeaders() {
         "x-csrf-token": window._csrfToken,
       };
     }
-  } catch (e) {
-    // ignore and return minimal headers
-  }
+  } catch (e) {}
   return { "Content-Type": "application/json" };
 }
 
-// Conectar el botón guardar del modal al envío del formulario
+// Botón guardar del modal -> submit del form
 onDomReady(function () {
   try {
     const saveBtn = document.getElementById("saveExpert");
@@ -2988,7 +2079,6 @@ onDomReady(function () {
         if (typeof form.requestSubmit === "function") {
           form.requestSubmit();
         } else {
-          // fallback: dispatch submit event
           const ev = new Event("submit", { bubbles: true, cancelable: true });
           form.dispatchEvent(ev);
         }
@@ -2997,7 +2087,7 @@ onDomReady(function () {
   } catch (e) {}
 });
 
-// Exports for unit tests: expose a minimal surface without running DOM listeners.
+// Exports (tests)
 if (typeof module !== "undefined" && module.exports) {
   module.exports = {
     initializeChoicesOn: initializeChoicesOn,
@@ -3008,12 +2098,8 @@ if (typeof module !== "undefined" && module.exports) {
   };
 }
 
-/**
- * Carga las categorías desde el backend y las guarda en window._adminCategorias.
- * También renderiza las opciones dentro del select #categorias del modal de experto.
- */
+// Cargar categorías y poblar selects
 async function loadAdminCategorias() {
-  // usar cache si ya cargadas
   if (window._adminCategorias && Array.isArray(window._adminCategorias)) {
     renderCategoriasSelect(window._adminCategorias);
     return window._adminCategorias;
@@ -3039,23 +2125,33 @@ async function loadAdminCategorias() {
 
 function renderCategoriasSelect(categorias) {
   const select = document.getElementById("categorias");
-  if (!select) return;
-  // limpiar
-  select.innerHTML = "";
-  // agregar opciones
-  categorias.forEach((c) => {
-    const opt = document.createElement("option");
-    opt.value = c._id || c.id || c._id;
-    opt.textContent =
-      c.nombre || c.name || c.nombreCategoria || String(opt.value);
-    select.appendChild(opt);
-  });
+  if (select) {
+    select.innerHTML = "";
+    categorias.forEach((c) => {
+      const opt = document.createElement("option");
+      opt.value = c._id || c.id || c._id;
+      opt.textContent =
+        c.nombre || c.name || c.nombreCategoria || String(opt.value);
+      select.appendChild(opt);
+    });
+    initializeChoicesOn("categorias", {
+      removeItemButton: true,
+      searchEnabled: true,
+      placeholder: true,
+      placeholderValue: "Selecciona categorías",
+      noResultsText: "No hay resultados",
+      noChoicesText: "No hay opciones",
+      itemSelectText: "Seleccionar",
+      classNames: {
+        containerInner: "choices-container",
+        input: "choices-input",
+      },
+    });
+  }
 
-  // También poblar el select de filtros si existe (#filterCategoria)
   try {
     const filterSel = document.getElementById("filterCategoria");
     if (filterSel) {
-      // conservar la primera opción (placeholder) y añadir el resto
       const placeholder = filterSel.querySelector('option[value=""]');
       filterSel.innerHTML = "";
       if (placeholder) filterSel.appendChild(placeholder);
@@ -3066,121 +2162,7 @@ function renderCategoriasSelect(categorias) {
         filterSel.appendChild(o);
       });
     }
-  } catch (e) {
-    // no bloquear si falla
-  }
-
-  // Inicializar Choices.js en el select de categorias para selección múltiple (fuera del bucle)
-  initializeChoicesOn("categorias", {
-    removeItemButton: true,
-    searchEnabled: true,
-    placeholder: true,
-    placeholderValue: "Selecciona categorías",
-    noResultsText: "No hay resultados",
-    noChoicesText: "No hay opciones",
-    itemSelectText: "Seleccionar",
-    classNames: {
-      containerInner: "choices-container",
-      input: "choices-input",
-    },
-  });
-
-  /**
-   * Carga dinámica de Choices.js (CDN) una sola vez y devuelve una promesa.
-   */
-  function ensureChoicesLoaded() {
-    if (window._choicesLoadedPromise) return window._choicesLoadedPromise;
-    window._choicesLoadedPromise = new Promise((resolve, reject) => {
-      if (typeof Choices !== "undefined") return resolve();
-      // Ensure Choices CSS is present (inject if missing)
-      try {
-        const cssHref =
-          "https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css";
-        const exists = Array.from(document.getElementsByTagName("link")).some(
-          (l) => l.href && l.href.indexOf("choices.min.css") !== -1
-        );
-        if (!exists) {
-          const cssLink = document.createElement("link");
-          cssLink.rel = "stylesheet";
-          cssLink.href = cssHref;
-          document.head.appendChild(cssLink);
-        }
-      } catch (e) {}
-
-      const script = document.createElement("script");
-      script.src =
-        "https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js";
-      script.onload = () => {
-        // small delay to ensure global is ready
-        setTimeout(() => resolve(), 50);
-      };
-      script.onerror = (err) =>
-        reject(err || new Error("Failed to load Choices.js"));
-      document.head.appendChild(script);
-    });
-    return window._choicesLoadedPromise;
-  }
-
-  /**
-   * Inicializa (o re-inicializa) Choices.js en un elemento identificado por id.
-   * key es la clave interna para almacenar la instancia en window._choicesInstances
-   */
-  function initializeChoicesOn(idOrElement, options = {}, key) {
-    const id =
-      typeof idOrElement === "string"
-        ? idOrElement
-        : idOrElement && idOrElement.id;
-    if (!id) return;
-    const el =
-      typeof idOrElement === "string"
-        ? document.getElementById(idOrElement)
-        : idOrElement;
-    if (!el) return;
-    const instanceKey = key || id;
-    ensureChoicesLoaded()
-      .then(() => {
-        try {
-          window._choicesInstances = window._choicesInstances || {};
-          if (window._choicesInstances[instanceKey]) {
-            try {
-              window._choicesInstances[instanceKey].destroy();
-            } catch (e) {}
-            window._choicesInstances[instanceKey] = null;
-          }
-          // Only initialize if Choices constructor available
-          if (typeof Choices !== "undefined") {
-            window._choicesInstances[instanceKey] = new Choices(
-              el,
-              options || {}
-            );
-          }
-        } catch (e) {
-          console.error("Error initializing Choices on", id, e);
-        }
-      })
-      .catch((e) => console.error("Failed loading Choices.js for", id, e));
-  }
-
-  // Inicializar Choices en #skills si existe al cargar la página (admin)
-  // Al cargar la página, intentar inicializar Choices en #skills si existe.
-  const __skillsEl = document.getElementById("skills");
-  if (__skillsEl) {
-    const __opts = {
-      removeItemButton: true,
-      searchEnabled: true,
-      placeholder: true,
-      addItems: true,
-      placeholderValue: "Selecciona habilidades",
-      noResultsText: "No hay resultados",
-      noChoicesText: "No hay opciones",
-      itemSelectText: "Seleccionar",
-      classNames: {
-        containerInner: "choices-container",
-        input: "choices-input",
-      },
-    };
-    initializeChoicesOn(__skillsEl, __opts, "skills");
-  }
+  } catch (e) {}
 }
 
 function escapeHtml(unsafe) {
@@ -3221,19 +2203,20 @@ function showMessage(text, type = "info", timeout = 2000) {
   }, timeout);
 }
 
-// Manejo del envío del formulario de edición (PUT)
+// PUT edición modal legacy (si existe el formulario)
 onDomReady(() => {
   const form = document.getElementById("formEditarExperto");
   if (!form) return;
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const id = form.dataset.editId;
-    const nombre = document.getElementById("nombreExperto").value.trim();
-    const correo = document.getElementById("correoExperto").value.trim();
-    const especialidad = document
-      .getElementById("especialidadExperto")
-      .value.trim();
-    const estado = document.getElementById("estadoExperto").value;
+    const nombre = (
+      document.getElementById("nombreExperto")?.value || ""
+    ).trim();
+    const correo = (
+      document.getElementById("correoExperto")?.value || ""
+    ).trim();
+    const estado = document.getElementById("estadoExperto")?.value || "";
     if (!id) {
       showMessage("ID de experto faltante", "error");
       return;
@@ -3245,7 +2228,7 @@ onDomReady(() => {
           { "Content-Type": "application/json" },
           await getHeaders()
         ),
-        body: JSON.stringify({ nombre, correo, especialidad, estado }),
+        body: JSON.stringify({ nombre, correo, estado }),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));

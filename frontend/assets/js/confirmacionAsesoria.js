@@ -130,13 +130,6 @@ document.addEventListener("DOMContentLoaded", function () {
     if (nombreElement) {
       nombreElement.textContent = experto;
     }
-
-    // Actualizar especialidad
-    const especialidadElement = document.querySelector(".expert-details p");
-    if (especialidadElement) {
-      especialidadElement.textContent = `Especialista en ${servicio}`;
-    }
-
     // Actualizar avatar
     const avatarImg = document.querySelector(".expert-avatar img");
     if (avatarImg) {

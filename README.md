@@ -86,8 +86,8 @@ cd ../frontend && npm install
 # 5. Ejecutar aplicación
 cd ../backend && npm start
 # para admin:
-cd ../frontend && API_KEY=8g-X4JgECIPNcQ59tMN node server.js
-```
+cd ../frontend &&
+```API_KEY=8g-X4JgECIPNcQ59tMN node server.js
 
 ### Acceso
 

@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="/assets/css/base.css">
   <link rel="stylesheet" href="/assets/css/componentes.css">
   <link rel="stylesheet" href="/assets/css/mis-asesorias.css">
-
 </head>
 
 <body>
@@ -18,13 +17,12 @@
         <!-- Las tarjetas de asesoría se llenan dinámicamente por JS -->
       </div>
 
-      <!-- Módulo de mensajes al experto (modal mejorado) -->
+      <!-- Modal de mensajes -->
       <div id="mensajeModal" class="modal" style="display:none;">
         <div class="modal-content">
           <span class="close-modal" onclick="cerrarMensajes()">&times;</span>
           <h3>Enviar mensaje a <span id="expertoNombre"></span></h3>
           <div id="mensajesHistorial" class="mensajes-historial">
-            <!-- Aquí se mostraría el historial de mensajes -->
             <div class="mensaje mensaje-experto">
               <div class="mensaje-avatar"><img
                   src="https://ui-avatars.com/api/?name=Experto&background=3a8eff&color=fff" alt="Experto"></div>
@@ -45,13 +43,13 @@
         </div>
       </div>
 
-      <!-- Modal de detalles de la cita -->
+      <!-- Modal de detalles -->
       <div id="detalleModal" class="modal" style="display:none;">
         <div class="modal-content">
           <span class="close-modal" onclick="cerrarDetalles()">&times;</span>
           <h3>Detalle de la Asesoría</h3>
           <div id="detalleContenido">
-            <!-- Aquí se llenan los datos dinámicamente -->
+            <!-- Se llena dinámicamente -->
           </div>
         </div>
       </div>
@@ -59,13 +57,12 @@
     <%- include('componentes/footer') %>
       <script src="/assets/js/common.js"></script>
       <script type="application/json" id="initial-misAsesorias">
-        {
-          "usuarioId": <%= JSON.stringify(usuarioId || null) %>,
-          "rolUsuario": <%= JSON.stringify(rolUsuario || 'cliente') %>
-        }
-      </script>
+    {
+      "usuarioId": <%= JSON.stringify(usuarioId || null) %>,
+      "rolUsuario": <%= JSON.stringify(rolUsuario || 'cliente') %>
+    }
+  </script>
       <script src="/assets/js/misAsesorias.js"></script>
-
 </body>
 
 </html>

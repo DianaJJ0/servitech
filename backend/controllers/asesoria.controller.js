@@ -57,44 +57,6 @@ const generarLogs = require("../services/generarLogs");
  */
 
 /**
- * Recalcula el promedio de calificaciones para un experto
- * @param {string} expertoEmail - Email del experto
- * @returns {Promise<void>}
- */
-const recalcularPromedioExperto = async (expertoEmail) => {
-  try {
-    // Traer todas las asesorías completadas del experto con reseña válida
-    const asesoriasConResena = await Asesoria.find({
-      "experto.email": expertoEmail,
-      "reseña.calificacion": { $gte: 1 },
-    }).select("reseña.calificacion");
-
-    if (!asesoriasConResena || asesoriasConResena.length === 0) {
-      // Poner 0 y contar 0
-      await Usuario.findOneAndUpdate(
-        { email: expertoEmail },
-        { calificacion: 0, calificacionesCount: 0 }
-      );
-      return;
-    }
-
-    const suma = asesoriasConResena.reduce(
-      (acc, a) => acc + (a.reseña?.calificacion || 0),
-      0
-    );
-    const count = asesoriasConResena.length;
-    const promedio = Math.round((suma / count) * 10) / 10; // redondear a 1 decimal
-
-    await Usuario.findOneAndUpdate(
-      { email: expertoEmail },
-      { calificacion: promedio, calificacionesCount: count }
-    );
-  } catch (e) {
-    console.error("Error recalculando promedio del experto:", e);
-  }
-};
-
-/**
  * Crear una asesoría.
  * @param {import('express').Request} req
  * @param {import('express').Response} res
@@ -302,14 +264,6 @@ const finalizarAsesoria = async (req, res) => {
     asesoria.estado = "completada";
     await asesoria.save();
 
-    // Si la asesoría incluye una reseña con calificación, recalcular promedio del experto
-    if (
-      asesoria.reseña &&
-      typeof asesoria.reseña.calificacion !== "undefined"
-    ) {
-      await recalcularPromedioExperto(asesoria.experto.email);
-    }
-
     // Actualiza el pago a liberado
     if (asesoria.pago && asesoria.pago.transaccionId) {
       await Pago.findOneAndUpdate(
@@ -425,66 +379,9 @@ const actualizarAsesoria = async (req, res) => {
     if (!asesoria)
       return res.status(404).json({ mensaje: "Asesoría no encontrada." });
 
-    // Si la actualización incluye una reseña con calificación, recalcular promedio
-    if (
-      actualizaciones.reseña &&
-      typeof actualizaciones.reseña.calificacion !== "undefined"
-    ) {
-      await recalcularPromedioExperto(asesoria.experto.email);
-    }
-
     res.status(200).json({ mensaje: "Asesoría actualizada.", asesoria });
   } catch (error) {
     res.status(500).json({ mensaje: "Error al actualizar asesoría." });
-  }
-};
-
-/**
- * Endpoint administrativo para recalcular promedio de experto
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- * @returns {Promise<void>}
- */
-const recalcularPromedioEndpoint = async (req, res) => {
-  try {
-    const email = req.params.email;
-    if (!email) return res.status(400).json({ mensaje: "Email requerido." });
-    await recalcularPromedioExperto(email);
-    res.json({ mensaje: "Recalculo iniciado para " + email });
-  } catch (e) {
-    console.error("Error en endpoint recalcular:", e);
-    res.status(500).json({ mensaje: "Error al recalcular promedio." });
-  }
-};
-
-/**
- * Genera estadísticas de reseñas agrupadas por experto
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- * @returns {Promise<void>}
- */
-const estadisticasResenas = async (req, res) => {
-  try {
-    // Pipeline: contar reseñas y agrupar por experto
-    const pipeline = [
-      { $match: { "reseña.calificacion": { $gte: 1 } } },
-      {
-        $group: {
-          _id: "$experto.email",
-          count: { $sum: 1 },
-          avg: { $avg: "$reseña.calificacion" },
-        },
-      },
-      { $sort: { count: -1 } },
-    ];
-
-    const porExperto = await Asesoria.aggregate(pipeline);
-    const total = porExperto.reduce((acc, p) => acc + p.count, 0);
-
-    res.json({ totalResenas: total, porExperto });
-  } catch (e) {
-    console.error("Error generando estadísticas de reseñas:", e);
-    res.status(500).json({ mensaje: "Error generando estadísticas." });
   }
 };
 
@@ -598,7 +495,5 @@ module.exports = {
   listarPorExperto,
   obtenerAsesoriaPorId,
   actualizarAsesoria,
-  recalcularPromedioEndpoint,
-  estadisticasResenas,
   eliminarAsesoria,
 };

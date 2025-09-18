@@ -1,11 +1,93 @@
 /**
  * SERVITECH SERVER.JS - versión optimizada y didáctica
  * Solo renderiza vistas, gestiona sesión y consulta datos al backend.
- * No incluye lógica de UI ni manipulación del DOM.
+ * Mantiene proxy manual /api con CSRF y casos especiales.
  */
+
+// Cargar variables de entorno desde .env (en desarrollo). En producción se usarán las vars del entorno (Render).
+// Requiere instalar dotenv en el entorno de desarrollo: npm install dotenv --save-dev
 require("dotenv").config();
+
 const express = require("express");
 const session = require("express-session");
+
+// --- Configuración inicial ---
+const path = require("path");
+const crypto = require("crypto");
+
+const app = express();
+const PORT = parseInt(process.env.PORT, 10) || 5021;
+const FRONTEND_URL = process.env.FRONTEND_URL || `http://localhost:${PORT}`;
+const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:5020";
+// Nueva bandera explícita para modo proxy (frontend reenvía /api al backend)
+// PROXY_MODE solo se activa si process.env.PROXY_MODE === "true"
+const PROXY_MODE =
+  String(process.env.PROXY_MODE || "false").toLowerCase() === "true";
+
+// Usar fetch nativo (Node >=18). Si no existe, avisar para actualizar o instalar polyfill.
+const fetch = typeof globalThis.fetch === "function" ? globalThis.fetch : null;
+if (!fetch) {
+  console.warn(
+    "Aviso: global fetch no disponible. Actualiza Node a v18+ o instala un polyfill (p. ej. node-fetch) si necesitas compatibilidad."
+  );
+}
+
+// Helper: comprobar conectividad con backend al arrancar (diagnóstico)
+async function checkBackendConnectivity() {
+  try {
+    const url = `${BACKEND_URL.replace(/\/$/, "")}/health`; // intentar endpoint health si existe
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), 2500);
+    let res;
+    try {
+      res = await fetch(url, { method: "GET", signal: controller.signal });
+    } finally {
+      clearTimeout(id);
+    }
+    if (!res || !res.ok) {
+      console.warn(
+        `Backend reachable pero respuesta no-OK desde ${url} (status=${
+          res && res.status
+        })`
+      );
+    } else {
+      console.log(`Backend reachable en ${BACKEND_URL} (health OK)`);
+    }
+  } catch (err) {
+    console.warn(
+      `Advertencia: no se pudo conectar al BACKEND (${BACKEND_URL}):`,
+      err && err.message ? err.message : err
+    );
+    // no lanzar, es solo diagnóstico
+  }
+}
+
+// Ejecutar check en arranque (no bloqueante)
+setImmediate(() => checkBackendConnectivity());
+
+// Ruta de diagnóstico para comprobar backend desde el navegador
+app.get("/backend-check", async (req, res) => {
+  try {
+    const target = `${BACKEND_URL.replace(/\/$/, "")}/api`; // endpoint base
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), 3000);
+    let r;
+    try {
+      r = await fetch(target, { method: "GET", signal: controller.signal });
+    } finally {
+      clearTimeout(id);
+    }
+    return res.status(200).json({ ok: true, backendStatus: r.status });
+  } catch (err) {
+    return res.status(502).json({
+      ok: false,
+      mensaje: "No se pudo contactar el backend",
+      detalle: err && err.message ? err.message : String(err),
+    });
+  }
+});
+
+// Opcional Redis (si está configurado)
 let RedisStore = null;
 let redisClient = null;
 if (process.env.USE_REDIS === "true" || process.env.REDIS_URL) {
@@ -13,22 +95,23 @@ if (process.env.USE_REDIS === "true" || process.env.REDIS_URL) {
     const redis = require("redis");
     const connectRedis = require("connect-redis");
     redisClient = redis.createClient({ url: process.env.REDIS_URL });
-    // Attempt to connect; we will check redisClient.isOpen before using store
     redisClient.connect().catch((err) => {
       console.warn("Redis client connect error:", err && err.message);
     });
     RedisStore = connectRedis(session);
+    console.log(
+      "Redis packages cargados: Redis Store disponible para sesiones"
+    );
   } catch (e) {
-    console.warn("Redis packages not available, falling back to memory store");
+    console.warn(
+      "Redis no disponible (falta instalar 'redis' y 'connect-redis' o hay error): usando memoria para sesiones.\n" +
+        "Para habilitar Redis en producción: provisiona un Redis y exporta REDIS_URL, y añade USE_REDIS=true.\n" +
+        "Instala dependencias en el frontend: npm i redis connect-redis"
+    );
   }
 }
-const path = require("path");
-const crypto = require("crypto");
-const { createProxyMiddleware } = require("http-proxy-middleware");
-const app = express();
-const PORT = process.env.PORT || 5021;
 
-// Simple in-memory SSE client registry to notify browsers of changes (dev use)
+// Registro SSE para notificaciones ligeras (dev)
 const _sseClients = new Set();
 function broadcastSseEvent(eventName, data) {
   const payload = typeof data === "string" ? data : JSON.stringify(data || {});
@@ -47,7 +130,31 @@ function broadcastSseEvent(eventName, data) {
 // --- Middlewares globales ---
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-// Graceful handler for invalid JSON body (body-parser SyntaxError)
+
+if (PROXY_MODE) {
+  console.log(
+    "PROXY_MODE=true — proxy activado. No se habilita CORS global. /api será proxied al BACKEND_URL."
+  );
+  app.use((req, res, next) => {
+    try {
+      const origin = req.headers.origin;
+      if (!origin || origin === FRONTEND_URL) return next();
+      console.warn(`Request origin rechazado por proxy-mode policy: ${origin}`);
+      return res
+        .status(403)
+        .json({ mensaje: "Origin not allowed (proxy mode)" });
+    } catch (e) {
+      return next(e);
+    }
+  });
+} else {
+  console.log(
+    "PROXY_MODE=false — no se añade CORS global. Usar proxy o habilitar CORS en desarrollo si es necesario."
+  );
+  app.use((req, res, next) => next());
+}
+
+// Manejo amable de JSON inválido
 app.use((err, req, res, next) => {
   if (err && err.status === 400 && /JSON/.test(err.message)) {
     console.warn("Invalid JSON received:", err && err.message);
@@ -57,12 +164,12 @@ app.use((err, req, res, next) => {
   }
   next(err);
 });
+
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "servitech-secret",
     resave: false,
     saveUninitialized: false,
-    // Only attach Redis store if we have the package and the client is open.
     store: (function () {
       try {
         if (RedisStore && redisClient && redisClient.isOpen) {
@@ -78,7 +185,6 @@ app.use(
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
       },
-      // allow optional cookie domain via env when needed
       process.env.SESSION_COOKIE_DOMAIN
         ? { domain: process.env.SESSION_COOKIE_DOMAIN }
         : {}
@@ -86,23 +192,20 @@ app.use(
   })
 );
 
-// CSRF token: ensure each session has one and expose via endpoint
+// CSRF por sesión
 app.use((req, res, next) => {
   try {
     if (req.session) {
       if (!req.session.csrfToken) {
         req.session.csrfToken = crypto.randomBytes(24).toString("hex");
       }
-      // Make available to views if needed
       res.locals.csrfToken = req.session.csrfToken;
     }
-  } catch (e) {
-    // don't block on CSRF generation
-  }
+  } catch (e) {}
   next();
 });
 
-// Expose a flag to views that indicates whether to show dev-only admin helpers.
+// Flag dev visible en vistas
 app.use((req, res, next) => {
   try {
     const explicit = String(process.env.SHOW_DEV_ADMIN || "").toLowerCase();
@@ -117,11 +220,9 @@ app.use((req, res, next) => {
   next();
 });
 
-// Simple endpoint to obtain CSRF token for fetch-based clients
+// Endpoint simple para obtener CSRF
 app.get("/csrf-token", (req, res) => {
   if (!req.session) return res.status(401).json({ mensaje: "No session" });
-  // Ensure token is a single-line string (trim whitespace/newlines) to
-  // avoid tooling/shell extraction issues when clients/scripts read it.
   const token = req.session.csrfToken
     ? String(req.session.csrfToken).trim()
     : "";
@@ -129,22 +230,20 @@ app.get("/csrf-token", (req, res) => {
 });
 
 // --- Proxy manual para /api/* al backend ---
+// Conserva tu lógica de CSRF y casos especiales.
 app.use("/api", async (req, res) => {
-  const fetch = (...args) =>
-    import("node-fetch").then(({ default: fetch }) => fetch(...args));
+  // ahora usamos directamente el fetch global declarado arriba
 
   try {
-    const targetUrl = `http://localhost:5020/api${req.url}`;
+    const targetUrl = `${BACKEND_URL}/api${req.url}`;
     console.log(`Proxy manual: ${req.method} ${req.url} -> ${targetUrl}`);
 
-    // Enforce CSRF for state-changing requests (POST/PUT/DELETE/PATCH)
-    // Skip CSRF check if DISABLE_CSRF=true in development
+    // Enforce CSRF en métodos mutantes (salvo DISABLE_CSRF en dev)
     try {
       const mutating = ["POST", "PUT", "DELETE", "PATCH"].includes(req.method);
       const disableCSRF =
         process.env.DISABLE_CSRF === "true" &&
         process.env.NODE_ENV !== "production";
-
       if (mutating && !disableCSRF) {
         const sent = req.headers["x-csrf-token"] || req.headers["csrf-token"];
         const sess = req.session && req.session.csrfToken;
@@ -157,13 +256,10 @@ app.use("/api", async (req, res) => {
       }
     } catch (e) {}
 
-    // Construir headers para la petición al backend.
-    // Copiamos los encabezados recibidos. No forzamos content-type aquí porque
-    // las peticiones multipart/form-data (uploads) necesitan conservar el
-    // boundary que viene en el header original. Para solicitudes JSON se
-    // serializa el body más abajo.
+    // Encabezados a reenviar
     const outboundHeaders = Object.assign({}, req.headers);
     try {
+      // x-api-key solo si la sesión es admin y hay API_KEY
       if (
         req.session &&
         req.session.user &&
@@ -173,8 +269,7 @@ app.use("/api", async (req, res) => {
       ) {
         outboundHeaders["x-api-key"] = process.env.API_KEY;
       }
-
-      // Si la sesión almacena un token JWT lo reenviamos en Authorization
+      // Reenviar Authorization si hay token en sesión
       if (req.session && req.session.user && req.session.user.token) {
         outboundHeaders["authorization"] = `Bearer ${req.session.user.token}`;
         try {
@@ -186,15 +281,9 @@ app.use("/api", async (req, res) => {
           );
         } catch (e) {}
       }
-    } catch (e) {
-      // no debe bloquear la petición si algo falla al leer la sesión
-    }
+    } catch (e) {}
 
-    // Special-case: admin creating a user via /api/usuarios/registro
-    // If the session is admin we will perform the registration and, when
-    // the payload includes a complete `infoExperto`, immediately call the
-    // admin PUT endpoint to populate the expert profile using the server
-    // side API key. This keeps the API key out of the browser.
+    // Caso especial: admin registrando usuario y actualizando perfil experto (compat)
     if (
       req.method === "POST" &&
       req.url &&
@@ -204,11 +293,7 @@ app.use("/api", async (req, res) => {
       Array.isArray(req.session.user.roles) &&
       req.session.user.roles.includes("admin")
     ) {
-      // First: create the user (registration).
-      // IMPORTANT: do not send infoExperto in the registration request because
-      // the backend will validate a full expert profile during registration
-      // and may reject partial data. Send a copy without infoExperto, then
-      // perform the admin PUT below with the profile.
+      // 1) Registrar usuario (sin infoExperto)
       const regPayload = Object.assign({}, req.body);
       if (regPayload.infoExperto) delete regPayload.infoExperto;
       const regRes = await fetch(targetUrl, {
@@ -223,55 +308,27 @@ app.use("/api", async (req, res) => {
       } catch (e) {
         regData = regText || null;
       }
-
-      // If registration failed, forward that error to the client
       if (!regRes.ok) {
         return res.status(regRes.status).json(regData || { error: regText });
       }
 
-      // If the client included infoExperto in the request body, decide whether
-      // to perform an admin PUT to populate the expert profile. Accept both
-      // a full profile (with banking fields) and a minimal admin-provided
-      // profile (especialidad, categorias, skills, descripcion). The backend
-      // admin PUT handler supports partial merges, so performing the PUT with
-      // partial data is safe and improves admin UX.
+      // 2) Si vino infoExperto, hacer PUT admin con x-api-key
       const body = req.body || {};
       const info = body.infoExperto || null;
       const hasMinimalExpertFields =
         info &&
-        (info.especialidad ||
-          (Array.isArray(info.categorias) && info.categorias.length > 0) ||
-          (Array.isArray(info.skills) && info.skills.length > 0) ||
-          info.descripcion);
+        ((Array.isArray(info.categorias) && info.categorias.length > 0) ||
+          info.descripcion ||
+          typeof info.precioPorHora !== "undefined");
 
-      const hasFullExpertFields =
-        info &&
-        info.descripcion &&
-        info.precioPorHora &&
-        info.especialidad &&
-        info.categorias &&
-        info.skills &&
-        info.banco &&
-        info.tipoCuenta &&
-        info.numeroCuenta &&
-        info.titular &&
-        info.tipoDocumento &&
-        info.numeroDocumento;
-
-      if (info && (hasMinimalExpertFields || hasFullExpertFields)) {
-        // Build PUT URL using the email used on registration
+      if (info && hasMinimalExpertFields) {
         const email = encodeURIComponent(
           body.email ||
             (regData && regData.usuario && regData.usuario.email) ||
             ""
         );
-        if (!email) {
-          // No email to target, return registration result
-          return res.status(regRes.status).json(regData);
-        }
-        const putUrl = `http://localhost:5020/api/usuarios/${email}`;
-
-        // Ensure outboundHeaders contains x-api-key (it should for admin sessions)
+        if (!email) return res.status(regRes.status).json(regData);
+        const putUrl = `${BACKEND_URL}/api/usuarios/${email}`;
         const putHeaders = Object.assign({}, outboundHeaders);
 
         const putRes = await fetch(putUrl, {
@@ -285,7 +342,6 @@ app.use("/api", async (req, res) => {
             estado: body.estado || "activo",
           }),
         });
-
         const putText = await putRes.text();
         let putData = null;
         try {
@@ -293,26 +349,18 @@ app.use("/api", async (req, res) => {
         } catch (e) {
           putData = putText || null;
         }
-
-        // If PUT failed, return a combined response that includes both
-        // registration success and the PUT error so the client can surface it.
         if (!putRes.ok) {
           return res.status(putRes.status).json({
             registro: regData,
             actualizarInfoExpertoError: putData || putText,
           });
         }
-
-        // Success: return the PUT response to indicate final state
         return res.status(putRes.status).json(putData);
       }
-
-      // No infoExperto provided — return registration response
       return res.status(regRes.status).json(regData);
     }
 
-    // Default proxy behaviour for all other requests
-    // Detectar si la petición es multipart (por ejemplo uploads desde el navegador)
+    // Reenvío general: manejar multipart y JSON
     const reqContentType = (req.headers["content-type"] || "").toLowerCase();
     let fetchBody;
     if (
@@ -320,20 +368,15 @@ app.use("/api", async (req, res) => {
       reqContentType &&
       reqContentType.includes("multipart")
     ) {
-      // Forward the raw request stream so multer on the backend can parse it
       fetchBody = req;
-      // Remove content-length if present because streaming may change it
-      // (node-fetch can handle chunked bodies)
       if (outboundHeaders["content-length"])
         delete outboundHeaders["content-length"];
     } else if (req.method !== "GET") {
-      // For JSON / urlencoded payloads, stringify the parsed body
       try {
         fetchBody =
           req.body && Object.keys(req.body).length
             ? JSON.stringify(req.body)
             : undefined;
-        // Ensure correct content-type for JSON
         outboundHeaders["content-type"] = "application/json";
       } catch (e) {
         fetchBody = undefined;
@@ -346,8 +389,24 @@ app.use("/api", async (req, res) => {
       body: fetchBody,
     });
 
-    // Leer la respuesta del backend como texto e intentar parsear JSON.
+    // --- Cambiado: registrar status y parte del body para depuración ---
     const respText = await response.text();
+    console.log(
+      `[proxy] upstream ${targetUrl} -> status=${response.status} len=${
+        respText ? respText.length : 0
+      }`
+    );
+    if (!response.ok) {
+      // mostrar una porción del body cuando hay error para ayudar a debug
+      const snippet =
+        typeof respText === "string"
+          ? respText.slice(0, 1000)
+          : String(respText);
+      console.warn(
+        `[proxy] upstream ERROR ${response.status} ${targetUrl} snippet: ${snippet}`
+      );
+    }
+
     let respData = null;
     try {
       respData = respText ? JSON.parse(respText) : null;
@@ -355,17 +414,13 @@ app.use("/api", async (req, res) => {
       respData = respText || null;
     }
 
-    // Reenviar exactamente lo que devolvió el backend, manteniendo el status.
     if (respData !== null) {
-      // Notify SSE clients on user create/update/delete events proxied through frontend
       try {
-        // detect simple user-related endpoints
         if (
           req.url &&
           req.url.startsWith("/usuarios") &&
           ["POST", "PUT", "DELETE", "PATCH"].includes(req.method)
         ) {
-          // broadcast a generic 'usuarios:update' event with minimal info
           broadcastSseEvent("usuarios:update", {
             url: req.url,
             method: req.method,
@@ -379,24 +434,38 @@ app.use("/api", async (req, res) => {
         .json({ error: `Backend error: ${response.status}` });
     }
   } catch (error) {
-    console.error("Error en proxy manual:", error);
-    res.status(500).json({ error: "Error en proxy" });
+    // Mejor manejo: detectar conexión rechazada / timeout y devolver 502 para el cliente
+    console.error(
+      "Error en proxy manual hacia",
+      BACKEND_URL,
+      ":",
+      error && error.message ? error.message : error
+    );
+    const isConnRefused =
+      error &&
+      (error.code === "ECONNREFUSED" || /ECONNREFUSED/i.test(String(error)));
+    const isAbort = error && error.name === "AbortError";
+    const statusCode = isConnRefused || isAbort ? 502 : 500;
+    const mensaje = isConnRefused
+      ? "No se pudo conectar al backend (ECONNREFUSED)"
+      : isAbort
+      ? "Tiempo de espera al conectar al backend"
+      : "Error en proxy";
+    return res.status(statusCode).json({
+      error: mensaje,
+      detalle: error && error.message ? error.message : String(error),
+      target: BACKEND_URL,
+    });
   }
 });
 
-// Proxy para servir archivos de uploads desde el backend
-// Esto permite que URLs como http://localhost:5021/uploads/... funcionen
-// Debug logger for uploads requests (temporary)
+// Proxy estático a uploads del backend (modo dev)
 app.use("/uploads", (req, res, next) => {
   try {
     console.log("[frontend] /uploads request ->", req.method, req.originalUrl);
   } catch (e) {}
   next();
 });
-// In development it's simpler and more reliable to serve the backend's
-// uploads directory directly from the frontend server so URLs at
-// http://localhost:5021/uploads/<file> work without depending on the
-// proxy. This avoids subtle proxy/connectivity issues during local dev.
 const backendUploads = path.join(__dirname, "..", "backend", "uploads");
 try {
   const fs = require("fs");
@@ -405,12 +474,12 @@ try {
 } catch (e) {}
 app.use("/uploads", express.static(backendUploads));
 
-// Ruta de prueba para verificar que el proxy funcione
+// Ruta de prueba
 app.get("/test-proxy", (req, res) => {
   res.json({ message: "Proxy test route working" });
 });
 
-// --- ENDPOINT DEV: crear sesión admin rápida (solo entornos no productivos)
+// --- ENDPOINT DEV: crear sesión admin rápida (no prod)
 app.post("/dev/create-admin-session", async (req, res) => {
   try {
     if (
@@ -419,31 +488,23 @@ app.post("/dev/create-admin-session", async (req, res) => {
     ) {
       return res.status(403).json({ mensaje: "Ruta dev deshabilitada." });
     }
-    const fetch = (...args) =>
-      import("node-fetch").then(({ default: fetch }) => fetch(...args));
-    // Forward request body to backend dev route which creates admin and returns token
-    const backendRes = await fetch(
-      "http://localhost:5020/api/dev/create-admin",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(req.body || {}),
-      }
-    );
+    const backendRes = await fetch(`${BACKEND_URL}/api/dev/create-admin`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(req.body || {}),
+    });
     const body = await backendRes.json().catch(() => null);
     if (!backendRes.ok) {
       return res
         .status(backendRes.status)
         .json(body || { mensaje: "Error creando admin" });
     }
-    // Store session.user with token so proxy will forward Authorization
     req.session.user = {
       _id: body.usuario && body.usuario._id,
       email: body.usuario && body.usuario.email,
       nombre: body.usuario && body.usuario.nombre,
       apellido: body.usuario && body.usuario.apellido,
-      roles:
-        body.usuario && body.usuario.roles ? body.usuario.roles : ["admin"],
+      roles: (body.usuario && body.usuario.roles) || ["admin"],
       token: body.token,
     };
     return res.json({ ok: true, usuario: req.session.user });
@@ -453,18 +514,15 @@ app.post("/dev/create-admin-session", async (req, res) => {
   }
 });
 
-// SSE stream endpoint for lightweight notifications (dev-friendly)
+// SSE para cambios ligeros
 app.get("/sse/stream", (req, res) => {
-  // Set headers for SSE
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
   res.flushHeaders && res.flushHeaders();
-  // send a ping
   res.write("event: connected\n");
   res.write("data: {}\n\n");
   _sseClients.add(res);
-  // remove on close
   req.on("close", () => {
     try {
       _sseClients.delete(res);
@@ -472,14 +530,13 @@ app.get("/sse/stream", (req, res) => {
   });
 });
 
+// Estáticos y vistas
 app.use("/assets", express.static(path.join(__dirname, "assets")));
-
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
-// --- Middleware de rutas protegidas (admin) ---
+// Middleware de rutas admin protegidas
 function requireAdmin(req, res, next) {
-  // El usuario debe tener el array "roles" y debe incluir "admin"
   if (
     !req.session.user ||
     !Array.isArray(req.session.user.roles) ||
@@ -495,29 +552,20 @@ app.post("/set-session", (req, res) => {
   (async () => {
     try {
       if (req.body && req.body.usuario) {
-        // If the caller provided email+password, attempt backend login to
-        // obtain a JWT and store it in session.user.token so the proxy can
-        // forward Authorization on protected requests.
         const usuario = req.body.usuario;
-        // Basic direct store if no credentials provided
         if (usuario.email && usuario.password) {
-          const fetch = (...args) =>
-            import("node-fetch").then(({ default: fetch }) => fetch(...args));
           try {
-            const loginRes = await fetch(
-              "http://localhost:5020/api/usuarios/login",
-              {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  email: usuario.email,
-                  password: usuario.password,
-                }),
-              }
-            );
+            // antes: const fetch = (...args) => import("node-fetch")...
+            const loginRes = await fetch(`${BACKEND_URL}/api/usuarios/login`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                email: usuario.email,
+                password: usuario.password,
+              }),
+            });
             const loginBody = await loginRes.json().catch(() => null);
             if (loginRes.ok && loginBody && loginBody.token) {
-              // Store minimal user info plus token
               req.session.user = Object.assign({}, usuario, {
                 _id:
                   (loginBody.usuario && loginBody.usuario._id) ||
@@ -540,12 +588,11 @@ app.post("/set-session", (req, res) => {
               return res.json({ ok: true, token: loginBody.token });
             }
           } catch (e) {
-            // fallthrough to store raw usuario below
+            // continua al fallback
           }
         }
 
-        // If we have an email but no password, and we're running in development,
-        // try to create/ensure a dev admin via backend dev route and obtain a valid token.
+        // Dev helper: crear/asegurar admin sin password
         if (
           usuario.email &&
           !usuario.password &&
@@ -554,14 +601,11 @@ app.post("/set-session", (req, res) => {
           try {
             const fetch = (...args) =>
               import("node-fetch").then(({ default: fetch }) => fetch(...args));
-            const devRes = await fetch(
-              "http://localhost:5020/api/dev/create-admin",
-              {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email: usuario.email }),
-              }
-            );
+            const devRes = await fetch(`${BACKEND_URL}/api/dev/create-admin`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email: usuario.email }),
+            });
             if (devRes.ok) {
               const devBody = await devRes.json().catch(() => null);
               if (
@@ -591,11 +635,7 @@ app.post("/set-session", (req, res) => {
           }
         }
 
-        // Fallback: store provided usuario object as-is (may include token)
-        // ONLY allow storing a raw usuario object without credentials when
-        // the server explicitly permits dev helpers (res.locals.showDevAdmin)
-        // or when env ALLOW_DEV_SET_SESSION=true. Otherwise reject to avoid
-        // allowing arbitrary session creation.
+        // Fallback controlado (solo si helpers dev activos)
         const allowDevSet =
           (res &&
             typeof res.locals !== "undefined" &&
@@ -610,7 +650,6 @@ app.post("/set-session", (req, res) => {
             .status(403)
             .json({ ok: false, mensaje: "Operación no permitida" });
         }
-
         req.session.user = req.body.usuario;
         try {
           console.log("set-session: session established (fallback)", {
@@ -629,6 +668,7 @@ app.post("/set-session", (req, res) => {
     }
   })();
 });
+
 app.post("/logout", (req, res) => {
   req.session.destroy((err) => {
     if (err) return res.status(500).json({ error: "Error al cerrar sesión" });
@@ -657,32 +697,22 @@ app.get("/contacto.html", (req, res) => {
 // --- Perfil usuario: consulta backend si hay token ---
 app.get("/perfil", async (req, res) => {
   if (req.session && req.session.user && req.session.user.token) {
-    const fetch = (...args) =>
-      import("node-fetch").then(({ default: fetch }) => fetch(...args));
     try {
-      const perfilRes = await fetch(
-        "http://localhost:5020/api/usuarios/perfil",
-        {
-          headers: { Authorization: `Bearer ${req.session.user.token}` },
-        }
-      );
+      const perfilRes = await fetch(`${BACKEND_URL}/api/usuarios/perfil`, {
+        headers: { Authorization: `Bearer ${req.session.user.token}` },
+      });
       if (perfilRes.ok) {
         const user = await perfilRes.json();
-        // Normalizar avatarUrl que pudiera apuntar al proxy (localhost:5021)
         try {
           if (
             user &&
             user.avatarUrl &&
             typeof user.avatarUrl === "string" &&
-            user.avatarUrl.indexOf("http://localhost:5021/uploads") === 0
+            user.avatarUrl.indexOf(`${FRONTEND_URL}/uploads`) === 0
           ) {
-            user.avatarUrl = user.avatarUrl.replace(
-              "http://localhost:5021",
-              "http://localhost:5020"
-            );
+            user.avatarUrl = user.avatarUrl.replace(FRONTEND_URL, BACKEND_URL);
           }
         } catch (e) {}
-        // Preserve existing session token (if any) to avoid losing auth on page reloads
         try {
           const existingToken =
             req.session && req.session.user && req.session.user.token;
@@ -707,64 +737,90 @@ app.get("/perfil", async (req, res) => {
 
 // --- Exploración de expertos ---
 app.get("/expertos.html", async (req, res) => {
-  const fetch = (...args) =>
-    import("node-fetch").then(({ default: fetch }) => fetch(...args));
   let categorias = [],
     expertos = [];
-  // variables de paginación en scope superior para poder usarlas en res.render
-  // Forzamos un límite fijo de 6 items por página para esta vista
   let page = 1,
     limit = 6,
     total = 0,
     totalPages = 1,
     baseQuery = "";
+
   try {
-    const catRes = await fetch("http://localhost:5020/api/categorias");
+    // 1) Obtener categorías
+    const catRes = await fetch(`${BACKEND_URL}/api/categorias`);
     categorias = catRes.ok ? await catRes.json() : [];
-    // Pedimos la lista de expertos al endpoint correcto (/api/usuarios/expertos)
-    // que devuelve { expertos: [...], total }.
-    // Leer parámetros de paginación desde la querystring del cliente
+    console.log(`[expertos.html] categorias obtenidas: ${categorias.length}`);
+
+    // 2) Obtener expertos
     page = parseInt(req.query.page, 10) || 1;
-    // Forzar limit a 6 independientemente de lo que envíe el cliente.
-    // Si querés permitir override, cambiar aquí para leer de req.query.limit con límites razonables.
     limit = 6;
-    // Construir URL del API pasando página y límite
-    const apiUrl = `http://localhost:5020/api/expertos?page=${page}&limit=${limit}`;
+    const apiUrl = `${BACKEND_URL}/api/expertos?page=${page}&limit=${limit}`;
+    console.log(`[expertos.html] fetching expertos desde: ${apiUrl}`);
+
     const expRes = await fetch(apiUrl);
+    console.log(`[expertos.html] expertos response status: ${expRes.status}`);
+
     if (expRes && expRes.ok) {
       const tmp = await expRes.json().catch(() => null);
+      console.log(`[expertos.html] tmp structure:`, {
+        isArray: Array.isArray(tmp),
+        keys: tmp && typeof tmp === "object" ? Object.keys(tmp) : "not object",
+        tmpLength: Array.isArray(tmp) ? tmp.length : "not array",
+        hasExpertos:
+          tmp && tmp.expertos ? tmp.expertos.length : "no expertos key",
+        hasData: tmp && tmp.data ? tmp.data.length : "no data key",
+        sample:
+          tmp &&
+          (Array.isArray(tmp)
+            ? tmp[0]
+            : (tmp.expertos && tmp.expertos[0]) || (tmp.data && tmp.data[0])),
+      });
+
+      // Lógica corregida: detectar si es array directo, tiene wrapper con 'data' o 'expertos'
       expertos = Array.isArray(tmp)
         ? tmp
+        : tmp && tmp.data
+        ? tmp.data
         : tmp && tmp.expertos
         ? tmp.expertos
         : [];
+
       total = tmp && tmp.total ? Number(tmp.total) : expertos.length;
-      // Defensive: ensure we never pass more than `limit` items to the view
+
+      console.log(
+        `[expertos.html] expertos finales: ${expertos.length}, total: ${total}`
+      );
+
       if (Array.isArray(expertos) && typeof limit === "number") {
         expertos = expertos.slice(0, limit);
       }
     } else {
+      console.warn(`[expertos.html] expertos request failed: ${expRes.status}`);
       expertos = [];
     }
-    // Preparar datos de paginación para la vista
+
     totalPages = Math.max(1, Math.ceil((total || 0) / limit));
-    // Construir baseQuery (query string con todos los parámetros excepto page y limit)
     const qp = Object.keys(req.query || {})
       .filter((k) => k !== "page" && k !== "limit")
       .map(
         (k) => `${encodeURIComponent(k)}=${encodeURIComponent(req.query[k])}`
       )
       .join("&");
-    baseQuery = qp; // la plantilla añadirá & si es necesario
-  } catch {
+    baseQuery = qp;
+  } catch (e) {
+    console.error(`[expertos.html] error en fetch:`, e && e.message);
     categorias = [];
     expertos = [];
   }
+
+  console.log(
+    `[expertos.html] rendering con ${expertos.length} expertos, ${categorias.length} categorias`
+  );
+
   res.render("expertos", {
     user: req.session.user || null,
     categorias,
     expertos,
-    // Paginación
     page: Number(page),
     limit: Number(limit),
     total: Number(total || 0),
@@ -775,59 +831,45 @@ app.get("/expertos.html", async (req, res) => {
 
 // --- Registro experto (protegido) ---
 app.get("/registroExperto", async (req, res) => {
-  console.log("Sesión del usuario:", req.session.user);
   if (!req.session.user) {
-    console.log("No hay sesión, redirigiendo a login");
     return res.redirect("/login.html?next=/registroExperto");
   }
-  const fetch = (...args) =>
-    import("node-fetch").then(({ default: fetch }) => fetch(...args));
-  let categorias = [],
-    especialidades = [],
-    habilidades = [];
+  let categorias = [];
   try {
-    const catRes = await fetch("http://localhost:5020/api/categorias");
+    const catRes = await fetch(`${BACKEND_URL}/api/categorias`);
     categorias = catRes.ok ? await catRes.json() : [];
-    const espRes = await fetch("http://localhost:5020/api/especialidades");
-    especialidades = espRes.ok ? await espRes.json() : [];
-    const habRes = await fetch("http://localhost:5020/api/habilidades");
-    habilidades = habRes.ok ? await habRes.json() : [];
-  } catch {}
+  } catch (e) {
+    console.warn(
+      "registroExperto: fallo al obtener categorias:",
+      e && e.message
+    );
+  }
   res.render("registroExperto", {
     user: req.session.user,
     email: req.session.user.email,
     categorias,
-    especialidades,
-    habilidades,
     error: null,
   });
 });
 
-app.get("/registroExperto.html", async (req, res) => {
-  console.log("Sesión del usuario (HTML):", req.session.user);
+app.get("/registroExperto", async (req, res) => {
   if (!req.session.user) {
-    console.log("No hay sesión, redirigiendo a login HTML");
     return res.redirect("/login.html?next=/registroExperto.html");
   }
-  const fetch = (...args) =>
-    import("node-fetch").then(({ default: fetch }) => fetch(...args));
-  let categorias = [],
-    especialidades = [],
-    habilidades = [];
+  let categorias = [];
   try {
-    const catRes = await fetch("http://localhost:5020/api/categorias");
+    const catRes = await fetch(`${BACKEND_URL}/api/categorias`);
     categorias = catRes.ok ? await catRes.json() : [];
-    const espRes = await fetch("http://localhost:5020/api/especialidades");
-    especialidades = espRes.ok ? await espRes.json() : [];
-    const habRes = await fetch("http://localhost:5020/api/habilidades");
-    habilidades = habRes.ok ? await habRes.json() : [];
-  } catch {}
+  } catch (e) {
+    console.warn(
+      "registroExperto.html: fallo al obtener categorias:",
+      e && e.message
+    );
+  }
   res.render("registroExperto", {
     user: req.session.user,
     email: req.session.user.email,
     categorias,
-    especialidades,
-    habilidades,
     error: null,
   });
 });
@@ -836,55 +878,40 @@ app.get("/registroExperto.html", async (req, res) => {
 app.get("/editarExperto", async (req, res) => {
   if (!req.session?.user?.email)
     return res.redirect("/login.html?next=/editarExperto");
-  const fetch = (...args) =>
-    import("node-fetch").then(({ default: fetch }) => fetch(...args));
   let experto = null,
-    categorias = [],
-    especialidades = [],
-    habilidades = [];
+    categorias = [];
   try {
     if (req.session.user && req.session.user.token) {
-      const perfilRes = await fetch(
-        "http://localhost:5020/api/usuarios/perfil",
-        {
-          headers: { Authorization: `Bearer ${req.session.user.token}` },
-        }
-      );
+      const perfilRes = await fetch(`${BACKEND_URL}/api/usuarios/perfil`, {
+        headers: { Authorization: `Bearer ${req.session.user.token}` },
+      });
       if (perfilRes.ok) experto = await perfilRes.json();
     }
-    const catRes = await fetch("http://localhost:5020/api/categorias");
+    const catRes = await fetch(`${BACKEND_URL}/api/categorias`);
     categorias = catRes.ok ? await catRes.json() : [];
-    const espRes = await fetch("http://localhost:5020/api/especialidades");
-    especialidades = espRes.ok ? await espRes.json() : [];
-    const habRes = await fetch("http://localhost:5020/api/habilidades");
-    habilidades = habRes.ok ? await habRes.json() : [];
-  } catch {}
+  } catch (e) {
+    console.warn("editarExperto GET: error fetching:", e && e.message);
+  }
   res.render("editarExpertos", {
     experto,
     categorias,
-    especialidades,
-    habilidades,
     error: null,
     success: null,
   });
 });
 
-// --- Actualizar perfil experto (protegido, POST) ---
+// Actualizar perfil experto (protegido)
 app.post("/editarExperto", async (req, res) => {
   try {
     if (!req.session?.user?.token) {
       return res.status(401).render("editarExpertos", {
         experto: null,
         categorias: [],
-        especialidades: [],
-        habilidades: [],
         error: "No autenticado. Inicia sesión para editar tu perfil.",
         success: null,
       });
     }
-    const fetch = (...args) =>
-      import("node-fetch").then(({ default: fetch }) => fetch(...args));
-    const response = await fetch("http://localhost:5020/api/usuarios/perfil", {
+    const response = await fetch(`${BACKEND_URL}/api/usuarios/perfil`, {
       method: "PUT",
       headers: {
         Authorization: `Bearer ${req.session.user.token}`,
@@ -892,23 +919,25 @@ app.post("/editarExperto", async (req, res) => {
       },
       body: JSON.stringify(req.body),
     });
+
+    const errorText = !(response && response.ok)
+      ? await response.text().catch(() => null)
+      : null;
     if (!response.ok) {
-      const errorText = await response.text();
+      console.warn(
+        "editarExperto PUT upstream error:",
+        response.status,
+        errorText && errorText.slice(0, 200)
+      );
       throw new Error(errorText || "Error al actualizar perfil");
     }
+
     const perfilActualizado = await response.json();
-    // Obtener nuevas opciones
-    const catRes = await fetch("http://localhost:5020/api/categorias");
+    const catRes = await fetch(`${BACKEND_URL}/api/categorias`);
     const categorias = catRes.ok ? await catRes.json() : [];
-    const espRes = await fetch("http://localhost:5020/api/especialidades");
-    const especialidades = espRes.ok ? await espRes.json() : [];
-    const habRes = await fetch("http://localhost:5020/api/habilidades");
-    const habilidades = habRes.ok ? await habRes.json() : [];
     res.render("editarExpertos", {
       experto: perfilActualizado,
       categorias,
-      especialidades,
-      habilidades,
       error: null,
       success: "Perfil actualizado correctamente.",
     });
@@ -916,279 +945,13 @@ app.post("/editarExperto", async (req, res) => {
     res.status(500).render("editarExpertos", {
       experto: null,
       categorias: [],
-      especialidades: [],
-      habilidades: [],
       error: err.message || "Error al actualizar perfil.",
       success: null,
     });
   }
 });
 
-// --- Panel de administración (rutas protegidas, archivos reales) ---
-// Atajos: permitir acceder a /admin o /admin/ redirigiendo a la vista principal
-app.get(["/admin", "/admin/"], (req, res) => {
-  return res.redirect("/admin/admin");
-});
-
-app.get("/admin/admin", requireAdmin, (req, res) => {
-  res.render("admin/admin", { user: req.session.user || {} });
-});
-app.get("/admin/adminClientes", requireAdmin, (req, res) => {
-  res.render("admin/adminClientes", { user: req.session.user || {} });
-});
-app.get("/admin/adminExpertos", requireAdmin, async (req, res) => {
-  const fetch = (...args) =>
-    import("node-fetch").then(({ default: fetch }) => fetch(...args));
-  let habilidades = [];
-  let initialExpertos = [];
-  try {
-    const habRes = await fetch("http://localhost:5020/api/habilidades");
-    habilidades = habRes.ok ? await habRes.json() : [];
-  } catch (e) {
-    habilidades = [];
-  }
-  // Obtener categorías para filtros
-  let categorias = [];
-  try {
-    const catRes = await fetch("http://localhost:5020/api/categorias");
-    categorias = catRes.ok ? await catRes.json() : [];
-  } catch (e) {
-    habilidades = [];
-  }
-  // Intentar obtener listado inicial de expertos poblados (solo en entorno dev si está permitido)
-  try {
-    if (
-      process.env.ALLOW_DEV_ROUTES &&
-      process.env.ALLOW_DEV_ROUTES !== "false"
-    ) {
-      const devRes = await fetch(
-        "http://localhost:5020/api/dev/expertos-populados?limit=50"
-      );
-      if (devRes && devRes.ok) {
-        const devJson = await devRes.json();
-        initialExpertos = Array.isArray(devJson.expertos)
-          ? devJson.expertos
-          : devJson.data || [];
-      }
-    }
-  } catch (e) {
-    initialExpertos = [];
-  }
-  // Dev fallback: si no pudimos obtener expertos desde el backend dev route,
-  // ejecutar el script backend/scripts/list-expertos-populated.js como proceso
-  // hijo para obtener los expertos. Esto evita problemas de buffering de
-  // mongoose en el proceso del frontend y reutiliza la lógica ya probada.
-  if (
-    (!initialExpertos || initialExpertos.length === 0) &&
-    process.env.NODE_ENV !== "production" &&
-    process.env.ALLOW_DEV_ROUTES &&
-    process.env.ALLOW_DEV_ROUTES !== "false"
-  ) {
-    try {
-      const { execFileSync } = require("child_process");
-      const fs = require("fs");
-      const scriptPath = require("path").join(
-        __dirname,
-        "../backend/scripts/list-expertos-populated.js"
-      );
-      // Prepara entorno para el script: asegurar que MONGO_URI esté presente
-      const env = Object.assign({}, process.env);
-      if (!env.MONGO_URI) {
-        try {
-          const envFile = require("path").join(__dirname, "../backend/.env");
-          if (fs.existsSync(envFile)) {
-            const envText = fs.readFileSync(envFile, "utf8");
-            const m = envText
-              .split(/\r?\n/)
-              .find((l) => l && l.startsWith("MONGO_URI="));
-            if (m) env.MONGO_URI = m.split("=").slice(1).join("=");
-          }
-        } catch (e) {
-          // ignore
-        }
-      }
-      const out = execFileSync(process.execPath, [scriptPath, "50"], {
-        env,
-        encoding: "utf8",
-        maxBuffer: 10 * 1024 * 1024,
-      });
-      try {
-        const parsed = JSON.parse(out || "{}");
-        if (
-          parsed &&
-          Array.isArray(parsed.expertos) &&
-          parsed.expertos.length > 0
-        ) {
-          initialExpertos = parsed.expertos;
-          console.log(
-            "adminExpertos: initialExpertos populated via backend script fallback, count=",
-            initialExpertos.length
-          );
-        }
-      } catch (e) {
-        console.warn(
-          "Dev adminExpertos: failed to parse script output:",
-          e && e.message
-        );
-      }
-    } catch (err) {
-      console.warn(
-        "Dev adminExpertos script fallback failed:",
-        err && err.message
-      );
-    }
-  }
-  // Fallback: si no obtuvimos expertos desde el endpoint dev, intentar
-  // obtenerlos a través del proxy '/api/usuarios/expertos' (requiere sesión admin)
-  try {
-    if (
-      (!initialExpertos || initialExpertos.length === 0) &&
-      req.session &&
-      req.session.user &&
-      Array.isArray(req.session.user.roles) &&
-      req.session.user.roles.includes("admin")
-    ) {
-      const proxyRes = await fetch(
-        "http://localhost:5021/api/usuarios/expertos?limit=50",
-        {
-          headers: { Cookie: req.headers.cookie || "" },
-        }
-      );
-      if (proxyRes && proxyRes.ok) {
-        const proxyJson = await proxyRes.json().catch(() => null);
-        // proxy devuelve { expertos: [...], total }
-        if (
-          proxyJson &&
-          Array.isArray(proxyJson.expertos) &&
-          proxyJson.expertos.length > 0
-        ) {
-          initialExpertos = proxyJson.expertos;
-          console.log(
-            "adminExpertos: initialExpertos populated via proxy fallback, count=",
-            initialExpertos.length
-          );
-        }
-      }
-    }
-  } catch (e) {
-    // no bloquear render si falla
-  }
-  res.render("admin/adminExpertos", {
-    user: req.session.user || {},
-    habilidades,
-    initialExpertos,
-    categorias,
-  });
-});
-
-// Dev-only: ruta que permite renderizar la página de adminExpertos sin sesión
-// útil para pruebas locales cuando no se quiere pasar por el login. Solo
-// se habilita en desarrollo y si ALLOW_DEV_ROUTES=true.
-app.get("/dev/admin/adminExpertos", async (req, res) => {
-  if (process.env.NODE_ENV === "production") {
-    return res.status(403).send("Dev route disabled in production");
-  }
-  if (
-    !process.env.ALLOW_DEV_ROUTES ||
-    process.env.ALLOW_DEV_ROUTES === "false"
-  ) {
-    return res.status(403).send("Dev routes not enabled");
-  }
-
-  const fetch = (...args) =>
-    import("node-fetch").then(({ default: fetch }) => fetch(...args));
-  let habilidades = [];
-  let initialExpertos = [];
-  try {
-    const habRes = await fetch("http://localhost:5020/api/habilidades");
-    habilidades = habRes.ok ? await habRes.json() : [];
-  } catch (e) {
-    habilidades = [];
-  }
-
-  try {
-    const devRes = await fetch(
-      "http://localhost:5020/api/dev/expertos-populados?limit=50"
-    );
-    if (devRes && devRes.ok) {
-      const devJson = await devRes.json();
-      initialExpertos = Array.isArray(devJson.expertos)
-        ? devJson.expertos
-        : devJson.data || [];
-    }
-  } catch (e) {
-    initialExpertos = [];
-  }
-
-  // Fallback directo a la BBDD en modo dev: ejecutar el script del backend
-  // que lista expertos poblados y devuelve JSON. Evita problemas de buffering
-  // en el proceso del frontend y reutiliza la lógica ya probada.
-  if (
-    (!initialExpertos || initialExpertos.length === 0) &&
-    process.env.NODE_ENV !== "production" &&
-    process.env.ALLOW_DEV_ROUTES &&
-    process.env.ALLOW_DEV_ROUTES !== "false"
-  ) {
-    try {
-      const { execFileSync } = require("child_process");
-      const fs = require("fs");
-      const scriptPath = require("path").join(
-        __dirname,
-        "../backend/scripts/list-expertos-populated.js"
-      );
-      const env = Object.assign({}, process.env);
-      if (!env.MONGO_URI) {
-        try {
-          const envFile = require("path").join(__dirname, "../backend/.env");
-          if (fs.existsSync(envFile)) {
-            const envText = fs.readFileSync(envFile, "utf8");
-            const m = envText
-              .split(/\r?\n/)
-              .find((l) => l && l.startsWith("MONGO_URI="));
-            if (m) env.MONGO_URI = m.split("=").slice(1).join("=");
-          }
-        } catch (e) {
-          // ignore
-        }
-      }
-      const out = execFileSync(process.execPath, [scriptPath, "50"], {
-        env,
-        encoding: "utf8",
-        maxBuffer: 10 * 1024 * 1024,
-      });
-      try {
-        const parsed = JSON.parse(out || "{}");
-        if (
-          parsed &&
-          Array.isArray(parsed.expertos) &&
-          parsed.expertos.length > 0
-        ) {
-          initialExpertos = parsed.expertos;
-          console.log(
-            "adminExpertos: initialExpertos populated via backend script fallback, count=",
-            initialExpertos.length
-          );
-        }
-      } catch (e) {
-        console.warn(
-          "Dev adminExpertos: failed to parse script output:",
-          e && e.message
-        );
-      }
-    } catch (err) {
-      console.warn(
-        "Dev adminExpertos script fallback failed:",
-        err && err.message
-      );
-    }
-  }
-
-  return res.render("admin/adminExpertos", {
-    user: {},
-    habilidades,
-    initialExpertos,
-  });
-});
+// --- Panel de administración (rutas protegidas) ---
 app.get("/admin/adminCategorias", requireAdmin, (req, res) => {
   res.render("admin/adminCategorias", { user: req.session.user || {} });
 });
@@ -1204,5 +967,7 @@ app.get("/admin/adminUsuarios", requireAdmin, (req, res) => {
 
 // --- Arranque del servidor ---
 app.listen(PORT, () => {
-  console.log(`Servidor Servitech escuchando en http://localhost:${PORT}`);
+  console.log(
+    `Servidor Servitech escuchando en ${FRONTEND_URL} -> backend: ${BACKEND_URL}`
+  );
 });
