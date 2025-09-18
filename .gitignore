@@ -6,6 +6,14 @@ node_modules/
 coverage/
 *.lcov
 
+# Excluir carpeta de backups (no subir al repositorio)
+backup/
+
+# Excluir archivos temporales de backup
+*.zip
+*.gz
+backup_*
+
 # Logs
 logs/
 *.log
