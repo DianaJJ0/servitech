@@ -413,17 +413,6 @@
                   </select>
                 </div>
 
-                <div class="expertos-filtros__group">
-                  <label class="expertos-filtros__label" for="filterRating">Calificación mínima</label>
-                  <select class="expertos-filtros__select" id="filterRating">
-                    <option value="">Todas las calificaciones</option>
-                    <option value="5">5 estrellas</option>
-                    <option value="4">4+ estrellas</option>
-                    <option value="3">3+ estrellas</option>
-                    <option value="2">2+ estrellas</option>
-                  </select>
-                </div>
-
                 <button class="btn-primary expertos-filtros__btn" id="applyFiltersBtn">
                   <i class="fas fa-filter" aria-hidden="true"></i>
                   <span>Aplicar filtros</span>
@@ -1823,45 +1812,6 @@
               <small class="modal-expert__hint">Selecciona una o varias categorías (Ctrl/Cmd+click)</small>
             </div>
 
-            <!-- Habilidades (full width) -->
-            <div class="full-width">
-              <label class="modal-expert__label" for="skills">
-                <i class="fas fa-tools modal-expert__icon" aria-hidden="true"></i>
-                Habilidades
-              </label>
-              <select id="skills" class="modal-expert__input" multiple size="6">
-                <% if (typeof habilidades !=='undefined' && Array.isArray(habilidades) && habilidades.length> 0) { %>
-                  <% habilidades.forEach(function(h) { %>
-                    <% const val=(h && (h.nombre || h.name || h.label)) ? (h.nombre || h.name || h.label) : (h && h._id
-                      ? String(h._id) : '' ); %>
-                      <% if (val) { %>
-                        <option value="<%= val %>">
-                          <%= val %>
-                        </option>
-                        <% } %>
-                          <% }); %>
-                            <% } %>
-              </select>
-              <script>
-                document.addEventListener('DOMContentLoaded', function () {
-                  if (window.Choices) {
-                    const skillsSelect = document.getElementById('skills');
-                    if (skillsSelect && !skillsSelect.classList.contains('choices-initialized')) {
-                      new Choices(skillsSelect, {
-                        removeItemButton: true,
-                        delimiter: ',',
-                        editItems: false,
-                        maxItemCount: 10,
-                        duplicateItemsAllowed: false
-                      });
-                      skillsSelect.classList.add('choices-initialized');
-                    }
-                  }
-                });
-              </script>
-              <small class="modal-expert__hint">Selecciona o escribe para añadir nuevas habilidades</small>
-            </div>
-
             <!-- Biografía -->
             <div class="full-width">
               <label class="modal-expert__label" for="bio">
@@ -2296,45 +2246,6 @@
                 })();
               </script>
               <small class="modal-expert__hint">Selecciona una o varias categorías (Ctrl/Cmd+click)</small>
-            </div>
-
-            <!-- Habilidades (full width) -->
-            <div class="full-width">
-              <label class="modal-expert__label" for="skills">
-                <i class="fas fa-tools modal-expert__icon" aria-hidden="true"></i>
-                Habilidades
-              </label>
-              <select id="skills" class="modal-expert__input" multiple size="6">
-                <% if (typeof habilidades !=='undefined' && Array.isArray(habilidades) && habilidades.length> 0) { %>
-                  <% habilidades.forEach(function(h) { %>
-                    <% const val=(h && (h.nombre || h.name || h.label)) ? (h.nombre || h.name || h.label) : (h && h._id
-                      ? String(h._id) : '' ); %>
-                      <% if (val) { %>
-                        <option value="<%= val %>">
-                          <%= val %>
-                        </option>
-                        <% } %>
-                          <% }); %>
-                            <% } %>
-              </select>
-              <script>
-                document.addEventListener('DOMContentLoaded', function () {
-                  if (window.Choices) {
-                    const skillsSelect = document.getElementById('skills');
-                    if (skillsSelect && !skillsSelect.classList.contains('choices-initialized')) {
-                      new Choices(skillsSelect, {
-                        removeItemButton: true,
-                        delimiter: ',',
-                        editItems: false,
-                        maxItemCount: 10,
-                        duplicateItemsAllowed: false
-                      });
-                      skillsSelect.classList.add('choices-initialized');
-                    }
-                  }
-                });
-              </script>
-              <small class="modal-expert__hint">Selecciona o escribe para añadir nuevas habilidades</small>
             </div>
 
             <!-- Biografía -->
@@ -2776,45 +2687,6 @@
               <small class="modal-expert__hint">Selecciona una o varias categorías (Ctrl/Cmd+click)</small>
             </div>
 
-            <!-- Habilidades (full width) -->
-            <div class="full-width">
-              <label class="modal-expert__label" for="skills">
-                <i class="fas fa-tools modal-expert__icon" aria-hidden="true"></i>
-                Habilidades
-              </label>
-              <select id="skills" class="modal-expert__input" multiple size="6">
-                <% if (typeof habilidades !=='undefined' && Array.isArray(habilidades) && habilidades.length> 0) { %>
-                  <% habilidades.forEach(function(h) { %>
-                    <% const val=(h && (h.nombre || h.name || h.label)) ? (h.nombre || h.name || h.label) : (h && h._id
-                      ? String(h._id) : '' ); %>
-                      <% if (val) { %>
-                        <option value="<%= val %>">
-                          <%= val %>
-                        </option>
-                        <% } %>
-                          <% }); %>
-                            <% } %>
-              </select>
-              <script>
-                document.addEventListener('DOMContentLoaded', function () {
-                  if (window.Choices) {
-                    const skillsSelect = document.getElementById('skills');
-                    if (skillsSelect && !skillsSelect.classList.contains('choices-initialized')) {
-                      new Choices(skillsSelect, {
-                        removeItemButton: true,
-                        delimiter: ',',
-                        editItems: false,
-                        maxItemCount: 10,
-                        duplicateItemsAllowed: false
-                      });
-                      skillsSelect.classList.add('choices-initialized');
-                    }
-                  }
-                });
-              </script>
-              <small class="modal-expert__hint">Selecciona o escribe para añadir nuevas habilidades</small>
-            </div>
-
             <!-- Biografía -->
             <div class="full-width">
               <label class="modal-expert__label" for="bio">
@@ -3032,19 +2904,18 @@
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       console.log('🚀 Inicializando Choices.js para campos de selección múltiple');
-      
+
       // Debug específico: mostrar qué datos llegaron del servidor
       console.log('📊 Datos del servidor:');
       console.log('  Categorías:', JSON.parse('<%- JSON.stringify(JSON.stringify(categorias || [])) %>'));
-      console.log('  Habilidades:', JSON.parse('<%- JSON.stringify(JSON.stringify(habilidades || [])) %>'));
-      
+
       // Diagnóstico: verificar qué elementos están disponibles
       function diagnosticElements() {
         const allSelects = document.querySelectorAll('select[multiple]');
         console.log('📋 Elementos select[multiple] encontrados:', allSelects.length);
         allSelects.forEach((el, i) => {
           console.log(`  ${i + 1}. ID: ${el.id}, Options: ${el.options.length}, Visible: ${el.offsetParent !== null}`);
-          
+
           // Mostrar las opciones que tiene cada select
           if (el.options.length > 0) {
             console.log(`    Opciones de ${el.id}:`);
@@ -3055,13 +2926,13 @@
             console.warn(`    ⚠️ ${el.id} no tiene opciones!`);
           }
         });
-        
+
         const targets = ['edit_categorias', 'add_categorias', 'skills', 'add_skills'];
         targets.forEach(id => {
           const el = document.getElementById(id);
           console.log(`🔍 ${id}:`, el ? 'ENCONTRADO' : 'NO ENCONTRADO', el ? `(${el.options.length} opciones)` : '');
         });
-        
+
         // También mostrar diagnóstico visual en la página
         let debugDiv = document.getElementById('choices-debug');
         if (!debugDiv) {
@@ -3070,34 +2941,33 @@
           debugDiv.style.cssText = 'position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.9); color: white; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 11px; z-index: 9999; max-width: 350px; max-height: 400px; overflow-y: auto;';
           document.body.appendChild(debugDiv);
         }
-        
+
         let debugInfo = `<strong>Choices.js Debug:</strong><br>`;
         debugInfo += `API Categorías: <%= (categorias && categorias.length) || 0 %><br>`;
-        debugInfo += `API Habilidades: <%= (habilidades && habilidades.length) || 0 %><br>`;
         debugInfo += `Total selects: ${allSelects.length}<br><br>`;
-        
+
         allSelects.forEach((el, i) => {
           const status = el.classList.contains('choices-initialized') ? '✅ INIT' : '⚠️ PLAIN';
           debugInfo += `${i + 1}. ${el.id || 'sin-id'}: ${status} (${el.options.length} opts)<br>`;
         });
-        
+
         debugDiv.innerHTML = debugInfo;
       }
-      
+
       function initializeChoicesForElement(elementId, placeholder) {
         const element = document.getElementById(elementId);
         if (!element) {
           console.log(`⚠️ Elemento ${elementId} no encontrado`);
           return null;
         }
-        
+
         if (element.classList.contains('choices-initialized')) {
           console.log(`✅ ${elementId} ya está inicializado`);
           return null;
         }
-        
+
         console.log(`🔧 Inicializando Choices.js para: ${elementId} (${element.options.length} opciones)`);
-        
+
         try {
           const choicesInstance = new Choices(element, {
             removeItemButton: true,
@@ -3116,10 +2986,10 @@
             placeholder: true,
             placeholderValue: `Selecciona ${placeholder.toLowerCase()}...`
           });
-          
+
           element.classList.add('choices-initialized');
           console.log(`✅ Choices.js inicializado correctamente para ${elementId}`);
-          
+
           return choicesInstance;
         } catch (error) {
           console.error(`❌ Error inicializando Choices.js para ${elementId}:`, error);
@@ -3130,21 +3000,21 @@
       // Función para intentar inicializar campos cuando estén disponibles
       function tryInitialize() {
         diagnosticElements();
-        
+
         // Estrategia alternativa: inicializar TODOS los select[multiple] que no estén inicializados
         const allMultipleSelects = document.querySelectorAll('select[multiple]:not(.choices-initialized)');
         console.log(`🔄 Intentando inicializar ${allMultipleSelects.length} campos select[multiple]`);
-        
+
         allMultipleSelects.forEach((element, index) => {
           if (!element.id) {
             element.id = `auto-choice-${index}-${Date.now()}`;
           }
-          
+
           const isCategory = element.id.includes('categoria') || element.querySelector('option[value*="categoria"]') || element.getAttribute('aria-label') === 'Categorías';
-          const placeholder = isCategory ? 'categorías' : 'habilidades';
+          const placeholder = isCategory ? 'categorías' :
           
           console.log(`🔧 Auto-inicializando: ${element.id} como ${placeholder} (${element.options.length} opciones)`);
-          
+
           try {
             const choicesInstance = new Choices(element, {
               removeItemButton: true,
@@ -3163,14 +3033,14 @@
               placeholder: true,
               placeholderValue: `Selecciona ${placeholder.toLowerCase()}...`
             });
-            
+
             element.classList.add('choices-initialized');
             console.log(`✅ Auto-inicializado: ${element.id}`);
           } catch (error) {
             console.error(`❌ Error auto-inicializando ${element.id}:`, error);
           }
         });
-        
+
         // También intentar los IDs específicos por si acaso
         const targets = ['edit_categorias', 'add_categorias', 'skills', 'add_skills'];
         targets.forEach(id => {
@@ -3178,7 +3048,7 @@
           if (element && !element.classList.contains('choices-initialized')) {
             const placeholder = id.includes('categoria') ? 'categorías' : 'habilidades';
             console.log(`🔧 Inicializando específico: ${id} como ${placeholder}`);
-            
+
             try {
               const choicesInstance = new Choices(element, {
                 removeItemButton: true,
@@ -3197,7 +3067,7 @@
                 placeholder: true,
                 placeholderValue: `Selecciona ${placeholder.toLowerCase()}...`
               });
-              
+
               element.classList.add('choices-initialized');
               console.log(`✅ Inicializado específico: ${id}`);
             } catch (error) {
@@ -3205,10 +3075,10 @@
             }
           }
         });
-        
+
         // Verificar si hay campos que no se iniciaron y programar otro intento
         const pendientes = document.querySelectorAll('select[multiple]:not(.choices-initialized)');
-        
+
         if (pendientes.length > 0) {
           console.log('⏳ Campos pendientes de inicializar:', pendientes.length);
           setTimeout(tryInitialize, 500);

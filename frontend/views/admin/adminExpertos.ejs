@@ -2017,10 +2017,7 @@
   </div>
 
   <script src="/assets/js/admin/admin-common.js"></script>
-  <% /* Garantizar que _adminHabs siempre sea un array para producir JSON válido */ %>
-    <% const _adminHabs=(typeof habilidades !=='undefined' && Array.isArray(habilidades)) ? habilidades : []; %>
-      <!-- Inyectar JSON en un script de tipo application/json y leerlo desde JS -->
-      <script id="admin-habilidades" type="application/json"><%- JSON.stringify(_adminHabs) %></script>
+  
       <script src="/assets/js/admin/admin-expertos.js"></script>
       <script src="/assets/js/admin/admin-expertos.bootstrap.js"></script>
       <!-- Inline DOM helpers and forced inline styles were moved to /assets/js/admin/admin-expertos.js

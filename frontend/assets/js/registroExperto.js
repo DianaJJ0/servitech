@@ -1,22 +1,22 @@
-console.log("registroExperto.js cargado correctamente");
+console.log("registroExperto.js cargado");
 
-// Mostrar/ocultar número de cuenta bancaria
+// Obtener token CSRF desde el servidor (sesión)
+async function getCsrfToken() {
+  try {
+    const r = await fetch("/csrf-token", { credentials: "include" });
+    if (!r.ok) return "";
+    const j = await r.json().catch(() => ({}));
+    return j && j.csrfToken ? j.csrfToken : "";
+  } catch {
+    return "";
+  }
+}
+
 document.addEventListener("DOMContentLoaded", function () {
-  // Verificar autenticación
-  if (window.user && window.user.token) {
-    localStorage.setItem("token", window.user.token);
-  }
+  // Ya no dependemos de window.user ni de localStorage para token.
+  // El acceso a estas páginas ya está protegido en el SSR (server.js).
 
-  const token = localStorage.getItem("token");
-  console.log("Token encontrado:", token);
-
-  if (!token || token === "null") {
-    console.log("No hay token, redirigiendo a login");
-    window.location.href = "/login.html?next=/registroExperto";
-    return;
-  }
-
-  console.log("Usuario autenticado, mostrando formulario");
+  // Toggle número de cuenta
   const toggleBtn = document.getElementById("toggleAccountNumber");
   if (toggleBtn) {
     toggleBtn.addEventListener("click", function () {
@@ -32,16 +32,16 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Selección de días disponibles
+  // Selector de días
   const diasDisponiblesInput = document.getElementById("diasDisponibles");
   const dayOptions = document.querySelectorAll(".day-option");
   const daysDisplay = document.querySelector(".days-selected-display");
-
   function updateSelectedDays() {
     const selectedDays = Array.from(
       document.querySelectorAll(".day-option.selected")
-    ).map((day) => day.getAttribute("data-day"));
-    diasDisponiblesInput.value = selectedDays.join(",");
+    ).map((d) => d.getAttribute("data-day"));
+    if (diasDisponiblesInput)
+      diasDisponiblesInput.value = selectedDays.join(",");
     if (daysDisplay) {
       daysDisplay.textContent =
         selectedDays.length > 0
@@ -49,15 +49,15 @@ document.addEventListener("DOMContentLoaded", function () {
           : "Selecciona tus días disponibles";
     }
   }
-  dayOptions.forEach((day) => {
-    day.addEventListener("click", function () {
+  dayOptions.forEach((d) =>
+    d.addEventListener("click", function () {
       this.classList.toggle("selected");
       updateSelectedDays();
-    });
-  });
+    })
+  );
   updateSelectedDays();
 
-  // Add native tooltip with full email and keep it updated if content changes
+  // Tooltip con email
   try {
     const emailField = document.querySelector(".email-field");
     if (emailField) {
@@ -66,7 +66,6 @@ document.addEventListener("DOMContentLoaded", function () {
         if (txt) emailField.setAttribute("title", txt);
       };
       setTitle();
-      // Observe changes to keep title in sync if email is updated dynamically
       const mo = new MutationObserver(setTitle);
       mo.observe(emailField, {
         childList: true,
@@ -74,712 +73,151 @@ document.addEventListener("DOMContentLoaded", function () {
         characterData: true,
       });
     }
-  } catch (e) {
-    console.warn("Failed to set email tooltip", e);
-  }
+  } catch (e) {}
 
-  // --- Inicio: lógica de preview y subida de imagen (movida desde plantilla) ---
+  // Preview foto
   (function () {
     const input = document.getElementById("fotoPerfil");
-    const previewWrap = document.getElementById("epPreview");
     const img = document.getElementById("epImg");
     const removeBtn = document.getElementById("epRemove");
     const meta = document.getElementById("fotoMeta");
     const nombre = document.getElementById("fotoNombre");
     const tamano = document.getElementById("fotoTamano");
     const errorBox = document.getElementById("fotoError");
-
     if (!input) return;
 
     function formatBytes(bytes) {
       if (!bytes) return "0 B";
       const units = ["B", "KB", "MB", "GB"];
       const i = Math.floor(Math.log(bytes) / Math.log(1024));
-      return (
-        (bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 1) + " " + units[i]
-      );
+      return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${units[i]}`;
     }
 
-    function clearPreview() {
-      input.value = "";
-      try {
-        if (img.src && img.src.startsWith("blob:"))
-          URL.revokeObjectURL(img.src);
-      } catch (e) {}
-      img.src = "";
-      if (previewWrap) previewWrap.setAttribute("aria-hidden", "true");
-      if (previewWrap) previewWrap.classList.remove("show");
-      if (removeBtn) removeBtn.classList.remove("show");
-      if (meta) meta.hidden = true;
-      if (errorBox) {
-        errorBox.hidden = true;
-        errorBox.textContent = "";
+    function resetPreview() {
+      if (img) {
+        img.src = "";
+        img.style.display = "none";
       }
-    }
-
-    function showError(msg) {
-      if (!errorBox) return;
-      errorBox.textContent = msg;
-      errorBox.hidden = false;
+      if (meta) meta.style.display = "none";
+      if (nombre) nombre.textContent = "";
+      if (tamano) tamano.textContent = "";
+      if (errorBox) errorBox.style.display = "none";
     }
 
     input.addEventListener("change", function () {
-      if (!input.files || !input.files[0]) {
-        clearPreview();
-        return;
-      }
-      const file = input.files[0];
-      errorBox && (errorBox.hidden = true);
-
-      const maxSize = 5 * 1024 * 1024; // 5MB
-      if (!/^image\//.test(file.type)) {
-        showError("Solo se permiten imágenes (JPG, PNG, etc.).");
-        clearPreview();
-        return;
-      }
-      if (file.size > maxSize) {
-        showError("La imagen excede el tamaño máximo de 5 MB.");
-        clearPreview();
-        return;
-      }
-
-      const url = URL.createObjectURL(file);
-      if (img) img.src = url;
-      if (previewWrap) previewWrap.setAttribute("aria-hidden", "false");
-      if (previewWrap) previewWrap.classList.add("show");
-      if (removeBtn) removeBtn.classList.add("show");
-      if (nombre) nombre.textContent = file.name;
-      if (tamano) tamano.textContent = formatBytes(file.size);
-      if (meta) meta.hidden = false;
-
-      (async function uploadAvatar() {
-        try {
-          const token = localStorage.getItem("token");
-          if (!token || token === "null") {
-            showError("Debes iniciar sesión para subir la imagen.");
-            return;
-          }
-          const fd = new FormData();
-          fd.append("avatar", file);
-          const res = await fetch("/api/usuarios/avatar", {
-            method: "POST",
-            body: fd,
-            headers: { Authorization: `Bearer ${token}` },
-            credentials: "include",
-          });
-          const data = await res.json().catch(() => null);
-          if (!res.ok) {
-            showError((data && data.mensaje) || "Error subiendo la imagen");
-            return;
-          }
-          const avatarInput = document.getElementById("avatarUrl");
-          if (avatarInput && data && data.avatarUrl) {
-            avatarInput.value = data.avatarUrl;
-            if (img) img.src = data.avatarUrl;
-          }
-        } catch (err) {
-          console.error("Upload error", err);
-          showError("Error subiendo la imagen. Intenta de nuevo.");
+      resetPreview();
+      const file = input.files && input.files[0];
+      if (!file) return;
+      if (!file.type.startsWith("image/")) {
+        if (errorBox) {
+          errorBox.textContent = "El archivo debe ser una imagen.";
+          errorBox.style.display = "block";
         }
-      })();
+        return;
+      }
+      if (file.size > 2 * 1024 * 1024) {
+        if (errorBox) {
+          errorBox.textContent = "La imagen no debe superar 2MB.";
+          errorBox.style.display = "block";
+        }
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        if (img) {
+          img.src = e.target.result;
+          img.style.display = "block";
+        }
+        if (meta) meta.style.display = "flex";
+        if (nombre) nombre.textContent = file.name;
+        if (tamano) tamano.textContent = formatBytes(file.size);
+      };
+      reader.readAsDataURL(file);
     });
 
-    removeBtn &&
+    if (removeBtn) {
       removeBtn.addEventListener("click", function () {
-        try {
-          if (img.src) URL.revokeObjectURL(img.src);
-        } catch (e) {}
-        clearPreview();
+        input.value = "";
+        resetPreview();
       });
-
-    document.querySelectorAll(".ep-box").forEach(function (el) {
-      el.addEventListener("keydown", function (evt) {
-        if (evt.key === "Enter" || evt.key === " ") {
-          evt.preventDefault();
-          el.click();
-        }
-      });
-    });
+    }
+    resetPreview();
   })();
-  // --- Fin: lógica de preview y subida ---
-});
 
-// Elementos del formulario
-const categoriasSelect = document.getElementById("categorias");
+  // Cargar categorías (vía proxy /api -> backend)
+  (function initCategorias() {
+    const select = document.getElementById("categorias");
+    if (!select) return;
+    fetch("/api/categorias", { credentials: "include" })
+      .then((r) => r.json())
+      .then((categorias) => {
+        select.innerHTML = "";
+        (categorias || []).forEach((cat) => {
+          const opt = document.createElement("option");
+          opt.value = cat._id || cat.id || cat.nombre;
+          opt.textContent = cat.nombre;
+          select.appendChild(opt);
+        });
+        if (typeof Choices !== "undefined") {
+          new Choices(select, {
+            removeItemButton: true,
+            searchPlaceholderValue: "Buscar categoría...",
+            noResultsText: "Sin resultados",
+          });
+        }
+      })
+      .catch((e) => {
+        console.warn("No fue posible cargar categorías:", e && e.message);
+      });
+  })();
 
-// Envío del formulario experto
-const form = document.getElementById("registroExpertoForm");
-if (form) {
+  // Envío del formulario (usa CSRF y sesión del servidor; no agrega Authorization)
+  const form = document.getElementById("registroExpertoForm");
+  if (!form) return;
+
   form.addEventListener("submit", async function (e) {
     e.preventDefault();
 
-    // Validar campos obligatorios del formulario
-    const requiredFields = [
-      "precio",
-      "descripcion",
-      "banco",
-      "tipoCuenta",
-      "numeroCuenta",
-      "titular",
-      "tipoDocumento",
-      "numeroDocumento",
-    ];
+    const categoriasSelect = document.getElementById("categorias");
+    const categorias = categoriasSelect
+      ? Array.from(categoriasSelect.selectedOptions).map((o) => o.value)
+      : [];
 
-    let missingFields = [];
-    requiredFields.forEach((fieldName) => {
-      const field = document.getElementById(fieldName);
-      if (!field || !field.value.trim()) {
-        missingFields.push(fieldName);
-      }
-    });
-
-    // Validar selecciones múltiples
-    if (!categoriasSelect || categoriasSelect.selectedOptions.length === 0) {
-      missingFields.push("categorias");
-    }
-
-    // Validar días disponibles
-    const diasDisponibles = document.getElementById("diasDisponibles").value;
-    if (
-      !diasDisponibles ||
-      diasDisponibles.split(",").filter((day) => day.trim() !== "").length === 0
-    ) {
-      missingFields.push("días disponibles");
-    }
-
-    if (missingFields.length > 0) {
-      alert(
-        "Por favor completa los siguientes campos obligatorios:\n\n• " +
-          missingFields.join("\n• ")
-      );
-      return;
-    }
-
-    // Construir payload en formato JSON
     const payload = {
-      precioPorHora: parseInt(document.getElementById("precio").value),
-      descripcion: document.getElementById("descripcion").value,
-      categorias: Array.from(categoriasSelect.selectedOptions).map(
-        (o) => o.value
-      ),
-      banco: document.getElementById("banco").value,
-      tipoCuenta: document.getElementById("tipoCuenta").value,
-      numeroCuenta: document.getElementById("numeroCuenta").value,
-      titular: document.getElementById("titular").value,
-      tipoDocumento: document.getElementById("tipoDocumento").value,
-      numeroDocumento: document.getElementById("numeroDocumento").value,
-      telefonoContacto: document.getElementById("telefonoContacto").value,
-      diasDisponibles: document
-        .getElementById("diasDisponibles")
-        .value.split(",")
-        .filter((day) => day.trim() !== ""),
+      descripcion: (document.getElementById("descripcion")?.value || "").trim(),
+      precioPorHora: Number(document.getElementById("precio")?.value || 0),
+      categorias,
+      banco: document.getElementById("banco")?.value || "",
+      tipoCuenta: document.getElementById("tipoCuenta")?.value || "",
+      numeroCuenta: document.getElementById("numeroCuenta")?.value || "",
+      titular: document.getElementById("titular")?.value || "",
+      tipoDocumento: document.getElementById("tipoDocumento")?.value || "",
+      numeroDocumento: document.getElementById("numeroDocumento")?.value || "",
+      telefonoContacto:
+        document.getElementById("telefonoContacto")?.value || "",
+      diasDisponibles: (document.getElementById("diasDisponibles")?.value || "")
+        .split(",")
+        .map((x) => x.trim())
+        .filter(Boolean),
     };
 
     try {
-      const token = localStorage.getItem("token");
-      if (!token || token === "null") {
-        alert("Debes iniciar sesión para registrar como experto.");
-        window.location.href = "/login.html?next=/registroExperto";
-        return;
-      }
-
-      // Debug: mostrar payload
-      console.log("Payload a enviar:", payload);
-      console.log("Token:", token);
-
-      // Elimina alertas previas
-      const prevAlert = document.querySelector(".alert-container");
-      if (prevAlert) prevAlert.remove();
-
-      // Enviar datos al backend usando la ruta correcta y método PUT
-      console.log("Enviando petición a:", "/api/usuarios/perfil");
-      console.log("Método:", "PUT");
-      console.log("Headers:", {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
+      const csrf = await getCsrfToken();
+      const r = await fetch("/api/perfil-experto/perfil", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-csrf-token": csrf,
+        },
+        credentials: "include",
+        body: JSON.stringify(payload),
       });
-
-      // Crear un AbortController para timeout
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos timeout
-
-      let response;
-      try {
-        response = await fetch("/api/usuarios/perfil", {
-          method: "PUT",
-          body: JSON.stringify(payload),
-          credentials: "include",
-          signal: controller.signal,
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
-
-        clearTimeout(timeoutId);
-      } catch (error) {
-        clearTimeout(timeoutId);
-        if (error.name === "AbortError") {
-          throw new Error("La petición tardó demasiado tiempo");
-        }
-        throw error;
-      }
-
-      console.log(
-        "Respuesta del servidor:",
-        response.status,
-        response.statusText
-      );
-
-      const nuevaAlerta = document.createElement("div");
-      nuevaAlerta.className = "alert-container";
-      document.body.appendChild(nuevaAlerta);
-
-      // Lee SIEMPRE el JSON de la respuesta
-      let result = null;
-      try {
-        result = await response.json();
-      } catch (e) {
-        result = null;
-      }
-      let mensaje =
-        result && result.mensaje
-          ? result.mensaje
-          : "No se pudo obtener el mensaje del servidor.";
-
-      if (response.ok) {
-        nuevaAlerta.innerHTML = `<div class='alert alert-success'>${mensaje}</div>`;
-        setTimeout(() => {
-          window.location.href = "/perfil";
-        }, 1200);
-      } else {
-        nuevaAlerta.innerHTML = `<div class='alert alert-danger'>${mensaje}</div>`;
-      }
-    } catch (error) {
-      alert("Error al enviar el formulario: " + error.message);
+      if (!r.ok) throw new Error(`Error ${r.status}`);
+      alert("Perfil de experto guardado correctamente.");
+      window.location.href = "/perfil";
+    } catch (err) {
+      console.error("Error guardando perfil:", err);
+      alert("No fue posible guardar tu perfil. Intenta más tarde.");
     }
   });
-}
-
-// Validación y feedback para tarifa COP
-document.addEventListener("DOMContentLoaded", function () {
-  var precioInput = document.getElementById("precio");
-  var feedback = document.getElementById("precio-feedback");
-  if (precioInput && feedback) {
-    precioInput.addEventListener("input", function () {
-      var valor = parseInt(precioInput.value, 10);
-      if (isNaN(valor) || valor < 10000) {
-        feedback.textContent = "La tarifa mínima es $10.000 COP.";
-        precioInput.style.borderColor = "#ff5252";
-      } else if (valor > 500000) {
-        feedback.textContent = "La tarifa máxima recomendada es $500.000 COP.";
-        precioInput.style.borderColor = "#ff5252";
-      } else if (valor < 30000) {
-        feedback.textContent =
-          "Sugerencia: La mayoría de expertos cobran más de $30.000 COP/hora.";
-        precioInput.style.borderColor = "#ffb300";
-      } else if (valor > 200000) {
-        feedback.textContent =
-          "Sugerencia: Tarifas superiores a $200.000 COP/hora suelen ser para expertos muy especializados.";
-        precioInput.style.borderColor = "#ffb300";
-      } else {
-        feedback.textContent = "";
-        precioInput.style.borderColor = "var(--accent-color)";
-      }
-    });
-  }
 });
-
-// Evitar entrada de letras en el campo precio: bloquear teclas no numéricas, sanear pegado y normalizar
-(function preventNonNumericPrecio() {
-  var input = document.getElementById("precio");
-  if (!input) return;
-
-  // Permitir teclas de control, flechas, backspace, delete y números
-  input.addEventListener("keydown", function (e) {
-    // Allow: backspace, delete, tab, escape, enter, arrows
-    if (
-      e.key === "Backspace" ||
-      e.key === "Delete" ||
-      e.key === "Tab" ||
-      e.key === "Escape" ||
-      e.key === "Enter" ||
-      e.key === "ArrowLeft" ||
-      e.key === "ArrowRight" ||
-      e.key === "Home" ||
-      e.key === "End"
-    ) {
-      return;
-    }
-
-    // Allow Ctrl/Cmd combinations (copy/paste/select all)
-    if (e.ctrlKey || e.metaKey) return;
-
-    // Only allow digits
-    if (!/^[0-9]$/.test(e.key)) {
-      e.preventDefault();
-    }
-  });
-
-  // Sanear texto pegado: dejar solo dígitos
-  input.addEventListener("paste", function (e) {
-    e.preventDefault();
-    var text = (e.clipboardData || window.clipboardData).getData("text") || "";
-    var digits = text.replace(/[^0-9]/g, "");
-    // Insert at caret position
-    var start = input.selectionStart;
-    var end = input.selectionEnd;
-    var value = input.value;
-    input.value = value.slice(0, start) + digits + value.slice(end);
-    // move caret
-    var pos = start + digits.length;
-    input.setSelectionRange(pos, pos);
-    // trigger input handlers
-    input.dispatchEvent(new Event("input", { bubbles: true }));
-  });
-
-  // On blur, strip non-digits and ensure integer
-  input.addEventListener("blur", function () {
-    var v = (input.value || "").toString();
-    var digits = v.replace(/[^0-9]/g, "");
-    if (digits === "") {
-      input.value = "";
-    } else {
-      input.value = parseInt(digits, 10);
-    }
-    input.dispatchEvent(new Event("input", { bubbles: true }));
-  });
-})();
-
-// Validación para número de cuenta: sólo dígitos y guiones
-(function preventInvalidAccountChars() {
-  var acc = document.getElementById("numeroCuenta");
-  if (!acc) return;
-
-  acc.addEventListener("keydown", function (e) {
-    // allow control keys
-    if (
-      e.key === "Backspace" ||
-      e.key === "Delete" ||
-      e.key === "Tab" ||
-      e.key === "Escape" ||
-      e.key === "Enter" ||
-      e.key === "ArrowLeft" ||
-      e.key === "ArrowRight" ||
-      e.key === "Home" ||
-      e.key === "End"
-    )
-      return;
-
-    if (e.ctrlKey || e.metaKey) return;
-
-    // allow digits and hyphen
-    if (!/^[0-9-]$/.test(e.key)) {
-      e.preventDefault();
-    }
-  });
-
-  acc.addEventListener("paste", function (e) {
-    e.preventDefault();
-    var text = (e.clipboardData || window.clipboardData).getData("text") || "";
-    var cleaned = text.replace(/[^0-9-]/g, "");
-    var start = acc.selectionStart,
-      end = acc.selectionEnd;
-    var val = acc.value;
-    acc.value = val.slice(0, start) + cleaned + val.slice(end);
-    var pos = start + cleaned.length;
-    acc.setSelectionRange(pos, pos);
-  });
-
-  acc.addEventListener("blur", function () {
-    // remove accidental spaces and letters
-    var cleaned = (acc.value || "").toString().replace(/[^0-9-]/g, "");
-    acc.value = cleaned;
-  });
-})();
-
-// Validación para número de documento: sólo dígitos y guiones
-(function preventInvalidDocumentoChars() {
-  var doc = document.getElementById("numeroDocumento");
-  if (!doc) return;
-
-  doc.addEventListener("keydown", function (e) {
-    // allow control keys
-    if (
-      e.key === "Backspace" ||
-      e.key === "Delete" ||
-      e.key === "Tab" ||
-      e.key === "Escape" ||
-      e.key === "Enter" ||
-      e.key === "ArrowLeft" ||
-      e.key === "ArrowRight" ||
-      e.key === "Home" ||
-      e.key === "End"
-    )
-      return;
-
-    if (e.ctrlKey || e.metaKey) return;
-
-    // allow digits and hyphen
-    if (!/^[0-9-]$/.test(e.key)) {
-      e.preventDefault();
-    }
-  });
-
-  doc.addEventListener("paste", function (e) {
-    e.preventDefault();
-    var text = (e.clipboardData || window.clipboardData).getData("text") || "";
-    var cleaned = text.replace(/[^0-9-]/g, "");
-    var start = doc.selectionStart,
-      end = doc.selectionEnd;
-    var val = doc.value;
-    doc.value = val.slice(0, start) + cleaned + val.slice(end);
-    var pos = start + cleaned.length;
-    doc.setSelectionRange(pos, pos);
-  });
-
-  doc.addEventListener("blur", function () {
-    // remove accidental spaces and letters
-    var cleaned = (doc.value || "").toString().replace(/[^0-9-]/g, "");
-    doc.value = cleaned;
-  });
-})();
-
-// Validación para teléfono de contacto: permitir dígitos, espacios, +, paréntesis y guiones
-(function preventInvalidTelefonoChars() {
-  var tel = document.getElementById("telefonoContacto");
-  if (!tel) return;
-
-  tel.addEventListener("keydown", function (e) {
-    // allow control keys
-    if (
-      e.key === "Backspace" ||
-      e.key === "Delete" ||
-      e.key === "Tab" ||
-      e.key === "Escape" ||
-      e.key === "Enter" ||
-      e.key === "ArrowLeft" ||
-      e.key === "ArrowRight" ||
-      e.key === "Home" ||
-      e.key === "End"
-    )
-      return;
-
-    if (e.ctrlKey || e.metaKey) return;
-
-    // allow digits, plus, hyphen, spaces and parentheses
-    if (!/^[0-9+\-()\s]$/.test(e.key)) {
-      e.preventDefault();
-    }
-  });
-
-  tel.addEventListener("paste", function (e) {
-    e.preventDefault();
-    var text = (e.clipboardData || window.clipboardData).getData("text") || "";
-    var cleaned = text.replace(/[^0-9+\-()\s]/g, "");
-    var start = tel.selectionStart,
-      end = tel.selectionEnd;
-    var val = tel.value;
-    tel.value = val.slice(0, start) + cleaned + val.slice(end);
-    var pos = start + cleaned.length;
-    tel.setSelectionRange(pos, pos);
-  });
-
-  tel.addEventListener("blur", function () {
-    // normalize multiple spaces and trim
-    var v = (tel.value || "").toString();
-    var cleaned = v
-      .replace(/[^0-9+\-()\s]/g, "")
-      .replace(/\s+/g, " ")
-      .trim();
-    tel.value = cleaned;
-  });
-})();
-
-// Formateo ligero de teléfono: agrupa dígitos y mantiene prefijo +pais
-(function formatTelefonoContacto() {
-  var tel = document.getElementById("telefonoContacto");
-  if (!tel) return;
-
-  function formatValue(raw) {
-    if (!raw) return "";
-    // detect leading + and separate digits
-    var leadingPlus = raw.trim().charAt(0) === "+";
-    var onlyDigits = raw.replace(/[^0-9]/g, "");
-
-    if (leadingPlus) {
-      // country code up to 3 digits
-      var m = onlyDigits.match(/^(\d{1,3})(\d*)$/);
-      if (!m) return "+" + onlyDigits;
-      var country = m[1];
-      var rest = m[2] || "";
-      var groups = [];
-      while (rest.length > 0) {
-        if (rest.length > 4) {
-          groups.push(rest.slice(0, 3));
-          rest = rest.slice(3);
-        } else {
-          groups.push(rest);
-          rest = "";
-        }
-      }
-      return "+" + country + (groups.length ? " " + groups.join(" ") : "");
-    } else {
-      // local formatting: groups of 3 until last group <=4
-      var rest = onlyDigits;
-      var groups = [];
-      while (rest.length > 0) {
-        if (rest.length > 4) {
-          groups.push(rest.slice(0, 3));
-          rest = rest.slice(3);
-        } else {
-          groups.push(rest);
-          rest = "";
-        }
-      }
-      return groups.join(" ");
-    }
-  }
-
-  var composing = false;
-  tel.addEventListener("compositionstart", function () {
-    composing = true;
-  });
-  tel.addEventListener("compositionend", function () {
-    composing = false;
-    tel.dispatchEvent(new Event("input"));
-  });
-
-  tel.addEventListener("input", function (e) {
-    if (composing) return;
-    var start = tel.selectionStart;
-    var old = tel.value;
-    var formatted = formatValue(old);
-    tel.value = formatted;
-    // move caret to end to avoid complex caret-preserving logic
-    tel.setSelectionRange(tel.value.length, tel.value.length);
-  });
-
-  tel.addEventListener("blur", function () {
-    tel.value = formatValue(tel.value);
-  });
-})();
-
-// Validación para titular: impedir números, permitir letras y espacios
-(function preventDigitsInTitular() {
-  var t = document.getElementById("titular");
-  if (!t) return;
-
-  t.addEventListener("keydown", function (e) {
-    // allow control keys
-    if (
-      e.key === "Backspace" ||
-      e.key === "Delete" ||
-      e.key === "Tab" ||
-      e.key === "Escape" ||
-      e.key === "Enter" ||
-      e.key === "ArrowLeft" ||
-      e.key === "ArrowRight" ||
-      e.key === "Home" ||
-      e.key === "End"
-    )
-      return;
-
-    if (e.ctrlKey || e.metaKey) return;
-
-    // Block digits
-    if (/^[0-9]$/.test(e.key)) {
-      e.preventDefault();
-    }
-  });
-
-  t.addEventListener("paste", function (e) {
-    e.preventDefault();
-    var text = (e.clipboardData || window.clipboardData).getData("text") || "";
-    var cleaned = text.replace(/[0-9]/g, "");
-    var start = t.selectionStart,
-      end = t.selectionEnd;
-    var val = t.value;
-    t.value = val.slice(0, start) + cleaned + val.slice(end);
-    var pos = start + cleaned.length;
-    t.setSelectionRange(pos, pos);
-  });
-
-  t.addEventListener("blur", function () {
-    // remove digits accidentally entered
-    t.value = (t.value || "").toString().replace(/[0-9]/g, "");
-  });
-})();
-
-// Choices.js: preferir assets locales y caer al CDN si es necesario
-(function loadChoicesLocalFirst() {
-  const localCss = "/assets/vendor/choices/choices.min.css";
-  const localJs = "/assets/vendor/choices/choices.min.js";
-  const cdnCss =
-    "https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css";
-  const cdnJs =
-    "https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js";
-
-  function injectCss(href) {
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = href;
-    document.head.appendChild(link);
-  }
-
-  function tryLoadScript(href) {
-    return new Promise((res, rej) => {
-      const s = document.createElement("script");
-      s.src = href;
-      s.onload = () => setTimeout(() => res(), 30);
-      s.onerror = (e) => rej(e || new Error("failed to load script"));
-      document.head.appendChild(s);
-    });
-  }
-
-  try {
-    const exists = Array.from(document.getElementsByTagName("link")).some(
-      (l) => l.href && l.href.indexOf("choices.min.css") !== -1
-    );
-    if (!exists) {
-      try {
-        injectCss(localCss);
-      } catch (e) {
-        injectCss(cdnCss);
-      }
-    }
-  } catch (e) {}
-
-  tryLoadScript(localJs)
-    .catch(() => tryLoadScript(cdnJs))
-    .then(() => {
-      var categoriasSelect = document.getElementById("categorias");
-      if (categoriasSelect) {
-        try {
-          // ensure dropdown is appended inside the page container so scoped CSS applies
-          // Always append the Choices dropdown to document.body so it's not clipped
-          // by any parent with overflow:hidden/auto. Also prefer a stable position
-          // and do not reorder user options (shouldSort: false).
-          new Choices(categoriasSelect, {
-            removeItemButton: true,
-            searchEnabled: true,
-            placeholder: true,
-            placeholderValue: "Selecciona categorías",
-            noResultsText: "No hay resultados",
-            noChoicesText: "No hay opciones",
-            itemSelectText: "Seleccionar",
-            appendTo: document.body,
-            position: "bottom",
-            shouldSort: false,
-            classNames: {
-              containerInner: "choices-container",
-              input: "choices-input",
-            },
-          });
-        } catch (e) {
-          console.error("Choices init failed for categorias", e);
-        }
-      }
-    })
-    .catch((err) => console.error("Failed loading Choices assets", err));
-})();
