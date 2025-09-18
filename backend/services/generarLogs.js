@@ -13,8 +13,6 @@ const tipoMap = {
   experto: "experto.log",
   pago: "pago.log",
   notificacion: "notificacion.log",
-  especialidad: "especialidad.log",
-  habilidad: "habilidad.log",
   general: "general.log",
 };
 

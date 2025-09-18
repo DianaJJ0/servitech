@@ -24,7 +24,39 @@ function verificarToken(token) {
  * Middleware que exige un Bearer token válido y adjunta req.usuario
  */
 function autenticar(req, res, next) {
+  // Permitir accesos públicos sin token (GETs públicos) antes de exigir autorización
+  try {
+    if (req.method === "GET") {
+      // Usar req.originalUrl o req.url para capturar la ruta completa con query params
+      const fullPath = String(req.originalUrl || req.url || req.path || "");
+      console.log(`auth.middleware: evaluando ruta pública GET: ${fullPath}`);
+
+      const publicGetPaths = [
+        /^\/api\/expertos/, // /api/expertos (cualquier cosa después)
+        /^\/api\/categorias/, // /api/categorias (cualquier cosa después)
+      ];
+
+      if (publicGetPaths.some((rx) => rx.test(fullPath))) {
+        console.log(`auth.middleware: ruta pública permitida: ${fullPath}`);
+        return next();
+      }
+    }
+  } catch (e) {
+    console.error("auth.middleware: error en check público:", e);
+  }
+
   const authHeader = req.headers["authorization"];
+  // Debug: log presence of Authorization header (dev only)
+  try {
+    if (authHeader) {
+      // show only prefix for privacy
+      const preview = String(authHeader).slice(0, 30);
+      console.log("auth.middleware: Authorization header present:", preview);
+    } else {
+      console.log("auth.middleware: No Authorization header in request");
+    }
+  } catch (e) {}
+
   if (!authHeader) {
     return res.status(401).send("Token requerido");
   }
@@ -40,6 +72,13 @@ function autenticar(req, res, next) {
     if (req.usuario && !req.usuario._id && req.usuario.id) {
       req.usuario._id = req.usuario.id;
     }
+    // Debug: log that token verification succeeded and minimal payload
+    try {
+      console.log(
+        "auth.middleware: token verificado, usuario id:",
+        req.usuario && (req.usuario._id || req.usuario.id || "<no-id>")
+      );
+    } catch (e) {}
     return next();
   } catch (err) {
     return res.status(401).send("Token inválido o expirado");

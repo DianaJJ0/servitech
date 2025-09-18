@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Debug Categorías</title>
+</head>
+
+<body>
+  <h1>Debug de Categorías</h1>
+
+  <h2>Datos del Server:</h2>
+  <p><strong>Tipo de categorias:</strong>
+    <%= typeof categorias %>
+  </p>
+  <p><strong>Es Array:</strong>
+    <%= Array.isArray(categorias) %>
+  </p>
+  <p><strong>Cantidad:</strong>
+    <%= (categorias && categorias.length) || 'N/A' %>
+  </p>
+
+  <h2>Contenido Raw:</h2>
+  <pre><%= JSON.stringify(categorias, null, 2) %></pre>
+
+  <h2>Lista de Categorías:</h2>
+  <ul>
+    <% if (typeof categorias !=='undefined' && Array.isArray(categorias) && categorias.length> 0) { %>
+      <% categorias.forEach(function(c, index) { %>
+        <li>
+          <strong>Índice:</strong>
+          <%= index %><br>
+            <strong>ID:</strong>
+            <%= c._id %><br>
+              <strong>Nombre:</strong>
+              <%= c.nombre %><br>
+                <strong>Objeto completo:</strong>
+                <%= JSON.stringify(c) %>
+        </li>
+        <% }); %>
+          <% } else { %>
+            <li style="color: red;">No hay categorías disponibles</li>
+            <% } %>
+  </ul>
+
+  <h2>Prueba de select:</h2>
+  <select multiple>
+    <% if (typeof categorias !=='undefined' && Array.isArray(categorias) && categorias.length> 0) { %>
+      <% categorias.forEach(function(c) { %>
+        <option value="<%= c._id %>">
+          <%= c.nombre %>
+        </option>
+        <% }); %>
+          <% } else { %>
+            <option disabled>No hay categorías</option>
+            <% } %>
+  </select>
+</body>
+
+</html>

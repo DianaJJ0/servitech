@@ -3,6 +3,19 @@
  * Protege la ruta y carga los datos del usuario autenticado.
  */
 document.addEventListener("DOMContentLoaded", async () => {
+  // Verificar si ya tenemos información de experto renderizada desde el servidor
+  const expertInfoSection = document.querySelector(".profile-info-card h3");
+  if (
+    expertInfoSection &&
+    expertInfoSection.textContent.includes("Información de Experto")
+  ) {
+    console.log(
+      "Información de experto ya cargada desde el servidor - omitiendo AJAX"
+    );
+    document.body.style.display = "block"; // Mostrar el contenido inmediatamente
+    return; // No hacer la llamada AJAX
+  }
+
   // Sincroniza la sesión del backend si hay token y usuario en localStorage
   const token = localStorage.getItem("token");
   const usuario = localStorage.getItem("usuario");
@@ -73,12 +86,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (firstNameInput) firstNameInput.value = usuario.nombre;
     if (lastNameInput) lastNameInput.value = usuario.apellido;
     if (formEmailInput) formEmailInput.value = usuario.email;
+
+    // Si el usuario es experto, mantener la información ya renderizada en el servidor
     if (usuario.roles && usuario.roles.includes("experto")) {
-      if (usuario.infoExperto) {
-        // Poblar campos de experto si existen
-      } else {
-        // Mostrar alerta si el perfil está incompleto
-      }
+      // La información del experto ya está renderizada en el servidor via EJS
+      // No necesitamos modificar nada aquí para evitar conflictos
+      console.log(
+        "Usuario experto detectado - información cargada desde servidor"
+      );
     }
   } catch (error) {
     localStorage.removeItem("token");

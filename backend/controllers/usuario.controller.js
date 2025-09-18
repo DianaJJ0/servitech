@@ -6,8 +6,6 @@
 
 const Usuario = require("../models/usuario.model.js");
 const Categoria = require("../models/categoria.model.js");
-const Habilidad = require("../models/habilidad.model.js");
-const Especialidad = require("../models/especialidad.model.js");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const { enviarCorreo } = require("../services/email.service.js");
@@ -139,16 +137,6 @@ const registrarUsuario = async (req, res) => {
         }
       }
 
-      // Normalizar skills
-      let skillsArray = [];
-      if (infoExperto.skills) {
-        if (Array.isArray(infoExperto.skills)) {
-          skillsArray = infoExperto.skills.map((s) => String(s));
-        } else if (typeof infoExperto.skills === "string") {
-          skillsArray = infoExperto.skills.split(",").map((s) => s.trim());
-        }
-      }
-
       // Normalizar diasDisponibles (opcional)
       let diasArray = [];
       if (infoExperto.diasDisponibles) {
@@ -163,7 +151,6 @@ const registrarUsuario = async (req, res) => {
 
       // Campos obligatorios del sub-esquema experto
       const requiredFields = [
-        "especialidad",
         "descripcion",
         "precioPorHora",
         "banco",
@@ -192,7 +179,6 @@ const registrarUsuario = async (req, res) => {
 
       // Construir objeto infoExperto completo para guardar
       const info = {
-        especialidad: String(infoExperto.especialidad),
         descripcion: String(infoExperto.descripcion),
         precioPorHora: Number(infoExperto.precioPorHora),
         banco: String(infoExperto.banco),
@@ -204,7 +190,6 @@ const registrarUsuario = async (req, res) => {
       };
 
       if (categoriasArray.length > 0) info.categorias = categoriasArray;
-      if (skillsArray.length > 0) info.skills = skillsArray;
       if (diasArray.length > 0) info.diasDisponibles = diasArray;
       if (infoExperto.horario) info.horario = infoExperto.horario;
       if (infoExperto.telefonoContacto)
@@ -404,21 +389,6 @@ const obtenerPerfilUsuario = async (req, res) => {
     const userObj = usuario.toObject({ getters: true, virtuals: false });
 
     if (userObj.infoExperto) {
-      // Especialidad: puede ser un id
-      try {
-        const espId = userObj.infoExperto.especialidad;
-        if (
-          espId &&
-          typeof espId === "string" &&
-          espId.match(/^[0-9a-fA-F]{24}$/)
-        ) {
-          const esp = await Especialidad.findById(espId).select("nombre");
-          if (esp) userObj.infoExperto.especialidad = esp.nombre;
-        }
-      } catch (e) {
-        // ignore lookup errors, keep original value
-      }
-
       // Categorías: array de ObjectId
       try {
         const cats = userObj.infoExperto.categorias || [];
@@ -435,29 +405,6 @@ const obtenerPerfilUsuario = async (req, res) => {
         }
       } catch (e) {
         // si falla, dejar los ids
-      }
-
-      // Skills: si son ids de habilidades, intentar resolver a nombres
-      try {
-        const skills = userObj.infoExperto.skills || [];
-        if (Array.isArray(skills) && skills.length > 0) {
-          // Detectar si parecen ObjectId (24 hex)
-          const idSkills = skills.filter(
-            (s) => typeof s === "string" && s.match(/^[0-9a-fA-F]{24}$/)
-          );
-          if (idSkills.length > 0) {
-            const foundSkills = await Habilidad.find({
-              _id: { $in: idSkills },
-            }).select("nombre");
-            const mapSkill = {};
-            foundSkills.forEach((h) => (mapSkill[String(h._id)] = h.nombre));
-            userObj.infoExperto.skills = skills.map(
-              (s) => mapSkill[String(s)] || s
-            );
-          }
-        }
-      } catch (e) {
-        // ignore
       }
     }
 
@@ -637,6 +584,14 @@ const resetearPassword = async (req, res) => {
 const actualizarPerfilUsuario = async (req, res) => {
   try {
     const datos = req.body;
+    // Guardas: asegurar que req.usuario existe y tenga _id.
+    if (!req.usuario || !req.usuario._id) {
+      console.error(
+        "actualizarPerfilUsuario: req.usuario ausente o sin _id - headers:",
+        req.headers && { authorization: req.headers.authorization }
+      );
+      return res.status(401).json({ mensaje: "No autenticado" });
+    }
     const usuario = await Usuario.findById(req.usuario._id);
 
     if (!usuario) {
@@ -649,15 +604,6 @@ const actualizarPerfilUsuario = async (req, res) => {
         categoriasArray = datos.categorias.map((id) => String(id));
       } else if (typeof datos.categorias === "string") {
         categoriasArray = datos.categorias.split(",").map((id) => id.trim());
-      }
-    }
-
-    let skillsArray = [];
-    if (datos.skills) {
-      if (Array.isArray(datos.skills)) {
-        skillsArray = datos.skills.map((skill) => String(skill));
-      } else if (typeof datos.skills === "string") {
-        skillsArray = datos.skills.split(",").map((skill) => skill.trim());
       }
     }
 
@@ -675,8 +621,6 @@ const actualizarPerfilUsuario = async (req, res) => {
       !datos.descripcion ||
       !datos.precioPorHora ||
       categoriasArray.length === 0 ||
-      !datos.especialidad ||
-      skillsArray.length === 0 ||
       !datos.banco ||
       !datos.tipoCuenta ||
       !datos.numeroCuenta ||
@@ -686,7 +630,7 @@ const actualizarPerfilUsuario = async (req, res) => {
     ) {
       return res.status(400).json({
         mensaje:
-          "Faltan campos obligatorios para crear el perfil de experto. Revisa todos los campos y selecciona al menos una categoría y una habilidad.",
+          "Faltan campos obligatorios para crear el perfil de experto. Revisa todos los campos y selecciona al menos una categoría.",
       });
     }
 
@@ -696,8 +640,6 @@ const actualizarPerfilUsuario = async (req, res) => {
       precioPorHora: datos.precioPorHora,
       diasDisponibles: diasArray,
       categorias: categoriasArray,
-      especialidad: datos.especialidad,
-      skills: skillsArray,
       banco: datos.banco,
       tipoCuenta: datos.tipoCuenta,
       numeroCuenta: datos.numeroCuenta,
