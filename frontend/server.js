@@ -1,5 +1,5 @@
 /**
- * SERVITECH SERVER.JS - versión optimizada y didáctica
+ * SERVITECH SERVER.JS - FRONTEND
  * Solo renderiza vistas, gestiona sesión y consulta datos al backend.
  * Mantiene proxy manual /api con CSRF y casos especiales.
  */
@@ -169,37 +169,6 @@ router.use((err, req, res, next) => {
   }
   next(err);
 });
-
-// La gestión de sesión se hará en el app.js principal del backend.
-// Si se deja aquí, podría crear conflictos. Es mejor centralizarla.
-/*
-router.use(
-  session({
-    secret: process.env.SESSION_SECRET || "servitech-secret",
-    resave: false,
-    saveUninitialized: false,
-    store: (function () {
-      try {
-        if (RedisStore && redisClient && redisClient.isOpen) {
-          console.log("Using Redis session store");
-          return new RedisStore({ client: redisClient, ttl: 60 * 60 * 24 });
-        }
-      } catch (e) {}
-      console.log("Not using Redis session store; using default memory store");
-      return undefined;
-    })(),
-    cookie: Object.assign(
-      {
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-      },
-      process.env.SESSION_COOKIE_DOMAIN
-        ? { domain: process.env.SESSION_COOKIE_DOMAIN }
-        : {}
-    ),
-  })
-);
-*/
 
 // CSRF por sesión
 router.use((req, res, next) => {
@@ -542,13 +511,6 @@ router.get("/sse/stream", (req, res) => {
     } catch (e) {}
   });
 });
-
-// Estáticos y vistas (ya configurado en backend/app.js)
-/*
-router.use("/assets", express.static(path.join(__dirname, "assets")));
-router.set("view engine", "ejs");
-router.set("views", path.join(__dirname, "views"));
-*/
 
 // Middleware de rutas admin protegidas
 function requireAdmin(req, res, next) {
@@ -978,17 +940,5 @@ router.get("/admin/adminUsuarios", requireAdmin, (req, res) => {
   res.render("admin/adminUsuarios", { user: req.session.user || {} });
 });
 
-// --- Arranque del servidor ---
-// Ya no es necesario, el backend/app.js se encarga de arrancar el servidor.
-/*
-app.listen(PORT, () => {
-  console.log(
-    `Servidor Servitech escuchando en ${FRONTEND_URL} -> backend: ${BACKEND_URL}`
-  );
-});
-*/
-
-// Exportar el router para que el backend pueda usarlo
-module.exports = router;
 // Exportar el router para que el backend pueda usarlo
 module.exports = router;
