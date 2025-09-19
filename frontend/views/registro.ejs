@@ -114,8 +114,10 @@
                     <div id="formError" class="error-message" style="text-align: center; margin-bottom: 1rem;">
                     </div>
                     <div class="input-group">
-                        <div class="g-recaptcha" data-sitekey="6LdghKQrAAAAANaGrKFXoONcZu3Q0R3RBue9_UWT"></div>
+                        <div class="g-recaptcha"
+                            data-sitekey="<%= typeof recaptchaSiteKey !== 'undefined' ? recaptchaSiteKey : '' %>"></div>
                     </div>
+                    <div id="registerError" class="error-message"></div>
                     <button type="submit" class="auth-button">Crear Cuenta</button>
                 </form>
                 <footer class="auth-footer">
