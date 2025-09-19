@@ -939,6 +939,9 @@ router.get("/admin/adminLogs", requireAdmin, (req, res) => {
 router.get("/admin/adminUsuarios", requireAdmin, (req, res) => {
   res.render("admin/adminUsuarios", { user: req.session.user || {} });
 });
+router.get("/admin/adminExpertos", requireAdmin, (req, res) => {
+  res.render("admin/adminExpertos", { user: req.session.user || {} });
+});
 
 // Exportar el router para que el backend pueda usarlo
 module.exports = router;
