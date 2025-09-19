@@ -614,8 +614,6 @@ router.post("/set-session", (req, res) => {
           process.env.NODE_ENV !== "production"
         ) {
           try {
-            const fetch = (...args) =>
-              import("node-fetch").then(({ default: fetch }) => fetch(...args));
             const devRes = await fetch(`${BACKEND_URL}/api/dev/create-admin`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -990,5 +988,7 @@ app.listen(PORT, () => {
 });
 */
 
+// Exportar el router para que el backend pueda usarlo
+module.exports = router;
 // Exportar el router para que el backend pueda usarlo
 module.exports = router;
