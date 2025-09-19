@@ -657,10 +657,16 @@ router.get("/", (req, res) => {
   res.render("index", { user: req.session.user || null });
 });
 router.get("/registro.html", (req, res) => {
-  res.render("registro", { user: req.session.user || null });
+  res.render("registro", {
+    user: req.session.user || null,
+    recaptchaSiteKey: process.env.RECAPTCHA_SITE_KEY,
+  });
 });
 router.get("/login.html", (req, res) => {
-  res.render("login", { user: null });
+  res.render("login", {
+    user: null,
+    recaptchaSiteKey: process.env.RECAPTCHA_SITE_KEY,
+  });
 });
 router.get("/recuperarPassword.html", (req, res) => {
   res.render("recuperarPassword", { user: null });
