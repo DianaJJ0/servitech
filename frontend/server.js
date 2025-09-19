@@ -15,7 +15,8 @@ const session = require("express-session");
 const path = require("path");
 const crypto = require("crypto");
 
-const app = express();
+// Convertir de app a router para que pueda ser importado por el backend
+const router = express.Router();
 const PORT = parseInt(process.env.PORT, 10) || 5021;
 const FRONTEND_URL = process.env.FRONTEND_URL || `http://localhost:${PORT}`;
 const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:5020";
@@ -66,7 +67,7 @@ async function checkBackendConnectivity() {
 setImmediate(() => checkBackendConnectivity());
 
 // Ruta de diagnóstico para comprobar backend desde el navegador
-app.get("/backend-check", async (req, res) => {
+router.get("/backend-check", async (req, res) => {
   try {
     const target = `${BACKEND_URL.replace(/\/$/, "")}/api`; // endpoint base
     const controller = new AbortController();
@@ -128,14 +129,18 @@ function broadcastSseEvent(eventName, data) {
 }
 
 // --- Middlewares globales ---
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Estos middlewares ya se aplican en el app.js principal del backend,
+// por lo que podemos comentarlos o eliminarlos si causan duplicación.
+// Por ahora los dejamos, pero ten en cuenta que `express.json()` y `express.urlencoded()`
+// ya están en el backend.
+router.use(express.json());
+router.use(express.urlencoded({ extended: true }));
 
 if (PROXY_MODE) {
   console.log(
     "PROXY_MODE=true — proxy activado. No se habilita CORS global. /api será proxied al BACKEND_URL."
   );
-  app.use((req, res, next) => {
+  router.use((req, res, next) => {
     try {
       const origin = req.headers.origin;
       if (!origin || origin === FRONTEND_URL) return next();
@@ -151,11 +156,11 @@ if (PROXY_MODE) {
   console.log(
     "PROXY_MODE=false — no se añade CORS global. Usar proxy o habilitar CORS en desarrollo si es necesario."
   );
-  app.use((req, res, next) => next());
+  router.use((req, res, next) => next());
 }
 
 // Manejo amable de JSON inválido
-app.use((err, req, res, next) => {
+router.use((err, req, res, next) => {
   if (err && err.status === 400 && /JSON/.test(err.message)) {
     console.warn("Invalid JSON received:", err && err.message);
     return res
@@ -165,7 +170,10 @@ app.use((err, req, res, next) => {
   next(err);
 });
 
-app.use(
+// La gestión de sesión se hará en el app.js principal del backend.
+// Si se deja aquí, podría crear conflictos. Es mejor centralizarla.
+/*
+router.use(
   session({
     secret: process.env.SESSION_SECRET || "servitech-secret",
     resave: false,
@@ -191,9 +199,10 @@ app.use(
     ),
   })
 );
+*/
 
 // CSRF por sesión
-app.use((req, res, next) => {
+router.use((req, res, next) => {
   try {
     if (req.session) {
       if (!req.session.csrfToken) {
@@ -206,7 +215,7 @@ app.use((req, res, next) => {
 });
 
 // Flag dev visible en vistas
-app.use((req, res, next) => {
+router.use((req, res, next) => {
   try {
     const explicit = String(process.env.SHOW_DEV_ADMIN || "").toLowerCase();
     const isExplicitTrue = explicit === "true";
@@ -221,7 +230,7 @@ app.use((req, res, next) => {
 });
 
 // Endpoint simple para obtener CSRF
-app.get("/csrf-token", (req, res) => {
+router.get("/csrf-token", (req, res) => {
   if (!req.session) return res.status(401).json({ mensaje: "No session" });
   const token = req.session.csrfToken
     ? String(req.session.csrfToken).trim()
@@ -231,10 +240,14 @@ app.get("/csrf-token", (req, res) => {
 
 // --- Proxy manual para /api/* al backend ---
 // Conserva tu lógica de CSRF y casos especiales.
-app.use("/api", async (req, res) => {
+router.use("/api", async (req, res) => {
   // ahora usamos directamente el fetch global declarado arriba
 
   try {
+    // Cuando se ejecuta integrado, la API está en el mismo servidor, no necesitamos un URL completo.
+    // Pero para mantener la flexibilidad, decidimos si usar el proxy externo o llamar internamente.
+    // Para Render, el proxy a BACKEND_URL sigue siendo la mejor opción si se despliegan como servicios separados.
+    // Si se despliegan juntos, BACKEND_URL apuntará a sí mismo.
     const targetUrl = `${BACKEND_URL}/api${req.url}`;
     console.log(`Proxy manual: ${req.method} ${req.url} -> ${targetUrl}`);
 
@@ -460,7 +473,7 @@ app.use("/api", async (req, res) => {
 });
 
 // Proxy estático a uploads del backend (modo dev)
-app.use("/uploads", (req, res, next) => {
+router.use("/uploads", (req, res, next) => {
   try {
     console.log("[frontend] /uploads request ->", req.method, req.originalUrl);
   } catch (e) {}
@@ -472,15 +485,15 @@ try {
   if (!fs.existsSync(backendUploads))
     fs.mkdirSync(backendUploads, { recursive: true });
 } catch (e) {}
-app.use("/uploads", express.static(backendUploads));
+router.use("/uploads", express.static(backendUploads));
 
 // Ruta de prueba
-app.get("/test-proxy", (req, res) => {
+router.get("/test-proxy", (req, res) => {
   res.json({ message: "Proxy test route working" });
 });
 
 // --- ENDPOINT DEV: crear sesión admin rápida (no prod)
-app.post("/dev/create-admin-session", async (req, res) => {
+router.post("/dev/create-admin-session", async (req, res) => {
   try {
     if (
       process.env.NODE_ENV === "production" ||
@@ -515,7 +528,7 @@ app.post("/dev/create-admin-session", async (req, res) => {
 });
 
 // SSE para cambios ligeros
-app.get("/sse/stream", (req, res) => {
+router.get("/sse/stream", (req, res) => {
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
@@ -530,10 +543,12 @@ app.get("/sse/stream", (req, res) => {
   });
 });
 
-// Estáticos y vistas
-app.use("/assets", express.static(path.join(__dirname, "assets")));
-app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
+// Estáticos y vistas (ya configurado en backend/app.js)
+/*
+router.use("/assets", express.static(path.join(__dirname, "assets")));
+router.set("view engine", "ejs");
+router.set("views", path.join(__dirname, "views"));
+*/
 
 // Middleware de rutas admin protegidas
 function requireAdmin(req, res, next) {
@@ -548,7 +563,7 @@ function requireAdmin(req, res, next) {
 }
 
 // --- Gestión de sesión ---
-app.post("/set-session", (req, res) => {
+router.post("/set-session", (req, res) => {
   (async () => {
     try {
       if (req.body && req.body.usuario) {
@@ -669,7 +684,7 @@ app.post("/set-session", (req, res) => {
   })();
 });
 
-app.post("/logout", (req, res) => {
+router.post("/logout", (req, res) => {
   req.session.destroy((err) => {
     if (err) return res.status(500).json({ error: "Error al cerrar sesión" });
     res.clearCookie("connect.sid");
@@ -678,24 +693,24 @@ app.post("/logout", (req, res) => {
 });
 
 // --- Rutas públicas ---
-app.get("/", (req, res) => {
+router.get("/", (req, res) => {
   res.render("index", { user: req.session.user || null });
 });
-app.get("/registro.html", (req, res) => {
+router.get("/registro.html", (req, res) => {
   res.render("registro", { user: req.session.user || null });
 });
-app.get("/login.html", (req, res) => {
+router.get("/login.html", (req, res) => {
   res.render("login", { user: null });
 });
-app.get("/recuperarPassword.html", (req, res) => {
+router.get("/recuperarPassword.html", (req, res) => {
   res.render("recuperarPassword", { user: null });
 });
-app.get("/contacto.html", (req, res) => {
+router.get("/contacto.html", (req, res) => {
   res.render("contacto", { user: req.session.user || null });
 });
 
 // --- Perfil usuario: consulta backend si hay token ---
-app.get("/perfil", async (req, res) => {
+router.get("/perfil", async (req, res) => {
   if (req.session && req.session.user && req.session.user.token) {
     try {
       const perfilRes = await fetch(`${BACKEND_URL}/api/usuarios/perfil`, {
@@ -736,7 +751,7 @@ app.get("/perfil", async (req, res) => {
 });
 
 // --- Exploración de expertos ---
-app.get("/expertos.html", async (req, res) => {
+router.get("/expertos.html", async (req, res) => {
   let categorias = [],
     expertos = [];
   let page = 1,
@@ -830,7 +845,7 @@ app.get("/expertos.html", async (req, res) => {
 });
 
 // --- Registro experto (protegido) ---
-app.get("/registroExperto", async (req, res) => {
+router.get("/registroExperto", async (req, res) => {
   if (!req.session.user) {
     return res.redirect("/login.html?next=/registroExperto");
   }
@@ -852,7 +867,7 @@ app.get("/registroExperto", async (req, res) => {
   });
 });
 
-app.get("/registroExperto", async (req, res) => {
+router.get("/registroExperto", async (req, res) => {
   if (!req.session.user) {
     return res.redirect("/login.html?next=/registroExperto.html");
   }
@@ -875,7 +890,7 @@ app.get("/registroExperto", async (req, res) => {
 });
 
 // --- Edición perfil de experto (protegido) ---
-app.get("/editarExperto", async (req, res) => {
+router.get("/editarExperto", async (req, res) => {
   if (!req.session?.user?.email)
     return res.redirect("/login.html?next=/editarExperto");
   let experto = null,
@@ -901,7 +916,7 @@ app.get("/editarExperto", async (req, res) => {
 });
 
 // Actualizar perfil experto (protegido)
-app.post("/editarExperto", async (req, res) => {
+router.post("/editarExperto", async (req, res) => {
   try {
     if (!req.session?.user?.token) {
       return res.status(401).render("editarExpertos", {
@@ -952,22 +967,28 @@ app.post("/editarExperto", async (req, res) => {
 });
 
 // --- Panel de administración (rutas protegidas) ---
-app.get("/admin/adminCategorias", requireAdmin, (req, res) => {
+router.get("/admin/adminCategorias", requireAdmin, (req, res) => {
   res.render("admin/adminCategorias", { user: req.session.user || {} });
 });
-app.get("/admin/adminNotificaciones", requireAdmin, (req, res) => {
+router.get("/admin/adminNotificaciones", requireAdmin, (req, res) => {
   res.render("admin/adminNotificaciones", { user: req.session.user || {} });
 });
-app.get("/admin/adminLogs", requireAdmin, (req, res) => {
+router.get("/admin/adminLogs", requireAdmin, (req, res) => {
   res.render("admin/adminLogs", { user: req.session.user || {} });
 });
-app.get("/admin/adminUsuarios", requireAdmin, (req, res) => {
+router.get("/admin/adminUsuarios", requireAdmin, (req, res) => {
   res.render("admin/adminUsuarios", { user: req.session.user || {} });
 });
 
 // --- Arranque del servidor ---
+// Ya no es necesario, el backend/app.js se encarga de arrancar el servidor.
+/*
 app.listen(PORT, () => {
   console.log(
     `Servidor Servitech escuchando en ${FRONTEND_URL} -> backend: ${BACKEND_URL}`
   );
 });
+*/
+
+// Exportar el router para que el backend pueda usarlo
+module.exports = router;
