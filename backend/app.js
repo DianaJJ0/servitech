@@ -83,8 +83,39 @@ if (!PROXY_MODE && process.env.NODE_ENV !== "production") {
   app.use(
     cors({
       origin: (origin, cb) => {
-        if (!origin || origin === FRONTEND_URL) return cb(null, true);
-        return cb(new Error("Origen no permitido por CORS"));
+        try {
+          // No origin (peticiones desde curl, same-site o herramientas) -> permitir
+          if (!origin) return cb(null, true);
+
+          const allowed = new Set(
+            [
+              FRONTEND_URL,
+              process.env.BACKEND_URL || process.env.APP_URL,
+              process.env.RENDER_EXTERNAL_URL,
+            ].filter(Boolean)
+          );
+
+          // Allow exact matches
+          if (allowed.has(origin)) return cb(null, true);
+
+          // esto es para subdominios de Render (ej: *.onrender.com)
+          try {
+            if (typeof origin === "string" && origin.endsWith(".onrender.com"))
+              return cb(null, true);
+          } catch (e) {}
+
+          // Debug override: permitir todos si ALLOW_ALL_ORIGINS=true
+          if (
+            String(process.env.ALLOW_ALL_ORIGINS || "").toLowerCase() === "true"
+          )
+            return cb(null, true);
+
+          // Por defecto, rechazar
+          console.warn("CORS: origin rechazado:", origin);
+          return cb(new Error("Origen no permitido por CORS"));
+        } catch (e) {
+          return cb(new Error("Origen no permitido por CORS"));
+        }
       },
       credentials: true,
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
@@ -93,6 +124,8 @@ if (!PROXY_MODE && process.env.NODE_ENV !== "production") {
         "Authorization",
         "X-Requested-With",
         "x-api-key",
+        "x-csrf-token",
+        "X-CSRF-Token",
       ],
       exposedHeaders: ["Content-Disposition"],
     })
