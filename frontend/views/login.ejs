@@ -54,7 +54,8 @@
                         </div>
                     </div>
                     <div class="input-group">
-                        <div class="g-recaptcha" data-sitekey="6LdghKQrAAAAANaGrKFXoONcZu3Q0R3RBue9_UWT"></div>
+                        <div class="g-recaptcha"
+                            data-sitekey="<%= typeof recaptchaSiteKey !== 'undefined' ? recaptchaSiteKey : '' %>"></div>
                     </div>
                     <div id="loginError" class="error-message"></div>
                     <button type="submit" class="auth-button">Iniciar Sesión</button>
