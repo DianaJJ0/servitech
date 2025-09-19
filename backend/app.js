@@ -201,14 +201,7 @@ console.log("DEBUG: Middleware de autenticación importado correctamente");
 console.log("DEBUG: Aplicando middleware de autenticación a /api");
 app.use("/api", autenticar);
 
-// --- INICIO: Integración de rutas del frontend ---
-// Importar y usar el servidor del frontend como un router.
-// Esto nos permite usar las rutas de renderizado de vistas (/, /login, /perfil, etc.)
-const frontendRouter = require("../frontend/server.js");
-app.use("/", frontendRouter);
-// --- FIN: Integración de rutas del frontend ---
-
-// Rutas de dominio
+// Rutas de dominio (MOVIDAS ANTES DEL FRONTEND ROUTER)
 app.use("/api/usuarios", usuarioRoutes);
 app.use("/api/categorias", categoriaRoutes);
 app.use("/api/pagos", pagoRoutes);
@@ -218,6 +211,13 @@ app.use("/api/expertos", expertoRoutes);
 app.use("/api/asesorias", asesoriaRoutes);
 app.use("/api/perfil-experto", perfilExpertoRoutes);
 app.use("/api/dev", devRoutes);
+
+// --- INICIO: Integración de rutas del frontend ---
+// Importar y usar el servidor del frontend como un router.
+// Esto nos permite usar las rutas de renderizado de vistas (/, /login, /perfil, etc.)
+const frontendRouter = require("../frontend/server.js");
+app.use("/", frontendRouter);
+// --- FIN: Integración de rutas del frontend ---
 
 // 404 controlado
 app.use((req, res) => {
