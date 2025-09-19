@@ -486,7 +486,15 @@ const solicitarRecuperacionPassword = async (req, res) => {
     usuario.passwordResetToken = token;
     usuario.passwordResetExpires = Date.now() + 60 * 60 * 1000;
     await usuario.save();
-    const enlace = `${process.env.FRONTEND_URL}/recuperarPassword.html?token=${token}`;
+
+    // Corregir la construcción del enlace para servidor unificado
+    const baseUrl =
+      process.env.FRONTEND_URL ||
+      process.env.RENDER_EXTERNAL_URL ||
+      process.env.APP_URL ||
+      `http://localhost:${process.env.PORT || 5020}`;
+    const enlace = `${baseUrl}/recuperarPassword.html?token=${token}`;
+
     const asunto = "Recupera tu contraseña - ServiTech";
     const mensaje = `
       <p>Hola ${usuario.nombre},</p>
