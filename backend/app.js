@@ -33,6 +33,21 @@ conectarDB();
 
 const app = express();
 
+// --- INICIO: Integración con Frontend ---
+// Servir assets estáticos del frontend
+app.use(
+  "/assets",
+  express.static(path.join(__dirname, "..", "frontend", "assets"))
+);
+
+// Servir uploads (si es necesario que sean públicos)
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// Configurar EJS como motor de vistas, apuntando a las vistas del frontend
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "..", "frontend", "views"));
+// --- FIN: Integración con Frontend ---
+
 // --- Nuevo: log simple de peticiones API para depuración de Authorization ---
 app.use((req, res, next) => {
   try {
@@ -185,6 +200,13 @@ console.log("DEBUG: Middleware de autenticación importado correctamente");
 // Aplicar middleware de auth a todas las rutas /api
 console.log("DEBUG: Aplicando middleware de autenticación a /api");
 app.use("/api", autenticar);
+
+// --- INICIO: Integración de rutas del frontend ---
+// Importar y usar el servidor del frontend como un router.
+// Esto nos permite usar las rutas de renderizado de vistas (/, /login, /perfil, etc.)
+const frontendRouter = require("../frontend/server.js");
+app.use("/", frontendRouter);
+// --- FIN: Integración de rutas del frontend ---
 
 // Rutas de dominio
 app.use("/api/usuarios", usuarioRoutes);
