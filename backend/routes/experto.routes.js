@@ -29,8 +29,6 @@ const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
  *   get:
  *     summary: Listar expertos con filtros
  *     tags: [Expertos]
- *     security:
- *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: page
@@ -52,12 +50,12 @@ const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
  *         schema:
  *           type: string
  *         description: Filtro por categoría
- *       - in: query
  *     responses:
  *       200:
  *         description: Lista de expertos
  */
-router.get("/", authMiddleware.autenticar, (req, res, next) =>
+// Ruta pública - listar expertos (sin autenticación)
+router.get("/", (req, res, next) =>
   expertoController.listarExpertos(req, res, next)
 );
 
@@ -152,65 +150,6 @@ router.delete(
  */
 router.put("/perfil", authMiddleware.autenticar, (req, res, next) =>
   expertoController.actualizarPerfilExperto(req, res, next)
-);
-
-// Helper defensivo para asegurarnos de pasar funciones a router
-function wrapMiddleware(mw, name) {
-  // si es función, devolverla tal cual
-  if (typeof mw === "function") return mw;
-  // si recibimos undefined u otro tipo, devolver middleware que pasa error a next
-  return function (req, res, next) {
-    const err = new TypeError(
-      `Middleware inválido${
-        name ? " (" + name + ")" : ""
-      } - se esperaba una función`
-    );
-    // opcional: logear para debug (no lanzar directamente)
-    if (req && req.app && req.app.get) {
-      // ...no-op, sólo para mantener posible integración con logger
-    }
-    next(err);
-  };
-}
-
-// Rutas usando wrapper defensivo
-router.get(
-  "/",
-  wrapMiddleware(authMiddleware.autenticar, "authMiddleware.autenticar"),
-  (req, res, next) => expertoController.listarExpertos(req, res, next)
-);
-
-router.get(
-  "/:email",
-  wrapMiddleware(apiKeyMiddleware, "apiKeyMiddleware"),
-  wrapMiddleware(authMiddleware.autenticar, "authMiddleware.autenticar"),
-  wrapMiddleware(
-    // asegurarRol suele ser una fábrica que devuelve middleware; llamarla sólo si existe
-    typeof authMiddleware.asegurarRol === "function"
-      ? authMiddleware.asegurarRol("admin")
-      : undefined,
-    'authMiddleware.asegurarRol("admin")'
-  ),
-  (req, res, next) => expertoController.obtenerExpertoPorEmail(req, res, next)
-);
-
-router.delete(
-  "/:email",
-  wrapMiddleware(apiKeyMiddleware, "apiKeyMiddleware"),
-  wrapMiddleware(authMiddleware.autenticar, "authMiddleware.autenticar"),
-  wrapMiddleware(
-    typeof authMiddleware.asegurarRol === "function"
-      ? authMiddleware.asegurarRol("admin")
-      : undefined,
-    'authMiddleware.asegurarRol("admin")'
-  ),
-  (req, res, next) => expertoController.eliminarExpertoPorEmail(req, res, next)
-);
-
-router.put(
-  "/perfil",
-  wrapMiddleware(authMiddleware.autenticar, "authMiddleware.autenticar"),
-  (req, res, next) => expertoController.actualizarPerfilExperto(req, res, next)
 );
 
 module.exports = router;

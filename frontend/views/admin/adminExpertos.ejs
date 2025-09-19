@@ -37,6 +37,7 @@
     <%- include('../componentes/navbarAdmin.ejs') %>
 
       <script id="initial-expertos" type="application/json"><%= JSON.stringify(initialExpertos || []) %></script>
+      <script id="categorias-data" type="application/json"><%= JSON.stringify(categorias || []) %></script>
 
       <main class="admin-main">
         <!-- Contenido principal -->
@@ -926,7 +927,7 @@
               </label>
               <select id="categorias" class="modal-expert__input modal-expert__select-categorias" multiple size="4"
                 aria-label="Categorías">
-                <!-- opciones añadidas dinámicamente -->
+                <!-- opciones añadidas dinámicamente desde categorias-data -->
               </select>
 
               <script>
@@ -1378,7 +1379,7 @@
               </label>
               <select id="categorias" class="modal-expert__input modal-expert__select-categorias" multiple size="4"
                 aria-label="Categorías">
-                <!-- opciones añadidas dinámicamente -->
+                <!-- opciones añadidas dinámicamente desde categorias-data -->
               </select>
 
               <script>
@@ -1734,7 +1735,7 @@
               </label>
               <select id="categorias" class="modal-expert__input modal-expert__select-categorias" multiple size="4"
                 aria-label="Categorías">
-                <!-- opciones añadidas dinámicamente -->
+                <!-- opciones añadidas dinámicamente desde categorias-data -->
               </select>
 
               <script>
@@ -2017,10 +2018,10 @@
   </div>
 
   <script src="/assets/js/admin/admin-common.js"></script>
-  
-      <script src="/assets/js/admin/admin-expertos.js"></script>
-      <script src="/assets/js/admin/admin-expertos.bootstrap.js"></script>
-      <!-- Inline DOM helpers and forced inline styles were moved to /assets/js/admin/admin-expertos.js
+
+  <script src="/assets/js/admin/admin-expertos.js"></script>
+  <script src="/assets/js/admin/admin-expertos.bootstrap.js"></script>
+  <!-- Inline DOM helpers and forced inline styles were moved to /assets/js/admin/admin-expertos.js
          This file now centralizes: Choices visual fixes, days selector, price feedback, account toggle and image preview.
          Removed duplicated IIFEs from template to avoid double execution. -->
 </body>
