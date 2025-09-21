@@ -1046,3 +1046,97 @@ textarea {
   background: var(--input-bg);
   color: var(--text-color);
 }
+
+/* ===== Ajustes para vista previa compacta y layout bancario ===== */
+
+/* Contenedor de preview (usar el id que deja el EJS: #epPreview) */
+#epPreview.ep-preview,
+.ep-preview#epPreview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 6.5rem; /* tamaño pequeño y fijo */
+  height: 6.5rem;
+  min-width: 6.5rem;
+  min-height: 6.5rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background: linear-gradient(180deg, #0f0f0f, #151515);
+  border: 1px solid var(--border-color);
+  margin-top: 0.6rem;
+}
+
+/* Imagen ajustada dentro del recuadro (cubre sin deformar) */
+#epImg.ep-img,
+.ep-img#epImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Metadatos (nombre/tamaño) manténgalos discretos debajo del preview si hay espacio */
+#fotoMeta.ep-meta,
+.ep-meta#fotoMeta {
+  display: none; /* ocultar por defecto para mantener compacta la UI; el JS puede mostrar si se desea */
+}
+
+/* Botón quitar debajo de la preview, no superpuesto */
+#epRemove.ep-remove,
+.ep-remove#epRemove {
+  display: inline-block;
+  margin-top: 0.5rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 0.35rem;
+  background: transparent;
+  border: 1px solid var(--border-light);
+  color: var(--text-color);
+  cursor: pointer;
+}
+
+/* Mensaje de error específico para la subida (ya existe .ep-error) */
+#fotoError.ep-error,
+.ep-error#fotoError {
+  display: none;
+}
+
+/* Grid para campos bancarios: en móviles 1 columna, en tablet/desktop 2 columnas */
+.bank-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.65rem;
+  align-items: start;
+  margin-top: 0.5rem;
+}
+
+/* En pantallas medias y mayores, disponer campos en 2 columnas para apariencia horizontal */
+@media (min-width: 768px) {
+  .bank-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.9rem;
+  }
+
+  /* Si quieres que el campo numeroCuenta ocupe ambas columnas en desktop, puedes descomentarlo:
+  .bank-grid > div:nth-child(3) { grid-column: 1 / -1; }
+  */
+}
+
+/* Evitar que la preview empuje o flote sobre los inputs circundantes */
+.ep-preview,
+#epPreview {
+  box-sizing: border-box;
+}
+
+/* Forzar que la primera columna del form-row.double (ahora con foto + bank-grid) ocupe todo el ancho si se usa grid */
+@media (min-width: 768px) {
+  .form-row.double {
+    display: grid;
+    grid-template-columns: 1fr; /* forzamos una sola columna ya que foto + banco deben ir apilados */
+  }
+}
+
+/* Pequeña mejora: asegurar que el input file no desborde */
+#fotoPerfil {
+  display: block;
+  margin-top: 0.1rem;
+}

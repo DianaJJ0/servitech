@@ -817,7 +817,8 @@ router.get("/expertos.html", async (req, res) => {
 
 // --- Registro experto (protegido) ---
 router.get("/registroExperto", async (req, res) => {
-  if (!req.session.user) {
+  // requerir también el token
+  if (!req.session.user || !req.session.user.token) {
     return res.redirect("/login.html?next=/registroExperto");
   }
   let categorias = [];
@@ -836,6 +837,9 @@ router.get("/registroExperto", async (req, res) => {
     categorias,
     error: null,
   });
+});
+router.get("/registroExperto.html", async (req, res) => {
+  res.redirect("/registroExperto");
 });
 
 // --- Edición perfil de experto (protegido) ---

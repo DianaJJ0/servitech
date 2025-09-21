@@ -107,20 +107,19 @@
                   <div class="form-group">
                     <label for="fotoPerfil"><i class="fas fa-image"></i> Foto de perfil</label>
                     <input type="file" id="fotoPerfil" accept="image/*">
-                    <div id="epPreview" class="avatar-preview">
-                      <img id="epImg" alt="Vista previa" />
-                      <div id="fotoMeta" class="file-meta">
+                    <!-- Vista previa compacta: caja pequeña debajo del input y botón quitar debajo -->
+                    <div id="epPreview" class="ep-preview">
+                      <img id="epImg" class="ep-img" alt="Vista previa" />
+                      <div id="fotoMeta" class="ep-meta">
                         <span id="fotoNombre"></span>
                         <span id="fotoTamano"></span>
                       </div>
-                      <button type="button" id="epRemove" class="btn btn-secondary btn-sm">Quitar</button>
                     </div>
-                    <div id="fotoError" class="alert alert-danger" style="display:none;"></div>
-                  </div>
+                    <button type="button" id="epRemove" class="ep-remove btn btn-secondary btn-sm">Quitar</button>
+                    <div id="fotoError" class="ep-error" style="display:none;"></div>
 
-                  <div class="form-group">
-                    <label>Datos bancarios</label>
-                    <div class="bank-grid">
+                    <!-- Datos bancarios movidos aquí para mostrarse debajo de la imagen -->
+                    <div class="bank-grid" style="margin-top:1rem;">
                       <div>
                         <label for="banco">Banco</label>
                         <input type="text" id="banco" name="banco" placeholder="Banco">
@@ -163,6 +162,8 @@
                       </div>
                     </div>
                   </div>
+
+                  <!-- Eliminado el segundo form-group (antes: Datos bancarios) -->
                 </div>
 
                 <div class="form-actions">
