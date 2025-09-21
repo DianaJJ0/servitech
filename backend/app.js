@@ -224,23 +224,21 @@ try {
   console.warn("Swagger no inicializado:", e && e.message);
 }
 
-// Corregir import del middleware de auth - usar destructuring para obtener la función autenticar
 console.log("DEBUG: Importando middleware de autenticación...");
 const { autenticar } = require("./middleware/auth.middleware");
 console.log("DEBUG: Middleware de autenticación importado correctamente");
 
-// Asegurar que el middleware de auth se aplique a rutas API
-// Aplicar middleware de auth a todas las rutas /api
-console.log("DEBUG: Aplicando middleware de autenticación a /api");
-app.use("/api", autenticar);
+// CORREGIDO: NO aplicar autenticación global a todas las rutas /api
+// El middleware de autenticación ya está configurado en cada archivo de rutas individualmente
+// con las rutas públicas apropiadas definidas en auth.middleware.js
 
-// Rutas de dominio (MOVIDAS ANTES DEL FRONTEND ROUTER)
+// Rutas de dominio (ANTES del frontend router)
 app.use("/api/usuarios", usuarioRoutes);
-app.use("/api/categorias", categoriaRoutes);
+app.use("/api/categorias", categoriaRoutes); // Ruta pública para visualización de expertos
 app.use("/api/pagos", pagoRoutes);
 app.use("/api/notificaciones", notificacionRoutes);
 app.use("/api/logs", logRoutes);
-app.use("/api/expertos", expertoRoutes);
+app.use("/api/expertos", expertoRoutes); // Ruta pública para visualización de expertos
 app.use("/api/asesorias", asesoriaRoutes);
 app.use("/api/perfil-experto", perfilExpertoRoutes);
 app.use("/api/dev", devRoutes);
@@ -248,8 +246,10 @@ app.use("/api/dev", devRoutes);
 // --- INICIO: Integración de rutas del frontend ---
 // Importar y usar el servidor del frontend como un router.
 // Esto nos permite usar las rutas de renderizado de vistas (/, /login, /perfil, etc.)
+console.log("Importando frontend router...");
 const frontendRouter = require("../frontend/server.js");
 app.use("/", frontendRouter);
+console.log("Frontend router importado y configurado");
 // --- FIN: Integración de rutas del frontend ---
 
 // 404 controlado

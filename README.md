@@ -6,6 +6,7 @@ ServiTech es una aplicación full-stack que facilita la conexión entre usuarios
 
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-brightgreen.svg)](https://www.mongodb.com/)
+[![Render](https://img.shields.io/badge/Deploy-Render-blue.svg)](https://render.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ---
@@ -24,11 +25,12 @@ ServiTech es una aplicación full-stack que facilita la conexión entre usuarios
 
 ### Para Usuarios
 
-- ✅ Registro y login seguro
+- ✅ Registro y login seguro con reCAPTCHA v2
 - 🔍 Búsqueda de expertos por especialidad
 - 📅 Agendamiento de citas en tiempo real
 - 💳 Pagos integrados y seguros
 - 📧 Notificaciones automáticas por email
+- 🔒 Recuperación de contraseña
 
 ### Para Expertos
 
@@ -48,14 +50,15 @@ ServiTech es una aplicación full-stack que facilita la conexión entre usuarios
 
 ## 🛠️ Stack Tecnológico
 
-| Componente        | Tecnología              |
-| ----------------- | ----------------------- |
-| **Backend**       | Node.js + Express.js    |
-| **Base de Datos** | MongoDB (Atlas)         |
-| **Frontend**      | EJS + CSS3 + JavaScript |
-| **Autenticación** | JWT + bcrypt            |
-| **Emails**        | Nodemailer              |
-| **UI Framework**  | Bootstrap               |
+| Componente        | Tecnología                  |
+| ----------------- | --------------------------- |
+| **Backend**       | Node.js + Express.js        |
+| **Base de Datos** | MongoDB (Atlas)             |
+| **Frontend**      | EJS + CSS3 + JavaScript     |
+| **Autenticación** | JWT + bcrypt                |
+| **Emails**        | Nodemailer (Gmail)          |
+| **Seguridad**     | Google reCAPTCHA v2         |
+| **Deployment**    | Render (servidor unificado) |
 
 ---
 
@@ -66,8 +69,9 @@ ServiTech es una aplicación full-stack que facilita la conexión entre usuarios
 - Node.js 18+ y npm 9+
 - Git
 - Cuenta MongoDB Atlas (gratuita)
+- Cuenta Gmail con App Password para emails
 
-### Instalación en 5 pasos
+### 🔧 Desarrollo Local
 
 ```bash
 # 1. Clonar repositorio
@@ -80,22 +84,37 @@ cd backend && npm install
 # 3. Instalar dependencias del frontend
 cd ../frontend && npm install
 
-# 4. Configurar variables de entorno (ver INSTALL.md)
-# Crear backend/.env con tus datos de MongoDB y email
+# 4. Configurar variables de entorno
+# Crear backend/.env con:
+# - MONGO_URI (tu string de MongoDB Atlas)
+# - JWT_SECRET (clave segura larga)
+# - EMAIL_USER y EMAIL_PASS (Gmail App Password)
+# - RECAPTCHA_SITE_KEY y RECAPTCHA_SECRET_KEY
 
-# 5. Ejecutar aplicación
-cd ../backend && npm start
-# para admin:
-cd ../frontend &&
-```API_KEY=8g-X4JgECIPNcQ59tMN node server.js
+# 5. Modo desarrollo (2 servidores separados)
+# Terminal 1 - Backend API:
+cd backend && npm run dev  # Puerto 5020
 
-### Acceso
+# Terminal 2 - Frontend con proxy:
+cd frontend && npm run dev  # Puerto 5021
+```
 
-- **🌐 Aplicación:** http://localhost:5021
-- **🔐 Panel Admin:** http://localhost:5021/admin
-- **📡 API:** http://localhost:5020
+### 🌐 Acceso en Desarrollo
 
-> 📖 **¿Necesitas ayuda?** Ver [Manual de Instalación Completo](./INSTALL.md)
+- **Frontend:** http://localhost:5021 (interfaz principal)
+- **Backend API:** http://localhost:5020 (solo API)
+- **Panel Admin:** http://localhost:5021/admin/adminUsuarios
+
+### 🚀 Modo Producción (Servidor Unificado)
+
+En producción, el backend sirve tanto la API como las vistas del frontend:
+
+```bash
+# Solo el backend ejecutándose
+cd backend && npm start  # Puerto configurado por Render
+```
+
+**Producción en Render:** https://servitech-2bja.onrender.com
 
 ---
 
@@ -103,16 +122,18 @@ cd ../frontend &&
 
 ```
 servitech/
-├── 🔧 backend/              # API REST + Lógica de negocio
-│   ├── app.js              # Servidor principal
+├── 🔧 backend/              # Servidor principal (API + Vistas)
+│   ├── app.js              # Servidor unificado
 │   ├── controllers/        # Controladores MVC
 │   ├── models/            # Esquemas MongoDB
 │   ├── routes/            # Rutas API
-│   └── middleware/        # Autenticación & validación
-├── 🖥️ frontend/            # Interface de usuario
-│   ├── server.js          # Servidor frontend
+│   ├── middleware/        # Autenticación & validación
+│   └── .env               # Variables de entorno
+├── 🖥️ frontend/            # Assets y vistas (servido por backend)
+│   ├── server.js          # Router de vistas (importado por backend)
 │   ├── views/             # Plantillas EJS
-│   └── assets/            # CSS, JS, imágenes
+│   ├── assets/            # CSS, JS, imágenes
+│   └── .env               # Variables desarrollo (opcional)
 ├── 📋 INSTALL.md          # Manual técnico detallado
 └── 📄 README.md           # Este archivo
 ```
@@ -123,18 +144,19 @@ servitech/
 
 ```mermaid
 graph TD
-    A[Usuario se registra] --> B[Busca expertos]
-    B --> C[Selecciona especialista]
-    C --> D[Agenda cita]
-    D --> E[Confirma pago]
-    E --> F[Recibe notificaciones]
-    F --> G[Realiza asesoría]
+    A[Usuario se registra] --> B[Verifica reCAPTCHA]
+    B --> C[Busca expertos]
+    C --> D[Selecciona especialista]
+    D --> E[Agenda cita]
+    E --> F[Confirma pago]
+    F --> G[Recibe email confirmación]
+    G --> H[Realiza asesoría]
 
-    H[Experto se registra] --> I[Configura perfil]
-    I --> J[Define servicios]
-    J --> K[Gestiona agenda]
-    K --> L[Recibe solicitudes]
-    L --> G
+    I[Experto se registra] --> J[Configura perfil]
+    J --> K[Define servicios]
+    K --> L[Gestiona agenda]
+    L --> M[Recibe solicitudes]
+    M --> H
 ```
 
 ---
@@ -143,53 +165,98 @@ graph TD
 
 ### Como Usuario
 
-1. **Registrarse** en http://localhost:5021/register
-2. **Explorar** expertos disponibles
+1. **Registrarse** en /registro.html con verificación reCAPTCHA
+2. **Explorar** expertos en /expertos.html
 3. **Agendar** cita con el especialista
-4. **Pagar** y recibir confirmación
+4. **Pagar** y recibir confirmación por email
 5. **Conectar** en el horario acordado
 
 ### Como Experto
 
-1. **Registrarse** como especialista
-2. **Completar** perfil profesional
+1. **Registrarse** como usuario normal
+2. **Completar** perfil experto en /registroExperto
 3. **Configurar** servicios y tarifas
-4. **Gestionar** disponibilidad
+4. **Gestionar** disponibilidad en /editarExperto
 5. **Atender** clientes agendados
 
 ### Como Administrador
 
-1. **Acceder** al panel admin
+1. **Acceder** al panel /admin/adminUsuarios
 2. **Supervisar** usuarios y expertos
-3. **Gestionar** servicios y categorías
-4. **Monitorear** estadísticas
-5. **Configurar** parámetros del sistema
+3. **Gestionar** categorías y servicios
+4. **Monitorear** logs del sistema
+5. **Configurar** parámetros globales
 
 ---
 
 ## 🚀 Deployment
 
-### Desarrollo Local
+### Variables de Entorno Requeridas
 
-```bash
-npm run dev  # Si existe script de desarrollo
+#### Desarrollo Local (backend/.env)
+
+```env
+# Base de datos
+MONGO_URI=mongodb+srv://...
+
+# Autenticación
+JWT_SECRET=clave-super-secreta-larga
+
+# Email (Gmail)
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=465
+EMAIL_USER=tu-gmail@gmail.com
+EMAIL_PASS=tu-app-password
+
+# reCAPTCHA
+RECAPTCHA_SITE_KEY=6Lc...
+RECAPTCHA_SECRET_KEY=6Lc...
+
+# URLs desarrollo
+FRONTEND_URL=http://localhost:5021
+BACKEND_URL=http://localhost:5020
 ```
 
-### Producción
+#### Producción (Variables Render)
 
-```bash
-npm run build  # Si existe script de build
-npm start
+```env
+# Mismas variables que desarrollo +
+NODE_ENV=production
+RENDER_EXTERNAL_URL=https://tu-app.onrender.com
+PORT=configurado-por-render
+
+# Sin FRONTEND_URL ni BACKEND_URL (servidor unificado)
 ```
 
-Note: If you customize or bundle frontend assets for production, ensure the admin experts bootstrap file is included after the main script so deferred DOM-ready handlers run:
+### Deploy en Render
 
-- /assets/js/admin/admin-expertos.js
-- /assets/js/admin/admin-expertos.bootstrap.js
+1. **Conectar** repositorio GitHub a Render
+2. **Configurar** Web Service:
+   - **Root Directory:** `backend`
+   - **Build Command:** `npm run build`
+   - **Start Command:** `npm start`
+3. **Añadir** variables de entorno en panel Environment
+4. **Desplegar** automáticamente
 
-This file executes deferred onDomReady handlers used to initialize Choices and other UI helpers.
+---
 
-> 🔧 **Configuración avanzada:** Ver [INSTALL.md](./INSTALL.md) para deployment en Windows/Linux
+## 🔧 Scripts Disponibles
+
+### Backend
+
+```bash
+npm start          # Servidor producción (unificado)
+npm run dev        # Servidor desarrollo con nodemon
+npm run build      # Instala deps frontend + backend
+```
+
+### Frontend
+
+```bash
+npm start          # Servidor frontend standalone
+npm run dev        # Desarrollo con nodemon + proxy
+npm run dev:proxy  # Desarrollo con proxy al backend
+```
 
 ---
 
@@ -197,9 +264,11 @@ This file executes deferred onDomReady handlers used to initialize Choices and o
 
 1. **Fork** el repositorio
 2. **Crear** rama feature (`git checkout -b feature/nueva-funcionalidad`)
-3. **Commit** cambios (`git commit -m 'Añadir nueva funcionalidad'`)
-4. **Push** a la rama (`git push origin feature/nueva-funcionalidad`)
-5. **Abrir** Pull Request
+3. **Desarrollar** en modo local (2 servidores)
+4. **Probar** en modo unificado antes de PR
+5. **Commit** cambios (`git commit -m 'Añadir nueva funcionalidad'`)
+6. **Push** a la rama (`git push origin feature/nueva-funcionalidad`)
+7. **Abrir** Pull Request
 
 ---
 
@@ -210,6 +279,7 @@ This file executes deferred onDomReady handlers used to initialize Choices and o
 | 🐛 **Issues**        | [GitHub Issues](https://github.com/DianaJJ0/servitech/issues) |
 | 📧 **Email**         | servitech.app.correo@gmail.com                                |
 | 📚 **Documentación** | [Manual Completo](./INSTALL.md)                               |
+| 🌐 **Demo Live**     | https://servitech-2bja.onrender.com                           |
 | 👩‍💻 **Autor**         | [@DianaJJ0](https://github.com/DianaJJ0)                      |
 
 ---

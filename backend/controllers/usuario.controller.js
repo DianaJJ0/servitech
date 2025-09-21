@@ -476,12 +476,26 @@ const obtenerUsuarios = async (req, res) => {
  */
 const solicitarRecuperacionPassword = async (req, res) => {
   const { email } = req.body;
+
+  console.log("Solicitud de recuperación de contraseña recibida para:", email);
+
   try {
-    const usuario = await Usuario.findOne({ email });
-    if (!usuario)
-      return res
-        .status(200)
-        .json({ mensaje: "Si el email existe, se enviaron instrucciones." });
+    // Validar que el email fue proporcionado
+    if (!email || !email.trim()) {
+      console.warn("Intento de recuperación sin email");
+      return res.status(400).json({
+        mensaje: "El correo electrónico es requerido.",
+      });
+    }
+
+    const usuario = await Usuario.findOne({ email: email.trim() });
+    if (!usuario) {
+      console.log("Intento de recuperación para email no registrado:", email);
+      return res.status(200).json({
+        mensaje: "Si el email existe, se enviaron instrucciones.",
+      });
+    }
+
     const token = crypto.randomBytes(32).toString("hex");
     usuario.passwordResetToken = token;
     usuario.passwordResetExpires = Date.now() + 60 * 60 * 1000;
@@ -495,6 +509,13 @@ const solicitarRecuperacionPassword = async (req, res) => {
       `http://localhost:${process.env.PORT || 5020}`;
     const enlace = `${baseUrl}/recuperarPassword.html?token=${token}`;
 
+    console.log(
+      "Enviando correo de recuperación a:",
+      email,
+      "con enlace:",
+      enlace
+    );
+
     const asunto = "Recupera tu contraseña - ServiTech";
     const mensaje = `
       <p>Hola ${usuario.nombre},</p>
@@ -505,6 +526,7 @@ const solicitarRecuperacionPassword = async (req, res) => {
       <br>
       <p>Saludos,<br>Equipo ServiTech</p>
     `;
+
     await enviarCorreo(usuario.email, asunto, mensaje, mensaje);
 
     generarLogs.registrarEvento({
@@ -518,20 +540,29 @@ const solicitarRecuperacionPassword = async (req, res) => {
       persistirEnDB: true,
     });
 
-    res
-      .status(200)
-      .json({ mensaje: "Si el email existe, se enviaron instrucciones." });
+    console.log("Correo de recuperación enviado exitosamente a:", email);
+    res.status(200).json({
+      mensaje: "Si el email existe, se enviaron instrucciones.",
+    });
   } catch (error) {
-    console.error("Error en recuperación de contraseña:", error);
+    console.error("Error detallado en recuperación de contraseña:", {
+      error: error.message,
+      stack: error.stack,
+      email: req.body.email,
+    });
+
     generarLogs.registrarEvento({
       usuarioEmail: req.body.email || null,
       accion: "RECUPERACION_PASSWORD",
-      detalle: "Error en recuperación de contraseña",
+      detalle: "Error en recuperación de contraseña: " + error.message,
       resultado: "Error: " + (error.message || "desconocido"),
       tipo: "usuarios",
       persistirEnDB: true,
     });
-    res.status(500).json({ mensaje: "Error en la recuperación." });
+
+    res.status(500).json({
+      mensaje: "Error interno del servidor. Por favor, inténtalo más tarde.",
+    });
   }
 };
 
