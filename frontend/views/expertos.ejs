@@ -16,9 +16,16 @@
   <%- include('componentes/header') %>
 
     <% // Helper local para formatear precio sin depender de locales del sistema %>
-      <% function formatPrice(n) { if (n===undefined || n===null) return null; var num=Number(n); if (Number.isNaN(num))
-        return null; try { return Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.' ); } catch (e) {
-        return String(n); } } %>
+      <% function formatPrice(n) {
+        if (n === undefined || n === null) return null;
+        var num = Number(n);
+        if (Number.isNaN(num)) return null;
+        try {
+          return Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        } catch (e) {
+          return String(n);
+        }
+      } %>
 
         <main class="container">
 
@@ -30,19 +37,12 @@
               a tus necesidades</p>
           </section>
 
-
           <div class="expert-layout">
             <aside class="filter-sidebar">
               <!-- Formulario de filtros y ordenamiento -->
               <div class="filter-card">
                 <h3 class="filter-title">Filtrar Expertos</h3>
                 <form class="filter-form" id="filterForm">
-
-                  <div class="filter-group">
-                    <label class="filter-label">Por nombre o especialización</label>
-                    <!-- El atributo 'name' es 'busqueda' -->
-                    <input type="text" name="busqueda" class="filter-input" placeholder="JavaScript, React, etc." />
-                  </div>
 
                   <div class="filter-group">
                     <label for="categoria-filter" class="filter-label">Categoría</label>
@@ -78,15 +78,6 @@
               <div class="expert-list-header">
                 <h2 class="expert-list-title">Expertos disponibles <span class="expert-count">(<%= total %>
                       resultados)</span></h2>
-                <div class="sort-options">
-                  <!-- El atributo 'name' es 'sortBy' y se envía con el formulario -->
-                  <select name="sortBy" class="sort-select" form="filterForm" onchange="this.form.submit()">
-                    <option value="puntuacion">Mejor puntuados</option>
-                    <option value="precio_asc">Precio: menor a mayor</option>
-                    <option value="precio_desc">Precio: mayor a menor</option>
-                    <option value="nombre_asc">Nombre (A-Z)</option>
-                  </select>
-                </div>
               </div>
 
               <!-- Listado de expertos en formato grid -->
@@ -95,65 +86,18 @@
                   <% (expertos.slice ? expertos.slice(0, limit) : expertos).forEach(function(experto) { %>
                     <article class="expert-card">
 
-                      <!-- Encabezado de la tarjeta con foto, nombre, especialidad y puntuación -->
+                      <!-- Encabezado de la tarjeta con foto y nombre -->
                       <div class="expert-card-header">
                         <img
                           src="https://ui-avatars.com/api/?name=<%= experto.nombre %>+<%= experto.apellido %>&background=3a8eff&color=fff&size=96"
                           alt="Foto de <%= experto.nombre %>" class="expert-photo">
 
-                        <!-- Información básica: nombre, especialidad, puntuación -->
+                        <!-- Información básica: nombre -->
                         <div class="expert-info">
                           <h3 class="expert-name">
                             <%= experto.nombre %>
                               <%= experto.apellido %>
                           </h3>
-                          <% // Resolver especialidad desde varias posibles ubicaciones (implementación segura) var
-                            espDisplay=null; try { var _esp=null; if (experto && experto.infoExperto &&
-                            experto.infoExperto.especialidad) { _esp=experto.infoExperto.especialidad; } else if
-                            (experto && experto.especialidad) { _esp=experto.especialidad; } if (_esp) { if (typeof
-                            _esp==='object' ) { espDisplay=_esp.nombre || _esp.nombreEspecialidad || _esp.descripcion ||
-                            null; } else { espDisplay=String(_esp); } if (espDisplay)
-                            espDisplay=espDisplay.toString().trim().replace(/\s+/g, ' ' ); } if (!espDisplay && experto
-                            && experto.infoExperto && Array.isArray(experto.infoExperto.categorias) &&
-                            experto.infoExperto.categorias.length> 0 && Array.isArray(categorias)) {
-                            var catRef = experto.infoExperto.categorias[0];
-                            if (catRef) {
-                            var foundCat = categorias.find(function(c) {
-                            if (!c) return false;
-                            if (catRef._id && c._id && String(c._id) === String(catRef._id)) return true;
-                            if (catRef.id && c._id && String(c._id) === String(catRef.id)) return true;
-                            if (catRef.nombre && c.nombre) {
-                            var refNombre = String(catRef.nombre).trim().toLowerCase();
-                            var catNombre = String(c.nombre).trim().toLowerCase();
-                            if (refNombre === catNombre) return true;
-                            }
-                            return false;
-                            });
-
-                            if (foundCat && Array.isArray(foundCat.especialidades) && foundCat.especialidades.length >
-                            0) {
-                            var primeraEspecialidad = foundCat.especialidades.find(function(esp) { return esp &&
-                            esp.nombre; });
-                            if (primeraEspecialidad) espDisplay = String(primeraEspecialidad.nombre).trim();
-                            }
-                            }
-                            }
-                            } catch (e) {
-                            espDisplay = null;
-                            }
-
-                            if (!espDisplay) espDisplay = '';
-                            %>
-                            <!-- Especialidad-->
-                            <div class="expert-specialty-block">
-                              <div class="tag-group-title">Especialidad</div>
-                              <p class="expert-specialty <%= espDisplay ? '' : 'placeholder' %>">
-                                <%= espDisplay ? espDisplay : 'Sin especificar' %>
-                              </p>
-                            </div>
-                            <!-- Puntuación fija por ahora -->
-                            <div class="expert-rating"><span class="rating-stars">⭐⭐⭐⭐⭐</span> <span
-                                class="rating-value">5.0</span></div>
                         </div>
                       </div>
 
@@ -174,36 +118,21 @@
                               <% } %>
                         </div>
 
-                        <!-- Etiquetas de categorías y habilidades -->
+                        <!-- Etiquetas de categorías -->
                         <div class="expert-tags">
-                          <% /* Grupos separados: Categorías y Habilidades */ %>
-                            <% if (experto.infoExperto && experto.infoExperto.categorias &&
-                              experto.infoExperto.categorias.length>0) { %>
-                              <div class="tag-group tag-group-categories">
-                                <div class="tag-group-title">Categorías</div>
-                                <div class="tag-list">
-                                  <% experto.infoExperto.categorias.slice(0,6).forEach(function(cat){ %>
-                                    <span class="category-tag">
-                                      <%= (cat && cat.nombre) ? cat.nombre : cat %>
-                                    </span>
-                                    <% }); %>
-                                </div>
+                          <% if (experto.infoExperto && experto.infoExperto.categorias &&
+                            experto.infoExperto.categorias.length>0) { %>
+                            <div class="tag-group tag-group-categories">
+                              <div class="tag-group-title">Categorías</div>
+                              <div class="tag-list">
+                                <% experto.infoExperto.categorias.slice(0,6).forEach(function(cat){ %>
+                                  <span class="category-tag">
+                                    <%= (cat && cat.nombre) ? cat.nombre : cat %>
+                                  </span>
+                                  <% }); %>
                               </div>
-                              <% } %>
-
-                                <% if (experto.infoExperto && Array.isArray(experto.infoExperto.skills) &&
-                                  experto.infoExperto.skills.length>0) { %>
-                                  <div class="tag-group tag-group-skills">
-                                    <div class="tag-group-title">Habilidades</div>
-                                    <div class="tag-list">
-                                      <% experto.infoExperto.skills.slice(0,8).forEach(function(s){ %>
-                                        <span class="skill-tag">
-                                          <%= s %>
-                                        </span>
-                                        <% }); %>
-                                    </div>
-                                  </div>
-                                  <% } %>
+                            </div>
+                            <% } %>
                         </div>
 
                         <!-- Información de contacto y disponibilidad -->
@@ -224,27 +153,34 @@
 
                        <!-- Pie de la tarjeta con precio y botón -->
                       <div class="expert-card-footer">
-              <% if (experto.infoExperto || experto) { %>
-                <% // Buscar precio por hora en varios lugares posibles (implementación segura) %>
-                <%
-                  var rawPrecio = null;
-                  try {
-                    if (experto && experto.infoExperto && typeof experto.infoExperto.precioPorHora !== ' undefined') {
-                                      rawPrecio=experto.infoExperto.precioPorHora; } else if (typeof
-                                      experto.precioPorHora !=='undefined' ) { rawPrecio=experto.precioPorHora; } else
-                                      if (typeof experto.precio !=='undefined' ) { rawPrecio=experto.precio; } } catch
-                                      (e) { rawPrecio=null; } var _fp=formatPrice(rawPrecio); %>
-                                      <% if (_fp) { %>
-                                        <div class="expert-price">$<%= _fp %>/h</div>
-                                        <% } else { %>
-                                          <div class="expert-price">Consultar precio</div>
-                                          <% } %>
-                                            <% } else { %>
-                                              <div class="expert-price">Consultar precio</div>
-                                              <% } %>
-                                                <a href="/expertos/<%= experto._id %>/calendario"
-                                                  class="btn btn-primary btn-profile"><i
-                                                    class="fas fa-calendar-alt"></i> Ver disponibilidad</a>
+                        <% if (experto.infoExperto || experto) { %>
+                          <% // Buscar precio por hora en varios lugares posibles (implementación segura) %>
+                          <%
+                            var rawPrecio = null;
+                            try {
+                              if (experto && experto.infoExperto && typeof experto.infoExperto.precioPorHora !== 'undefined') {
+                                rawPrecio = experto.infoExperto.precioPorHora;
+                              } else if (typeof experto.precioPorHora !== 'undefined') {
+                                rawPrecio = experto.precioPorHora;
+                              } else if (typeof experto.precio !== 'undefined') {
+                                rawPrecio = experto.precio;
+                              }
+                            } catch (e) {
+                              rawPrecio = null;
+                            }
+                            var _fp = formatPrice(rawPrecio);
+                          %>
+                          <% if (_fp) { %>
+                            <div class="expert-price">$<%= _fp %>/h</div>
+                            <% } else { %>
+                              <div class="expert-price">Consultar precio</div>
+                              <% } %>
+                                <% } else { %>
+                                  <div class="expert-price">Consultar precio</div>
+                                  <% } %>
+                                    <a href="/expertos/<%= experto._id %>/calendario"
+                                      class="btn btn-primary btn-profile"><i
+                                        class="fas fa-calendar-alt"></i> Ver disponibilidad</a>
                           </div>
 
                     </article>
