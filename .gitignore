@@ -7,7 +7,7 @@ coverage/
 *.lcov
 
 # Excluir carpeta de backups (no subir al repositorio)
-backup/
+backups/
 
 # Excluir archivos temporales de backup
 *.zip

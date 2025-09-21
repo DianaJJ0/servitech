@@ -1,0 +1,18 @@
+{
+  "name": "servitech-tests-ava",
+  "version": "1.0.0",
+  "description": "Pruebas AVA para ServiTech (unidad e integración sobre modelo Usuario)",
+  "type": "module",
+  "scripts": {
+    "test": "ava"
+  },
+  "devDependencies": {
+    "ava": "^5.3.0",
+    "mongodb-memory-server": "^8.12.1",
+    "bcryptjs": "^2.4.3",
+    "mongoose": "^7.0.0"
+  },
+  "ava": {
+    "timeout": "2m"
+  }
+}

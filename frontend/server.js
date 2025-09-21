@@ -129,12 +129,17 @@ function broadcastSseEvent(eventName, data) {
 }
 
 // --- Middlewares globales ---
-// Estos middlewares ya se aplican en el app.js principal del backend,
-// por lo que podemos comentarlos o eliminarlos si causan duplicación.
-// Por ahora los dejamos, pero ten en cuenta que `express.json()` y `express.urlencoded()`
-// ya están en el backend.
-router.use(express.json());
-router.use(express.urlencoded({ extended: true }));
+// IMPORTANTE: Comentar estos middlewares cuando se usa como router en servidor unificado
+// porque el backend ya los aplica y causa conflicto "stream is not readable"
+
+// Solo aplicar middlewares de parsing si se ejecuta como servidor independiente
+if (require.main === module) {
+  router.use(express.json());
+  router.use(express.urlencoded({ extended: true }));
+  console.log("Middlewares de parsing aplicados (servidor independiente)");
+} else {
+  console.log("Middlewares de parsing omitidos (usado como router importado)");
+}
 
 if (PROXY_MODE) {
   console.log(
@@ -833,28 +838,6 @@ router.get("/registroExperto", async (req, res) => {
   });
 });
 
-router.get("/registroExperto", async (req, res) => {
-  if (!req.session.user) {
-    return res.redirect("/login.html?next=/registroExperto.html");
-  }
-  let categorias = [];
-  try {
-    const catRes = await fetch(`${BACKEND_URL}/api/categorias`);
-    categorias = catRes.ok ? await catRes.json() : [];
-  } catch (e) {
-    console.warn(
-      "registroExperto.html: fallo al obtener categorias:",
-      e && e.message
-    );
-  }
-  res.render("registroExperto", {
-    user: req.session.user,
-    email: req.session.user.email,
-    categorias,
-    error: null,
-  });
-});
-
 // --- Edición perfil de experto (protegido) ---
 router.get("/editarExperto", async (req, res) => {
   if (!req.session?.user?.email)
@@ -945,9 +928,81 @@ router.get("/admin/adminLogs", requireAdmin, (req, res) => {
 router.get("/admin/adminUsuarios", requireAdmin, (req, res) => {
   res.render("admin/adminUsuarios", { user: req.session.user || {} });
 });
-router.get("/admin/adminExpertos", requireAdmin, (req, res) => {
-  res.render("admin/adminExpertos", { user: req.session.user || {} });
+router.get("/admin/adminExpertos", requireAdmin, async (req, res) => {
+  let categorias = [];
+  let initialExpertos = [];
+
+  try {
+    // Obtener categorías para los filtros
+    const catRes = await fetch(`${BACKEND_URL}/api/categorias`);
+    if (catRes.ok) {
+      categorias = await catRes.json();
+    }
+
+    // Obtener lista inicial de expertos
+    const expertosRes = await fetch(`${BACKEND_URL}/api/expertos?limit=10`, {
+      headers: req.session.user?.token
+        ? {
+            Authorization: `Bearer ${req.session.user.token}`,
+          }
+        : {},
+    });
+
+    if (expertosRes.ok) {
+      const expertosData = await expertosRes.json();
+      // Manejar diferentes estructuras de respuesta
+      initialExpertos = Array.isArray(expertosData)
+        ? expertosData
+        : expertosData.data || expertosData.expertos || [];
+    }
+  } catch (error) {
+    console.warn("Error fetching data for adminExpertos:", error.message);
+    // Continuar con arrays vacíos en caso de error
+  }
+
+  res.render("admin/adminExpertos", {
+    user: req.session.user || {},
+    categorias: categorias,
+    initialExpertos: initialExpertos,
+  });
 });
 
 // Exportar el router para que el backend pueda usarlo
 module.exports = router;
+
+// Al final del archivo, agregar configuración para servidor independiente
+if (require.main === module) {
+  const app = express();
+
+  // Configurar sesión para servidor independiente
+  app.use(
+    session({
+      secret: process.env.SESSION_SECRET || "servitech-frontend-secret",
+      resave: false,
+      saveUninitialized: false,
+      store: RedisStore ? new RedisStore({ client: redisClient }) : undefined,
+      cookie: {
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 24 * 60 * 60 * 1000, // 24 horas
+        sameSite: "lax",
+      },
+    })
+  );
+
+  // Configurar motor de vistas para servidor independiente
+  app.set("view engine", "ejs");
+  app.set("views", path.join(__dirname, "views"));
+
+  // Servir assets estáticos
+  app.use("/assets", express.static(path.join(__dirname, "assets")));
+
+  // Usar el router
+  app.use("/", router);
+
+  // Iniciar servidor independiente
+  app.listen(PORT, () => {
+    console.log(`Frontend server listening on http://localhost:${PORT}`);
+    console.log(`Proxy mode: ${PROXY_MODE}`);
+    console.log(`Backend URL: ${BACKEND_URL}`);
+  });
+}

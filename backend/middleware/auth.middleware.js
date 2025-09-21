@@ -7,134 +7,147 @@ const jwt = require("jsonwebtoken");
 const Usuario = require("../models/usuario.model");
 
 /**
- * Verifica y decodifica un token JWT usando JWT_SECRET.
- * @param {string} token
- * @returns {Object} payload decodificado
- * @throws {Error} si no hay secreto o el token es inválido
+ * Middleware de autenticación JWT
  */
-function verificarToken(token) {
-  const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    throw new Error("JWT_SECRET no configurado");
-  }
-  return jwt.verify(token, secret);
-}
-
-/**
- * Middleware que exige un Bearer token válido y adjunta req.usuario
- */
-function autenticar(req, res, next) {
-  // Permitir accesos públicos sin token (GETs públicos) antes de exigir autorización
+const autenticar = async (req, res, next) => {
   try {
-    if (req.method === "GET") {
-      // Usar req.originalUrl o req.url para capturar la ruta completa con query params
-      const fullPath = String(req.originalUrl || req.url || req.path || "");
-      console.log(`auth.middleware: evaluando ruta pública GET: ${fullPath}`);
+    // Rutas públicas que no requieren autenticación
+    // IMPORTANTE: Estas son las rutas SIN el prefijo /api porque el middleware
+    // se aplica ya en /api, entonces req.path viene sin ese prefijo
+    const rutasPublicas = [
+      "/health",
+      "/usuarios/login",
+      "/usuarios/registro",
+      "/usuarios/recuperar-password",
+      "/usuarios/reset-password",
+      "/categorias",
+      "/expertos",
+      "/dev/create-admin",
+    ];
 
-      const publicGetPaths = [
-        /^\/api\/expertos/, // /api/expertos (cualquier cosa después)
-        /^\/api\/categorias/, // /api/categorias (cualquier cosa después)
-      ];
+    // Verificar si la ruta actual es pública
+    const rutaActual = req.path;
+    const esRutaPublica = rutasPublicas.some((ruta) => {
+      // Permitir la ruta exacta o que empiece con la ruta (para sub-rutas)
+      return rutaActual === ruta || rutaActual.startsWith(ruta + "/");
+    });
 
-      if (publicGetPaths.some((rx) => rx.test(fullPath))) {
-        console.log(`auth.middleware: ruta pública permitida: ${fullPath}`);
-        return next();
-      }
+    if (esRutaPublica) {
+      console.log(`Ruta pública permitida: ${req.method} ${rutaActual}`);
+      return next();
     }
-  } catch (e) {
-    console.error("auth.middleware: error en check público:", e);
-  }
 
-  const authHeader = req.headers["authorization"];
-  // Debug: log presence of Authorization header (dev only)
-  try {
-    if (authHeader) {
-      // show only prefix for privacy
-      const preview = String(authHeader).slice(0, 30);
-      console.log("auth.middleware: Authorization header present:", preview);
-    } else {
-      console.log("auth.middleware: No Authorization header in request");
-    }
-  } catch (e) {}
+    // Para rutas protegidas, verificar token
+    const authHeader = req.headers.authorization;
 
-  if (!authHeader) {
-    return res.status(401).send("Token requerido");
-  }
-  const parts = authHeader.split(" ");
-  if (parts.length !== 2 || parts[0] !== "Bearer") {
-    return res.status(401).send("Formato de token inválido");
-  }
-  const token = parts[1];
-  try {
-    const payload = verificarToken(token);
-    req.usuario = payload;
-    // Compatibilidad: algunos tokens colocan el id en req.usuario.id mientras los controladores esperan req.usuario._id
-    if (req.usuario && !req.usuario._id && req.usuario.id) {
-      req.usuario._id = req.usuario.id;
-    }
-    // Debug: log that token verification succeeded and minimal payload
-    try {
-      console.log(
-        "auth.middleware: token verificado, usuario id:",
-        req.usuario && (req.usuario._id || req.usuario.id || "<no-id>")
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      console.warn(
+        `Token requerido para ruta protegida: ${req.method} ${req.path}`
       );
-    } catch (e) {}
-    return next();
-  } catch (err) {
-    return res.status(401).send("Token inválido o expirado");
+      return res.status(401).json({
+        mensaje: "Token de autenticación requerido",
+        error: "UNAUTHORIZED",
+      });
+    }
+
+    const token = authHeader.substring(7); // Remover 'Bearer '
+
+    if (!token) {
+      return res.status(401).json({
+        mensaje: "Token de autenticación inválido",
+        error: "INVALID_TOKEN",
+      });
+    }
+
+    // Verificar y decodificar el token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Buscar el usuario en la base de datos
+    const usuario = await Usuario.findById(decoded.id).select("-passwordHash");
+
+    if (!usuario) {
+      return res.status(401).json({
+        mensaje: "Usuario no encontrado",
+        error: "USER_NOT_FOUND",
+      });
+    }
+
+    if (usuario.estado === "inactivo") {
+      return res.status(401).json({
+        mensaje: "Cuenta desactivada",
+        error: "ACCOUNT_INACTIVE",
+      });
+    }
+
+    // Añadir usuario al request para uso en rutas protegidas
+    req.usuario = usuario;
+    console.log(
+      `Usuario autenticado: ${usuario.email} para ${req.method} ${req.path}`
+    );
+    next();
+  } catch (error) {
+    console.error("Error en middleware de autenticación:", error.message);
+
+    if (error.name === "JsonWebTokenError") {
+      return res.status(401).json({
+        mensaje: "Token inválido",
+        error: "INVALID_TOKEN",
+      });
+    }
+
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({
+        mensaje: "Token expirado",
+        error: "TOKEN_EXPIRED",
+      });
+    }
+
+    return res.status(500).json({
+      mensaje: "Error interno de autenticación",
+      error: "INTERNAL_ERROR",
+    });
   }
-}
+};
 
 /**
- * Middleware factory que comprueba que el usuario tenga un rol específico (p.ej. 'admin')
- * @param {string} rol
+ * Middleware para asegurar roles específicos
  */
-function asegurarRol(rol) {
-  return async (req, res, next) => {
-    const usuario = req.usuario;
-    if (!usuario) {
-      return res.status(401).send("No autenticado");
-    }
-
-    // Si el token no trae roles, intentar recuperar roles desde BD
-    let rolesFromToken = Array.isArray(usuario.roles) ? usuario.roles : null;
-    let isAdminFlag = usuario.isAdmin === true;
-    if (!rolesFromToken && (usuario._id || usuario.id)) {
-      try {
-        const u = await Usuario.findById(usuario._id || usuario.id).select(
-          "roles isAdmin"
-        );
-        if (u) {
-          rolesFromToken = Array.isArray(u.roles) ? u.roles : null;
-          isAdminFlag = u.isAdmin === true;
-          // sincronizar en req.usuario para usos posteriores
-          req.usuario.roles = u.roles;
-          req.usuario.isAdmin = u.isAdmin;
-        }
-      } catch (e) {
-        console.error(
-          "Error al obtener usuario para asegurarRol:",
-          e && e.message
-        );
+const asegurarRol = (...rolesRequeridos) => {
+  return (req, res, next) => {
+    try {
+      if (!req.usuario) {
+        return res.status(401).json({
+          mensaje: "Usuario no autenticado",
+          error: "NOT_AUTHENTICATED",
+        });
       }
+
+      const userRoles = req.usuario.roles || [];
+      const tieneRolRequerido = rolesRequeridos.some((rol) =>
+        userRoles.includes(rol)
+      );
+
+      if (!tieneRolRequerido) {
+        return res.status(403).json({
+          mensaje: `Acceso denegado. Roles requeridos: ${rolesRequeridos.join(
+            ", "
+          )}`,
+          error: "INSUFFICIENT_PERMISSIONS",
+        });
+      }
+
+      next();
+    } catch (error) {
+      console.error("Error en middleware de roles:", error.message);
+      return res.status(500).json({
+        mensaje: "Error interno de autorización",
+        error: "INTERNAL_ERROR",
+      });
     }
-
-    const tieneRol =
-      usuario &&
-      (usuario.role === rol ||
-        (Array.isArray(rolesFromToken) && rolesFromToken.includes(rol)) ||
-        isAdminFlag === true);
-
-    if (!tieneRol) {
-      return res.status(403).send("Se requiere rol " + rol);
-    }
-
-    return next();
   };
-}
+};
 
 module.exports = {
-  verificarToken,
   autenticar,
   asegurarRol,
 };
