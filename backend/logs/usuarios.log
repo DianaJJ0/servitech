@@ -102,3 +102,30 @@
 2025-09-21T16:37:02.098Z | LOGIN | dianacjj@gmail.com | diana administrador | Resultado: Exito
 2025-09-22T19:03:11.459Z | LOGIN | dianacjj@gmail.com | diana administrador | Resultado: Exito
 2025-09-22T19:43:26.980Z | LOGIN | dianacjj@gmail.com | diana administrador | Resultado: Exito
+2025-09-23T02:05:50.064Z | REGISTRO | dianacjj23@gmail.com | Diana prueba pago | Resultado: Exito
+2025-09-23T02:07:59.677Z | REGISTRO | experto1@prueba.com | Carlos prueba Experto pago | Resultado: Exito
+2025-09-23T02:09:54.829Z | REGISTRO | experto0@prueba.com | Carlos prueba Experto pago | Resultado: Exito
+2025-09-23T02:10:27.068Z | LOGIN | experto1@prueba.com | - | Resultado: Error: credenciales incorrectas
+2025-09-23T02:10:32.154Z | LOGIN | experto0@prueba.com | Carlos prueba Experto pago | Resultado: Exito
+2025-09-23T02:11:16.322Z | LOGIN | dianacjj23@gmail.com | Diana prueba pago | Resultado: Exito
+2025-09-23T02:36:13.031Z | LOGIN | dianacjj23@gmail.com | Diana prueba pago | Resultado: Exito
+2025-09-23T03:04:44.355Z | REGISTRO | dianajimenezjimenez10152312@gmail.com | juan experto admin | Resultado: Exito
+2025-09-23T03:04:50.502Z | LOGIN | dianajimenezjimenez10152312@gmail.com | juan experto admin | Resultado: Exito
+2025-09-23T03:09:46.951Z | LOGIN | dianajimenezjimenez10152312@gmail.com | - | Resultado: Error: credenciales incorrectas
+2025-09-23T03:10:20.225Z | REGISTRO | dianajimenezjimenez10152312@gmail.com | juan experto pruebas pagos | Resultado: Exito
+2025-09-23T03:10:27.170Z | LOGIN | dianajimenezjimenez10152312@gmail.com | juan experto pruebas pagos | Resultado: Exito
+2025-09-23T03:11:47.633Z | LOGIN | dianajimenezjimenez10152312@gmail.com | juan experto pruebas pagos | Resultado: Exito
+2025-09-23T03:12:09.978Z | LOGIN | dianacjj23@gmail.com | Diana prueba pago | Resultado: Exito
+2025-09-23T03:12:14.363Z | LOGIN | dianacjj23@gmail.com | Diana prueba pago | Resultado: Exito
+2025-09-23T03:19:27.262Z | REGISTRO | dianacjj23@gmail.com | Diana Cliente | Resultado: Exito
+2025-09-23T03:19:48.062Z | LOGIN | dianacjj23@gmail.com | Diana Cliente | Resultado: Exito
+2025-09-23T03:20:20.731Z | REGISTRO | dianajimenezjimenez10152312@gmail.com | Diana Jimenez | Resultado: Exito
+2025-09-23T03:20:35.723Z | LOGIN | dianajimenezjimenez10152312@gmail.com | Diana Jimenez | Resultado: Exito
+2025-09-23T05:32:26.006Z | LOGIN | diana.app.correo@gmail.com | - | Resultado: Error: credenciales incorrectas
+2025-09-23T05:32:35.345Z | LOGIN | servitech.app.correo@gmail.com | administrador jimenez | Resultado: Exito
+2025-09-23T07:04:27.124Z | REGISTRO | cliente@correo.com | Diana Cliente | Resultado: Exito
+2025-09-23T07:04:42.488Z | LOGIN | cliente@correo.com | Diana Cliente | Resultado: Exito
+2025-09-23T07:06:13.354Z | REGISTRO | experto@correo.com | Pedro pruebas Experto | Resultado: Exito
+2025-09-23T07:06:30.781Z | LOGIN | experto@correo.com | Pedro pruebas Experto | Resultado: Exito
+2025-09-23T07:12:05.481Z | REGISTRO | expertoprueba@correo.com | Pedro pruebas Experto | Resultado: Exito
+2025-09-23T07:12:48.257Z | LOGIN | expertoprueba@correo.com | Pedro pruebas Experto | Resultado: Exito

@@ -1,91 +1,37 @@
-/**
- * CONTROLADOR DE PAGOS
- * Lógica para registrar, listar y actualizar pagos asociados a asesorías.
- */
 const Pago = require("../models/pago.model.js");
 const Usuario = require("../models/usuario.model.js");
 const Notificacion = require("../models/notificacion.model.js");
 const Log = require("../models/log.model.js");
 const generarLogs = require("../services/generarLogs");
 
-/**
- * @openapi
- * tags:
- *   - name: Pagos
- *     description: Integración y gestión de pagos
- */
+const mercadopago = require("mercadopago");
+mercadopago.access_token = process.env.MP_ACCESS_TOKEN_SANDBOX || "";
 
-/**
- * @openapi
- * components:
- *   schemas:
- *     ErrorResponse:
- *       type: object
- *       properties:
- *         error:
- *           type: string
- *         message:
- *           type: string
- *       required:
- *         - error
- *         - message
- */
+// Estados válidos para un pago
+const ESTADOS_VALIDOS = [
+  "pendiente",
+  "retenido",
+  "liberado",
+  "reembolsado",
+  "fallido",
+];
 
-/**
- * @openapi
- * tags:
- *   - name: Pagos
- *     description: Integración y gestión de pagos
- */
+// Valida si un usuario tiene el rol requerido (o ambos)
+function tieneRol(usuario, rol) {
+  return (
+    usuario &&
+    usuario.roles &&
+    (usuario.roles.includes(rol) ||
+      usuario.roles.includes("cliente,experto") ||
+      usuario.roles.length > 1)
+  );
+}
 
-/**
- * @openapi
- * components:
- *   schemas:
- *     ErrorResponse:
- *       type: object
- *       properties:
- *         error:
- *           type: string
- *         message:
- *           type: string
- *       required:
- *         - error
- *         - message
- */
-
-/**
- * Registra un nuevo pago en el sistema
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- * @returns {Promise<void>}
- * @openapi
- * /api/pagos:
- *   post:
- *     tags: [Pagos]
- *     summary: Procesar pago
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/Pago'
- *     responses:
- *       200:
- *         description: Pago procesado
- *       400:
- *         description: Petición inválida
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
 const crearPago = async (req, res) => {
   try {
     const datosPago = req.body;
 
-    // Validaciones clave
+    // Validación básica de campos obligatorios
     if (
       !datosPago.clienteId ||
       !datosPago.expertoId ||
@@ -100,30 +46,27 @@ const crearPago = async (req, res) => {
       });
     }
 
-    // Validación de tipo de datos
-    if (typeof datosPago.monto !== "number" || datosPago.monto <= 0) {
+    // Validar monto: número y mínimo 10000
+    if (
+      typeof datosPago.monto !== "number" ||
+      isNaN(datosPago.monto) ||
+      datosPago.monto < 10000
+    ) {
       return res.status(400).json({
-        mensaje: "El monto debe ser un número mayor a 0.",
-        error: "Tipo de dato incorrecto o monto inválido.",
+        mensaje: "El monto debe ser un número mayor o igual a 10000.",
+        error: "Monto inválido.",
       });
     }
 
-    // Validación de estado permitido
-    const estadosValidos = [
-      "pendiente",
-      "retenido",
-      "liberado",
-      "reembolsado",
-      "fallido",
-    ];
-    if (!estadosValidos.includes(datosPago.estado)) {
+    // Validar estado permitido
+    if (!ESTADOS_VALIDOS.includes(datosPago.estado)) {
       return res.status(400).json({
         mensaje: "Estado de pago inválido.",
-        error: `Los estados permitidos son: ${estadosValidos.join(", ")}`,
+        error: `Estados permitidos: ${ESTADOS_VALIDOS.join(", ")}`,
       });
     }
 
-    // Validación de duplicidad de transacciónId (si lo usas como único)
+    // Validar unicidad de transaccionId
     if (datosPago.transaccionId) {
       const pagoExistente = await Pago.findOne({
         transaccionId: datosPago.transaccionId,
@@ -136,47 +79,70 @@ const crearPago = async (req, res) => {
       }
     }
 
-    // Registro normal
-    const nuevoPago = new Pago(datosPago);
-    await nuevoPago.save();
-
-    // Registrar notificación a cliente y log
-    try {
-      const cliente = await Usuario.findById(nuevoPago.clienteId);
-      if (cliente) {
-        const asunto = "Confirmación de pago";
-        const mensaje = `Tu pago de $${nuevoPago.monto} COP se ha registrado correctamente para la asesoría.`;
-
-        await Notificacion.create({
-          usuarioId: cliente._id,
-          email: cliente.email,
-          tipo: "email",
-          asunto,
-          mensaje,
-          relacionadoCon: { tipo: "Pago", referenciaId: nuevoPago._id },
-          estado: "enviado",
-          fechaEnvio: new Date(),
-        });
-        await Log.create({
-          usuarioId: cliente._id,
-          email: cliente.email,
-          tipo: "pago",
-          descripcion: "Registro de pago",
-          entidad: "Pago",
-          referenciaId: nuevoPago._id,
-          datos: { asunto, mensaje },
-        });
-      }
-    } catch (e) {
-      // No detiene la creación si la notificación/log falla
-      console.error("Error registrando notificación/log de pago:", e);
+    // Validar existencia y roles del cliente
+    const cliente = await Usuario.findOne({ email: datosPago.clienteId });
+    if (!cliente || !tieneRol(cliente, "cliente")) {
+      return res.status(400).json({
+        mensaje: "El email de cliente no existe o no tiene el rol adecuado.",
+        error: "clienteId inválido.",
+      });
     }
 
-    // Log de negocio: pago creado
+    // Validar existencia y roles del experto
+    const experto = await Usuario.findOne({ email: datosPago.expertoId });
+    if (!experto || !tieneRol(experto, "experto")) {
+      return res.status(400).json({
+        mensaje: "El email de experto no existe o no tiene el rol adecuado.",
+        error: "expertoId inválido.",
+      });
+    }
+
+    // Calcular comisión y monto a experto
+    const comision = +(datosPago.monto * 0.15).toFixed(2);
+    const montoExperto = +(datosPago.monto - comision).toFixed(2);
+
+    // Simulación sandbox Mercado Pago (puedes implementar preferencia si quieres)
+    // const preference = await mercadopago.preferences.create({...});
+
+    const nuevoPago = new Pago({
+      ...datosPago,
+      comisionPlataforma: comision,
+      montoExperto,
+    });
+    await nuevoPago.save();
+
+    // Notificación y log (pueden ser opcionales)
+    try {
+      const asunto = "Confirmación de pago";
+      const mensaje = `Tu pago de $${nuevoPago.monto} COP se ha registrado correctamente para la asesoría.`;
+
+      await Notificacion.create({
+        usuarioId: cliente._id,
+        email: cliente.email,
+        tipo: "email",
+        asunto,
+        mensaje,
+        relacionadoCon: { tipo: "Pago", referenciaId: nuevoPago._id },
+        estado: "enviado",
+        fechaEnvio: new Date(),
+      });
+      await Log.create({
+        usuarioId: cliente._id,
+        email: cliente.email,
+        tipo: "pago",
+        descripcion: "Registro de pago",
+        entidad: "Pago",
+        referenciaId: nuevoPago._id,
+        datos: { asunto, mensaje },
+      });
+    } catch (e) {
+      console.error("Error guardando log en BD:", e.message);
+    }
+
     generarLogs.registrarEvento({
-      usuarioEmail: (nuevoPago && nuevoPago.clienteEmail) || null,
-      nombre: null,
-      apellido: null,
+      usuarioEmail: cliente.email,
+      nombre: cliente.nombre,
+      apellido: cliente.apellido,
       accion: "CREAR_PAGO",
       detalle: `Pago registrado id:${nuevoPago._id} monto:${nuevoPago.monto}`,
       resultado: "Exito",
@@ -187,7 +153,7 @@ const crearPago = async (req, res) => {
     res.status(201).json({ mensaje: "Pago registrado.", pago: nuevoPago });
   } catch (error) {
     generarLogs.registrarEvento({
-      usuarioEmail: (req.body && req.body.clienteEmail) || null,
+      usuarioEmail: (req.body && req.body.clienteId) || null,
       nombre: null,
       apellido: null,
       accion: "CREAR_PAGO",
@@ -196,27 +162,17 @@ const crearPago = async (req, res) => {
       tipo: "pago",
       persistirEnDB: true,
     });
-    // Error de validación de MongoDB
     if (error.name === "ValidationError") {
       return res
         .status(400)
         .json({ mensaje: "Error de validación.", error: error.message });
     }
-    // Error por ObjectId mal formado
-    if (error.name === "CastError" && error.kind === "ObjectId") {
-      return res.status(400).json({
-        mensaje: "ID de usuario o asesoría inválido.",
-        error: error.message,
-      });
-    }
-    // Error por campos extraños
     if (error.code === 11000) {
       return res.status(409).json({
         mensaje: "Pago duplicado por campo único.",
         error: error.message,
       });
     }
-    // Error genérico
     res.status(500).json({
       mensaje: "Error interno al registrar pago.",
       error: error.message,
@@ -224,12 +180,6 @@ const crearPago = async (req, res) => {
   }
 };
 
-/**
- * Lista todos los pagos (solo admin)
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- * @returns {Promise<void>}
- */
 const obtenerPagos = async (req, res) => {
   try {
     const pagos = await Pago.find().sort({ createdAt: -1 });
@@ -241,12 +191,6 @@ const obtenerPagos = async (req, res) => {
   }
 };
 
-/**
- * Obtiene un pago específico por ID
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- * @returns {Promise<void>}
- */
 const obtenerPagoPorId = async (req, res) => {
   try {
     const pago = await Pago.findById(req.params.id);
@@ -259,26 +203,13 @@ const obtenerPagoPorId = async (req, res) => {
   }
 };
 
-/**
- * Actualiza el estado de un pago (solo admin)
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- * @returns {Promise<void>}
- */
 const actualizarEstadoPago = async (req, res) => {
   try {
     const { estado } = req.body;
-    const estadosValidos = [
-      "pendiente",
-      "retenido",
-      "liberado",
-      "reembolsado",
-      "fallido",
-    ];
-    if (!estado || !estadosValidos.includes(estado)) {
+    if (!estado || !ESTADOS_VALIDOS.includes(estado)) {
       return res.status(400).json({
         mensaje: "Estado de pago inválido.",
-        error: `Los estados permitidos son: ${estadosValidos.join(", ")}`,
+        error: `Estados permitidos: ${ESTADOS_VALIDOS.join(", ")}`,
       });
     }
     const pago = await Pago.findByIdAndUpdate(
@@ -288,9 +219,9 @@ const actualizarEstadoPago = async (req, res) => {
     );
     if (!pago) return res.status(404).json({ mensaje: "Pago no encontrado." });
 
-    // Registrar notificación/log por cambio de estado
+    // Notificación/log de cambio de estado
     try {
-      const cliente = await Usuario.findById(pago.clienteId);
+      const cliente = await Usuario.findOne({ email: pago.clienteId });
       if (cliente) {
         const asunto = "Actualización de estado de pago";
         const mensaje = `Tu pago ha cambiado de estado a "${estado}".`;
@@ -316,15 +247,11 @@ const actualizarEstadoPago = async (req, res) => {
         });
       }
     } catch (e) {
-      console.error(
-        "Error registrando notificación/log actualización pago:",
-        e
-      );
+      console.error("Error guardando log en BD:", e.message);
     }
 
-    // Log por cambio de estado
     generarLogs.registrarEvento({
-      usuarioEmail: (pago && pago.clienteEmail) || null,
+      usuarioEmail: pago.clienteId,
       nombre: null,
       apellido: null,
       accion: "ACTUALIZAR_ESTADO_PAGO",

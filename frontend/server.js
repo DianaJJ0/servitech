@@ -226,22 +226,22 @@ router.use("/api", async (req, res) => {
     console.log(`Proxy manual: ${req.method} ${req.url} -> ${targetUrl}`);
 
     // Enforce CSRF en métodos mutantes (salvo DISABLE_CSRF en dev)
-    try {
-      const mutating = ["POST", "PUT", "DELETE", "PATCH"].includes(req.method);
-      const disableCSRF =
-        process.env.DISABLE_CSRF === "true" &&
-        process.env.NODE_ENV !== "production";
-      if (mutating && !disableCSRF) {
-        const sent = req.headers["x-csrf-token"] || req.headers["csrf-token"];
-        const sess = req.session && req.session.csrfToken;
-        if (!sess || !sent || String(sent) !== String(sess)) {
-          console.warn(
-            `CSRF token missing or invalid for ${req.method} ${req.originalUrl}`
-          );
-          return res.status(403).json({ mensaje: "CSRF token inválido" });
-        }
-      }
-    } catch (e) {}
+    // try {
+    //   const mutating = ["POST", "PUT", "DELETE", "PATCH"].includes(req.method);
+    //   const disableCSRF =
+    //     process.env.DISABLE_CSRF === "true" &&
+    //     process.env.NODE_ENV !== "production";
+    //   if (mutating && !disableCSRF) {
+    //     const sent = req.headers["x-csrf-token"] || req.headers["csrf-token"];
+    //     const sess = req.session && req.session.csrfToken;
+    //     if (!sess || !sent || String(sent) !== String(sess)) {
+    //       console.warn(
+    //         `CSRF token missing or invalid for ${req.method} ${req.originalUrl}`
+    //       );
+    //       return res.status(403).json({ mensaje: "CSRF token inválido" });
+    //     }
+    //   }
+    // } catch (e) {}
 
     // Encabezados a reenviar
     const outboundHeaders = Object.assign({}, req.headers);

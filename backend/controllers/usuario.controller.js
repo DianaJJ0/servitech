@@ -1,40 +1,19 @@
 /**
  * @file Controlador de usuarios
  * @module controllers/usuario
- * @description Lógica de negocio para registro, inicio de sesión, recuperación y gestión de perfiles en Servitech.
+ * @description Lógica de negocio para registro, inicio de sesión, recuperación, gestión de perfiles y desactivación segura de usuarios en Servitech.
  */
 
 const Usuario = require("../models/usuario.model.js");
 const Categoria = require("../models/categoria.model.js");
+const Asesoria = require("../models/asesoria.model.js");
+const Pago = require("../models/pago.model.js");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const { enviarCorreo } = require("../services/email.service.js");
 const mongoose = require("mongoose");
-const { generateLog } = require("../services/logService.js"); // logs
+const { generateLog } = require("../services/logService.js");
 const generarLogs = require("../services/generarLogs");
-
-/**
- * @openapi
- * tags:
- *   - name: Usuarios
- *     description: Operaciones relacionadas con usuarios (registro, login, perfil)
- */
-
-/**
- * @openapi
- * components:
- *   schemas:
- *     ErrorResponse:
- *       type: object
- *       properties:
- *         error:
- *           type: string
- *         message:
- *           type: string
- *       required:
- *         - error
- *         - message
- */
 
 /**
  * @openapi
@@ -117,7 +96,7 @@ const registrarUsuario = async (req, res) => {
       infoExperto &&
       typeof infoExperto === "object"
     ) {
-      // Normalizar categorias: convertir strings de 24 hex a ObjectId (para guardado)
+      // Normalizar categorias
       let categoriasArray = [];
       if (infoExperto.categorias) {
         if (Array.isArray(infoExperto.categorias)) {
@@ -200,7 +179,6 @@ const registrarUsuario = async (req, res) => {
 
     await nuevoUsuario.save();
 
-    // Log: de éxito
     generarLogs.registrarEvento({
       usuarioEmail: nuevoUsuario.email,
       nombre: nuevoUsuario.nombre,
@@ -218,7 +196,6 @@ const registrarUsuario = async (req, res) => {
     });
   } catch (error) {
     console.error("Error en el proceso de registro:", error);
-    // Log: error
     generarLogs.registrarEvento({
       usuarioEmail: req.body.email || null,
       nombre: req.body.nombre || null,
@@ -240,46 +217,6 @@ const registrarUsuario = async (req, res) => {
 
 /**
  * Loguear un usuario.
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @openapi
- * /api/usuarios/login:
- *   post:
- *     tags: [Usuarios]
- *     summary: Login de usuario
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               email:
- *                 type: string
- *               password:
- *                 type: string
- *     responses:
- *       200:
- *         description: Token de autenticación
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 token:
- *                   type: string
- *       400:
- *         description: Petición inválida
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       401:
- *         description: Credenciales inválidas
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 const iniciarSesion = async (req, res) => {
   const { email, password } = req.body;
@@ -291,7 +228,6 @@ const iniciarSesion = async (req, res) => {
     }
     const usuario = await Usuario.findOne({ email });
     if (!usuario) {
-      // Log intento fallido
       generarLogs.registrarEvento({
         usuarioEmail: email || null,
         accion: "LOGIN",
@@ -315,8 +251,6 @@ const iniciarSesion = async (req, res) => {
           roles: usuario.roles,
         };
       }
-
-      // Log de login exitoso
       generarLogs.registrarEvento({
         usuarioEmail: usuario.email,
         nombre: usuario.nombre,
@@ -327,7 +261,6 @@ const iniciarSesion = async (req, res) => {
         tipo: "usuarios",
         persistirEnDB: true,
       });
-
       return res.status(200).json({
         mensaje: "Login exitoso.",
         token,
@@ -340,7 +273,6 @@ const iniciarSesion = async (req, res) => {
         },
       });
     } else {
-      // Log intento fallido por password
       generarLogs.registrarEvento({
         usuarioEmail: email || null,
         accion: "LOGIN",
@@ -373,9 +305,6 @@ const iniciarSesion = async (req, res) => {
 
 /**
  * Obtiene el perfil del usuario autenticado
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- * @returns {Promise<void>}
  */
 const obtenerPerfilUsuario = async (req, res) => {
   try {
@@ -385,15 +314,12 @@ const obtenerPerfilUsuario = async (req, res) => {
     if (!usuario) {
       return res.status(404).json({ mensaje: "Usuario no encontrado." });
     }
-    // Convertir referencias (IDs) en nombres legibles para el frontend
     const userObj = usuario.toObject({ getters: true, virtuals: false });
 
     if (userObj.infoExperto) {
-      // Categorías: array de ObjectId
       try {
         const cats = userObj.infoExperto.categorias || [];
         if (Array.isArray(cats) && cats.length > 0) {
-          // Buscar nombres por ids
           const foundCats = await Categoria.find({ _id: { $in: cats } }).select(
             "nombre"
           );
@@ -403,11 +329,8 @@ const obtenerPerfilUsuario = async (req, res) => {
             (c) => mapCat[String(c)] || c
           );
         }
-      } catch (e) {
-        // si falla, dejar los ids
-      }
+      } catch (e) {}
     }
-
     res.json(userObj);
   } catch (error) {
     console.error("Error al obtener perfil:", error);
@@ -417,9 +340,6 @@ const obtenerPerfilUsuario = async (req, res) => {
 
 /**
  * Lista usuarios con filtros y paginación (solo admin)
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- * @returns {Promise<void>}
  */
 const obtenerUsuarios = async (req, res) => {
   try {
@@ -436,16 +356,10 @@ const obtenerUsuarios = async (req, res) => {
     if (email) {
       filtro.email = { $regex: email, $options: "i" };
     }
-
-    // Estado (opcional)
     if (typeof estado !== "undefined" && estado !== "") {
       filtro.estado = estado;
     }
-
-    // --- FILTRADO POR ROLES ---
-    // Si se pide solo clientes filtra roles exactamente ["cliente"]
     if (soloClientesPuros === "true" || roles === "cliente") {
-      // Solo usuarios con exactamente el rol cliente
       filtro.roles = ["cliente"];
     } else if (roles) {
       const rolesArray = Array.isArray(roles)
@@ -454,7 +368,6 @@ const obtenerUsuarios = async (req, res) => {
       filtro.roles = { $in: rolesArray };
     }
 
-    // PAGINACIÓN
     const usuarios = await Usuario.find(filtro)
       .select("-passwordHash")
       .skip((page - 1) * limit)
@@ -470,19 +383,11 @@ const obtenerUsuarios = async (req, res) => {
 
 /**
  * Solicita recuperación de contraseña por email
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- * @returns {Promise<void>}
  */
 const solicitarRecuperacionPassword = async (req, res) => {
   const { email } = req.body;
-
-  console.log("Solicitud de recuperación de contraseña recibida para:", email);
-
   try {
-    // Validar que el email fue proporcionado
     if (!email || !email.trim()) {
-      console.warn("Intento de recuperación sin email");
       return res.status(400).json({
         mensaje: "El correo electrónico es requerido.",
       });
@@ -490,7 +395,6 @@ const solicitarRecuperacionPassword = async (req, res) => {
 
     const usuario = await Usuario.findOne({ email: email.trim() });
     if (!usuario) {
-      console.log("Intento de recuperación para email no registrado:", email);
       return res.status(200).json({
         mensaje: "Si el email existe, se enviaron instrucciones.",
       });
@@ -501,20 +405,12 @@ const solicitarRecuperacionPassword = async (req, res) => {
     usuario.passwordResetExpires = Date.now() + 60 * 60 * 1000;
     await usuario.save();
 
-    // Corregir la construcción del enlace para servidor unificado
     const baseUrl =
       process.env.FRONTEND_URL ||
       process.env.RENDER_EXTERNAL_URL ||
       process.env.APP_URL ||
       `http://localhost:${process.env.PORT || 5020}`;
     const enlace = `${baseUrl}/recuperarPassword.html?token=${token}`;
-
-    console.log(
-      "Enviando correo de recuperación a:",
-      email,
-      "con enlace:",
-      enlace
-    );
 
     const asunto = "Recupera tu contraseña - ServiTech";
     const mensaje = `
@@ -540,7 +436,6 @@ const solicitarRecuperacionPassword = async (req, res) => {
       persistirEnDB: true,
     });
 
-    console.log("Correo de recuperación enviado exitosamente a:", email);
     res.status(200).json({
       mensaje: "Si el email existe, se enviaron instrucciones.",
     });
@@ -568,9 +463,6 @@ const solicitarRecuperacionPassword = async (req, res) => {
 
 /**
  * Restablece contraseña usando token de recuperación
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- * @returns {Promise<void>}
  */
 const resetearPassword = async (req, res) => {
   const { token, newPassword } = req.body;
@@ -616,19 +508,11 @@ const resetearPassword = async (req, res) => {
 
 /**
  * Actualiza perfil del usuario autenticado
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- * @returns {Promise<void>}
  */
 const actualizarPerfilUsuario = async (req, res) => {
   try {
     const datos = req.body;
-    // Guardas: asegurar que req.usuario existe y tenga _id.
     if (!req.usuario || !req.usuario._id) {
-      console.error(
-        "actualizarPerfilUsuario: req.usuario ausente o sin _id - headers:",
-        req.headers && { authorization: req.headers.authorization }
-      );
       return res.status(401).json({ mensaje: "No autenticado" });
     }
     const usuario = await Usuario.findById(req.usuario._id);
@@ -655,7 +539,6 @@ const actualizarPerfilUsuario = async (req, res) => {
       }
     }
 
-    // Validación de campos obligatorios para experto
     if (
       !datos.descripcion ||
       !datos.precioPorHora ||
@@ -673,7 +556,6 @@ const actualizarPerfilUsuario = async (req, res) => {
       });
     }
 
-    // Si hay datos completos de experto, actualiza infoExperto y el rol
     usuario.infoExperto = {
       descripcion: datos.descripcion,
       precioPorHora: datos.precioPorHora,
@@ -698,7 +580,6 @@ const actualizarPerfilUsuario = async (req, res) => {
 
     await usuario.save();
 
-    // Log éxito actualización
     generarLogs.registrarEvento({
       usuarioEmail: usuario.email,
       nombre: usuario.nombre,
@@ -747,15 +628,9 @@ const subirAvatar = async (req, res) => {
       return res.status(400).json({ mensaje: "Archivo no recibido." });
     }
 
-    // Construir URL pública absoluta para que el frontend (puerto 5021)
-    // pueda cargar la imagen directamente desde el backend.
     const filename = req.file.filename;
     const uploadsPath = process.env.UPLOAD_PATH || "uploads";
-    // Preferir BACKEND_URL si está configurado (ej: http://localhost:5020)
     const configured = (process.env.BACKEND_URL || "").trim();
-    // Forzar BACKEND_URL si está presente, sino usar el backend local por defecto.
-    // Evitar inferir el host desde X-Forwarded o req.host para que las URLs
-    // devueltas siempre apunten al servidor que sirve los archivos estáticos.
     const base = configured || "http://localhost:5020";
     const avatarUrl = `${base.replace(/\/$/, "")}/${uploadsPath.replace(
       /^\//,
@@ -764,7 +639,6 @@ const subirAvatar = async (req, res) => {
     usuario.avatarUrl = avatarUrl;
     await usuario.save();
 
-    // Log subida avatar
     generarLogs.registrarEvento({
       usuarioEmail: usuario.email,
       nombre: usuario.nombre,
@@ -799,9 +673,6 @@ const subirAvatar = async (req, res) => {
 
 /**
  * Desactiva cuenta del usuario autenticado
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- * @returns {Promise<void>}
  */
 const eliminarUsuarioPropio = async (req, res) => {
   try {
@@ -842,18 +713,66 @@ const eliminarUsuarioPropio = async (req, res) => {
 };
 
 /**
- * Desactiva usuario por admin
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- * @returns {Promise<void>}
+ * Desactiva un usuario por email, reembolsa pagos retenidos y lo inhabilita (no se elimina)
+ * @openapi
+ * /api/usuarios/{email}:
+ *   delete:
+ *     summary: Desactiva usuario por email (admin + API Key)
+ *     tags: [Usuarios]
+ *     parameters:
+ *       - in: path
+ *         name: email
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Email del usuario
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Usuario desactivado y pagos reembolsados
+ *       400:
+ *         description: Error en reembolso
+ *       404:
+ *         description: Usuario no encontrado
  */
 const eliminarUsuarioPorAdmin = async (req, res) => {
   try {
-    const usuarioId = req.params.id;
-    const usuario = await Usuario.findById(usuarioId);
+    const email = req.params.email;
+    const usuario = await Usuario.findOne({ email });
     if (!usuario) {
       return res.status(404).json({ mensaje: "Usuario no encontrado." });
     }
+
+    // Buscar pagos donde es cliente o experto
+    const pagosCliente = await Pago.find({ clienteId: usuario._id });
+    const pagosExperto = await Pago.find({ expertoId: usuario._id });
+
+    // Reembolsar pagos retenidos antes de desactivar usuario
+    const pagosARembolsar = [
+      ...pagosCliente.filter((p) => p.estado === "retenido"),
+      ...pagosExperto.filter((p) => p.estado === "retenido"),
+    ];
+
+    let erroresReembolso = [];
+    for (const pago of pagosARembolsar) {
+      try {
+        pago.estado = "reembolsado";
+        pago.fechaLiberacion = new Date();
+        await pago.save();
+      } catch (e) {
+        erroresReembolso.push(pago._id.toString());
+      }
+    }
+    if (erroresReembolso.length > 0) {
+      return res.status(400).json({
+        mensaje:
+          "No se pudo reembolsar todos los pagos. Usuario NO desactivado. Contacta a soporte.",
+        error: "Pagos con error: " + erroresReembolso.join(", "),
+      });
+    }
+
+    // Solo desactivar, no eliminar
     usuario.estado = "inactivo";
     await usuario.save();
 
@@ -862,17 +781,20 @@ const eliminarUsuarioPorAdmin = async (req, res) => {
       nombre: usuario.nombre,
       apellido: usuario.apellido,
       accion: "DESACTIVAR_POR_ADMIN",
-      detalle: "Cuenta desactivada por admin",
+      detalle: "Usuario desactivado por admin y pagos reembolsados",
       resultado: "Exito",
       tipo: "usuarios",
       persistirEnDB: true,
     });
 
-    res.json({ mensaje: "Usuario desactivado correctamente por el admin." });
+    return res.json({
+      mensaje:
+        "Usuario desactivado correctamente y pagos retenidos reembolsados. Historial de pagos/asesorías conservado.",
+    });
   } catch (error) {
     console.error("Error al desactivar usuario por admin:", error);
     generarLogs.registrarEvento({
-      usuarioEmail: null,
+      usuarioEmail: req.params.email || null,
       accion: "DESACTIVAR_POR_ADMIN",
       detalle: "Error al desactivar usuario por admin",
       resultado: "Error: " + (error.message || "desconocido"),
@@ -880,16 +802,14 @@ const eliminarUsuarioPorAdmin = async (req, res) => {
       persistirEnDB: true,
     });
     res.status(500).json({
-      mensaje: "Error interno del servidor al desactivar el usuario.",
+      mensaje: "Error interno del servidor al desactivar usuario.",
+      error: error.message,
     });
   }
 };
 
 /**
  * Actualiza usuario por email (solo admin)
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- * @returns {Promise<void>}
  */
 const actualizarUsuarioPorEmailAdmin = async (req, res) => {
   try {
@@ -901,17 +821,10 @@ const actualizarUsuarioPorEmailAdmin = async (req, res) => {
     }
 
     if (datos.roles && datos.roles.includes("experto")) {
-      // Si el admin envía infoExperto parcial (por ejemplo especialidad/categorias/skills),
-      // no asignar directamente el subdocumento para evitar forzar la validación
-      // completa del esquema (campos bancarios obligatorios). En lugar de eso,
-      // construiremos un update parcial ($set) y lo aplicaremos más abajo.
-      // Para mantener compatibilidad con el flujo anterior, si no viene
-      // infoExperto mantendremos lo existente.
       if (!datos.infoExperto) {
         if (!usuario.infoExperto) usuario.infoExperto = undefined;
       }
     } else {
-      // Si no se solicita el rol experto, eliminar infoExperto
       usuario.infoExperto = undefined;
     }
 
@@ -922,10 +835,7 @@ const actualizarUsuarioPorEmailAdmin = async (req, res) => {
     if (datos.avatarUrl) usuario.avatarUrl = datos.avatarUrl;
     if (datos.email) usuario.email = datos.email;
 
-    // Si el payload incluye infoExperto, aplicar un update parcial directo
-    // para persistir sólo las claves provistas (evita validación completa del subdocumento)
     if (datos.infoExperto && typeof datos.infoExperto === "object") {
-      // Normalizar categorias y skills para guardado consistente
       let categoriasArray = [];
       if (datos.infoExperto.categorias) {
         if (Array.isArray(datos.infoExperto.categorias)) {
@@ -947,14 +857,12 @@ const actualizarUsuarioPorEmailAdmin = async (req, res) => {
         }
       }
 
-      // Merge con lo existente si existe, o crear nuevo objeto si es null
       const existingInfo =
         usuario.infoExperto && typeof usuario.infoExperto === "object"
           ? usuario.infoExperto.toObject
             ? usuario.infoExperto.toObject()
             : usuario.infoExperto
           : {};
-      // Aceptar tambien especialidad enviada en la raíz del payload
       if (!datos.infoExperto) datos.infoExperto = {};
       if (datos.especialidad && !datos.infoExperto.especialidad) {
         datos.infoExperto.especialidad = datos.especialidad;
@@ -964,7 +872,6 @@ const actualizarUsuarioPorEmailAdmin = async (req, res) => {
       if (categoriasArray.length > 0) mergedInfo.categorias = categoriasArray;
       if (skillsArray.length > 0) mergedInfo.skills = skillsArray;
 
-      // Convertir categorias que parezcan ObjectId (24 hex) a mongoose.Types.ObjectId
       try {
         if (mergedInfo && Array.isArray(mergedInfo.categorias)) {
           mergedInfo.categorias = mergedInfo.categorias.map((c) => {
@@ -980,7 +887,6 @@ const actualizarUsuarioPorEmailAdmin = async (req, res) => {
         }
       } catch (e) {}
 
-      // Normalizar y persistir especialidad: aceptar id (24 hex) o nombre.
       try {
         if (
           mergedInfo &&
@@ -994,9 +900,7 @@ const actualizarUsuarioPorEmailAdmin = async (req, res) => {
             mergedInfo.especialidad = s;
           }
         }
-      } catch (e) {
-        // ignore normalization errors
-      }
+      } catch (e) {}
 
       const setObj = { infoExperto: mergedInfo };
       if (datos.nombre) setObj["nombre"] = datos.nombre;
@@ -1016,8 +920,6 @@ const actualizarUsuarioPorEmailAdmin = async (req, res) => {
 
       try {
         const r = await Usuario.updateOne({ email }, { $set: setObj });
-        // Loguear resultado para facilitar debugging en entornos de dev
-        console.log("actualizarUsuarioPorEmailAdmin: updateOne result:", r);
         const refreshed = await Usuario.findOne({ email }).select(
           "-passwordHash"
         );
@@ -1033,7 +935,6 @@ const actualizarUsuarioPorEmailAdmin = async (req, res) => {
       }
     }
 
-    // Si no se proporciona infoExperto, guardar cambios simples en el documento
     try {
       await usuario.save();
 
@@ -1074,27 +975,6 @@ const actualizarUsuarioPorEmailAdmin = async (req, res) => {
 
 /**
  * Obtiene usuario por email (solo admin)
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- * @returns {Promise<void>}
- * @openapi
- * /api/usuarios/{email}:
- *   get:
- *     tags: [Usuarios]
- *     summary: Obtener usuario por email
- *     parameters:
- *       - in: path
- *         name: email
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Usuario encontrado
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Usuario'
  */
 const obtenerUsuarioPorEmailAdmin = async (req, res) => {
   try {
@@ -1108,28 +988,6 @@ const obtenerUsuarioPorEmailAdmin = async (req, res) => {
     res.status(500).json({ mensaje: "Error interno al obtener usuario." });
   }
 };
-
-/**
- * @openapi
- * /api/usuarios/{id}:
- *   get:
- *     tags: [Usuarios]
- *     summary: Obtener usuario por ID (requiere auth)
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Usuario encontrado
- *         content:
- *           application/json:
- *
- */
 
 module.exports = {
   registrarUsuario,

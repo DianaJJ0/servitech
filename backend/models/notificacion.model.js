@@ -8,26 +8,25 @@ const { Schema } = mongoose;
 
 /**
  * @typedef {Object} Notificacion
- * @property {ObjectId} usuarioId - ID del usuario destinatario
- * @property {string} email - Email del destinatario
- * @property {string} tipo - Tipo de notificación: email, sms, push
- * @property {string} asunto - Asunto del mensaje
- * @property {string} mensaje - Contenido del mensaje
- * @property {Object} relacionadoCon - Referencia a entidad relacionada
- * @property {string} estado - Estado: pendiente, enviado, fallido
- * @property {Date} fechaEnvio - Fecha de envío de la notificación
+ * @property {ObjectId} usuarioId
+ * @property {string} email
+ * @property {string} tipo
+ * @property {string} asunto
+ * @property {string} mensaje
+ * @property {Object} relacionadoCon
+ * @property {string} estado
+ * @property {Date} fechaEnvio
  */
-
 const notificacionSchema = new Schema(
   {
-    usuarioId: { type: Schema.Types.ObjectId, ref: "Usuario", required: true }, // Usuario destinatario
-    email: { type: String, required: true }, // Email del destinatario
-    tipo: { type: String, required: true }, // email, sms, push
-    asunto: String, // Asunto del mensaje
-    mensaje: String, // Texto enviado
+    usuarioId: { type: Schema.Types.ObjectId, ref: "Usuario", required: true },
+    email: { type: String, required: true },
+    tipo: { type: String, required: true },
+    asunto: String,
+    mensaje: String,
     relacionadoCon: {
-      tipo: String, // Ej: "Asesoria", "Pago"
-      referenciaId: Schema.Types.ObjectId, // Relación opcional
+      tipo: String,
+      referenciaId: Schema.Types.ObjectId,
     },
     estado: {
       type: String,
@@ -55,8 +54,10 @@ const notificacionSchema = new Schema(
  *           type: string
  *         mensaje:
  *           type: string
- *         leido:
- *           type: boolean
+ *         asunto:
+ *           type: string
+ *         estado:
+ *           type: string
  *         createdAt:
  *           type: string
  *           format: date-time
