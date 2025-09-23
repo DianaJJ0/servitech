@@ -70,7 +70,22 @@ function onDomReady(fn) {
     __adminExpertsDeferredDOMContentLoaded.push(fn);
     return;
   }
-  document.addEventListener("DOMContentLoaded", fn);
+  try {
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", fn);
+    } else {
+      // DOM already loaded — call immediately
+      setTimeout(function () {
+        try {
+          fn();
+        } catch (e) {}
+      }, 0);
+    }
+  } catch (e) {
+    try {
+      document.addEventListener("DOMContentLoaded", fn);
+    } catch (er) {}
+  }
 }
 
 function debugLog() {
@@ -229,44 +244,250 @@ onDomReady(function () {
 // Modal agregar/editar experto
 function setupExpertModal() {
   const modal = getExpertModal();
-  const btnAddExpert = document.getElementById("btnAddExpert");
+  let btnAddExpert = document.getElementById("btnAddExpert");
+  if (!btnAddExpert) {
+    // fallback: look for a button with class btn-primary and text 'Nuevo experto' or icon + span
+    const candidates = Array.from(
+      document.querySelectorAll("button.btn-primary")
+    );
+    for (let i = 0; i < candidates.length; i++) {
+      try {
+        const t = (candidates[i].textContent || "").trim();
+        if (t.indexOf("Nuevo experto") !== -1 || t.indexOf("Nuevo") !== -1) {
+          btnAddExpert = candidates[i];
+          break;
+        }
+      } catch (e) {}
+    }
+  }
   const btnCloseModal = modal ? modal.querySelector(".btn-close") : null;
   const btnCancel = modal
     ? modal.querySelector('[data-dismiss="modal"]')
     : null;
-  if (!modal || !btnAddExpert) return;
+  // Debugging info: expose helper and log presence
+  try {
+    if (typeof console !== "undefined" && console.info) {
+      console.info(
+        "setupExpertModal: modal=",
+        !!modal,
+        "btnAddExpert=",
+        !!btnAddExpert
+      );
+    }
+  } catch (e) {}
+
+  if (!modal || !btnAddExpert) {
+    // expose a dev helper to open the first found modal for manual testing
+    try {
+      window.openAdminExpertModal = function () {
+        const m = modal || getExpertModal();
+        if (!m) return console.warn("openAdminExpertModal: no modal found");
+        try {
+          m.style.display = "flex";
+          document.body.style.overflow = "hidden";
+        } catch (e) {}
+      };
+    } catch (e) {}
+    return;
+  }
 
   const openModal = () => {
-    modal.style.display = "flex";
-    document.body.style.overflow = "hidden";
+    // Re-resolve modal at open time to avoid stale/colliding references
+    const m = getExpertModal();
     try {
-      const form = document.getElementById("expertForm");
-      if (form && form.dataset) delete form.dataset.editId;
+      console.info("openModal: attempting to open modal", !!m);
+    } catch (e) {}
+    if (!m) return console.warn("openModal: no modal found");
+    try {
+      // Ensure both the .is-open class and inline display are set so all
+      // codepaths (some check style.display, others check class) see the
+      // modal as visible.
+      m.classList.add("is-open");
+      m.style.display = "flex";
+      document.body.style.overflow = "hidden";
+    } catch (e) {}
+    try {
+      const inner = m.querySelector(".modal-expert__container");
+      if (inner) inner.style.transform = "none";
+    } catch (e) {}
+    try {
+      const cs = getComputedStyle(m);
+      console.info("openModal: computed styles after open", {
+        display: cs.display,
+        visibility: cs.visibility,
+        opacity: cs.opacity,
+        zIndex: cs.zIndex,
+      });
+    } catch (e) {}
+    try {
+      // Reset/clear the active form so the "Agregar nuevo experto" dialog
+      // doesn't show previously-filled values from an edit flow.
+      const form = getActiveExpertForm();
+      try {
+        if (form && form.dataset && form.dataset.editId)
+          delete form.dataset.editId;
+      } catch (e) {}
+      try {
+        if (form && typeof form.reset === "function") form.reset();
+      } catch (e) {}
+
+      // Clear profile preview inside the modal (avoid leaking avatar from
+      // previously edited expert). Prefer modal-local nodes.
+      try {
+        const preview =
+          (m && m.querySelector && m.querySelector("#profilePreview")) ||
+          document.getElementById("profilePreview");
+        if (preview) {
+          const img = preview.querySelector && preview.querySelector("img");
+          if (img) img.src = "";
+          preview.classList.remove("visible");
+          preview.style.display = "none";
+        }
+        const removeBtn =
+          (m && m.querySelector && m.querySelector("#removeProfileBtn")) ||
+          document.getElementById("removeProfileBtn");
+        if (removeBtn) removeBtn.style.display = "none";
+        const avatarInput =
+          (m && m.querySelector && m.querySelector("#avatarUrl")) ||
+          document.getElementById("avatarUrl");
+        if (avatarInput) avatarInput.value = "";
+      } catch (e) {}
+
+      // Clear selected days
+      try {
+        const diasEl =
+          (m && m.querySelector && m.querySelector("#diasDisponibles")) ||
+          document.getElementById("diasDisponibles");
+        if (diasEl) diasEl.value = "";
+        const dayBtns =
+          (m && m.querySelectorAll && m.querySelectorAll(".srv-day")) ||
+          document.querySelectorAll(".srv-day");
+        Array.from(dayBtns || []).forEach(function (b) {
+          try {
+            b.classList.remove("selected");
+            b.setAttribute("aria-pressed", "false");
+          } catch (e) {}
+        });
+        const display =
+          (m && m.querySelector && m.querySelector(".srv-days-display")) ||
+          document.querySelector(".srv-days-display");
+        if (display) display.textContent = "Ningún día seleccionado";
+      } catch (e) {}
+
+      // Clear categories selection and re-init Choices in an empty state
+      try {
+        const categoriasEl =
+          (m && m.querySelector && m.querySelector("#categorias")) ||
+          document.getElementById("categorias");
+        if (categoriasEl) {
+          Array.from(categoriasEl.options || []).forEach(function (opt) {
+            try {
+              opt.selected = false;
+            } catch (e) {}
+          });
+          // If Choices instance exists for 'categorias', clear it
+          try {
+            window._choicesInstances = window._choicesInstances || {};
+            if (window._choicesInstances["categorias"]) {
+              try {
+                // clear selected items safely
+                if (
+                  typeof window._choicesInstances["categorias"].clearStore ===
+                  "function"
+                )
+                  window._choicesInstances["categorias"].clearStore();
+              } catch (e) {}
+              try {
+                window._choicesInstances["categorias"].setChoices(
+                  [],
+                  "value",
+                  "label",
+                  false
+                );
+              } catch (e) {}
+            }
+          } catch (e) {}
+          // Re-initialize choices (will load library if needed)
+          initializeChoicesOn(
+            "categorias",
+            {
+              removeItemButton: true,
+              searchEnabled: true,
+              placeholder: true,
+              placeholderValue: "Selecciona categorías",
+            },
+            "categorias"
+          );
+        }
+      } catch (e) {}
+
       const titleEl = modal.querySelector(".modal-expert__title");
       if (titleEl) titleEl.textContent = "Agregar nuevo experto";
     } catch (e) {}
     // Cargar categorías e inicializar Choices en #categorias
     loadAdminCategorias().then(() => {
-      const categoriasEl = document.getElementById("categorias");
-      if (categoriasEl) {
-        initializeChoicesOn(
-          "categorias",
-          {
-            removeItemButton: true,
-            searchEnabled: true,
-            placeholder: true,
-            placeholderValue: "Selecciona categorías",
-          },
-          "categorias"
-        );
-      }
+      try {
+        // Clear all inputs/selects/textareas inside the modal to avoid showing
+        // data that belonged to a previously-opened edit modal.
+        try {
+          const controls = m.querySelectorAll("input, textarea, select");
+          Array.from(controls || []).forEach(function (c) {
+            try {
+              const tag = (c.tagName || "").toLowerCase();
+              if (tag === "input") {
+                const t = (c.type || "").toLowerCase();
+                if (t === "checkbox" || t === "radio") c.checked = false;
+                else if (t === "file") c.value = "";
+                else c.value = "";
+              } else if (tag === "textarea") {
+                c.value = "";
+              } else if (tag === "select") {
+                if (c.multiple)
+                  Array.from(c.options || []).forEach(
+                    (o) => (o.selected = false)
+                  );
+                else c.selectedIndex = -1;
+              }
+            } catch (e) {}
+          });
+        } catch (e) {}
+
+        const categoriasEl =
+          (m && m.querySelector && m.querySelector("#categorias")) ||
+          document.getElementById("categorias");
+        if (categoriasEl) {
+          // force a clean Choices instance for the modal-local select
+          try {
+            const key = "categorias_" + (m && m.id ? m.id : String(Date.now()));
+            initializeChoicesOn(
+              categoriasEl,
+              {
+                removeItemButton: true,
+                searchEnabled: true,
+                placeholder: true,
+                placeholderValue: "Selecciona categorías",
+              },
+              key
+            );
+          } catch (e) {}
+        }
+      } catch (e) {}
     });
   };
 
   const closeModal = () => {
-    modal.style.display = "none";
-    document.body.style.overflow = "";
-    const form = document.getElementById("expertForm");
+    try {
+      console.info("closeModal: attempting to close modal", modal);
+    } catch (e) {}
+    try {
+      // hide both via inline styles and class to cover different codepaths
+      modal.style.display = "none";
+      modal.style.visibility = "hidden";
+      modal.style.opacity = "0";
+      modal.classList.remove("is-open");
+      document.body.style.overflow = "";
+    } catch (e) {}
+    const form = getActiveExpertForm();
     if (form) form.reset();
     try {
       if (form && form.dataset && form.dataset.editId)
@@ -274,9 +495,88 @@ function setupExpertModal() {
       const titleEl = modal.querySelector(".modal-expert__title");
       if (titleEl) titleEl.textContent = "Agregar nuevo experto";
     } catch (e) {}
+    // additional cleanup: clear preview, days and choices
+    try {
+      const m = modal || getExpertModal();
+      const preview =
+        (m && m.querySelector && m.querySelector("#profilePreview")) ||
+        document.getElementById("profilePreview");
+      if (preview) {
+        const img = preview.querySelector && preview.querySelector("img");
+        if (img) img.src = "";
+        preview.classList.remove("visible");
+        preview.style.display = "none";
+      }
+      const removeBtn =
+        (m && m.querySelector && m.querySelector("#removeProfileBtn")) ||
+        document.getElementById("removeProfileBtn");
+      if (removeBtn) removeBtn.style.display = "none";
+      const diasEl =
+        (m && m.querySelector && m.querySelector("#diasDisponibles")) ||
+        document.getElementById("diasDisponibles");
+      if (diasEl) diasEl.value = "";
+      const dayBtns =
+        (m && m.querySelectorAll && m.querySelectorAll(".srv-day")) ||
+        document.querySelectorAll(".srv-day");
+      Array.from(dayBtns || []).forEach(function (b) {
+        try {
+          b.classList.remove("selected");
+          b.setAttribute("aria-pressed", "false");
+        } catch (e) {}
+      });
+      const categoriasEl =
+        (m && m.querySelector && m.querySelector("#categorias")) ||
+        document.getElementById("categorias");
+      if (categoriasEl) {
+        Array.from(categoriasEl.options || []).forEach(function (opt) {
+          try {
+            opt.selected = false;
+          } catch (e) {}
+        });
+        try {
+          if (
+            window._choicesInstances &&
+            window._choicesInstances["categorias"]
+          ) {
+            try {
+              window._choicesInstances["categorias"].clearStore &&
+                window._choicesInstances["categorias"].clearStore();
+            } catch (e) {}
+            try {
+              window._choicesInstances["categorias"].setChoices &&
+                window._choicesInstances["categorias"].setChoices(
+                  [],
+                  "value",
+                  "label",
+                  false
+                );
+            } catch (e) {}
+          }
+        } catch (e) {}
+      }
+    } catch (e) {}
   };
 
-  btnAddExpert.addEventListener("click", openModal);
+  try {
+    btnAddExpert.addEventListener("click", function (ev) {
+      try {
+        console.info("btnAddExpert clicked", ev);
+      } catch (e) {}
+      openModal();
+    });
+  } catch (e) {}
+  // Delegated fallback: open modal when any matching button is clicked (handles dynamic/duplicate nodes)
+  try {
+    document.addEventListener("click", function (e) {
+      try {
+        const b = e.target.closest && e.target.closest("#btnAddExpert");
+        if (b) {
+          console.info("delegated: btnAddExpert clicked");
+          openModal();
+        }
+      } catch (er) {}
+    });
+  } catch (e) {}
   if (btnCloseModal) btnCloseModal.addEventListener("click", closeModal);
   if (btnCancel) btnCancel.addEventListener("click", closeModal);
   if (modal) {
@@ -284,6 +584,17 @@ function setupExpertModal() {
       if (e.target === modal) closeModal();
     });
   }
+
+  // expose helper to open modal from console for debugging
+  try {
+    window.openAdminExpertModal = function () {
+      try {
+        openModal();
+      } catch (e) {
+        console.warn("openAdminExpertModal error", e);
+      }
+    };
+  } catch (e) {}
 }
 
 // Fixes visuales Choices dentro del modal visible
@@ -412,12 +723,25 @@ onDomReady(function () {
 // Preview de imagen de perfil
 onDomReady(function profileImagePreview() {
   try {
-    var input = document.getElementById("profileImage");
-    var preview = document.getElementById("profilePreview");
+    // Prefer elements inside the active modal to avoid duplicated IDs in the page
+    var modalForPreview = getExpertModal();
+    var input =
+      (modalForPreview && modalForPreview.querySelector("#profileImage")) ||
+      document.getElementById("profileImage");
+    var preview =
+      (modalForPreview && modalForPreview.querySelector("#profilePreview")) ||
+      document.getElementById("profilePreview");
     var img = preview ? preview.querySelector("img") : null;
-    var removeBtn = document.getElementById("removeProfileBtn");
-    var meta = document.getElementById("uploadMeta");
-    var err = document.getElementById("profileImageError");
+    var removeBtn =
+      (modalForPreview && modalForPreview.querySelector("#removeProfileBtn")) ||
+      document.getElementById("removeProfileBtn");
+    var meta =
+      (modalForPreview && modalForPreview.querySelector("#uploadMeta")) ||
+      document.getElementById("uploadMeta");
+    var err =
+      (modalForPreview &&
+        modalForPreview.querySelector("#profileImageError")) ||
+      document.getElementById("profileImageError");
 
     function reset() {
       if (input) input.value = "";
@@ -710,9 +1034,40 @@ onDomReady(() => {
 
 function getExpertModal() {
   try {
-    const byId = document.getElementById("expertModal");
-    if (byId) return byId;
-    return document.querySelector(".modal-expert");
+    // Prefer explicit id, but if duplicates or missing, try sensible fallbacks.
+    try {
+      const byId = document.getElementById("expertModal");
+      if (byId) return byId;
+    } catch (e) {}
+    // if no element by id, return first modal-expert intended for adding (contains #expertForm)
+    const all = Array.from(document.querySelectorAll(".modal-expert"));
+    for (let i = 0; i < all.length; i++) {
+      try {
+        if (all[i].querySelector && all[i].querySelector("#expertForm"))
+          return all[i];
+      } catch (e) {}
+    }
+    return all.length ? all[0] : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+// Retorna el formulario 'activo' vinculado al modal actual (evita depender de IDs globales
+// cuando la vista contiene formularios duplicados). Siempre intenta resolver el form dentro
+// del modal retornado por getExpertModal(); si no encuentra nada, hace fallback a
+// document.getElementById('expertForm') para compatibilidad hacia atrás.
+function getActiveExpertForm() {
+  try {
+    const m = getExpertModal();
+    if (m) {
+      const f = m.querySelector && m.querySelector("form");
+      if (f) return f;
+    }
+  } catch (e) {}
+  // fallback global
+  try {
+    return document.getElementById("expertForm");
   } catch (e) {
     return null;
   }
@@ -1071,7 +1426,12 @@ async function openExpertEditModal(expertoId) {
 
     const assign = (sel, value) => {
       try {
-        const el = document.getElementById(sel);
+        // Prefer modal-local element to avoid clobbering other duplicated IDs
+        let el = null;
+        try {
+          if (modal && modal.querySelector) el = modal.querySelector("#" + sel);
+        } catch (e) {}
+        if (!el) el = document.getElementById(sel);
         if (!el) return;
         if (typeof value === "undefined" || value === null) value = "";
         if ("value" in el) el.value = value;
@@ -1124,7 +1484,10 @@ async function openExpertEditModal(expertoId) {
     assign("bio", descripcion);
 
     try {
-      const preview = document.getElementById("profilePreview");
+      const preview =
+        (getExpertModal() &&
+          getExpertModal().querySelector("#profilePreview")) ||
+        document.getElementById("profilePreview");
       if (preview) {
         const img = preview.querySelector("img");
         const avatarUrl =
@@ -1133,7 +1496,10 @@ async function openExpertEditModal(expertoId) {
           ex.avatar ||
           "";
         if (img) img.src = avatarUrl || "";
-        const removeBtn = document.getElementById("removeProfileBtn");
+        const removeBtn =
+          (getExpertModal() &&
+            getExpertModal().querySelector("#removeProfileBtn")) ||
+          document.getElementById("removeProfileBtn");
         if (removeBtn)
           removeBtn.style.display = avatarUrl ? "inline-block" : "none";
         preview.style.display = avatarUrl ? "block" : "none";
@@ -1268,14 +1634,14 @@ async function loadExpertos() {
       Array.isArray(window._adminExpertos) &&
       window._adminExpertos.length > 0
     ) {
+      // Si ya hay datos inyectados, renderizarlos inmediatamente y evitar petición
       try {
         renderExpertos(
           window._adminExpertos,
           window._adminExpertosTotal || window._adminExpertos.length
         );
-      } catch (e) {
-        debugLog("adminExpertos: error rendering initial experts", e);
-      }
+      } catch (e) {}
+      return;
     }
 
     if (!window._adminCurrentPage) window._adminCurrentPage = 1;
@@ -1591,7 +1957,13 @@ function setupDelegatedActions() {
       try {
         const assign = (sel, value) => {
           try {
-            const el = document.getElementById(sel);
+            // Prefer modal-local element to avoid clobbering other duplicated IDs
+            let el = null;
+            try {
+              if (modal && modal.querySelector)
+                el = modal.querySelector("#" + sel);
+            } catch (e) {}
+            if (!el) el = document.getElementById(sel);
             if (!el) return;
             if (typeof value === "undefined" || value === null) value = "";
             if ("value" in el) el.value = value;
@@ -1645,7 +2017,10 @@ function setupDelegatedActions() {
         assign("bio", descripcion);
 
         try {
-          const preview = document.getElementById("profilePreview");
+          const preview =
+            (getExpertModal() &&
+              getExpertModal().querySelector("#profilePreview")) ||
+            document.getElementById("profilePreview");
           if (preview) {
             const img = preview.querySelector("img");
             const avatarUrl =
@@ -1654,7 +2029,10 @@ function setupDelegatedActions() {
               ex.avatar ||
               "";
             if (img) img.src = avatarUrl || "";
-            const removeBtn = document.getElementById("removeProfileBtn");
+            const removeBtn =
+              (getExpertModal() &&
+                getExpertModal().querySelector("#removeProfileBtn")) ||
+              document.getElementById("removeProfileBtn");
             if (removeBtn)
               removeBtn.style.display = avatarUrl ? "inline-block" : "none";
             preview.style.display = avatarUrl ? "block" : "none";
