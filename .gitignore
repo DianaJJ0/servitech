@@ -54,3 +54,4 @@ Thumbs.db
 dist/
 build/
 .cache/
+backend/logs/
