@@ -137,7 +137,7 @@ const listarExpertos = async (req, res) => {
       $or: [
         { roles: "experto" },
         { "infoExperto.descripcion": { $exists: true, $ne: "" } },
-        { "infoExperto.categorias.0": { $exists: true } }
+        { "infoExperto.categorias.0": { $exists: true } },
       ],
     };
 
