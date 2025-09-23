@@ -1326,10 +1326,7 @@ async function loadExpertos() {
       : Array.isArray(data.data)
       ? data.data
       : [];
-    const total =
-      typeof data.total === "number"
-        ? data.total
-        : expertos.length;
+    const total = typeof data.total === "number" ? data.total : expertos.length;
     window._adminExpertos = expertos;
     window._adminExpertosTotal = total;
 
