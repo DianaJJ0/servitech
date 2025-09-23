@@ -443,6 +443,61 @@
                 <i class="fas fa-chevron-down"></i>
               </div>
             </div>
+
+              <script>
+                // Early mitigation for autofill/placeholder issues inside the edit expert modal.
+                (function(){
+                  try {
+                    var m = document.getElementById('editExpertModal');
+                    if (!m) return;
+                    var email = m.querySelector && m.querySelector('#email');
+                    if (!email) return;
+                    try {
+                      email.value = '';
+                      email.setAttribute('autocomplete','off');
+                      email.setAttribute('autocorrect','off');
+                      email.setAttribute('autocapitalize','off');
+                      email.setAttribute('spellcheck','false');
+                      email.readOnly = true;
+                      var sec = getComputedStyle(document.documentElement).getPropertyValue('--admin-text-secondary') || '#8892a6';
+                      try { email.style.setProperty('color', sec, 'important'); } catch(e){}
+                      try { email.style.setProperty('-webkit-text-fill-color', sec, 'important'); } catch(e){}
+                      setTimeout(function(){ try{ email.readOnly = false; }catch(e){} }, 80);
+                    } catch (e) {}
+                  } catch (e) {}
+                })();
+              </script>
+              <script>
+                // Early mitigation for autofill/placeholder issues inside the expert modal.
+                // This runs as the HTML parser reaches the modal, before many scripts or
+                // autofill engines get a chance to fill values.
+                (function(){
+                  try {
+                    var m = document.getElementById('expertModal');
+                    if (!m) return;
+                    var email = m.querySelector && m.querySelector('#email');
+                    if (!email) return;
+                    try {
+                      // Clear any existing value that might have been auto-filled earlier
+                      email.value = '';
+                      // discourage browser autofill heuristics
+                      email.setAttribute('autocomplete','off');
+                      email.setAttribute('autocorrect','off');
+                      email.setAttribute('autocapitalize','off');
+                      email.setAttribute('spellcheck','false');
+                      // briefly mark as readOnly so some engines skip autofill
+                      email.readOnly = true;
+                      // Apply inline style fallback so placeholder is visible even if
+                      // some UA styles try to override it.
+                      var sec = getComputedStyle(document.documentElement).getPropertyValue('--admin-text-secondary') || '#8892a6';
+                      try { email.style.setProperty('color', sec, 'important'); } catch(e){}
+                      try { email.style.setProperty('-webkit-text-fill-color', sec, 'important'); } catch(e){}
+                      // restore readOnly after short delay so user can type
+                      setTimeout(function(){ try{ email.readOnly = false; }catch(e){} }, 80);
+                    } catch (e) {}
+                  } catch (e) {}
+                })();
+              </script>
           </div>
         </header>
 
@@ -462,6 +517,30 @@
               </button>
             </div>
           </div>
+
+            <script>
+              // Early mitigation for autofill/placeholder issues inside the view expert modal.
+              (function(){
+                try {
+                  var m = document.getElementById('verPerfilExperto');
+                  if (!m) return;
+                  var email = m.querySelector && m.querySelector('#email');
+                  if (!email) return;
+                  try {
+                    email.value = '';
+                    email.setAttribute('autocomplete','off');
+                    email.setAttribute('autocorrect','off');
+                    email.setAttribute('autocapitalize','off');
+                    email.setAttribute('spellcheck','false');
+                    email.readOnly = true;
+                    var sec = getComputedStyle(document.documentElement).getPropertyValue('--admin-text-secondary') || '#8892a6';
+                    try { email.style.setProperty('color', sec, 'important'); } catch(e){}
+                    try { email.style.setProperty('-webkit-text-fill-color', sec, 'important'); } catch(e){}
+                    setTimeout(function(){ try{ email.readOnly = false; }catch(e){} }, 80);
+                  } catch (e) {}
+                } catch (e) {}
+              })();
+            </script>
 
           <!-- Modernized filtros, estadísticas, tabla y paginación -->
           <div class="expertos-grid">
@@ -1005,6 +1084,142 @@
       font-size: 0.85rem;
     }
 
+    /* ===== Fix: neutralizar color amarillo de autofill dentro de los modales =====
+       Algunos navegadores (Chrome) aplican un estilo amarillo cuando el campo
+       está autocompletado/guardado. Forzamos un relleno con el fondo del modal
+       para que el campo visualmente coincida con el resto del diseño.
+       Limitamos la regla a #expertModal y #editExpertModal para no afectar
+       otros formularios en la página. */
+    #expertModal input:-webkit-autofill,
+    #expertModal textarea:-webkit-autofill,
+    #expertModal select:-webkit-autofill,
+    #editExpertModal input:-webkit-autofill,
+    #editExpertModal textarea:-webkit-autofill,
+    #editExpertModal select:-webkit-autofill {
+      -webkit-box-shadow: 0 0 0px 1000px var(--admin-card-bg) inset !important;
+      box-shadow: 0 0 0px 1000px var(--admin-card-bg) inset !important;
+      -webkit-text-fill-color: var(--admin-text-primary) !important;
+    }
+
+    /* Placeholder: asegurar que el placeholder sea visible dentro de los modales */
+    /* Forzar color del texto de inputs dentro de los modales (evita que
+       reglas de autofill o librerías cambien el color de texto) */
+    #expertModal .modal-expert__input,
+    #editExpertModal .modal-expert__input {
+      -webkit-text-fill-color: var(--admin-text-primary) !important;
+      color: var(--admin-text-primary) !important;
+    }
+
+    #expertModal .modal-expert__input::placeholder,
+    #editExpertModal .modal-expert__input::placeholder,
+    #expertModal .modal-expert__input::-webkit-input-placeholder,
+    #editExpertModal .modal-expert__input::-webkit-input-placeholder,
+    #expertModal .modal-expert__input::-moz-placeholder,
+    #editExpertModal .modal-expert__input::-moz-placeholder,
+    #expertModal .modal-expert__input:-ms-input-placeholder,
+    #editExpertModal .modal-expert__input:-ms-input-placeholder {
+      color: var(--admin-text-secondary) !important;
+      opacity: 1 !important;
+      /* algunos UA aplican opacidad baja */
+    }
+
+    /* Choices.js input placeholders inside modals */
+    #expertModal .choices__input::placeholder,
+    #editExpertModal .choices__input::placeholder,
+    #expertModal .choices__input--cloned::placeholder,
+    #editExpertModal .choices__input--cloned::placeholder {
+      color: var(--admin-text-secondary) !important;
+      opacity: 1 !important;
+    }
+
+    /* ============================
+       Reglas reforzadas para visibilidad de placeholders y opciones vacías
+       - :placeholder-shown cubre inputs/textarea con placeholder visible
+       - select:invalid cubre selects con required y valor vacío
+       - option[value=""] se fuerza a un color visible
+       - :has() ofrece una mejor cobertura en navegadores modernos
+    ============================ */
+    /* Inputs / textarea cuando muestran placeholder */
+    #expertModal input.modal-expert__input:placeholder-shown,
+    #editExpertModal input.modal-expert__input:placeholder-shown,
+    #expertModal textarea.modal-expert__input:placeholder-shown,
+    #editExpertModal textarea.modal-expert__input:placeholder-shown {
+      color: var(--admin-text-secondary) !important;
+      -webkit-text-fill-color: var(--admin-text-secondary) !important;
+      opacity: 1 !important;
+    }
+
+    /* Selects vacíos (cuando son required usan :invalid) */
+    #expertModal select.modal-expert__input:invalid,
+    #editExpertModal select.modal-expert__input:invalid {
+      color: var(--admin-text-secondary) !important;
+      -webkit-text-fill-color: var(--admin-text-secondary) !important;
+      opacity: 1 !important;
+    }
+
+    /* Forzar que las opciones con value="" se muestren con color secundario */
+    #expertModal select.modal-expert__input option[value=""],
+    #editExpertModal select.modal-expert__input option[value=""] {
+      color: var(--admin-text-secondary) !important;
+      opacity: 1 !important;
+    }
+
+    /* Regla moderna con :has() — cuando el select tiene la opción vacía seleccionada
+       algunos navegadores muestran el texto del option pero el color heredado viene
+       de la propiedad color del select; con :has() forzamos color secundario. */
+    @supports selector(:has(*)) {
+      #expertModal select.modal-expert__input:has(option[value=""]:checked),
+      #editExpertModal select.modal-expert__input:has(option[value=""]:checked) {
+        color: var(--admin-text-secondary) !important;
+        -webkit-text-fill-color: var(--admin-text-secondary) !important;
+      }
+      /* Si el select tiene la primera opción vacía (placeholder) y está seleccionada */
+      #expertModal select.modal-expert__input:has(option[value=""]:first-child),
+      #editExpertModal select.modal-expert__input:has(option[value=""]:first-child) {
+        color: var(--admin-text-secondary) !important;
+        -webkit-text-fill-color: var(--admin-text-secondary) !important;
+      }
+    }
+
+    /* En casos donde el navegador aplica estilos de autofill agresivos, reforzar background-clip
+       y desactivar cualquier -webkit-box-shadow extra que opaque el texto (ya existe regla más arriba
+       que cubre -webkit-autofill pero reforzamos aquí el clip). */
+    #expertModal input:-webkit-autofill,
+    #editExpertModal input:-webkit-autofill {
+      -webkit-background-clip: padding-box !important;
+      background-clip: padding-box !important;
+    }
+
+    /* Reforzar cobertura para estados de autofill (incluye hover/focus) y asegurar placeholder visible */
+    #expertModal input:-webkit-autofill,
+    #expertModal input:-webkit-autofill:hover,
+    #expertModal input:-webkit-autofill:focus,
+    #editExpertModal input:-webkit-autofill,
+    #editExpertModal input:-webkit-autofill:hover,
+    #editExpertModal input:-webkit-autofill:focus {
+      -webkit-box-shadow: 0 0 0px 1000px var(--admin-card-bg) inset !important;
+      box-shadow: 0 0 0px 1000px var(--admin-card-bg) inset !important;
+      -webkit-text-fill-color: var(--admin-text-primary) !important;
+      color: var(--admin-text-primary) !important;
+      background-color: var(--admin-card-bg) !important;
+      background-image: none !important;
+      border-color: var(--admin-border-color) !important;
+      -webkit-background-clip: padding-box !important;
+    }
+
+    /* Garantizar que el placeholder se muestre con prioridad dentro de los modales */
+    #expertModal .modal-expert__input::placeholder,
+    #editExpertModal .modal-expert__input::placeholder,
+    #expertModal .modal-expert__input::-webkit-input-placeholder,
+    #editExpertModal .modal-expert__input::-webkit-input-placeholder,
+    #expertModal .modal-expert__input::-moz-placeholder,
+    #editExpertModal .modal-expert__input::-moz-placeholder {
+      color: var(--admin-text-secondary) !important;
+      opacity: 1 !important;
+    }
+
+
+
     /* ============================
      Toggle mostrar número de cuenta
      ============================ */
@@ -1355,7 +1570,7 @@
                 <i class="fas fa-envelope modal-expert__icon" aria-hidden="true"></i>
                 Email registrado
               </label>
-              <input type="email" id="email" placeholder="Email de la cuenta" class="modal-expert__input" />
+              <input type="email" id="email" name="email_admin_experto" placeholder="Email de la cuenta" class="modal-expert__input" />
             </div>
 
             <!-- Precio por hora -->
@@ -1376,7 +1591,7 @@
               </div>
               <p class="srv-note price-note">
                 Tarifa por hora de asesoría (Recomendado: $30.000 - $200.000 COP)
-                </small>
+              </p>
               <div id="precio-feedback" class="srv-feedback price-feedback" aria-live="polite"></div>
             </div>
 
@@ -1622,7 +1837,7 @@
 
       <div class="modal-expert__footer">
         <button class="btn-outline" data-dismiss="modal" type="button">Cancelar</button>
-        <button type="button" class="btn-primary" id="saveExpert">Guardar experto</button>
+  <button type="button" class="btn-primary" id="saveExpert">Guardar experto</button>
       </div>
     </div>
   </div>
@@ -1637,7 +1852,7 @@
       </div>
 
       <div class="modal-expert__body">
-        <form id="expertForm">
+  <form id="expertForm_edit">
           <div class="modal-expert__grid">
             <!-- Información básica -->
             <div>
@@ -1645,7 +1860,7 @@
                 <i class="fas fa-user modal-expert__icon" aria-hidden="true"></i>
                 Nombre completo
               </label>
-              <input type="text" id="name" placeholder="Nombre y apellidos registrados" class="modal-expert__input" />
+              <input type="text" id="name_edit" placeholder="Nombre y apellidos registrados" class="modal-expert__input" />
             </div>
 
             <div>
@@ -1653,7 +1868,7 @@
                 <i class="fas fa-envelope modal-expert__icon" aria-hidden="true"></i>
                 Email registrado
               </label>
-              <input type="email" id="email" placeholder="Email de la cuenta" class="modal-expert__input" />
+              <input type="email" id="email_edit" placeholder="Email de la cuenta" class="modal-expert__input" />
             </div>
 
             <!-- Precio por hora -->
@@ -1669,7 +1884,7 @@
 
               <div class="srv-price-input price-input">
                 <span class="srv-currency currency-symbol">$</span>
-                <input type="number" id="precio" name="precio" min="10000" step="100" required placeholder="Ej: 50000"
+                <input type="number" id="precio_edit" name="precio" min="10000" step="100" required placeholder="Ej: 50000"
                   class="srv-input price-field" />
               </div>
               <p class="srv-note price-note">
@@ -1701,7 +1916,7 @@
                 </div>
               </div>
 
-              <input type="hidden" id="diasDisponibles" name="diasDisponibles" />
+              <input type="hidden" id="diasDisponibles_edit" name="diasDisponibles" />
             </div>
 
             <!-- Estado -->
@@ -1728,7 +1943,7 @@
                 <i class="fas fa-tags modal-expert__icon" aria-hidden="true"></i>
                 Categorías
               </label>
-              <select id="categorias" class="modal-expert__input modal-expert__select-categorias" multiple size="4"
+                <select id="categorias_edit" class="modal-expert__input modal-expert__select-categorias" multiple size="4"
                 aria-label="Categorías">
                 <!-- opciones añadidas dinámicamente desde categorias-data -->
               </select>
@@ -1743,7 +1958,7 @@
                 <i class="fas fa-file-alt modal-expert__icon" aria-hidden="true"></i>
                 Biografía profesional
               </label>
-              <textarea id="bio" rows="4" placeholder="Descripción breve de experiencia y especialización"
+              <textarea id="bio_edit" rows="4" placeholder="Descripción breve de experiencia y especialización"
                 class="modal-expert__input modal-expert__textarea"></textarea>
             </div>
 
@@ -1755,24 +1970,24 @@
               </label>
 
               <div class="modal-expert__upload-wrapper">
-                <input type="file" id="profileImage" class="modal-expert__file-input"
+                <input type="file" id="profileImage_edit" class="modal-expert__file-input"
                   aria-label="Seleccionar imagen de perfil" accept="image/*" />
 
                 <label for="profileImage" class="modal-expert__upload-box" role="button" aria-haspopup="dialog">
                   <i class="fas fa-upload" aria-hidden="true"></i>
-                  <span id="uploadLabel">Seleccionar imagen (png, jpg) · Máx 2MB</span>
+                  <span id="uploadLabel_edit">Seleccionar imagen (png, jpg) · Máx 2MB</span>
                 </label>
 
-                <div id="profilePreview" aria-hidden="true" role="img" aria-label="Vista previa de imagen">
-                  <button id="removeProfileBtn" type="button" title="Eliminar imagen" aria-label="Eliminar imagen"
+                <div id="profilePreview_edit" aria-hidden="true" role="img" aria-label="Vista previa de imagen">
+                  <button id="removeProfileBtn_edit" type="button" title="Eliminar imagen" aria-label="Eliminar imagen"
                     style="display:none;">
                     <i class="fas fa-times"></i>
                   </button>
                   <img src="" alt="Preview" />
                 </div>
 
-                <div class="upload-meta" id="uploadMeta" aria-live="polite" style="display:none;"></div>
-                <div class="upload-error" id="profileImageError" role="alert" style="display:none;"></div>
+                <div class="upload-meta" id="uploadMeta_edit" aria-live="polite" style="display:none;"></div>
+                <div class="upload-error" id="profileImageError_edit" role="alert" style="display:none;"></div>
               </div>
             </div>
 
@@ -1790,7 +2005,7 @@
                       <i class="fas fa-university modal-expert__icon" aria-hidden="true"></i>
                       Banco *
                     </label>
-                    <select id="banco" name="banco" required class="modal-expert__input">
+                    <select id="banco_edit" name="banco" required class="modal-expert__input">
                       <option value="">Selecciona tu banco</option>
                       <option value="Banco de Bogotá">Banco de Bogotá</option>
                       <option value="Bancolombia">Bancolombia</option>
@@ -1830,7 +2045,7 @@
                       <i class="fas fa-credit-card modal-expert__icon" aria-hidden="true"></i>
                       Tipo de cuenta *
                     </label>
-                    <select id="tipoCuenta" name="tipoCuenta" required class="modal-expert__input">
+                    <select id="tipoCuenta_edit" name="tipoCuenta" required class="modal-expert__input">
                       <option value="">Selecciona el tipo</option>
                       <option value="Cuenta de Ahorros">Cuenta de Ahorros</option>
                       <option value="Cuenta Corriente">Cuenta Corriente</option>
@@ -1845,7 +2060,7 @@
                       Número de cuenta *
                     </label>
                     <div class="acct-wrap">
-                      <input type="password" id="numeroCuenta" name="numeroCuenta" required
+                      <input type="password" id="numeroCuenta_edit" name="numeroCuenta" required
                         placeholder="Número de cuenta" pattern="[0-9\-]*" title="Solo números y guiones"
                         class="acct-input">
                       <button type="button" id="toggleAccountNumber" class="acct-toggle"
@@ -1860,7 +2075,7 @@
                         <i class="fas fa-user-tie modal-expert__icon" aria-hidden="true"></i>
                         Titular de la cuenta *
                       </label>
-                      <input type="text" id="titular" name="titular" required placeholder="Nombre completo del titular"
+                        <input type="text" id="titular_edit" name="titular" required placeholder="Nombre completo del titular"
                         class="modal-expert__input">
                       <small class="modal-expert__hint">Debe coincidir con el nombre en la cuenta</small>
                     </div>
@@ -1870,7 +2085,7 @@
                         <i class="fas fa-id-card modal-expert__icon" aria-hidden="true"></i>
                         Tipo de documento *
                       </label>
-                      <select id="tipoDocumento" name="tipoDocumento" required class="modal-expert__input">
+                      <select id="tipoDocumento_edit" name="tipoDocumento" required class="modal-expert__input">
                         <option value="">Selecciona el tipo</option>
                         <option value="Cédula de Ciudadanía">Cédula de Ciudadanía</option>
                         <option value="Cédula de Extranjería">Cédula de Extranjería</option>
@@ -1884,7 +2099,7 @@
                         <i class="fas fa-fingerprint modal-expert__icon" aria-hidden="true"></i>
                         Número de documento *
                       </label>
-                      <input type="text" id="numeroDocumento" name="numeroDocumento" required
+                      <input type="text" id="numeroDocumento_edit" name="numeroDocumento" required
                         placeholder="Número de identificación" pattern="[0-9\-]*" class="modal-expert__input">
                       <small class="modal-expert__hint">Documento del titular</small>
                     </div>
@@ -1894,7 +2109,7 @@
                         <i class="fas fa-phone modal-expert__icon" aria-hidden="true"></i>
                         Teléfono de contacto
                       </label>
-                      <input type="tel" id="telefonoContacto" name="telefonoContacto" placeholder="+57 300 123 4567"
+                      <input type="tel" id="telefonoContacto_edit" name="telefonoContacto" placeholder="+57 300 123 4567"
                         class="modal-expert__input">
                       <small class="modal-expert__hint">Opcional: Teléfono para contacto sobre pagos</small>
                     </div>
@@ -1920,7 +2135,7 @@
 
       <div class="modal-expert__footer">
         <button class="btn-outline" data-dismiss="modal" type="button">Cancelar</button>
-        <button type="button" class="btn-primary" id="saveExpert">Guardar experto</button>
+  <button type="button" class="btn-primary" id="saveExpert_edit">Guardar experto</button>
       </div>
     </div>
   </div>
@@ -1933,7 +2148,7 @@
       </div>
 
       <div class="modal-expert__body">
-        <form id="expertForm">
+  <form id="expertForm_view">
           <div class="modal-expert__grid">
             <!-- Información básica -->
             <div>
@@ -1941,7 +2156,7 @@
                 <i class="fas fa-user modal-expert__icon" aria-hidden="true"></i>
                 Nombre completo
               </label>
-              <input type="text" id="name" placeholder="Nombre y apellidos registrados" class="modal-expert__input" />
+              <input type="text" id="name_view" placeholder="Nombre y apellidos registrados" class="modal-expert__input" />
             </div>
 
             <div>
@@ -1949,7 +2164,7 @@
                 <i class="fas fa-envelope modal-expert__icon" aria-hidden="true"></i>
                 Email registrado
               </label>
-              <input type="email" id="email" placeholder="Email de la cuenta" class="modal-expert__input" />
+              <input type="email" id="email_view" placeholder="Email de la cuenta" class="modal-expert__input" />
             </div>
 
             <!-- Precio por hora -->
@@ -1965,7 +2180,7 @@
 
               <div class="srv-price-input price-input">
                 <span class="srv-currency currency-symbol">$</span>
-                <input type="number" id="precio" name="precio" min="10000" step="100" required placeholder="Ej: 50000"
+                <input type="number" id="precio_view" name="precio" min="10000" step="100" required placeholder="Ej: 50000"
                   class="srv-input price-field" />
               </div>
               <p class="srv-note price-note">
@@ -1997,7 +2212,7 @@
                 </div>
               </div>
 
-              <input type="hidden" id="diasDisponibles" name="diasDisponibles" />
+              <input type="hidden" id="diasDisponibles_view" name="diasDisponibles" />
             </div>
 
             <!-- Estado -->
@@ -2024,7 +2239,7 @@
                 <i class="fas fa-tags modal-expert__icon" aria-hidden="true"></i>
                 Categorías
               </label>
-              <select id="categorias" class="modal-expert__input modal-expert__select-categorias" multiple size="4"
+                <select id="categorias_view" class="modal-expert__input modal-expert__select-categorias" multiple size="4"
                 aria-label="Categorías">
                 <!-- opciones añadidas dinámicamente desde categorias-data -->
               </select>
@@ -2039,7 +2254,7 @@
                 <i class="fas fa-file-alt modal-expert__icon" aria-hidden="true"></i>
                 Biografía profesional
               </label>
-              <textarea id="bio" rows="4" placeholder="Descripción breve de experiencia y especialización"
+              <textarea id="bio_view" rows="4" placeholder="Descripción breve de experiencia y especialización"
                 class="modal-expert__input modal-expert__textarea"></textarea>
             </div>
 
@@ -2051,24 +2266,24 @@
               </label>
 
               <div class="modal-expert__upload-wrapper">
-                <input type="file" id="profileImage" class="modal-expert__file-input"
+                <input type="file" id="profileImage_view" class="modal-expert__file-input"
                   aria-label="Seleccionar imagen de perfil" accept="image/*" />
 
                 <label for="profileImage" class="modal-expert__upload-box" role="button" aria-haspopup="dialog">
                   <i class="fas fa-upload" aria-hidden="true"></i>
-                  <span id="uploadLabel">Seleccionar imagen (png, jpg) · Máx 2MB</span>
+                  <span id="uploadLabel_view">Seleccionar imagen (png, jpg) · Máx 2MB</span>
                 </label>
 
-                <div id="profilePreview" aria-hidden="true" role="img" aria-label="Vista previa de imagen">
-                  <button id="removeProfileBtn" type="button" title="Eliminar imagen" aria-label="Eliminar imagen"
+                <div id="profilePreview_view" aria-hidden="true" role="img" aria-label="Vista previa de imagen">
+                  <button id="removeProfileBtn_view" type="button" title="Eliminar imagen" aria-label="Eliminar imagen"
                     style="display:none;">
                     <i class="fas fa-times"></i>
                   </button>
                   <img src="" alt="Preview" />
                 </div>
 
-                <div class="upload-meta" id="uploadMeta" aria-live="polite" style="display:none;"></div>
-                <div class="upload-error" id="profileImageError" role="alert" style="display:none;"></div>
+                <div class="upload-meta" id="uploadMeta_view" aria-live="polite" style="display:none;"></div>
+                <div class="upload-error" id="profileImageError_view" role="alert" style="display:none;"></div>
               </div>
             </div>
 
@@ -2086,7 +2301,7 @@
                       <i class="fas fa-university modal-expert__icon" aria-hidden="true"></i>
                       Banco *
                     </label>
-                    <select id="banco" name="banco" required class="modal-expert__input">
+                    <select id="banco_view" name="banco" required class="modal-expert__input">
                       <option value="">Selecciona tu banco</option>
                       <option value="Banco de Bogotá">Banco de Bogotá</option>
                       <option value="Bancolombia">Bancolombia</option>
@@ -2126,7 +2341,7 @@
                       <i class="fas fa-credit-card modal-expert__icon" aria-hidden="true"></i>
                       Tipo de cuenta *
                     </label>
-                    <select id="tipoCuenta" name="tipoCuenta" required class="modal-expert__input">
+                    <select id="tipoCuenta_view" name="tipoCuenta" required class="modal-expert__input">
                       <option value="">Selecciona el tipo</option>
                       <option value="Cuenta de Ahorros">Cuenta de Ahorros</option>
                       <option value="Cuenta Corriente">Cuenta Corriente</option>
@@ -2141,7 +2356,7 @@
                       Número de cuenta *
                     </label>
                     <div class="acct-wrap">
-                      <input type="password" id="numeroCuenta" name="numeroCuenta" required
+                      <input type="password" id="numeroCuenta_view" name="numeroCuenta" required
                         placeholder="Número de cuenta" pattern="[0-9\-]*" title="Solo números y guiones"
                         class="acct-input">
                       <button type="button" id="toggleAccountNumber" class="acct-toggle"
@@ -2156,7 +2371,7 @@
                         <i class="fas fa-user-tie modal-expert__icon" aria-hidden="true"></i>
                         Titular de la cuenta *
                       </label>
-                      <input type="text" id="titular" name="titular" required placeholder="Nombre completo del titular"
+                        <input type="text" id="titular_view" name="titular" required placeholder="Nombre completo del titular"
                         class="modal-expert__input">
                       <small class="modal-expert__hint">Debe coincidir con el nombre en la cuenta</small>
                     </div>
@@ -2166,7 +2381,7 @@
                         <i class="fas fa-id-card modal-expert__icon" aria-hidden="true"></i>
                         Tipo de documento *
                       </label>
-                      <select id="tipoDocumento" name="tipoDocumento" required class="modal-expert__input">
+                      <select id="tipoDocumento_view" name="tipoDocumento" required class="modal-expert__input">
                         <option value="">Selecciona el tipo</option>
                         <option value="Cédula de Ciudadanía">Cédula de Ciudadanía</option>
                         <option value="Cédula de Extranjería">Cédula de Extranjería</option>
@@ -2180,7 +2395,7 @@
                         <i class="fas fa-fingerprint modal-expert__icon" aria-hidden="true"></i>
                         Número de documento *
                       </label>
-                      <input type="text" id="numeroDocumento" name="numeroDocumento" required
+                      <input type="text" id="numeroDocumento_view" name="numeroDocumento" required
                         placeholder="Número de identificación" pattern="[0-9\-]*" class="modal-expert__input">
                       <small class="modal-expert__hint">Documento del titular</small>
                     </div>
@@ -2190,7 +2405,7 @@
                         <i class="fas fa-phone modal-expert__icon" aria-hidden="true"></i>
                         Teléfono de contacto
                       </label>
-                      <input type="tel" id="telefonoContacto" name="telefonoContacto" placeholder="+57 300 123 4567"
+                      <input type="tel" id="telefonoContacto_view" name="telefonoContacto" placeholder="+57 300 123 4567"
                         class="modal-expert__input">
                       <small class="modal-expert__hint">Opcional: Teléfono para contacto sobre pagos</small>
                     </div>
@@ -2216,7 +2431,7 @@
 
       <div class="modal-expert__footer">
         <button class="btn-outline" data-dismiss="modal" type="button">Cancelar</button>
-        <button type="button" class="btn-primary" id="saveExpert">Guardar experto</button>
+  <button type="button" class="btn-primary" id="saveExpert_view">Guardar experto</button>
       </div>
     </div>
   </div>
