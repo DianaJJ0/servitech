@@ -1292,8 +1292,9 @@ async function loadExpertos() {
     if (typeof filters.minRating === "number" && !isNaN(filters.minRating))
       params.set("minRating", String(filters.minRating));
 
-    // Conservamos ruta actual usada en admin (/api/usuarios/expertos)
-    const url = `/api/usuarios/expertos?${params.toString()}`;
+    // Usar endpoint público de expertos para listar (evita dependencias de token/API key)
+    // El backend público devuelve { total, page, limit, data: [...] }
+    const url = `/api/expertos?${params.toString()}`;
     const res = await fetch(url, {
       headers: await getHeaders(),
       credentials: "same-origin",
@@ -1317,8 +1318,18 @@ async function loadExpertos() {
       return;
     }
     const data = await res.json();
-    const expertos = Array.isArray(data) ? data : data.expertos || [];
-    const total = typeof data.total === "number" ? data.total : expertos.length;
+    // Aceptar distintos formatos de respuesta: array, { expertos: [] }, { data: [] } o { data: { ... } }
+    const expertos = Array.isArray(data)
+      ? data
+      : Array.isArray(data.expertos)
+      ? data.expertos
+      : Array.isArray(data.data)
+      ? data.data
+      : [];
+    const total =
+      typeof data.total === "number"
+        ? data.total
+        : expertos.length;
     window._adminExpertos = expertos;
     window._adminExpertosTotal = total;
 
