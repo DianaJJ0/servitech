@@ -261,19 +261,28 @@ function setupExpertModal() {
             const t = (c.type || "").toLowerCase();
             if (t === "checkbox" || t === "radio") empty = !c.checked;
             else empty = !(c.value && String(c.value).length);
-          } else if (tag === "textarea") empty = !(c.value && String(c.value).length);
+          } else if (tag === "textarea")
+            empty = !(c.value && String(c.value).length);
           else if (tag === "select") {
             try {
               // consider empty when no selection or selection is the empty option
               if (c.multiple) empty = c.selectedOptions.length === 0;
-              else empty = c.selectedIndex === -1 || (c.options[c.selectedIndex] && c.options[c.selectedIndex].value === "");
+              else
+                empty =
+                  c.selectedIndex === -1 ||
+                  (c.options[c.selectedIndex] &&
+                    c.options[c.selectedIndex].value === "");
             } catch (e) {
               empty = true;
             }
           }
           if (empty) {
             c.style.setProperty("color", varColor, "important");
-            c.style.setProperty("-webkit-text-fill-color", varColor, "important");
+            c.style.setProperty(
+              "-webkit-text-fill-color",
+              varColor,
+              "important"
+            );
             c.style.setProperty("opacity", "1", "important");
           }
         } catch (e) {}
@@ -364,14 +373,15 @@ function setupExpertModal() {
     // clearing its value and applying attributes that discourage autofill.
     // Use a brief readOnly trick so some autofill engines skip the field on open.
     try {
-  const emailInput = (m && m.querySelector && m.querySelector('#email')) || null;
+      const emailInput =
+        (m && m.querySelector && m.querySelector("#email")) || null;
       if (emailInput) {
         try {
-          emailInput.value = '';
-          emailInput.setAttribute('autocomplete', 'off');
-          emailInput.setAttribute('autocorrect', 'off');
-          emailInput.setAttribute('autocapitalize', 'off');
-          emailInput.setAttribute('spellcheck', 'false');
+          emailInput.value = "";
+          emailInput.setAttribute("autocomplete", "off");
+          emailInput.setAttribute("autocorrect", "off");
+          emailInput.setAttribute("autocapitalize", "off");
+          emailInput.setAttribute("spellcheck", "false");
           emailInput.readOnly = true;
           setTimeout(function () {
             try {
@@ -529,9 +539,9 @@ function setupExpertModal() {
           });
         } catch (e) {}
 
-      const categoriasEl =
-        (m && m.querySelector && m.querySelector("#categorias")) ||
-        getModalField("categorias", m);
+        const categoriasEl =
+          (m && m.querySelector && m.querySelector("#categorias")) ||
+          getModalField("categorias", m);
         if (categoriasEl) {
           // force a clean Choices instance for the modal-local select
           try {
@@ -611,9 +621,9 @@ function setupExpertModal() {
           b.setAttribute("aria-pressed", "false");
         } catch (e) {}
       });
-        const categoriasEl =
-          (m && m.querySelector && m.querySelector("#categorias")) ||
-          getModalField("categorias", m);
+      const categoriasEl =
+        (m && m.querySelector && m.querySelector("#categorias")) ||
+        getModalField("categorias", m);
       if (categoriasEl) {
         Array.from(categoriasEl.options || []).forEach(function (opt) {
           try {
@@ -1190,7 +1200,8 @@ function getModalField(id, modal) {
     const m = modal || getExpertModal();
     if (m && typeof m.querySelector === "function") {
       try {
-        const el = m.querySelector('#' + id) || m.querySelector('[name="' + id + '"]');
+        const el =
+          m.querySelector("#" + id) || m.querySelector('[name="' + id + '"]');
         if (el) return el;
       } catch (e) {}
     }
@@ -2477,10 +2488,10 @@ function setupDelegatedActions() {
   if (saveBtn) {
     saveBtn.addEventListener("click", async (e) => {
       e.preventDefault();
-  const name = (getModalValue("name") || "").trim();
-  const email = (getModalValue("email") || "").trim();
-  const status = getModalValue("status") || "";
-  const bio = (getModalValue("bio") || "").trim();
+      const name = (getModalValue("name") || "").trim();
+      const email = (getModalValue("email") || "").trim();
+      const status = getModalValue("status") || "";
+      const bio = (getModalValue("bio") || "").trim();
 
       const payload = {
         nombre: name,
@@ -2522,8 +2533,8 @@ function setupDelegatedActions() {
       if (hasMinimal) payload.infoExperto = Object.assign({}, maybeInfo);
 
       try {
-  const form = getModalField("expertForm") || getActiveExpertForm();
-  const editId = form && form.dataset ? form.dataset.editId : null;
+        const form = getModalField("expertForm") || getActiveExpertForm();
+        const editId = form && form.dataset ? form.dataset.editId : null;
         if (editId) {
           const putPayload = { infoExperto: {} };
           if (bio) putPayload.infoExperto.descripcion = bio;
