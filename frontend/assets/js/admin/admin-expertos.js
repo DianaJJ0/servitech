@@ -244,6 +244,65 @@ onDomReady(function () {
 // Modal agregar/editar experto
 function setupExpertModal() {
   const modal = getExpertModal();
+  // Helper: force placeholders visible by applying inline styles to empty controls
+  function forcePlaceholderVisibility(m) {
+    if (!m) return;
+    try {
+      const varColor =
+        getComputedStyle(document.documentElement).getPropertyValue(
+          "--admin-text-secondary"
+        ) || "#8892a6";
+      const controls = m.querySelectorAll("input, textarea, select");
+      Array.from(controls || []).forEach(function (c) {
+        try {
+          const tag = (c.tagName || "").toLowerCase();
+          let empty = false;
+          if (tag === "input") {
+            const t = (c.type || "").toLowerCase();
+            if (t === "checkbox" || t === "radio") empty = !c.checked;
+            else empty = !(c.value && String(c.value).length);
+          } else if (tag === "textarea")
+            empty = !(c.value && String(c.value).length);
+          else if (tag === "select") {
+            try {
+              // consider empty when no selection or selection is the empty option
+              if (c.multiple) empty = c.selectedOptions.length === 0;
+              else
+                empty =
+                  c.selectedIndex === -1 ||
+                  (c.options[c.selectedIndex] &&
+                    c.options[c.selectedIndex].value === "");
+            } catch (e) {
+              empty = true;
+            }
+          }
+          if (empty) {
+            c.style.setProperty("color", varColor, "important");
+            c.style.setProperty(
+              "-webkit-text-fill-color",
+              varColor,
+              "important"
+            );
+            c.style.setProperty("opacity", "1", "important");
+          }
+        } catch (e) {}
+      });
+    } catch (e) {}
+  }
+
+  function clearForcedPlaceholderVisibility(m) {
+    if (!m) return;
+    try {
+      const controls = m.querySelectorAll("input, textarea, select");
+      Array.from(controls || []).forEach(function (c) {
+        try {
+          c.style.removeProperty("color");
+          c.style.removeProperty("-webkit-text-fill-color");
+          c.style.removeProperty("opacity");
+        } catch (e) {}
+      });
+    } catch (e) {}
+  }
   let btnAddExpert = document.getElementById("btnAddExpert");
   if (!btnAddExpert) {
     // fallback: look for a button with class btn-primary and text 'Nuevo experto' or icon + span
@@ -310,6 +369,34 @@ function setupExpertModal() {
       const inner = m.querySelector(".modal-expert__container");
       if (inner) inner.style.transform = "none";
     } catch (e) {}
+    // Best-effort: prevent browser autofill race for the email field by
+    // clearing its value and applying attributes that discourage autofill.
+    // Use a brief readOnly trick so some autofill engines skip the field on open.
+    try {
+      const emailInput =
+        (m && m.querySelector && m.querySelector("#email")) || null;
+      if (emailInput) {
+        try {
+          emailInput.value = "";
+          emailInput.setAttribute("autocomplete", "off");
+          emailInput.setAttribute("autocorrect", "off");
+          emailInput.setAttribute("autocapitalize", "off");
+          emailInput.setAttribute("spellcheck", "false");
+          emailInput.readOnly = true;
+          setTimeout(function () {
+            try {
+              emailInput.readOnly = false;
+            } catch (e) {}
+          }, 60);
+        } catch (e) {}
+      }
+    } catch (e) {}
+
+    // Force placeholder visibility for empty controls inside the modal
+    try {
+      forcePlaceholderVisibility(m);
+    } catch (e) {}
+    // ...existing code...
     try {
       const cs = getComputedStyle(m);
       console.info("openModal: computed styles after open", {
@@ -336,7 +423,7 @@ function setupExpertModal() {
       try {
         const preview =
           (m && m.querySelector && m.querySelector("#profilePreview")) ||
-          document.getElementById("profilePreview");
+          getModalField("profilePreview", m);
         if (preview) {
           const img = preview.querySelector && preview.querySelector("img");
           if (img) img.src = "";
@@ -345,11 +432,11 @@ function setupExpertModal() {
         }
         const removeBtn =
           (m && m.querySelector && m.querySelector("#removeProfileBtn")) ||
-          document.getElementById("removeProfileBtn");
+          getModalField("removeProfileBtn", m);
         if (removeBtn) removeBtn.style.display = "none";
         const avatarInput =
           (m && m.querySelector && m.querySelector("#avatarUrl")) ||
-          document.getElementById("avatarUrl");
+          getModalField("avatarUrl", m);
         if (avatarInput) avatarInput.value = "";
       } catch (e) {}
 
@@ -357,7 +444,7 @@ function setupExpertModal() {
       try {
         const diasEl =
           (m && m.querySelector && m.querySelector("#diasDisponibles")) ||
-          document.getElementById("diasDisponibles");
+          getModalField("diasDisponibles", m);
         if (diasEl) diasEl.value = "";
         const dayBtns =
           (m && m.querySelectorAll && m.querySelectorAll(".srv-day")) ||
@@ -378,7 +465,7 @@ function setupExpertModal() {
       try {
         const categoriasEl =
           (m && m.querySelector && m.querySelector("#categorias")) ||
-          document.getElementById("categorias");
+          getModalField("categorias", m);
         if (categoriasEl) {
           Array.from(categoriasEl.options || []).forEach(function (opt) {
             try {
@@ -454,7 +541,7 @@ function setupExpertModal() {
 
         const categoriasEl =
           (m && m.querySelector && m.querySelector("#categorias")) ||
-          document.getElementById("categorias");
+          getModalField("categorias", m);
         if (categoriasEl) {
           // force a clean Choices instance for the modal-local select
           try {
@@ -472,6 +559,12 @@ function setupExpertModal() {
           } catch (e) {}
         }
       } catch (e) {}
+      // After Choices initialization and control clearing, re-apply placeholder
+      // visibility forcing in case other scripts or the browser modified styles.
+      try {
+        forcePlaceholderVisibility(m);
+      } catch (e) {}
+      // ...existing code...
     });
   };
 
@@ -486,6 +579,10 @@ function setupExpertModal() {
       modal.style.opacity = "0";
       modal.classList.remove("is-open");
       document.body.style.overflow = "";
+    } catch (e) {}
+    // clear any inline forced styles
+    try {
+      clearForcedPlaceholderVisibility(modal);
     } catch (e) {}
     const form = getActiveExpertForm();
     if (form) form.reset();
@@ -526,7 +623,7 @@ function setupExpertModal() {
       });
       const categoriasEl =
         (m && m.querySelector && m.querySelector("#categorias")) ||
-        document.getElementById("categorias");
+        getModalField("categorias", m);
       if (categoriasEl) {
         Array.from(categoriasEl.options || []).forEach(function (opt) {
           try {
@@ -584,6 +681,30 @@ function setupExpertModal() {
       if (e.target === modal) closeModal();
     });
   }
+
+  // Remove forced inline placeholder styles when user interacts with controls
+  try {
+    if (modal) {
+      modal.addEventListener("input", function (e) {
+        try {
+          const t = e.target;
+          if (!t) return;
+          t.style.removeProperty("color");
+          t.style.removeProperty("-webkit-text-fill-color");
+          t.style.removeProperty("opacity");
+        } catch (er) {}
+      });
+      modal.addEventListener("focusin", function (e) {
+        try {
+          const t = e.target;
+          if (!t) return;
+          t.style.removeProperty("color");
+          t.style.removeProperty("-webkit-text-fill-color");
+          t.style.removeProperty("opacity");
+        } catch (er) {}
+      });
+    }
+  } catch (e) {}
 
   // expose helper to open modal from console for debugging
   try {
@@ -1073,6 +1194,37 @@ function getActiveExpertForm() {
   }
 }
 
+// Helper: prefer modal-scoped element first, fall back to global id.
+function getModalField(id, modal) {
+  try {
+    const m = modal || getExpertModal();
+    if (m && typeof m.querySelector === "function") {
+      try {
+        const el =
+          m.querySelector("#" + id) || m.querySelector('[name="' + id + '"]');
+        if (el) return el;
+      } catch (e) {}
+    }
+  } catch (e) {}
+  try {
+    return document.getElementById(id);
+  } catch (e) {
+    return null;
+  }
+}
+
+function getModalValue(id, modal) {
+  const el = getModalField(id, modal);
+  try {
+    if (!el) return "";
+    // prefer .value for inputs/selects
+    if (typeof el.value !== "undefined") return el.value;
+    return el.textContent || "";
+  } catch (e) {
+    return "";
+  }
+}
+
 onDomReady(() => {
   const modalInactivar = document.getElementById("modalInactivarExperto");
   if (!modalInactivar) return;
@@ -1421,7 +1573,9 @@ async function openExpertEditModal(expertoId) {
     const expertos = window._adminExpertos || [];
     const ex = expertos.find((x) => String(x._id) === String(expertoId));
     if (!ex) return showMessage("Experto no encontrado", "error");
-    const modal = getExpertModal();
+    // Prefer the explicit edit modal if present to avoid populating the "add" modal
+    const modal =
+      document.getElementById("editExpertModal") || getExpertModal();
     if (!modal) return;
 
     const assign = (sel, value) => {
@@ -1542,7 +1696,10 @@ async function openExpertEditModal(expertoId) {
       }
     } catch (e) {}
 
-    const form = document.getElementById("expertForm");
+    // prefer modal-local form
+    const form =
+      (modal && modal.querySelector && modal.querySelector("form")) ||
+      document.getElementById("expertForm");
     if (form) form.dataset.editId = expertoId;
     try {
       const titleEl = modal.querySelector(".modal-expert__title");
@@ -1951,7 +2108,9 @@ function setupDelegatedActions() {
       const expertos = window._adminExpertos || [];
       const ex = expertos.find((x) => String(x._id) === String(id));
       if (!ex) return showMessage("Experto no encontrado", "error");
-      const modal = getExpertModal();
+      // Prefer explicit edit modal to avoid clobbering the add modal
+      const modal =
+        document.getElementById("editExpertModal") || getExpertModal();
       if (!modal) return;
 
       try {
@@ -2329,10 +2488,10 @@ function setupDelegatedActions() {
   if (saveBtn) {
     saveBtn.addEventListener("click", async (e) => {
       e.preventDefault();
-      const name = (document.getElementById("name")?.value || "").trim();
-      const email = (document.getElementById("email")?.value || "").trim();
-      const status = document.getElementById("status")?.value || "";
-      const bio = (document.getElementById("bio")?.value || "").trim();
+      const name = (getModalValue("name") || "").trim();
+      const email = (getModalValue("email") || "").trim();
+      const status = getModalValue("status") || "";
+      const bio = (getModalValue("bio") || "").trim();
 
       const payload = {
         nombre: name,
@@ -2344,17 +2503,19 @@ function setupDelegatedActions() {
       if (bio) maybeInfo.descripcion = bio;
 
       try {
-        const catsSelect = document.getElementById("categorias");
-        if (catsSelect) {
-          if (catsSelect.multiple) {
-            const selected = Array.from(catsSelect.selectedOptions)
-              .map((o) => o.value)
-              .filter(Boolean);
-            if (selected.length > 0) maybeInfo.categorias = selected;
-          } else if (catsSelect.value) {
-            maybeInfo.categorias = [catsSelect.value];
+        try {
+          const catsSelect = getModalField("categorias");
+          if (catsSelect) {
+            if (catsSelect.multiple) {
+              const selected = Array.from(catsSelect.selectedOptions)
+                .map((o) => o.value)
+                .filter(Boolean);
+              if (selected.length > 0) maybeInfo.categorias = selected;
+            } else if (catsSelect.value) {
+              maybeInfo.categorias = [catsSelect.value];
+            }
           }
-        }
+        } catch (e) {}
       } catch (e) {}
 
       // Adjuntar perfil mínimo si hay al menos infoExperto.descripcion o categorias
@@ -2372,21 +2533,23 @@ function setupDelegatedActions() {
       if (hasMinimal) payload.infoExperto = Object.assign({}, maybeInfo);
 
       try {
-        const form = document.getElementById("expertForm");
+        const form = getModalField("expertForm") || getActiveExpertForm();
         const editId = form && form.dataset ? form.dataset.editId : null;
         if (editId) {
           const putPayload = { infoExperto: {} };
           if (bio) putPayload.infoExperto.descripcion = bio;
           try {
-            const catsSelect = document.getElementById("categorias");
-            if (catsSelect) {
-              if (catsSelect.multiple)
-                putPayload.infoExperto.categorias = Array.from(
-                  catsSelect.selectedOptions
-                ).map((o) => o.value);
-              else if (catsSelect.value)
-                putPayload.infoExperto.categorias = [catsSelect.value];
-            }
+            try {
+              const catsSelect = getModalField("categorias");
+              if (catsSelect) {
+                if (catsSelect.multiple)
+                  putPayload.infoExperto.categorias = Array.from(
+                    catsSelect.selectedOptions
+                  ).map((o) => o.value);
+                else if (catsSelect.value)
+                  putPayload.infoExperto.categorias = [catsSelect.value];
+              }
+            } catch (e) {}
           } catch (e) {}
 
           try {
