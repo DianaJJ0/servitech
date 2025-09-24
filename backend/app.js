@@ -6,6 +6,7 @@
  */
 
 require("dotenv").config();
+require("./services/cronLiberarPagos.js");
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
@@ -228,7 +229,6 @@ console.log("DEBUG: Importando middleware de autenticación...");
 const { autenticar } = require("./middleware/auth.middleware");
 console.log("DEBUG: Middleware de autenticación importado correctamente");
 
-// CORREGIDO: NO aplicar autenticación global a todas las rutas /api
 // El middleware de autenticación ya está configurado en cada archivo de rutas individualmente
 // con las rutas públicas apropiadas definidas en auth.middleware.js
 
