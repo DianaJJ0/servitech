@@ -15,7 +15,7 @@ backups/
 backup_*
 
 # Logs
-logs/
+/logs/
 
 npm-debug.log*
 yarn-debug.log*

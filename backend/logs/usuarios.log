@@ -129,3 +129,8 @@
 2025-09-23T07:06:30.781Z | LOGIN | experto@correo.com | Pedro pruebas Experto | Resultado: Exito
 2025-09-23T07:12:05.481Z | REGISTRO | expertoprueba@correo.com | Pedro pruebas Experto | Resultado: Exito
 2025-09-23T07:12:48.257Z | LOGIN | expertoprueba@correo.com | Pedro pruebas Experto | Resultado: Exito
+2025-09-23T20:26:27.666Z | LOGIN | cliente@correo.com | Diana Cliente | Resultado: Exito
+2025-09-23T20:27:07.722Z | LOGIN | dianacjj23@gmail.com | - | Resultado: Error: credenciales incorrectas
+2025-09-23T20:27:14.498Z | LOGIN | dianacjj23@gmail.com | Diana Cliente | Resultado: Exito
+2025-09-23T20:32:19.569Z | LOGIN | cliente@correo.com | Diana Cliente | Resultado: Exito
+2025-09-23T20:38:16.667Z | LOGIN | dianajimenezjimenez10152312@gmail.com | Diana Jimenez | Resultado: Exito
