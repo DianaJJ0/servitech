@@ -672,30 +672,71 @@ const subirAvatar = async (req, res) => {
 };
 
 /**
- * Desactiva cuenta del usuario autenticado
+ * Desactiva cuenta del usuario autenticado y actualiza asesorías/pagos asociados
+ * @openapi
+ * /api/usuarios/perfil:
+ *   delete:
+ *     summary: Desactiva usuario autenticado y reembolsa pagos/asesorías
+ *     tags: [Usuarios]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Cuenta desactivada y pagos/asesorías actualizados
+ *       404:
+ *         description: Usuario no encontrado
  */
 const eliminarUsuarioPropio = async (req, res) => {
   try {
     const usuarioId = req.usuario._id;
     const usuario = await Usuario.findById(usuarioId);
+
     if (!usuario) {
       return res.status(404).json({ mensaje: "Usuario no encontrado." });
     }
+
+    // Desactivar usuario
     usuario.estado = "inactivo";
     await usuario.save();
+
+    // Buscar asesorías "confirmadas" donde el usuario es cliente o experto
+    const asesorias = await Asesoria.find({
+      $or: [
+        { "cliente.email": usuario.email },
+        { "experto.email": usuario.email },
+      ],
+      estado: "confirmada",
+    });
+
+    // Actualizar estado de asesorías y pagos asociados
+    for (const asesoria of asesorias) {
+      asesoria.estado = "reembolsada";
+      await asesoria.save();
+      if (asesoria.pagoId) {
+        const pago = await Pago.findById(asesoria.pagoId);
+        if (pago && ["retenido", "liberado"].includes(pago.estado)) {
+          pago.estado = "reembolsado";
+          pago.fechaLiberacion = new Date();
+          await pago.save();
+        }
+      }
+    }
 
     generarLogs.registrarEvento({
       usuarioEmail: usuario.email,
       nombre: usuario.nombre,
       apellido: usuario.apellido,
       accion: "DESACTIVAR_CUENTA",
-      detalle: "Cuenta desactivada por usuario",
+      detalle: "Cuenta desactivada y asesorías/pagos reembolsados.",
       resultado: "Exito",
       tipo: "usuarios",
       persistirEnDB: true,
     });
 
-    res.json({ mensaje: "Cuenta desactivada correctamente." });
+    res.json({
+      mensaje:
+        "Cuenta desactivada correctamente. Todas las asesorías y pagos confirmados han sido reembolsados.",
+    });
   } catch (error) {
     console.error("Error al desactivar usuario propio:", error);
     generarLogs.registrarEvento({
@@ -713,11 +754,11 @@ const eliminarUsuarioPropio = async (req, res) => {
 };
 
 /**
- * Desactiva un usuario por email, reembolsa pagos retenidos y lo inhabilita (no se elimina)
+ * Desactiva usuario por email (admin) y reembolsa pagos/asesorías
  * @openapi
  * /api/usuarios/{email}:
  *   delete:
- *     summary: Desactiva usuario por email (admin + API Key)
+ *     summary: Desactiva usuario por email (admin)
  *     tags: [Usuarios]
  *     parameters:
  *       - in: path
@@ -730,9 +771,7 @@ const eliminarUsuarioPropio = async (req, res) => {
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Usuario desactivado y pagos reembolsados
- *       400:
- *         description: Error en reembolso
+ *         description: Usuario desactivado y pagos/asesorías actualizados
  *       404:
  *         description: Usuario no encontrado
  */
@@ -740,56 +779,49 @@ const eliminarUsuarioPorAdmin = async (req, res) => {
   try {
     const email = req.params.email;
     const usuario = await Usuario.findOne({ email });
+
     if (!usuario) {
       return res.status(404).json({ mensaje: "Usuario no encontrado." });
     }
 
-    // Buscar pagos donde es cliente o experto
-    const pagosCliente = await Pago.find({ clienteId: usuario._id });
-    const pagosExperto = await Pago.find({ expertoId: usuario._id });
-
-    // Reembolsar pagos retenidos antes de desactivar usuario
-    const pagosARembolsar = [
-      ...pagosCliente.filter((p) => p.estado === "retenido"),
-      ...pagosExperto.filter((p) => p.estado === "retenido"),
-    ];
-
-    let erroresReembolso = [];
-    for (const pago of pagosARembolsar) {
-      try {
-        pago.estado = "reembolsado";
-        pago.fechaLiberacion = new Date();
-        await pago.save();
-      } catch (e) {
-        erroresReembolso.push(pago._id.toString());
-      }
-    }
-    if (erroresReembolso.length > 0) {
-      return res.status(400).json({
-        mensaje:
-          "No se pudo reembolsar todos los pagos. Usuario NO desactivado. Contacta a soporte.",
-        error: "Pagos con error: " + erroresReembolso.join(", "),
-      });
-    }
-
-    // Solo desactivar, no eliminar
+    // Desactivar usuario
     usuario.estado = "inactivo";
     await usuario.save();
+
+    // Buscar asesorías "confirmadas" donde el usuario es cliente o experto
+    const asesorias = await Asesoria.find({
+      $or: [{ "cliente.email": email }, { "experto.email": email }],
+      estado: "confirmada",
+    });
+
+    // Actualizar estado de asesorías y pagos asociados
+    for (const asesoria of asesorias) {
+      asesoria.estado = "reembolsada";
+      await asesoria.save();
+      if (asesoria.pagoId) {
+        const pago = await Pago.findById(asesoria.pagoId);
+        if (pago && ["retenido", "liberado"].includes(pago.estado)) {
+          pago.estado = "reembolsado";
+          pago.fechaLiberacion = new Date();
+          await pago.save();
+        }
+      }
+    }
 
     generarLogs.registrarEvento({
       usuarioEmail: usuario.email,
       nombre: usuario.nombre,
       apellido: usuario.apellido,
       accion: "DESACTIVAR_POR_ADMIN",
-      detalle: "Usuario desactivado por admin y pagos reembolsados",
+      detalle: "Usuario desactivado por admin y asesorías/pagos reembolsados.",
       resultado: "Exito",
       tipo: "usuarios",
       persistirEnDB: true,
     });
 
-    return res.json({
+    res.json({
       mensaje:
-        "Usuario desactivado correctamente y pagos retenidos reembolsados. Historial de pagos/asesorías conservado.",
+        "Usuario desactivado correctamente por admin. Todas las asesorías y pagos confirmados han sido reembolsados.",
     });
   } catch (error) {
     console.error("Error al desactivar usuario por admin:", error);

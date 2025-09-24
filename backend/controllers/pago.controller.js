@@ -7,31 +7,47 @@ const generarLogs = require("../services/generarLogs");
 const mercadopago = require("mercadopago");
 mercadopago.access_token = process.env.MP_ACCESS_TOKEN_SANDBOX || "";
 
-// Estados válidos para un pago
-const ESTADOS_VALIDOS = [
-  "pendiente",
-  "retenido",
-  "liberado",
-  "reembolsado",
-  "fallido",
-];
-
-// Valida si un usuario tiene el rol requerido (o ambos)
-function tieneRol(usuario, rol) {
-  return (
-    usuario &&
-    usuario.roles &&
-    (usuario.roles.includes(rol) ||
-      usuario.roles.includes("cliente,experto") ||
-      usuario.roles.length > 1)
-  );
-}
-
+/**
+ * @swagger
+ * /api/pagos:
+ *   post:
+ *     summary: Registra un nuevo pago
+ *     tags: [Pagos]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - clienteId
+ *               - expertoId
+ *               - monto
+ *               - metodo
+ *               - estado
+ *     responses:
+ *       201:
+ *         description: Pago registrado exitosamente
+ *       400:
+ *         description: Datos inválidos
+ *       409:
+ *         description: Pago duplicado
+ */
 const crearPago = async (req, res) => {
   try {
     const datosPago = req.body;
 
-    // Validación básica de campos obligatorios
+    // Validar autenticación por email/token
+    if (!req.usuario || req.usuario.email !== datosPago.clienteId) {
+      return res.status(403).json({
+        mensaje: "No autorizado. El clienteId debe coincidir con el usuario autenticado.",
+        error: "Autenticación inválida.",
+      });
+    }
+
+    // Validaciones clave
     if (
       !datosPago.clienteId ||
       !datosPago.expertoId ||
@@ -46,27 +62,29 @@ const crearPago = async (req, res) => {
       });
     }
 
-    // Validar monto: número y mínimo 10000
-    if (
-      typeof datosPago.monto !== "number" ||
-      isNaN(datosPago.monto) ||
-      datosPago.monto < 10000
-    ) {
+    if (typeof datosPago.monto !== "number" || datosPago.monto <= 0) {
       return res.status(400).json({
-        mensaje: "El monto debe ser un número mayor o igual a 10000.",
-        error: "Monto inválido.",
+        mensaje: "El monto debe ser un número mayor a 0.",
+        error: "Tipo de dato incorrecto o monto inválido.",
       });
     }
 
     // Validar estado permitido
-    if (!ESTADOS_VALIDOS.includes(datosPago.estado)) {
+    const estadosValidos = [
+      "pendiente",
+      "retenido",
+      "liberado",
+      "reembolsado",
+      "fallido",
+    ];
+    if (!estadosValidos.includes(datosPago.estado)) {
       return res.status(400).json({
         mensaje: "Estado de pago inválido.",
-        error: `Estados permitidos: ${ESTADOS_VALIDOS.join(", ")}`,
+        error: `Los estados permitidos son: ${estadosValidos.join(", ")}`,
       });
     }
 
-    // Validar unicidad de transaccionId
+    // Validar duplicidad de transaccionId si existe
     if (datosPago.transaccionId) {
       const pagoExistente = await Pago.findOne({
         transaccionId: datosPago.transaccionId,
@@ -79,70 +97,23 @@ const crearPago = async (req, res) => {
       }
     }
 
-    // Validar existencia y roles del cliente
-    const cliente = await Usuario.findOne({ email: datosPago.clienteId });
-    if (!cliente || !tieneRol(cliente, "cliente")) {
-      return res.status(400).json({
-        mensaje: "El email de cliente no existe o no tiene el rol adecuado.",
-        error: "clienteId inválido.",
-      });
+    // Generar transaccionId automáticamente si no lo envían
+    if (!datosPago.transaccionId) {
+      datosPago.transaccionId =
+        "ST-" +
+        Date.now() +
+        "-" +
+        Math.random().toString(36).substr(2, 9).toUpperCase();
     }
 
-    // Validar existencia y roles del experto
-    const experto = await Usuario.findOne({ email: datosPago.expertoId });
-    if (!experto || !tieneRol(experto, "experto")) {
-      return res.status(400).json({
-        mensaje: "El email de experto no existe o no tiene el rol adecuado.",
-        error: "expertoId inválido.",
-      });
-    }
-
-    // Calcular comisión y monto a experto
-    const comision = +(datosPago.monto * 0.15).toFixed(2);
-    const montoExperto = +(datosPago.monto - comision).toFixed(2);
-
-    // Simulación sandbox Mercado Pago (puedes implementar preferencia si quieres)
-    // const preference = await mercadopago.preferences.create({...});
-
-    const nuevoPago = new Pago({
-      ...datosPago,
-      comisionPlataforma: comision,
-      montoExperto,
-    });
+    // Registro normal
+    const nuevoPago = new Pago(datosPago);
     await nuevoPago.save();
 
-    // Notificación y log (pueden ser opcionales)
-    try {
-      const asunto = "Confirmación de pago";
-      const mensaje = `Tu pago de $${nuevoPago.monto} COP se ha registrado correctamente para la asesoría.`;
-
-      await Notificacion.create({
-        usuarioId: cliente._id,
-        email: cliente.email,
-        tipo: "email",
-        asunto,
-        mensaje,
-        relacionadoCon: { tipo: "Pago", referenciaId: nuevoPago._id },
-        estado: "enviado",
-        fechaEnvio: new Date(),
-      });
-      await Log.create({
-        usuarioId: cliente._id,
-        email: cliente.email,
-        tipo: "pago",
-        descripcion: "Registro de pago",
-        entidad: "Pago",
-        referenciaId: nuevoPago._id,
-        datos: { asunto, mensaje },
-      });
-    } catch (e) {
-      console.error("Error guardando log en BD:", e.message);
-    }
-
     generarLogs.registrarEvento({
-      usuarioEmail: cliente.email,
-      nombre: cliente.nombre,
-      apellido: cliente.apellido,
+      usuarioEmail: nuevoPago.clienteId,
+      nombre: null,
+      apellido: null,
       accion: "CREAR_PAGO",
       detalle: `Pago registrado id:${nuevoPago._id} monto:${nuevoPago.monto}`,
       resultado: "Exito",
@@ -162,17 +133,6 @@ const crearPago = async (req, res) => {
       tipo: "pago",
       persistirEnDB: true,
     });
-    if (error.name === "ValidationError") {
-      return res
-        .status(400)
-        .json({ mensaje: "Error de validación.", error: error.message });
-    }
-    if (error.code === 11000) {
-      return res.status(409).json({
-        mensaje: "Pago duplicado por campo único.",
-        error: error.message,
-      });
-    }
     res.status(500).json({
       mensaje: "Error interno al registrar pago.",
       error: error.message,
@@ -180,6 +140,7 @@ const crearPago = async (req, res) => {
   }
 };
 
+// Listar todos los pagos
 const obtenerPagos = async (req, res) => {
   try {
     const pagos = await Pago.find().sort({ createdAt: -1 });
@@ -285,4 +246,5 @@ module.exports = {
   obtenerPagos,
   obtenerPagoPorId,
   actualizarEstadoPago,
+  tieneRol,
 };
