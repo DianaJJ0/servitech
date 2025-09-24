@@ -3,15 +3,18 @@
  * @module models/pago
  * @description Define el esquema para registrar pagos asociados a asesorías
  */
+
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 /**
  * @typedef {Object} Pago
  * @property {ObjectId} asesoriaId - ID de la asesoría asociada
- * @property {ObjectId} clienteId - ID del cliente que paga
- * @property {ObjectId} expertoId - ID del experto que recibe el pago
- * @property {number} monto - Cantidad pagada
+ * @property {string} clienteId - Email del cliente
+ * @property {string} expertoId - Email del experto
+ * @property {number} monto - Cantidad pagada total
+ * @property {number} montoExperto - Monto final a transferir al experto (después de comisión)
+ * @property {number} comisionPlataforma - Comisión retenida por la plataforma (ej: 15%)
  * @property {string} moneda - Moneda del pago (default: COP)
  * @property {string} metodo - Método de pago utilizado
  * @property {string} estado - Estado del pago: pendiente, retenido, liberado, reembolsado, fallido
@@ -23,25 +26,23 @@ const { Schema } = mongoose;
 
 const pagoSchema = new Schema(
   {
-    asesoriaId: {
-      type: Schema.Types.ObjectId,
-      ref: "Asesoria",
-      required: false,
-    }, // Relación con asesoría
-    clienteId: { type: Schema.Types.ObjectId, ref: "Usuario", required: true }, // Cliente pagador
-    expertoId: { type: Schema.Types.ObjectId, ref: "Usuario", required: true }, // Experto receptor
-    monto: { type: Number, required: true }, // Valor pagado
-    moneda: { type: String, default: "COP" }, // Moneda
-    metodo: { type: String, required: true }, // Método de pago
+    asesoriaId: { type: Schema.Types.ObjectId, ref: "Asesoria", required: false },
+    clienteId: { type: String, required: true }, // Ahora almacena el email
+    expertoId: { type: String, required: true }, // Ahora almacena el email
+    monto: { type: Number, required: true }, // Valor total pagado
+    montoExperto: { type: Number, required: true }, // Monto final a experto (85%)
+    comisionPlataforma: { type: Number, required: true }, // Comisión (15%)
+    moneda: { type: String, default: "COP" },
+    metodo: { type: String, required: true },
     estado: {
       type: String,
       enum: ["pendiente", "retenido", "liberado", "reembolsado", "fallido"],
       default: "pendiente",
     },
-    fechaPago: Date, // Fecha de pago
-    fechaLiberacion: Date, // Fecha de liberación al experto
-    transaccionId: String, // ID externo si la pasarela lo provee
-    detalles: Schema.Types.Mixed, // Info adicional de la pasarela si se requiere
+    fechaPago: Date,
+    fechaLiberacion: Date,
+    transaccionId: String,
+    detalles: Schema.Types.Mixed,
   },
   {
     timestamps: true,
@@ -58,22 +59,34 @@ const pagoSchema = new Schema(
  *       properties:
  *         id:
  *           type: string
- *         usuarioId:
+ *         asesoriaId:
  *           type: string
- *         asesoríaId:
+ *         clienteId:
+ *           type: string
+ *         expertoId:
  *           type: string
  *         monto:
  *           type: number
- *           format: float
+ *         montoExperto:
+ *           type: number
+ *         comisionPlataforma:
+ *           type: number
  *         moneda:
- *           type: string
- *         estado:
  *           type: string
  *         metodo:
  *           type: string
- *         createdAt:
+ *         estado:
+ *           type: string
+ *         transaccionId:
+ *           type: string
+ *         fechaPago:
  *           type: string
  *           format: date-time
+ *         fechaLiberacion:
+ *           type: string
+ *           format: date-time
+ *         detalles:
+ *           type: object
  */
 
 module.exports = mongoose.model("Pago", pagoSchema);
