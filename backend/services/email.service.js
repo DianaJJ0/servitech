@@ -17,11 +17,6 @@ const validarConfiguracionEmail = () => {
 
   // Validar formato de App Password (16 caracteres sin espacios)
   const password = process.env.EMAIL_PASS;
-  console.log(
-    `🔍 Validando EMAIL_PASS: longitud=${
-      password.length
-    }, contiene espacios=${password.includes(" ")}`
-  );
 
   if (password.includes(" ")) {
     throw new Error(
@@ -31,32 +26,24 @@ const validarConfiguracionEmail = () => {
 
   if (password.length !== 16) {
     console.warn(
-      `⚠️ App Password tiene ${password.length} caracteres, debería tener 16. Verifica que sea correcta.`
+      `App Password tiene ${password.length} caracteres, debería tener 16. Verifica que sea correcta.`
     );
   }
 
-  // Verificar que solo contenga caracteres alfanuméricos (las App Passwords de Gmail son así)
+  // Verificar que solo contenga caracteres alfanuméricos
   const isValid = /^[a-zA-Z0-9]{16}$/.test(password);
   if (!isValid) {
     throw new Error(
       "EMAIL_PASS debe ser una App Password válida (16 caracteres alfanuméricos)"
     );
   }
-
-  console.log(`✅ EMAIL_USER: ${process.env.EMAIL_USER}`);
-  console.log(
-    `✅ EMAIL_PASS: ${password.substring(0, 4)}...${password.substring(12)} (${
-      password.length
-    } chars)`
-  );
-  console.log("✅ Configuración de email validada");
 };
 
 // Validar al cargar el módulo
 try {
   validarConfiguracionEmail();
 } catch (error) {
-  console.error("❌ Error de configuración de email:", error.message);
+  console.error("Error de configuración de email:", error.message);
 }
 
 // --- Configuración del Transporter ---
@@ -66,49 +53,61 @@ const transporter = nodemailer.createTransport({
   secure: true, // Se usa SSL, requerido por Gmail en el puerto 465
   auth: {
     user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS.trim(), // Eliminar espacios por si acaso
+    pass: process.env.EMAIL_PASS.trim(),
   },
 });
+
 /**
- * Envía un correo electrónico usando la configuración centralizada.
+ * Envía un correo electrónico personalizado.
  * @param {string} destinatario - Correo del destinatario.
  * @param {string} asunto - Asunto del correo.
- * @param {string} mensaje - Cuerpo del correo en texto plano.
- * @param {string} [html] - Cuerpo del correo en formato HTML (opcional).
+ * @param {string} mensaje - Cuerpo principal del mensaje (sin nombre).
+ * @param {string} nombreDestinatario - Nombre del destinatario.
+ * @param {string} apellidoDestinatario - Apellido del destinatario.
+ * @param {string} [html] - Cuerpo HTML adicional (opcional).
  * @returns {Promise<object>} - Información del envío si es exitoso.
- * @throws {Error} - Lanza un error si el envío falla, para ser capturado por el controlador.
+ * @throws {Error} - Si falta algún dato o falla el envío.
  */
-const enviarCorreo = async (destinatario, asunto, mensaje, html) => {
+const enviarCorreo = async (
+  destinatario,
+  asunto,
+  mensaje,
+  nombreDestinatario,
+  apellidoDestinatario,
+  html
+) => {
   // Validar parámetros
   if (!destinatario || !asunto || !mensaje) {
     throw new Error(
       "Faltan parámetros requeridos: destinatario, asunto, mensaje"
     );
   }
+  if (!nombreDestinatario || !apellidoDestinatario) {
+    throw new Error(
+      "Faltan parámetros requeridos: nombreDestinatario y apellidoDestinatario"
+    );
+  }
 
-  // Se definen las opciones del correo.
+  // Personaliza el mensaje de texto y HTML
+  const saludo = `Hola ${nombreDestinatario} ${apellidoDestinatario},`;
+  const mensajeTexto = `${saludo}\n\n${mensaje}`;
+  const mensajeHtml =
+    html ||
+    `<p>${saludo}</p>
+     <p>${mensaje}</p>`;
+
   const mailOptions = {
     from: `"ServiTech" <${process.env.EMAIL_USER}>`,
     to: destinatario,
     subject: asunto,
-    text: mensaje,
-    html: html || `<p>${mensaje}</p>`, // Usa el HTML proporcionado o crea uno simple.
+    text: mensajeTexto,
+    html: mensajeHtml,
   };
 
   try {
-    console.log(`📧 Enviando correo a: ${destinatario}`);
-    console.log(`📋 Asunto: ${asunto}`);
-
-    // Se intenta enviar el correo y se espera la respuesta.
     const info = await transporter.sendMail(mailOptions);
-
-    console.log("✅ Correo enviado exitosamente");
-    console.log(`📨 Message ID: ${info.messageId}`);
-
     return info;
   } catch (error) {
-    // Se relanza el error para que la función que llamó a 'enviarCorreo' (el controlador)
-    // sepa que algo falló y pueda manejarlo adecuadamente (ej: no enviar respuesta 200 OK).
     throw new Error(`Error de email: ${error.message}`);
   }
 };
