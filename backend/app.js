@@ -25,10 +25,6 @@ const notificacionRoutes = require("./routes/notificacion.routes.js");
 const expertoRoutes = require("./routes/experto.routes.js");
 const asesoriaRoutes = require("./routes/asesoria.routes.js");
 const perfilExpertoRoutes = require("./routes/perfilExperto.js");
-// Elimina logRoutes y devRoutes si no los usas, o déjalos comentados
-// const logRoutes = require("./routes/log.routes.js");
-// const devRoutes = require("./routes/dev.routes.js");
-
 // Conecta a la base de datos y muestra mensaje solo si hay error o éxito
 conectarDB();
 
