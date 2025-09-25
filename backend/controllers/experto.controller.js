@@ -130,6 +130,9 @@ const listarExpertos = async (req, res) => {
 
     // Mostrar usuarios que sean oficialmente expertos (roles includes 'experto')
     // o usuarios que hayan completado su perfil de experto (infoExperto no vacío).
+    // Esto permite que los usuarios que se "convierten" mediante el formulario
+    // de registro/actualización (que rellenan infoExperto) aparezcan en el listado
+    // sin necesidad de mutar automáticamente sus roles.
     const filtro = {
       $or: [
         { roles: "experto" },
@@ -339,4 +342,5 @@ module.exports = {
   obtenerPerfilExperto,
   actualizarPerfilExperto,
   actualizarPerfilExpertoPost,
+
 };
