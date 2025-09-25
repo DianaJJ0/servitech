@@ -110,44 +110,27 @@ const autenticar = async (req, res, next) => {
 };
 
 /**
- * Middleware para asegurar roles específicos
+ * Middleware para asegurar que el usuario tiene AL MENOS uno de los roles requeridos.
+ * Ejemplo de uso: asegurarRol("cliente"), asegurarRol("experto"), asegurarRol("admin")
  */
 const asegurarRol = (...rolesRequeridos) => {
   return (req, res, next) => {
-    try {
-      if (!req.usuario) {
-        return res.status(401).json({
-          mensaje: "Usuario no autenticado",
-          error: "NOT_AUTHENTICATED",
-        });
-      }
-
-      const userRoles = req.usuario.roles || [];
-      const tieneRolRequerido = rolesRequeridos.some((rol) =>
-        userRoles.includes(rol)
-      );
-
-      if (!tieneRolRequerido) {
-        return res.status(403).json({
-          mensaje: `Acceso denegado. Roles requeridos: ${rolesRequeridos.join(
-            ", "
-          )}`,
-          error: "INSUFFICIENT_PERMISSIONS",
-        });
-      }
-
-      next();
-    } catch (error) {
-      console.error("Error en middleware de roles:", error.message);
-      return res.status(500).json({
-        mensaje: "Error interno de autorización",
-        error: "INTERNAL_ERROR",
+    if (!req.usuario || !Array.isArray(req.usuario.roles)) {
+      return res.status(401).json({
+        mensaje: "Usuario no autenticado o sin roles.",
+        error: "NOT_AUTHENTICATED",
       });
     }
+    const tienePermiso = req.usuario.roles.some((rol) =>
+      rolesRequeridos.includes(rol)
+    );
+    if (!tienePermiso) {
+      return res.status(403).json({
+        mensaje: `Acceso denegado. Roles requeridos: ${rolesRequeridos.join(", ")}`,
+        error: "INSUFFICIENT_PERMISSIONS",
+      });
+    }
+    next();
   };
 };
-
-module.exports = {
-  autenticar,
-  asegurarRol,
-};
+module.exports = { autenticar, asegurarRol };
