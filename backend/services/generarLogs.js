@@ -1,7 +1,6 @@
 const path = require("path");
 const fs = require("fs");
 const logService = require("../services/logService");
-const LogModel = require("../models/log.model");
 
 const logsDir = path.join(__dirname, "..", "logs");
 if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir, { recursive: true });
@@ -57,20 +56,19 @@ async function registrarEvento({
   }
   if (persistirEnDB) {
     try {
-      const doc = new LogModel({
-        email: usuarioEmail || undefined,
-        descripcion: detalle || undefined,
+      const Log = require("../models/log.model");
+      const doc = new Log({
         usuarioEmail,
         nombre,
         apellido,
-        tipo,
         accion,
         detalle,
         resultado,
-        recursoId,
-        meta,
+        tipo,
         fecha: new Date(),
       });
+      if (recursoId) doc.recursoId = recursoId;
+      if (meta) doc.meta = meta;
       await doc.save();
     } catch (e) {
       console.warn("Error guardando log en BD:", e && e.message);

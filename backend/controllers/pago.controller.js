@@ -1,11 +1,21 @@
+// Controlador de pagos - backend/controllers/pago.controller.js
+// Maneja la creación, consulta y actualización de pagos
+
 const Pago = require("../models/pago.model.js");
 const Usuario = require("../models/usuario.model.js");
 const Notificacion = require("../models/notificacion.model.js");
-const Log = require("../models/log.model.js");
 const generarLogs = require("../services/generarLogs");
-
+const { enviarCorreo } = require("../services/email.service.js");
 const mercadopago = require("mercadopago");
-mercadopago.access_token = process.env.MP_ACCESS_TOKEN_SANDBOX || "";
+mercadopago.access_token = process.env.MP_ACCESS_TOKEN_SANDBOX;
+
+const ESTADOS_VALIDOS = [
+  "pendiente",
+  "retenido",
+  "liberado",
+  "reembolsado",
+  "fallido",
+];
 
 /**
  * @swagger
@@ -42,7 +52,8 @@ const crearPago = async (req, res) => {
     // Validar autenticación por email/token
     if (!req.usuario || req.usuario.email !== datosPago.clienteId) {
       return res.status(403).json({
-        mensaje: "No autorizado. El clienteId debe coincidir con el usuario autenticado.",
+        mensaje:
+          "No autorizado. El clienteId debe coincidir con el usuario autenticado.",
         error: "Autenticación inválida.",
       });
     }
@@ -70,17 +81,10 @@ const crearPago = async (req, res) => {
     }
 
     // Validar estado permitido
-    const estadosValidos = [
-      "pendiente",
-      "retenido",
-      "liberado",
-      "reembolsado",
-      "fallido",
-    ];
-    if (!estadosValidos.includes(datosPago.estado)) {
+    if (!ESTADOS_VALIDOS.includes(datosPago.estado)) {
       return res.status(400).json({
         mensaje: "Estado de pago inválido.",
-        error: `Los estados permitidos son: ${estadosValidos.join(", ")}`,
+        error: `Los estados permitidos son: ${ESTADOS_VALIDOS.join(", ")}`,
       });
     }
 
@@ -110,7 +114,36 @@ const crearPago = async (req, res) => {
     const nuevoPago = new Pago(datosPago);
     await nuevoPago.save();
 
-    generarLogs.registrarEvento({
+    // Notificación y correo SOLO al cliente
+    try {
+      const cliente = await Usuario.findOne({ email: nuevoPago.clienteId });
+      if (cliente) {
+        const asunto = "Pago registrado y retenido para asesoría";
+        const mensaje = `Tu pago de $${nuevoPago.monto} fue registrado correctamente. El dinero estará retenido y solo será liberado al experto cuando la asesoría termine exitosamente.`;
+        await Notificacion.create({
+          usuarioId: cliente._id,
+          email: cliente.email,
+          tipo: "email",
+          asunto,
+          mensaje,
+          relacionadoCon: { tipo: "Pago", referenciaId: nuevoPago._id },
+          estado: "enviado",
+          fechaEnvio: new Date(),
+        });
+        // Enviar correo personalizado al cliente
+        await enviarCorreo(
+          cliente.email,
+          asunto,
+          mensaje,
+          cliente.nombre,
+          cliente.apellido
+        );
+      }
+    } catch (e) {}
+
+    // NO ENVIAR correo al experto aquí, solo cuando se libere el pago
+
+    await generarLogs.registrarEvento({
       usuarioEmail: nuevoPago.clienteId,
       nombre: null,
       apellido: null,
@@ -123,7 +156,7 @@ const crearPago = async (req, res) => {
 
     res.status(201).json({ mensaje: "Pago registrado.", pago: nuevoPago });
   } catch (error) {
-    generarLogs.registrarEvento({
+    await generarLogs.registrarEvento({
       usuarioEmail: (req.body && req.body.clienteId) || null,
       nombre: null,
       apellido: null,
@@ -180,13 +213,12 @@ const actualizarEstadoPago = async (req, res) => {
     );
     if (!pago) return res.status(404).json({ mensaje: "Pago no encontrado." });
 
-    // Notificación/log de cambio de estado
+    // Notificación/log y correo al cliente
     try {
       const cliente = await Usuario.findOne({ email: pago.clienteId });
       if (cliente) {
         const asunto = "Actualización de estado de pago";
-        const mensaje = `Tu pago ha cambiado de estado a "${estado}".`;
-
+        const mensaje = `Hola ${cliente.nombre} ${cliente.apellido}, tu pago ha cambiado de estado a "${estado}".`;
         await Notificacion.create({
           usuarioId: cliente._id,
           email: cliente.email,
@@ -197,21 +229,45 @@ const actualizarEstadoPago = async (req, res) => {
           estado: "enviado",
           fechaEnvio: new Date(),
         });
-        await Log.create({
-          usuarioId: cliente._id,
-          email: cliente.email,
-          tipo: "pago",
-          descripcion: "Actualización de estado de pago",
-          entidad: "Pago",
-          referenciaId: pago._id,
-          datos: { asunto, mensaje, nuevoEstado: estado },
-        });
+        await enviarCorreo(
+          cliente.email,
+          asunto,
+          mensaje,
+          cliente.nombre,
+          cliente.apellido
+        );
       }
-    } catch (e) {
-      console.error("Error guardando log en BD:", e.message);
+    } catch (e) {}
+
+    // Si el pago es "liberado", notificar y enviar correo al experto
+    if (estado === "liberado") {
+      try {
+        const experto = await Usuario.findOne({ email: pago.expertoId });
+        if (experto) {
+          const asunto = "Has recibido un pago por asesoría";
+          const mensaje = `Has recibido un nuevo pago de $${pago.monto} por una asesoría. Ingresa a ServiTech para ver los detalles.`;
+          await Notificacion.create({
+            usuarioId: experto._id,
+            email: experto.email,
+            tipo: "email",
+            asunto,
+            mensaje,
+            relacionadoCon: { tipo: "Pago", referenciaId: pago._id },
+            estado: "enviado",
+            fechaEnvio: new Date(),
+          });
+          await enviarCorreo(
+            experto.email,
+            asunto,
+            mensaje,
+            experto.nombre,
+            experto.apellido
+          );
+        }
+      } catch (e) {}
     }
 
-    generarLogs.registrarEvento({
+    await generarLogs.registrarEvento({
       usuarioEmail: pago.clienteId,
       nombre: null,
       apellido: null,
@@ -224,7 +280,7 @@ const actualizarEstadoPago = async (req, res) => {
 
     res.status(200).json({ mensaje: "Estado actualizado.", pago });
   } catch (error) {
-    generarLogs.registrarEvento({
+    await generarLogs.registrarEvento({
       usuarioEmail: null,
       nombre: null,
       apellido: null,
@@ -246,5 +302,4 @@ module.exports = {
   obtenerPagos,
   obtenerPagoPorId,
   actualizarEstadoPago,
-  tieneRol,
 };

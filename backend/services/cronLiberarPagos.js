@@ -49,7 +49,3 @@ cron.schedule("0 * * * *", async () => {
     console.error("Error en cronLiberarPagos:", err);
   }
 });
-
-console.log(
-  "cronLiberarPagos: cron de liberación automática de pagos iniciado."
-);
