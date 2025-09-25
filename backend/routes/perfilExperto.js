@@ -1,22 +1,20 @@
 /**
- * RUTAS: Perfil de Experto 
- * Expone endpoints para leer/actualizar el perfil del experto autenticado.
+ * @file Rutas de Perfil de Experto
+ * @module routes/perfilExperto
+ * @description Endpoints para obtener y actualizar el perfil del experto autenticado.
  */
 
 const express = require("express");
 const router = express.Router();
 
 const {
+  listarExpertos,
+  obtenerPerfilExperto,
   actualizarPerfilExperto,
-  getProfile,
-  updateProfile,
+  actualizarPerfilExpertoPost,
 } = require("../controllers/experto.controller.js");
 
-const auth = require("../middleware/auth.middleware");
-const protect = auth.autenticar || auth.protect;
-const esAdmin = auth.asegurarRol
-  ? auth.asegurarRol("admin")
-  : (req, res, next) => next();
+const authMiddleware = require("../middleware/auth.middleware");
 
 /**
  * @openapi
@@ -31,14 +29,20 @@ const esAdmin = auth.asegurarRol
  *   get:
  *     tags: [PerfilExperto]
  *     summary: Obtener perfil del experto autenticado
- *     security: [{ bearerAuth: [] }]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Perfil del experto
  *       401:
  *         description: No autenticado
  */
-router.get("/", protect, getProfile);
+/**
+ * Obtiene el perfil del experto autenticado
+ * @route GET /api/perfil-experto
+ * @access Private (requiere token JWT)
+ */
+router.get("/", authMiddleware.autenticar, obtenerPerfilExperto);
 
 /**
  * @openapi
@@ -46,7 +50,8 @@ router.get("/", protect, getProfile);
  *   put:
  *     tags: [PerfilExperto]
  *     summary: Actualizar perfil del experto autenticado
- *     security: [{ bearerAuth: [] }]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: false
  *       content:
@@ -59,7 +64,12 @@ router.get("/", protect, getProfile);
  *       401:
  *         description: No autenticado
  */
-router.put("/", protect, updateProfile);
+/**
+ * Actualiza el perfil del experto autenticado
+ * @route PUT /api/perfil-experto
+ * @access Private (requiere token JWT)
+ */
+router.put("/", authMiddleware.autenticar, actualizarPerfilExperto);
 
 /**
  * @openapi
@@ -67,7 +77,8 @@ router.put("/", protect, updateProfile);
  *   post:
  *     tags: [PerfilExperto]
  *     summary: Actualizar/crear perfil del experto (compatibilidad)
- *     security: [{ bearerAuth: [] }]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -80,6 +91,11 @@ router.put("/", protect, updateProfile);
  *       401:
  *         description: No autenticado
  */
-router.post("/perfil", protect, actualizarPerfilExperto);
+/**
+ * Crea o actualiza el perfil del experto autenticado (compatibilidad POST)
+ * @route POST /api/perfil-experto/perfil
+ * @access Private (requiere token JWT)
+ */
+router.post("/perfil", authMiddleware.autenticar, actualizarPerfilExpertoPost);
 
 module.exports = router;

@@ -47,14 +47,21 @@ const asesoriaSchema = new Schema(
           .substring(2, 8)
           .toUpperCase()}`,
     },
-    titulo: { type: String, required: true, maxlength: 300 },
-    cliente: { type: infoParticipanteSchema, required: true },
+    titulo: { type: String, required: true, maxlength: 300 }, // Título descriptivo de la asesoría
+    cliente: { type: infoParticipanteSchema, required: true }, 
     experto: { type: infoParticipanteSchema, required: true },
     categoria: { type: String, required: true },
-    estado: {
+    estado: { // estados de la asesoria
       type: String,
-      enum: ["pendiente-pago", "confirmada", "completada", "cancelada"],
-      default: "pendiente-pago",
+      enum: [
+        "pendiente-pago",
+        "confirmada",
+        "completada",
+        "cancelada",
+        "reembolsada",
+        "rechazada",
+      ],
+      default: "pendiente-pago", // Estado inicial al crear una asesoría
     },
     fechaHoraInicio: { type: Date, required: true },
     duracionMinutos: {
