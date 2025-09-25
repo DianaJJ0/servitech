@@ -1,8 +1,7 @@
 /**
- * ARCHIVO PRINCIPAL DEL SERVIDOR API - SERVITECH (rama develop)
+ * ARCHIVO PRINCIPAL DEL SERVIDOR API - SERVITECH
  * - Express API con CORS seguro
  * - Swagger (swagger-jsdoc + swagger-ui-express) con esquema bearerAuth
-
  */
 
 require("dotenv").config();
@@ -23,18 +22,18 @@ const usuarioRoutes = require("./routes/usuario.routes.js");
 const categoriaRoutes = require("./routes/categoria.routes.js");
 const pagoRoutes = require("./routes/pago.routes.js");
 const notificacionRoutes = require("./routes/notificacion.routes.js");
-const logRoutes = require("./routes/log.routes.js");
 const expertoRoutes = require("./routes/experto.routes.js");
 const asesoriaRoutes = require("./routes/asesoria.routes.js");
 const perfilExpertoRoutes = require("./routes/perfilExperto.js");
-const devRoutes = require("./routes/dev.routes.js");
+// Elimina logRoutes y devRoutes si no los usas, o déjalos comentados
+// const logRoutes = require("./routes/log.routes.js");
+// const devRoutes = require("./routes/dev.routes.js");
 
-// Conecta a la base de datos
+// Conecta a la base de datos y muestra mensaje solo si hay error o éxito
 conectarDB();
 
 const app = express();
 
-// --- INICIO: Integración con Frontend ---
 // Servir assets estáticos del frontend
 app.use(
   "/assets",
@@ -44,50 +43,21 @@ app.use(
 // Servir uploads (si es necesario que sean públicos)
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// Configurar EJS como motor de vistas, apuntando a las vistas del frontend
+// Motor de vistas EJS
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "..", "frontend", "views"));
-// --- FIN: Integración con Frontend ---
 
-// --- Nuevo: log simple de peticiones API para depuración de Authorization ---
-app.use((req, res, next) => {
-  try {
-    if (String(req.path || "").startsWith("/api")) {
-      const auth =
-        req.headers && (req.headers.authorization || req.headers.Authorization);
-      console.log(
-        `API request -> ${req.method} ${req.originalUrl} | Authorization: ${
-          auth ? "present" : "missing"
-        }`
-      );
-      // opcional: para menos ruido, comentar la siguiente línea
-      // console.debug("Headers:", Object.keys(req.headers).reduce((o,k)=> (o[k]=req.headers[k],o), {}));
-    }
-  } catch (e) {}
-  next();
-});
-
-// Aviso si no hay fetch nativo en este runtime
-if (typeof globalThis.fetch !== "function") {
-  console.warn(
-    "Aviso: global fetch no disponible en este runtime. Se recomienda Node >= 18 para usar fetch nativo."
-  );
-}
-
+// Middleware CORS, solo mostrar mensaje si hay error o CORS activo
 const PROXY_MODE =
   String(process.env.PROXY_MODE || "false").toLowerCase() === "true";
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5021";
 
-// Activar CORS únicamente en desarrollo cuando no usamos proxy.
-// Si PROXY_MODE=true asumimos que el frontend hará proxy y no necesitamos abrir CORS en producción.
 if (!PROXY_MODE && process.env.NODE_ENV !== "production") {
   app.use(
     cors({
       origin: (origin, cb) => {
         try {
-          // No origin (peticiones desde curl, same-site o herramientas) -> permitir
           if (!origin) return cb(null, true);
-
           const allowed = new Set(
             [
               FRONTEND_URL,
@@ -95,24 +65,13 @@ if (!PROXY_MODE && process.env.NODE_ENV !== "production") {
               process.env.RENDER_EXTERNAL_URL,
             ].filter(Boolean)
           );
-
-          // Allow exact matches
           if (allowed.has(origin)) return cb(null, true);
-
-          // esto es para subdominios de Render (ej: *.onrender.com)
-          try {
-            if (typeof origin === "string" && origin.endsWith(".onrender.com"))
-              return cb(null, true);
-          } catch (e) {}
-
-          // Debug override: permitir todos si ALLOW_ALL_ORIGINS=true
+          if (typeof origin === "string" && origin.endsWith(".onrender.com"))
+            return cb(null, true);
           if (
             String(process.env.ALLOW_ALL_ORIGINS || "").toLowerCase() === "true"
           )
             return cb(null, true);
-
-          // Por defecto, rechazar
-          console.warn("CORS: origin rechazado:", origin);
           return cb(new Error("Origen no permitido por CORS"));
         } catch (e) {
           return cb(new Error("Origen no permitido por CORS"));
@@ -135,17 +94,13 @@ if (!PROXY_MODE && process.env.NODE_ENV !== "production") {
     "CORS habilitado en entorno de desarrollo, origen permitido:",
     FRONTEND_URL
   );
-} else {
-  console.log(
-    `CORS deshabilitado (PROXY_MODE=${PROXY_MODE}, NODE_ENV=${process.env.NODE_ENV})`
-  );
 }
 
 // Parsers
 app.use(express.json({ limit: "5mb" }));
 app.use(express.urlencoded({ extended: true }));
 
-// Sesión simple (si usas Redis, configúralo en otra capa)
+// Sesión simple
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "servitech-secret",
@@ -158,30 +113,17 @@ app.use(
   })
 );
 
-// Salud
-/**
- * @openapi
- * /api/health:
- *   get:
- *     tags: [Sistema]
- *     summary: Verifica el estado de la API
- *     responses:
- *       200:
- *         description: OK
- */
+// Endpoint de salud
 app.get("/api/health", (req, res) => res.status(200).json({ ok: true }));
-
-// Health simple (útil para checks desde frontend / infra)
 app.get("/health", (req, res) => res.status(200).json({ ok: true }));
 
-// Swagger (swagger-jsdoc + swagger-ui-express)
+// Swagger sólo muestra mensaje si hay error
 try {
   const swaggerJSDoc = require("swagger-jsdoc");
   const swaggerUi = require("swagger-ui-express");
-  const swaggerOptions = require("./config/swagger"); // Archivo aparte con opciones
+  const swaggerOptions = require("./config/swagger");
   const swaggerSpec = swaggerJSDoc(swaggerOptions);
 
-  // Security Schemes
   if (!swaggerSpec.components) swaggerSpec.components = {};
   if (!swaggerSpec.components.securitySchemes) {
     swaggerSpec.components.securitySchemes = {
@@ -190,7 +132,7 @@ try {
   }
   swaggerSpec.security = [{ bearerAuth: [] }];
 
-  // Protege documentación con JWT + admin
+  const { autenticar } = require("./middleware/auth.middleware");
   if (process.env.JWT_SECRET) {
     app.use(
       "/api-docs",
@@ -206,7 +148,6 @@ try {
       res.send(swaggerSpec);
     });
   } else {
-    // Fallback básico si falta JWT_SECRET
     const swaggerAuth = require("./middleware/swaggerAuth.middleware");
     app.use(
       "/api-docs",
@@ -222,35 +163,23 @@ try {
     });
   }
 } catch (e) {
+  // Solo mostrar si ocurre un error real de inicialización de Swagger
   console.warn("Swagger no inicializado:", e && e.message);
 }
 
-console.log("DEBUG: Importando middleware de autenticación...");
-const { autenticar } = require("./middleware/auth.middleware");
-console.log("DEBUG: Middleware de autenticación importado correctamente");
-
-// El middleware de autenticación ya está configurado en cada archivo de rutas individualmente
-// con las rutas públicas apropiadas definidas en auth.middleware.js
-
-// Rutas de dominio (ANTES del frontend router)
+// Rutas de dominio
 app.use("/api/usuarios", usuarioRoutes);
-app.use("/api/categorias", categoriaRoutes); // Ruta pública para visualización de expertos
+app.use("/api/categorias", categoriaRoutes);
 app.use("/api/pagos", pagoRoutes);
 app.use("/api/notificaciones", notificacionRoutes);
-app.use("/api/logs", logRoutes);
-app.use("/api/expertos", expertoRoutes); // Ruta pública para visualización de expertos
+app.use("/api/expertos", expertoRoutes);
 app.use("/api/asesorias", asesoriaRoutes);
 app.use("/api/perfil-experto", perfilExpertoRoutes);
-app.use("/api/dev", devRoutes);
+// app.use("/api/dev", devRoutes); // Descomenta si usas rutas de desarrollo
 
-// --- INICIO: Integración de rutas del frontend ---
-// Importar y usar el servidor del frontend como un router.
-// Esto nos permite usar las rutas de renderizado de vistas (/, /login, /perfil, etc.)
-console.log("Importando frontend router...");
+// Integración de rutas del frontend
 const frontendRouter = require("../frontend/server.js");
 app.use("/", frontendRouter);
-console.log("Frontend router importado y configurado");
-// --- FIN: Integración de rutas del frontend ---
 
 // 404 controlado
 app.use((req, res) => {
@@ -259,7 +188,10 @@ app.use((req, res) => {
 
 // Manejo de errores
 app.use((err, req, res, next) => {
-  console.error("Error:", err && (err.stack || err.message || err));
+  // Solo muestra en consola en desarrollo o ante error crítico
+  if (process.env.NODE_ENV !== "production" || err.status >= 500) {
+    console.error("Error:", err && (err.stack || err.message || err));
+  }
   const status = err.status || 500;
   res.status(status).json({
     error: "Error interno",
@@ -270,10 +202,9 @@ app.use((err, req, res, next) => {
   });
 });
 
-// --- Nuevo: handlers globales para errores no capturados ---
+// Handlers globales para errores no capturados
 process.on("uncaughtException", (err) => {
   console.error("uncaughtException:", err && (err.stack || err.message || err));
-  // Notar: normalmente conviene reiniciar el proceso; aquí solo logueamos para depuración.
 });
 
 process.on("unhandledRejection", (reason, p) => {
@@ -283,16 +214,15 @@ process.on("unhandledRejection", (reason, p) => {
     "reason:",
     reason && (reason.stack || reason)
   );
-  // Notar: registra razones de promesas rechazadas sin catch.
 });
 
 module.exports = app;
 
-// Si se ejecuta este archivo directamente (node app.js), arrancar el servidor.
-// Por defecto usa el puerto 5020 si no hay process.env.PORT definido.
+// Arrancar el servidor solo si este archivo es el principal
 if (require.main === module) {
   const PORT = parseInt(process.env.PORT, 10) || 5020;
   app.listen(PORT, () => {
+    console.log(`MongoDB conectado: servitech`);
     console.log(`Servidor backend escuchando en http://localhost:${PORT}`);
   });
 }

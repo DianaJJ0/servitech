@@ -13,3 +13,16 @@
 2025-09-23T20:21:11.624Z | CREAR_PAGO | cliente@correo.com | Diana Cliente | Resultado: Exito
 2025-09-23T20:21:59.091Z | CREAR_PAGO | dianacjj23@gmail.com | Diana Cliente | Resultado: Exito
 2025-09-23T20:31:41.932Z | CREAR_PAGO | dianacjj23@gmail.com | Diana Cliente | Resultado: Exito
+2025-09-24T23:33:45.636Z | CREAR_PAGO | dianacjj23@gmail.com | - | Resultado: Error: Pago validation failed: comisionPlataforma: Path `comisionPlataforma` is required., montoExperto: Path `montoExperto` is required.
+2025-09-24T23:35:45.117Z | CREAR_PAGO | dianacjj23@gmail.com | - | Resultado: Error: Pago validation failed: comisionPlataforma: Path `comisionPlataforma` is required., montoExperto: Path `montoExperto` is required.
+2025-09-24T23:35:58.453Z | CREAR_PAGO | dianacjj23@gmail.com | - | Resultado: Error: Pago validation failed: comisionPlataforma: Path `comisionPlataforma` is required., montoExperto: Path `montoExperto` is required.
+2025-09-24T23:39:21.246Z | CREAR_PAGO | dianacjj23@gmail.com | - | Resultado: Exito
+2025-09-24T23:43:04.110Z | CREAR_PAGO | dianacjj23@gmail.com | - | Resultado: Exito
+2025-09-25T01:51:55.811Z | CREAR_PAGO | dianacjj23@gmail.com | - | Resultado: Exito
+2025-09-25T01:54:44.158Z | CREAR_PAGO | dianacjj23@gmail.com | - | Resultado: Exito
+2025-09-25T02:25:18.612Z | CREAR_PAGO | dianacjj23@gmail.com | - | Resultado: Exito
+2025-09-25T02:31:41.042Z | CREAR_PAGO | dianacjj23@gmail.com | - | Resultado: Exito
+2025-09-25T02:42:45.385Z | CREAR_PAGO | dianacjj23@gmail.com | - | Resultado: Exito
+2025-09-25T16:59:31.435Z | CREAR_PAGO | dianacjj23@gmail.com | - | Resultado: Error: Pago validation failed: comisionPlataforma: Path `comisionPlataforma` is required., montoExperto: Path `montoExperto` is required.
+2025-09-25T17:00:34.193Z | CREAR_PAGO | dianacjj23@gmail.com | - | Resultado: Exito
+2025-09-25T17:11:20.347Z | CREAR_PAGO | dianacjj23@gmail.com | - | Resultado: Exito

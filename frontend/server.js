@@ -52,7 +52,7 @@ async function checkBackendConnectivity() {
         })`
       );
     } else {
-      console.log(`Backend reachable en ${BACKEND_URL} (health OK)`);
+      console.log(`Backend en ${BACKEND_URL} (health OK)`);
     }
   } catch (err) {
     console.warn(
@@ -112,22 +112,6 @@ if (process.env.USE_REDIS === "true" || process.env.REDIS_URL) {
   }
 }
 
-// Registro SSE para notificaciones ligeras (dev)
-const _sseClients = new Set();
-function broadcastSseEvent(eventName, data) {
-  const payload = typeof data === "string" ? data : JSON.stringify(data || {});
-  for (const res of Array.from(_sseClients)) {
-    try {
-      res.write(`event: ${eventName}\n`);
-      res.write(`data: ${payload}\n\n`);
-    } catch (e) {
-      try {
-        _sseClients.delete(res);
-      } catch (er) {}
-    }
-  }
-}
-
 // --- Middlewares globales ---
 // IMPORTANTE: Comentar estos middlewares cuando se usa como router en servidor unificado
 // porque el backend ya los aplica y causa conflicto "stream is not readable"
@@ -137,8 +121,6 @@ if (require.main === module) {
   router.use(express.json());
   router.use(express.urlencoded({ extended: true }));
   console.log("Middlewares de parsing aplicados (servidor independiente)");
-} else {
-  console.log("Middlewares de parsing omitidos (usado como router importado)");
 }
 
 if (PROXY_MODE) {
@@ -157,10 +139,6 @@ if (PROXY_MODE) {
       return next(e);
     }
   });
-} else {
-  console.log(
-    "PROXY_MODE=false — no se añade CORS global. Usar proxy o habilitar CORS en desarrollo si es necesario."
-  );
   router.use((req, res, next) => next());
 }
 
