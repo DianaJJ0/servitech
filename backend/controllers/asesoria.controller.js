@@ -12,6 +12,7 @@ const generarLogs = require("../services/generarLogs");
 const { enviarCorreo } = require("../services/email.service.js");
 
 /**
+ * Crea una nueva asesoría y notifica al experto por email.
  * @openapi
  * /api/asesorias:
  *   post:
@@ -115,7 +116,7 @@ const crearAsesoria = async (req, res) => {
     });
     await nuevaAsesoria.save();
 
-    // Notificación SOLO al experto para aceptar/rechazar y correo personalizado
+    // Notificación y CORREO al EXPERTO para aceptar/rechazar (con datos completos)
     try {
       const experto = await Usuario.findOne({ email: datos.experto.email });
       if (experto) {
@@ -130,13 +131,12 @@ const crearAsesoria = async (req, res) => {
           fechaEnvio: new Date(),
         });
 
-        // Enviar correo personalizado al experto
+        const fechaLocal = new Date(datos.fechaHoraInicio).toLocaleString("es-CO");
         await enviarCorreo(
           experto.email,
           "Nueva asesoría pendiente de aceptación",
-          `Tienes una nueva solicitud de asesoría titulada "${datos.titulo}". Por favor, ingresa a ServiTech para aceptarla o rechazarla.`,
-          experto.nombre,
-          experto.apellido
+          `Tienes una nueva solicitud de asesoría titulada "${datos.titulo}".\n\nCliente: ${datos.cliente.nombre} ${datos.cliente.apellido}\nFecha y hora: ${fechaLocal}\n\nIngresa a ServiTech para aceptarla o rechazarla.`,
+          { nombreDestinatario: experto.nombre, apellidoDestinatario: experto.apellido }
         );
       }
     } catch (e) {}
@@ -173,6 +173,7 @@ const crearAsesoria = async (req, res) => {
 };
 
 /**
+ * Aceptar asesoría. Notifica al cliente por correo con datos de la asesoría y número de contacto del experto.
  * @openapi
  * /api/asesorias/{id}/aceptar:
  *   put:
@@ -196,7 +197,6 @@ const aceptarAsesoria = async (req, res) => {
     const asesoria = await Asesoria.findById(id);
     if (!asesoria)
       return res.status(404).json({ mensaje: "Asesoría no encontrada." });
-    // Solo el experto asignado puede aceptar
     if (
       !req.usuario ||
       !req.usuario.roles.includes("experto") ||
@@ -222,10 +222,11 @@ const aceptarAsesoria = async (req, res) => {
       }
     }
 
-    // Notificación y correo al cliente
+    // Notificación y CORREO al CLIENTE con datos del experto y asesoría
     try {
       const cliente = await Usuario.findOne({ email: asesoria.cliente.email });
-      if (cliente) {
+      const experto = await Usuario.findOne({ email: asesoria.experto.email });
+      if (cliente && experto) {
         await Notificacion.create({
           usuarioId: cliente._id,
           email: cliente.email,
@@ -237,13 +238,12 @@ const aceptarAsesoria = async (req, res) => {
           fechaEnvio: new Date(),
         });
 
-        // Enviar correo personalizado al cliente
+        const fechaLocal = new Date(asesoria.fechaHoraInicio).toLocaleString("es-CO");
         await enviarCorreo(
           cliente.email,
           "Tu asesoría fue aceptada",
-          `Tu asesoría titulada "${asesoria.titulo}" fue aceptada por el experto. El pago está retenido hasta finalizar la asesoría.`,
-          cliente.nombre,
-          cliente.apellido
+          `Tu asesoría titulada "${asesoria.titulo}" fue aceptada por el experto.\n\nFecha y hora: ${fechaLocal}\n\nEl número de contacto del experto es: ${experto.infoExperto?.telefonoContacto || "No registrado"}.\nEl pago está retenido hasta finalizar la asesoría.\n\nContacta a tu experto para coordinar la asesoría.`,
+          { nombreDestinatario: cliente.nombre, apellidoDestinatario: cliente.apellido }
         );
       }
     } catch (e) {}
@@ -274,6 +274,7 @@ const aceptarAsesoria = async (req, res) => {
 };
 
 /**
+ * Rechazar asesoría. Notifica solo al cliente (el pago se reembolsa, no llega notificación al experto).
  * @openapi
  * /api/asesorias/{id}/rechazar:
  *   put:
@@ -324,7 +325,7 @@ const rechazarAsesoria = async (req, res) => {
       }
     }
 
-    // Notificación y correo al cliente
+    // Notificación y CORREO solo al CLIENTE
     try {
       const cliente = await Usuario.findOne({ email: asesoria.cliente.email });
       if (cliente) {
@@ -339,13 +340,11 @@ const rechazarAsesoria = async (req, res) => {
           fechaEnvio: new Date(),
         });
 
-        // Enviar correo personalizado al cliente
         await enviarCorreo(
           cliente.email,
           "Tu asesoría fue rechazada",
-          `Tu asesoría titulada "${asesoria.titulo}" fue rechazada por el experto. El pago ha sido reembolsado.`,
-          cliente.nombre,
-          cliente.apellido
+          `Tu asesoría titulada "${asesoria.titulo}" fue rechazada por el experto. El pago ha sido reembolsado. Por favor agenda una nueva asesoría en una fecha diferente.`,
+          { nombreDestinatario: cliente.nombre, apellidoDestinatario: cliente.apellido }
         );
       }
     } catch (e) {}
@@ -551,10 +550,6 @@ module.exports = {
   rechazarAsesoria,
   finalizarAsesoria,
   listarAsesorias,
-  listarPorCliente,
-  listarPorExperto,
-  obtenerAsesoriaPorId,
-  eliminarAsesoria,
   listarPorCliente,
   listarPorExperto,
   obtenerAsesoriaPorId,

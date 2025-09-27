@@ -1,0 +1,30 @@
+2025-09-26T20:30:29.723Z | LOGIN | dianacjj23@gmail.com | Diana Cliente | Resultado: Exito
+2025-09-26T20:51:28.047Z | LOGIN | servitech.app.correo@gmail.com | administrador jimenez | Resultado: Exito
+2025-09-26T21:49:09.244Z | LOGIN | dianacjj23@gmail.com | Diana Cliente | Resultado: Exito
+2025-09-26T23:05:22.939Z | LOGIN | dianacjj23@gmail.com | Diana Cliente | Resultado: Exito
+2025-09-27T00:51:32.825Z | EDITAR_PERFIL_CLIENTE | dianacjj23@gmail.com | Diana Admin | Resultado: Exito
+2025-09-27T00:52:19.720Z | LOGIN | servitech.app.correo@gmail.com | administrador jimenez | Resultado: Exito
+2025-09-27T00:52:51.603Z | LOGIN | dianajimenez10152312@gmail.com | - | Resultado: Error: credenciales incorrectas
+2025-09-27T00:53:02.067Z | LOGIN | dianajimenez10152312@gmail.com | - | Resultado: Error: credenciales incorrectas
+2025-09-27T00:53:11.462Z | LOGIN | dianajimenez10152312@gmail.com | - | Resultado: Error: credenciales incorrectas
+2025-09-27T00:57:22.889Z | RECUPERACION_PASSWORD | dianacjj23@gmail.com | - | Resultado: Error: Faltan parámetros requeridos: nombreDestinatario y apellidoDestinatario
+2025-09-27T01:42:02.971Z | RECUPERACION_PASSWORD | dianacjj23@gmail.com | Diana Admin | Resultado: Exito
+2025-09-27T01:42:43.168Z | RESET_PASSWORD | dianacjj23@gmail.com | Diana Admin | Resultado: Exito
+2025-09-27T01:43:09.926Z | LOGIN | servitech.app.correo@gmail.com | - | Resultado: Error: credenciales incorrectas
+2025-09-27T01:43:16.203Z | LOGIN | dianacjj23@gmail.com | Diana Admin | Resultado: Exito
+2025-09-27T02:11:31.923Z | SUBIR_AVATAR | dianacjj23@gmail.com | Diana Admin | Resultado: Exito
+2025-09-27T02:13:45.576Z | EDITAR_PERFIL_CLIENTE | dianacjj23@gmail.com | Diana Administrador | Resultado: Exito
+2025-09-27T02:15:15.452Z | EDITAR_PERFIL_CLIENTE | dianacjj23@gmail.com | Diana Jiménez | Resultado: Exito
+2025-09-27T02:55:58.182Z | LOGIN | servitech.app.correo@gmail.com | - | Resultado: Error: credenciales incorrectas
+2025-09-27T02:56:06.066Z | LOGIN | servitech.app.correo@gmail.com | administrador jimenez | Resultado: Exito
+2025-09-27T02:57:19.063Z | REGISTRO | servitech.app.correo@gmail.com | Juan administrador | Resultado: Exito
+2025-09-27T02:57:24.748Z | LOGIN | servitech.app.correo@gmail.com | Juan administrador | Resultado: Exito
+2025-09-27T03:07:36.981Z | LOGIN | servitech.app.correo@gmail.com | Juan administrador | Resultado: Exito
+2025-09-27T03:46:17.728Z | LOGIN | servitech.app.correo@gmail.com | Juan administrador | Resultado: Exito
+2025-09-27T03:56:13.832Z | LOGIN | servitech.app.correo@gmail.com | Juan administrador | Resultado: Exito
+2025-09-27T04:02:26.348Z | LOGIN | servitech.app.correo@gmail.com | Juan administrador | Resultado: Exito
+2025-09-27T04:38:10.198Z | LOGIN | servitech.app.correo@gmail.com | Juan administrador | Resultado: Exito
+2025-09-27T04:46:00.971Z | LOGIN | servitech.app.correo@gmail.com | Juan administrador | Resultado: Exito
+2025-09-27T04:50:29.950Z | LOGIN | servitech.app.correo@gmail.com | Juan administrador | Resultado: Exito
+2025-09-27T04:53:55.882Z | LOGIN | servitech.app.correo@gmail.com | Juan administrador | Resultado: Exito
+2025-09-27T05:01:25.952Z | LOGIN | servitech.app.correo@gmail.com | Juan administrador | Resultado: Exito

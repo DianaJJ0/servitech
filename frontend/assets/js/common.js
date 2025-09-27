@@ -124,9 +124,9 @@ function setupMobileMenu() {
   });
 }
 
-// Muestra u oculta el header según el login
+// Muestra u oculta el header según el login y el rol
 function setupUserInterface() {
-  // Usamos "usuario" y "token" del localStorage
+  // Usamos "usuario" y "token" del localStorage de manera consistente
   const usuarioRaw = localStorage.getItem("usuario");
   const token = localStorage.getItem("token");
   const authButtons = document.querySelector(".auth-buttons");
@@ -135,7 +135,7 @@ function setupUserInterface() {
   const adminAccess = document.getElementById("adminAccess");
 
   if (usuarioRaw && token) {
-    // Oculta login/registro
+    // Oculta login/registro, muestra menú usuario
     if (authButtons) authButtons.style.display = "none";
     if (userMenu) {
       userMenu.style.display = "flex";
@@ -207,17 +207,6 @@ function setupUserDropdown() {
   });
 }
 
-/*  para el menú móvil */
-if (typeof setupMobileMenu === "function") {
-  setupMobileMenu();
-} else {
-  document.addEventListener("DOMContentLoaded", function () {
-    if (typeof setupMobileMenu === "function") {
-      setupMobileMenu();
-    }
-  });
-}
-
 // Muestra nombre y avatar del usuario en el header
 function mostrarInfoUsuario() {
   const usuarioRaw = localStorage.getItem("usuario");
@@ -251,7 +240,7 @@ function mostrarInfoUsuario() {
   mostrarBotonAdmin(usuario);
 }
 
-// Función para mostrar/ocultar el botón de admin
+// Solo muestra el botón de admin si el usuario tiene rol 'admin'
 function mostrarBotonAdmin(usuario) {
   const adminAccess = document.getElementById("adminAccess");
   if (!adminAccess) return;
@@ -309,22 +298,18 @@ async function verificarSesionYAbrirAdmin() {
 
       const result = await response.json();
       if (response.ok && result.ok) {
-        console.log("Sesión de admin establecida correctamente");
         // Navegar al panel de admin
         window.location.href = "/admin/adminExpertos";
       } else {
-        console.error("Error al establecer sesión:", result);
         alert(
           "Error al establecer la sesión de administrador. Inicia sesión nuevamente."
         );
         window.location.href = "/login.html";
       }
     } catch (error) {
-      console.error("Error al establecer sesión:", error);
       alert("Error de conexión. Inténtalo de nuevo.");
     }
   } catch (error) {
-    console.error("Error al verificar sesión de admin:", error);
     alert("Error al verificar la sesión. Inicia sesión nuevamente.");
     window.location.href = "/login.html";
   }

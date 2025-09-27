@@ -1,6 +1,5 @@
 /**
  * Configuración de Swagger (swagger-jsdoc) para generar la documentación OpenAPI.
- * Excluye dev.routes.js en producción.
  */
 const path = require("path");
 const fs = require("fs");
