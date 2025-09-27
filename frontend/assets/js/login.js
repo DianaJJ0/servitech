@@ -1,5 +1,6 @@
 /**
  * JS de login con validación visual de criterios de contraseña.
+ * Guarda token y usuario en localStorage tras login exitoso.
  */
 document.addEventListener("DOMContentLoaded", () => {
   const loginForm = document.getElementById("loginForm");
@@ -9,15 +10,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const emailInput = document.getElementById("email");
   const passwordInput = document.getElementById("password");
 
-  // Elementos criterios
+  // Criterios de contraseña
   const minLengthItem = document.getElementById("minLengthCriteria");
   const uppercaseItem = document.getElementById("uppercaseCriteria");
   const lowercaseItem = document.getElementById("lowercaseCriteria");
   const numberItem = document.getElementById("numberCriteria");
-
-  // Mostrar criterios solo con focus (igual que registro)
   const criteriaList = document.getElementById("passwordCriteria");
-  criteriaList.style.display = "none"; // oculto al cargar
+  criteriaList.style.display = "none";
 
   passwordInput.addEventListener("focus", () => {
     criteriaList.style.display = "block";
@@ -27,29 +26,22 @@ document.addEventListener("DOMContentLoaded", () => {
     criteriaList.style.display = "none";
   });
 
-  // Validar criterios y actualizar clases visuales
   function validatePasswordCriteria(pw) {
     const minLength = pw.length >= 8;
     const hasUppercase = /[A-Z]/.test(pw);
     const hasLowercase = /[a-z]/.test(pw);
     const hasNumber = /[0-9]/.test(pw);
-
     minLengthItem.classList.toggle("valid", minLength);
     minLengthItem.classList.toggle("invalid", !minLength);
-
     uppercaseItem.classList.toggle("valid", hasUppercase);
     uppercaseItem.classList.toggle("invalid", !hasUppercase);
-
     lowercaseItem.classList.toggle("valid", hasLowercase);
     lowercaseItem.classList.toggle("invalid", !hasLowercase);
-
     numberItem.classList.toggle("valid", hasNumber);
     numberItem.classList.toggle("invalid", !hasNumber);
-
     return minLength && hasUppercase && hasLowercase && hasNumber;
   }
 
-  // Actualiza los criterios en tiempo real
   passwordInput.addEventListener("input", (e) => {
     validatePasswordCriteria(e.target.value);
   });
@@ -62,13 +54,11 @@ document.addEventListener("DOMContentLoaded", () => {
       email: emailInput.value.trim(),
       password: passwordInput.value.trim(),
     };
-    // Validación de campos vacíos
     if (!datosLogin.email || !datosLogin.password) {
       formError.textContent = "Por favor, complete todos los campos.";
       formError.style.display = "block";
       return;
     }
-    // Validación de formato de correo
     if (!datosLogin.email.includes("@")) {
       formError.textContent = "El correo debe contener un '@' válido.";
       formError.style.display = "block";
@@ -90,21 +80,15 @@ document.addEventListener("DOMContentLoaded", () => {
         body: JSON.stringify(datosLogin),
         credentials: "include",
       });
-
       const result = await response.json();
-
       if (!response.ok) {
         formError.textContent = result.mensaje || "Credenciales incorrectas.";
         formError.style.display = "block";
         formError.style.color = "#dc3545";
         return;
       }
-
-      // Guardar el token y usuario en localStorage
       localStorage.setItem("token", result.token);
       localStorage.setItem("usuario", JSON.stringify(result.usuario));
-
-      // Establece el usuario en la sesión del frontend incluyendo el token
       await fetch("/set-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -113,8 +97,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }),
         credentials: "include",
       });
-
-      // Redirección inteligente según parámetro next
       const nextInput = document.getElementById("next");
       const nextUrl = nextInput && nextInput.value ? nextInput.value : "/";
       window.location.href = nextUrl;

@@ -1,296 +1,253 @@
-document.addEventListener("DOMContentLoaded", function () {
-  // Sincroniza el token entre la sesión y localStorage si está disponible en window.user
-  if (window.user && window.user.token) {
-    localStorage.setItem("token", window.user.token);
-  }
-  // Si no hay token, redirige al login
+// JS para edición de datos de experto
+document.addEventListener("DOMContentLoaded", async function () {
   const token = localStorage.getItem("token");
-  if (!token || token === "null") {
+  if (!token) {
     window.location.href = "/login.html?next=/editarExperto";
     return;
   }
-  const dayOptions = document.querySelectorAll(".days-selector .day-option");
-  const diasInput = document.getElementById("diasDisponibles");
-  const daysDisplay = document.querySelector(".days-selected-display");
 
-  // Marcar días seleccionados según el valor inicial del input oculto
-  if (diasInput && diasInput.value) {
-    const diasSeleccionados = diasInput.value.split(",").map((d) => d.trim());
-    dayOptions.forEach((opt) => {
-      if (diasSeleccionados.includes(opt.getAttribute("data-day"))) {
-        opt.classList.add("selected");
-      } else {
-        opt.classList.remove("selected");
-      }
-    });
-  }
-
-  function updateSelectedDays() {
-    const selectedDays = Array.from(dayOptions)
-      .filter((opt) => opt.classList.contains("selected"))
-      .map((opt) => opt.getAttribute("data-day"));
-    diasInput.value = selectedDays.join(",");
-    daysDisplay.textContent =
-      selectedDays.length > 0
-        ? `Días seleccionados: ${selectedDays.join(", ")}`
-        : "Ningún día seleccionado";
-  }
-
-  dayOptions.forEach((option) => {
-    option.addEventListener("click", function () {
-      this.classList.toggle("selected");
-      updateSelectedDays();
-    });
-  });
-
-  updateSelectedDays();
-
-  // Event listener para el botón cancelar
-  const cancelarBtn = document.getElementById("cancelarEdicion");
-  if (cancelarBtn) {
-    cancelarBtn.addEventListener("click", function () {
-      // Redirigir al perfil del usuario
-      window.location.href = "/perfil";
-    });
-  }
-});
-
-// Ensure Choices.js is loaded and initialize on the categorias select (for editarExperto)
-(function ensureChoicesForEditar() {
-  const localJs = "/assets/vendor/choices/choices.min.js";
-  const cdnJs =
-    "https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js";
-
-  function tryLoadScript(href) {
-    return new Promise((res, rej) => {
-      const s = document.createElement("script");
-      s.src = href;
-      s.onload = () => setTimeout(() => res(), 30);
-      s.onerror = (e) => rej(e || new Error("failed to load script"));
-      document.head.appendChild(s);
-    });
-  }
-
-  tryLoadScript(localJs)
-    .catch(() => tryLoadScript(cdnJs))
-    .then(() => {
-      const categoriasSelect = document.getElementById("categorias");
-      if (!categoriasSelect) return;
-      try {
-        new Choices(categoriasSelect, {
-          removeItemButton: true,
-          searchEnabled: true,
-          placeholder: true,
-          placeholderValue: "Selecciona categorías",
-          noResultsText: "No hay resultados",
-          noChoicesText: "No hay opciones",
-          itemSelectText: "Seleccionar",
-          appendTo: document.body,
-          position: "bottom",
-          shouldSort: false,
-        });
-      } catch (e) {
-        console.error("Choices init failed on editarExperto:", e);
-      }
-    })
-    .catch((err) =>
-      console.error("Failed loading Choices assets for editar:", err)
-    );
-})();
-
-document.addEventListener("DOMContentLoaded", function () {
-  const btnShowAccount = document.querySelector(".btn-show-account");
-  if (btnShowAccount) {
-    btnShowAccount.addEventListener("click", function () {
-      const accountElement = this.closest(".account-number");
-      const realNumber = accountElement.getAttribute("data-number");
-
-      if (accountElement.textContent.includes("••••")) {
-        accountElement.innerHTML =
-          realNumber +
-          ' <button class="btn-show-account"><i class="fas fa-eye-slash"></i></button>';
-      } else {
-        accountElement.innerHTML =
-          "••••••••••••••••" +
-          ' <button class="btn-show-account"><i class="fas fa-eye"></i></button>';
-      }
-    });
-  }
-});
-
-document.addEventListener("DOMContentLoaded", function () {
-  const btnEditarPerfil = document.getElementById("btnEditarPerfil");
-  if (btnEditarPerfil) {
-    btnEditarPerfil.addEventListener("click", async function (e) {
-      e.preventDefault();
-      // Sincroniza sesión si hay token en localStorage pero no en window.user
-      const token = localStorage.getItem("token");
-      const usuario = localStorage.getItem("usuario");
-      if (token && usuario) {
-        try {
-          await fetch("/set-session", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              usuario: { ...JSON.parse(usuario), token },
-            }),
-          });
-        } catch (err) {
-          // Si falla, igual redirige
-        }
-      }
-      window.location.href = "/editarExperto";
-    });
-  }
-});
-
-// Submit handler: enviar formulario por fetch en lugar de dejar que el navegador haga GET
-document.addEventListener("DOMContentLoaded", function () {
   const form = document.getElementById("registroExpertoForm");
-  if (!form) return;
+  const alertas = document.getElementById("alertasExpertos");
+  const emailField = document.getElementById("emailExperto");
+  const fotoInput = document.getElementById("fotoPerfil");
+  const epImg = document.getElementById("epImg");
+  const epRemove = document.getElementById("epRemove");
+  const fotoError = document.getElementById("fotoError");
+  const categoriasSelect = document.getElementById("categorias");
+  const daysSelector = document.getElementById("daysSelector");
+  const diasDisponiblesInput = document.getElementById("diasDisponibles");
+  const diasSemana = [
+    "Lunes",
+    "Martes",
+    "Miércoles",
+    "Jueves",
+    "Viernes",
+    "Sábado",
+    "Domingo",
+  ];
 
-  form.addEventListener("submit", async function (e) {
-    e.preventDefault();
-    const token = localStorage.getItem("token");
-    if (!token || token === "null") {
-      window.location.href = "/login.html?next=/editarExperto";
-      return;
+  // --- Cargar info actual de experto (GET /api/expertos/perfil) y categorías ---
+  try {
+    const [perfilRes, catsRes] = await Promise.all([
+      fetch("/api/expertos/perfil", {
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+      fetch("/api/categorias"),
+    ]);
+    const perfil = await perfilRes.json();
+    const categorias = await catsRes.json();
+
+    // Email no editable
+    if (emailField) emailField.textContent = perfil.email || "";
+
+    // Campos básicos experto
+    form.precio.value = perfil.infoExperto?.precioPorHora || "";
+    form.telefonoContacto.value = perfil.infoExperto?.telefonoContacto || "";
+    form.descripcion.value = perfil.infoExperto?.descripcion || "";
+    form.banco.value = perfil.infoExperto?.banco || "";
+    form.tipoCuenta.value = perfil.infoExperto?.tipoCuenta || "";
+    form.numeroCuenta.value = perfil.infoExperto?.numeroCuenta || "";
+    form.titular.value = perfil.infoExperto?.titular || "";
+    form.tipoDocumento.value = perfil.infoExperto?.tipoDocumento || "";
+    form.numeroDocumento.value = perfil.infoExperto?.numeroDocumento || "";
+
+    // Categorías
+    categoriasSelect.innerHTML = "";
+    (categorias || []).forEach((cat) => {
+      const option = document.createElement("option");
+      option.value = cat._id || cat.id || cat.nombre;
+      option.textContent = cat.nombre;
+      categoriasSelect.appendChild(option);
+    });
+    // Seleccionar las categorías del experto
+    const seleccionadas = perfil.infoExperto?.categorias || [];
+    Array.from(categoriasSelect.options).forEach((opt) => {
+      if (
+        seleccionadas.includes(opt.value) ||
+        seleccionadas.includes(opt.textContent)
+      ) {
+        opt.selected = true;
+      }
+    });
+    // Choices.js
+    new Choices(categoriasSelect, {
+      removeItemButton: true,
+      searchEnabled: true,
+      placeholder: true,
+      placeholderValue: "Selecciona categorías",
+      noResultsText: "No hay resultados",
+      noChoicesText: "No hay opciones",
+      itemSelectText: "Seleccionar",
+      position: "bottom",
+      shouldSort: false,
+    });
+
+    // Días disponibles
+    daysSelector.innerHTML = diasSemana
+      .map(
+        (dia) =>
+          `<button type="button" class="day-option${
+            (perfil.infoExperto?.diasDisponibles || []).includes(dia)
+              ? " selected"
+              : ""
+          }" data-day="${dia}">${dia}</button>`
+      )
+      .join("");
+    function updateDiasDisponibles() {
+      const sel = Array.from(
+        daysSelector.querySelectorAll(".day-option.selected")
+      ).map((b) => b.getAttribute("data-day"));
+      diasDisponiblesInput.value = sel.join(",");
+    }
+    daysSelector.querySelectorAll(".day-option").forEach((btn) => {
+      btn.addEventListener("click", function () {
+        btn.classList.toggle("selected");
+        updateDiasDisponibles();
+      });
+    });
+    updateDiasDisponibles();
+
+    // Avatar
+    if (perfil.avatarUrl) {
+      epImg.src = perfil.avatarUrl;
+      epImg.style.display = "block";
+      epRemove.style.display = "inline-block";
+    } else {
+      epImg.style.display = "none";
+      epRemove.style.display = "none";
     }
 
-    // Build JSON payload from form fields (avoid FormData multipart)
-    try {
-      const payload = {};
-      // basic fields
-      const getVal = (name) => {
-        const el = form.querySelector(`[name="${name}"]`);
-        return el ? el.value : undefined;
+    epRemove.onclick = function () {
+      epImg.src = "";
+      epImg.style.display = "none";
+      epRemove.style.display = "none";
+      fotoInput.value = "";
+    };
+
+    // Preview de imagen
+    fotoInput.onchange = function () {
+      fotoError.style.display = "none";
+      const file = fotoInput.files && fotoInput.files[0];
+      if (!file) return;
+      if (!file.type.match(/^image\/(png|jpeg)$/)) {
+        fotoError.textContent = "Solo se permiten imágenes PNG o JPG.";
+        fotoError.style.display = "block";
+        fotoInput.value = "";
+        return;
+      }
+      if (file.size > 2 * 1024 * 1024) {
+        fotoError.textContent = "La imagen no debe superar 2MB.";
+        fotoError.style.display = "block";
+        fotoInput.value = "";
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        epImg.src = e.target.result;
+        epImg.style.display = "block";
+        epRemove.style.display = "inline-block";
       };
-      payload.nombre = getVal("nombre");
-      payload.apellido = getVal("apellido");
-      payload.email = getVal("email");
-      payload.descripcion = getVal("descripcion");
-      // Support both 'precio' and 'precioPorHora'
-      payload.precioPorHora = getVal("precioPorHora") || getVal("precio") || 0;
-      payload.precio = payload.precioPorHora;
-      payload.banco = getVal("banco");
-      payload.tipoCuenta = getVal("tipoCuenta");
-      payload.numeroCuenta = getVal("numeroCuenta");
-      payload.titular = getVal("titular");
-      payload.tipoDocumento = getVal("tipoDocumento");
-      payload.numeroDocumento = getVal("numeroDocumento");
-      payload.telefonoContacto = getVal("telefonoContacto");
-      // categorias: collect selected values from select[name="categorias"]
-      const categoriasSel = form.querySelector('select[name="categorias"]');
-      if (categoriasSel) {
-        payload.categorias = Array.from(categoriasSel.selectedOptions).map(
-          (o) => o.value
-        );
+      reader.readAsDataURL(file);
+    };
+
+    // Submit handler
+    form.onsubmit = async function (e) {
+      e.preventDefault();
+      alertas.innerHTML = "";
+      // Validaciones
+      if (!form.precio.value || parseInt(form.precio.value, 10) < 10000) {
+        alertas.innerHTML = `<div class="alert alert-danger">Precio mínimo: 10000 COP.</div>`;
+        return;
       }
-      // diasDisponibles: from hidden input
-      const diasInput = document.getElementById("diasDisponibles");
-      if (diasInput) payload.diasDisponibles = diasInput.value;
-
-      // If there is a file selected, upload it first to /api/usuarios/avatar
-      const fileInput = document.getElementById("fotoPerfil");
-      if (fileInput && fileInput.files && fileInput.files.length > 0) {
-        const file = fileInput.files[0];
-        const fd = new FormData();
-        fd.append("avatar", file);
-
-        const upResp = await fetch("/api/usuarios/avatar", {
-          method: "POST",
-          headers: Object.assign(
-            {
-              "X-Requested-With": "XMLHttpRequest",
-              Accept: "application/json",
-            },
-            token ? { Authorization: `Bearer ${token}` } : {}
-          ),
-          credentials: "same-origin",
-          body: fd,
-        });
-
-        if (!upResp.ok) {
-          const t = await upResp.text().catch(() => null);
-          console.error("Avatar upload failed:", upResp.status, t);
-          if (upResp.status === 401) {
-            window.location.href = "/login.html?next=/editarExperto";
-            return;
-          }
-          alert(
-            `Error al subir la imagen (status ${upResp.status}). Revisa la consola para más detalles.`
-          );
-          return;
-        }
-        const upJson = await upResp.json().catch(() => null);
-        if (upJson && upJson.avatarUrl) {
-          payload.avatarUrl = upJson.avatarUrl;
-        }
+      if (
+        !form.telefonoContacto.value ||
+        !/^[0-9]{7,15}$/.test(form.telefonoContacto.value)
+      ) {
+        alertas.innerHTML = `<div class="alert alert-danger">Teléfono obligatorio (solo números, 7 a 15 dígitos).</div>`;
+        return;
       }
-
-      // Now send JSON payload to update profile
-      const resp = await fetch("/api/usuarios/perfil", {
-        method: "PUT",
-        headers: Object.assign(
-          {
-            "Content-Type": "application/json",
-            "X-Requested-With": "XMLHttpRequest",
-            Accept: "application/json",
-          },
-          token ? { Authorization: `Bearer ${token}` } : {}
-        ),
-        credentials: "same-origin",
-        body: JSON.stringify(payload),
-      });
-
-      if (resp.redirected) {
-        window.location.href = resp.url;
+      if (!form.descripcion.value.trim()) {
+        alertas.innerHTML = `<div class="alert alert-danger">La descripción es obligatoria.</div>`;
+        return;
+      }
+      if (!categoriasSelect.value) {
+        alertas.innerHTML = `<div class="alert alert-danger">Selecciona al menos una categoría.</div>`;
+        return;
+      }
+      if (!diasDisponiblesInput.value) {
+        alertas.innerHTML = `<div class="alert alert-danger">Selecciona al menos un día disponible.</div>`;
+        return;
+      }
+      if (
+        !form.banco.value.trim() ||
+        !form.tipoCuenta.value ||
+        !form.numeroCuenta.value.trim() ||
+        !form.titular.value.trim() ||
+        !form.tipoDocumento.value ||
+        !form.numeroDocumento.value.trim()
+      ) {
+        alertas.innerHTML = `<div class="alert alert-danger">Completa todos los datos bancarios.</div>`;
         return;
       }
 
-      const ctype = (resp.headers.get("content-type") || "").toLowerCase();
-      if (ctype.includes("application/json")) {
-        const data = await resp.json().catch(() => null);
-        if (resp.ok) {
-          alert(
-            data && data.mensaje
-              ? data.mensaje
-              : "Perfil actualizado correctamente."
-          );
-          window.location.reload();
-        } else {
-          if (resp.status === 401) {
-            window.location.href = "/login.html?next=/editarExperto";
-            return;
-          }
-          alert(
-            data && (data.mensaje || data.message)
-              ? data.mensaje || data.message
-              : `Error al guardar (status ${resp.status})`
-          );
-          console.error("Error updating profile:", data);
+      // Si hay archivo, súbelo primero
+      let avatarUrl = perfil.avatarUrl || "";
+      const file = fotoInput.files && fotoInput.files[0];
+      if (file) {
+        const fd = new FormData();
+        fd.append("avatar", file);
+        const upResp = await fetch("/api/usuarios/avatar", {
+          method: "POST",
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          body: fd,
+        });
+        const upJson = await upResp.json();
+        if (upResp.ok && upJson.avatarUrl) {
+          avatarUrl = upJson.avatarUrl;
         }
-      } else {
-        const txt = await resp.text().catch(() => null);
-        console.error(
-          "Non-JSON response when updating profile:",
-          resp.status,
-          txt
-        );
-        if (resp.status === 401) {
-          window.location.href = "/login.html?next=/editarExperto";
-          return;
-        }
-        alert(
-          "Error del servidor al guardar. Revisa la consola para detalles."
-        );
       }
-    } catch (err) {
-      console.error("Error en submit editarExperto:", err);
-      alert(
-        "Error al enviar datos: " +
-          (err && err.message ? err.message : "network error")
-      );
-    }
-  });
+
+      // Arma payload y envía a backend
+      const payload = {
+        descripcion: form.descripcion.value,
+        precioPorHora: parseInt(form.precio.value, 10),
+        categorias: Array.from(categoriasSelect.selectedOptions).map(
+          (opt) => opt.value
+        ),
+        diasDisponibles: diasDisponiblesInput.value.split(","),
+        banco: form.banco.value,
+        tipoCuenta: form.tipoCuenta.value,
+        numeroCuenta: form.numeroCuenta.value,
+        titular: form.titular.value,
+        tipoDocumento: form.tipoDocumento.value,
+        numeroDocumento: form.numeroDocumento.value,
+        telefonoContacto: form.telefonoContacto.value,
+        avatarUrl,
+      };
+      const resp = await fetch("/api/expertos/perfil", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+      const data = await resp.json();
+      if (resp.ok) {
+        alertas.innerHTML = `<div class="alert alert-success">Datos actualizados correctamente.</div>`;
+        // Actualiza localStorage si lo tienes
+        let usuario = JSON.parse(localStorage.getItem("usuario") || "{}");
+        usuario.infoExperto = data.infoExperto;
+        usuario.avatarUrl = data.avatarUrl || usuario.avatarUrl;
+        localStorage.setItem("usuario", JSON.stringify(usuario));
+        setTimeout(() => (window.location.href = "/perfil"), 1000);
+      } else {
+        alertas.innerHTML = `<div class="alert alert-danger">${
+          data.mensaje || "Error al guardar."
+        }</div>`;
+      }
+    };
+  } catch (e) {
+    alertas.innerHTML = `<div class="alert alert-danger">Error al cargar datos. Vuelve a intentar.</div>`;
+  }
 });

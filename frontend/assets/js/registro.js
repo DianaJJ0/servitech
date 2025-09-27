@@ -1,5 +1,6 @@
 /**
- * JS de registro con validación visual de criterios de contraseña SOLO visible con focus.
+ * JS de registro con validación visual de criterios de contraseña.
+ * Redirige a login tras registro exitoso.
  */
 document.addEventListener("DOMContentLoaded", () => {
   const registroForm = document.getElementById("registroForm");
@@ -10,16 +11,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const passwordInput = document.getElementById("password");
   const confirmPasswordInput = document.getElementById("confirmPassword");
 
-  // Elementos criterios
+  // Criterios
   const minLengthItem = document.getElementById("minLengthCriteria");
   const uppercaseItem = document.getElementById("uppercaseCriteria");
   const lowercaseItem = document.getElementById("lowercaseCriteria");
   const numberItem = document.getElementById("numberCriteria");
-
   const criteriaList = document.getElementById("passwordCriteria");
-  criteriaList.style.display = "none"; // oculto al cargar
+  criteriaList.style.display = "none";
 
-  // Mostrar criterios solo con focus
   passwordInput.addEventListener("focus", () => {
     criteriaList.style.display = "block";
     validatePasswordCriteria(passwordInput.value);
@@ -28,48 +27,29 @@ document.addEventListener("DOMContentLoaded", () => {
     criteriaList.style.display = "none";
   });
 
-  // Validar criterios y actualizar clases visuales
   function validatePasswordCriteria(pw) {
     const minLength = pw.length >= 8;
     const hasUppercase = /[A-Z]/.test(pw);
     const hasLowercase = /[a-z]/.test(pw);
     const hasNumber = /[0-9]/.test(pw);
-
     minLengthItem.classList.toggle("valid", minLength);
     minLengthItem.classList.toggle("invalid", !minLength);
-
     uppercaseItem.classList.toggle("valid", hasUppercase);
     uppercaseItem.classList.toggle("invalid", !hasUppercase);
-
     lowercaseItem.classList.toggle("valid", hasLowercase);
     lowercaseItem.classList.toggle("invalid", !hasLowercase);
-
     numberItem.classList.toggle("valid", hasNumber);
     numberItem.classList.toggle("invalid", !hasNumber);
-
     return minLength && hasUppercase && hasLowercase && hasNumber;
   }
 
-  // Actualiza los criterios en tiempo real
   passwordInput.addEventListener("input", (e) => {
     validatePasswordCriteria(e.target.value);
   });
 
-  // Mostrar/ocultar contraseña
-  const togglePassword = document.querySelector(".toggle-password");
-  if (togglePassword) {
-    togglePassword.addEventListener("click", () => {
-      const isPassword = passwordInput.type === "password";
-      passwordInput.type = isPassword ? "text" : "password";
-      togglePassword.classList.toggle("fa-eye");
-      togglePassword.classList.toggle("fa-eye-slash");
-    });
-  }
-
   // Validación en tiempo real de campos obligatorios
   const nombreInput = document.getElementById("nombre");
   const apellidoInput = document.getElementById("apellido");
-
   const nombreError = document.getElementById("nombreError");
   const apellidoError = document.getElementById("apellidoError");
   const emailError = document.getElementById("emailError");
@@ -109,7 +89,6 @@ document.addEventListener("DOMContentLoaded", () => {
       return true;
     }
   }
-
   function validarConfirmPassword() {
     if (!confirmPasswordInput.value.trim()) {
       confirmPasswordError.textContent = "Debes confirmar la contraseña.";
@@ -124,7 +103,6 @@ document.addEventListener("DOMContentLoaded", () => {
       return true;
     }
   }
-
   nombreInput.addEventListener("input", validarNombre);
   apellidoInput.addEventListener("input", validarApellido);
   emailInput.addEventListener("input", validarEmail);
@@ -134,8 +112,6 @@ document.addEventListener("DOMContentLoaded", () => {
   registroForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     formError.style.display = "none";
-
-    // Oculta todos los errores al iniciar
     [nombreError, apellidoError, emailError, confirmPasswordError].forEach(
       (el) => {
         if (el) el.style.display = "none";
@@ -150,28 +126,20 @@ document.addEventListener("DOMContentLoaded", () => {
     privacyError.style.display = "none";
 
     let valid = true;
-
-    // Validación de nombre
     if (!validarNombre()) valid = false;
-    // Validación de apellido
     if (!validarApellido()) valid = false;
-    // Validación de email
     if (!validarEmail()) valid = false;
-    // Validación de contraseña
     if (!passwordInput.value.trim()) {
       formError.textContent = "La contraseña es obligatoria.";
       formError.style.display = "block";
       valid = false;
     }
-    // Validación de confirmación de contraseña
     if (!validarConfirmPassword()) valid = false;
-    // Validación de criterios
     if (!validatePasswordCriteria(passwordInput.value)) {
       formError.textContent = "La contraseña no cumple los requisitos.";
       formError.style.display = "block";
       valid = false;
     }
-    // Validación de checkboxes obligatorios
     if (!termsCheckbox.checked) {
       termsError.style.display = "block";
       valid = false;
@@ -201,26 +169,22 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       const csrfData = await csrfResponse.json();
       const csrfToken = csrfData.csrfToken;
-
       const headers = { "Content-Type": "application/json" };
       if (csrfToken) {
         headers["x-csrf-token"] = csrfToken;
       }
-
       const response = await fetch("/api/usuarios/registro", {
         method: "POST",
         headers: headers,
         body: JSON.stringify(datosRegistro),
       });
       const result = await response.json();
-
       if (!response.ok) {
         formError.textContent =
           result.mensaje || "Ocurrió un error desconocido.";
         formError.style.display = "block";
         return;
       }
-
       formError.textContent =
         "¡Registro exitoso! Redirigiendo al inicio de sesión...";
       formError.classList.add("success-message");

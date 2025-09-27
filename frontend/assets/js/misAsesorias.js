@@ -4,8 +4,9 @@
 function ensureAuthenticatedOrRedirect() {
   try {
     const token = localStorage.getItem("token");
-    const currentUser = localStorage.getItem("currentUser");
-    if (!token && !currentUser) {
+    const usuario = localStorage.getItem("usuario");
+    // Unifica: solo aceptamos autenticado si existe token Y usuario
+    if (!token || !usuario) {
       window.location.replace("/login.html");
       throw new Error("No autenticado");
     }

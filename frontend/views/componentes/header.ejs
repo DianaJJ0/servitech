@@ -1,58 +1,36 @@
 <!-- Encabezado principal -->
 <header class="header">
-    <!-- Asegurar carga de estilos del bloque admin -->
     <link rel="stylesheet" href="/assets/css/admin-access.css">
-    <!-- Barra de navegación principal -->
     <nav class="navbar">
-        <!-- Logo -->
         <div class="logo">
             <a href="/"><img src="/assets/img/logo.png" alt="logo" class="logo-img"></a>
         </div>
-
-        <!-- Contenedor de navegación (se convierte en menú móvil) -->
         <div class="nav-container" id="navContainer">
-            <!-- Enlaces principales de navegación -->
             <div class="nav-links">
                 <a href="/" class="nav-item"><i class="fas fa-home"></i> Inicio</a>
                 <a href="/expertos.html" class="nav-item"><i class="fas fa-users"></i> Expertos</a>
                 <a href="/contacto.html" class="nav-item"><i class="fas fa-envelope"></i> Contacto</a>
             </div>
-
-            <!-- Botones de autenticación (para usuarios no logueados) -->
             <div class="auth-buttons">
                 <a href="/login.html" class="btn btn-outline">Iniciar sesión</a>
                 <a href="/registro.html" class="btn btn-primary">Registrarse</a>
             </div>
-
-            <!-- Menú de usuario (para usuarios logueados) -->
             <div class="user-menu" id="userMenuContainer">
-                <div class="user-avatar" id="userAvatar">
-                    <!-- Avatar o iniciales del usuario -->
-                </div>
+                <div class="user-avatar" id="userAvatar"></div>
                 <span id="userDisplayName">Usuario</span>
                 <i class="fas fa-chevron-down"></i>
                 <div class="user-dropdown" id="userDropdown">
-                    <a href="/perfil" class="dropdown-item">
-                        <i class="fas fa-user"></i> Mi perfil
-                    </a>
-                    <a href="/misAsesorias.html" class="dropdown-item">
-                        <i class="fas fa-calendar-alt"></i> Mis asesorías
-                    </a>
-                    <a href="/editarExperto" class="dropdown-item">
-                        <i class="fas fa-calendar-alt"></i> Editar perfil expertos
-                    </a>
-                    <% if (typeof esExperto !=='undefined' && esExperto) { %>
-                        <a href="/perfil" class="dropdown-item">
-                            <i class="fas fa-user-tie"></i> Perfil de Experto
-                        </a>
+                    <a href="/perfil" class="dropdown-item"><i class="fas fa-user"></i> Mi perfil</a>
+                    <a href="/misAsesorias.html" class="dropdown-item"><i class="fas fa-calendar-alt"></i> Mis
+                        asesorías</a>
+                    <% if (user && user.roles && user.roles.includes('experto')) { %>
+                        <a href="/editarExperto" class="dropdown-item"><i class="fas fa-calendar-alt"></i> Editar datos
+                            de experto</a>
                         <% } %>
-                            <button class="dropdown-item" id="logoutBtn">
-                                <i class="fas fa-sign-out-alt"></i> Cerrar sesión
-                            </button>
+                            <button class="dropdown-item" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Cerrar
+                                sesión</button>
                 </div>
             </div>
-            <!-- Botón rápido para acceder al panel de administradores -->
-
             <div class="admin-access" id="adminAccess" role="region" aria-label="Acceso administradores"
                 style="display: none;">
                 <a href="/admin/adminExpertos" class="btn btn-admin" id="adminPanelBtn"
@@ -60,19 +38,8 @@
                     <i class="fas fa-tools" aria-hidden="true"></i>
                     <span class="btn-text">Admin</span>
                 </a>
-
-                <!-- Botón dev: solo renderiza si el servidor lo permite -->
-                <% if (typeof showDevAdmin !=='undefined' && showDevAdmin) { %>
-                    <button id="devAdminBtn" class="btn btn-outline"
-                        aria-label="Entrar como administrador (desarrollo)">
-                        <i class="fas fa-user-shield" aria-hidden="true"></i>
-                        <span class="sr-only">Entrar como admin (dev)</span>
-                    </button>
-                    <% } %>
             </div>
         </div>
-
-        <!-- Botón para mostrar/ocultar menú en móvil -->
         <div class="mobile-menu-toggle" id="mobileMenuToggle">
             <i class="fas fa-bars"></i>
         </div>
