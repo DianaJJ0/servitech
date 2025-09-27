@@ -24,7 +24,6 @@ const pagoRoutes = require("./routes/pago.routes.js");
 const notificacionRoutes = require("./routes/notificacion.routes.js");
 const expertoRoutes = require("./routes/experto.routes.js");
 const asesoriaRoutes = require("./routes/asesoria.routes.js");
-const perfilExpertoRoutes = require("./routes/perfilExperto.js");
 // Conecta a la base de datos y muestra mensaje solo si hay error o éxito
 conectarDB();
 
@@ -170,8 +169,6 @@ app.use("/api/pagos", pagoRoutes);
 app.use("/api/notificaciones", notificacionRoutes);
 app.use("/api/expertos", expertoRoutes);
 app.use("/api/asesorias", asesoriaRoutes);
-app.use("/api/perfil-experto", perfilExpertoRoutes);
-// app.use("/api/dev", devRoutes); // Descomenta si usas rutas de desarrollo
 
 // Integración de rutas del frontend
 const frontendRouter = require("../frontend/server.js");
@@ -184,12 +181,11 @@ app.use((req, res) => {
 
 // Manejo de errores
 app.use((err, req, res, next) => {
-  // Solo muestra en consola en desarrollo o ante error crítico
-  if (process.env.NODE_ENV !== "production" || err.status >= 500) {
-    console.error("Error:", err && (err.stack || err.message || err));
+  if (res.headersSent) {
+    return next(err);
   }
   const status = err.status || 500;
-  res.status(status).json({
+  return res.status(status).json({
     error: "Error interno",
     message:
       process.env.NODE_ENV === "production"
@@ -197,6 +193,7 @@ app.use((err, req, res, next) => {
         : err.message || "Internal Server Error",
   });
 });
+
 
 // Handlers globales para errores no capturados
 process.on("uncaughtException", (err) => {
