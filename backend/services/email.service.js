@@ -14,23 +14,17 @@ const validarConfiguracionEmail = () => {
       `Faltan variables de entorno de email: ${missing.join(", ")}`
     );
   }
-
-  // Validar formato de App Password (16 caracteres sin espacios)
   const password = process.env.EMAIL_PASS;
-
   if (password.includes(" ")) {
     throw new Error(
       "EMAIL_PASS no debe contener espacios. Usa una App Password de Gmail."
     );
   }
-
   if (password.length !== 16) {
     console.warn(
       `App Password tiene ${password.length} caracteres, debería tener 16. Verifica que sea correcta.`
     );
   }
-
-  // Verificar que solo contenga caracteres alfanuméricos
   const isValid = /^[a-zA-Z0-9]{16}$/.test(password);
   if (!isValid) {
     throw new Error(
@@ -39,18 +33,16 @@ const validarConfiguracionEmail = () => {
   }
 };
 
-// Validar al cargar el módulo
 try {
   validarConfiguracionEmail();
 } catch (error) {
   console.error("Error de configuración de email:", error.message);
 }
 
-// --- Configuración del Transporter ---
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
   port: parseInt(process.env.EMAIL_PORT),
-  secure: true, // Se usa SSL, requerido por Gmail en el puerto 465
+  secure: true,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS.trim(),
@@ -58,43 +50,33 @@ const transporter = nodemailer.createTransport({
 });
 
 /**
- * Envía un correo electrónico personalizado.
+ * Envía un correo electrónico personalizado. Si no se da nombre/apellido, usa un saludo genérico.
  * @param {string} destinatario - Correo del destinatario.
  * @param {string} asunto - Asunto del correo.
- * @param {string} mensaje - Cuerpo principal del mensaje (sin nombre).
- * @param {string} nombreDestinatario - Nombre del destinatario.
- * @param {string} apellidoDestinatario - Apellido del destinatario.
- * @param {string} [html] - Cuerpo HTML adicional (opcional).
+ * @param {string} mensaje - Cuerpo principal del mensaje (sin saludo).
+ * @param {object} [opciones] - Opcional: {nombreDestinatario, apellidoDestinatario, html}
  * @returns {Promise<object>} - Información del envío si es exitoso.
  * @throws {Error} - Si falta algún dato o falla el envío.
  */
-const enviarCorreo = async (
-  destinatario,
-  asunto,
-  mensaje,
-  nombreDestinatario,
-  apellidoDestinatario,
-  html
-) => {
-  // Validar parámetros
+const enviarCorreo = async (destinatario, asunto, mensaje, opciones = {}) => {
   if (!destinatario || !asunto || !mensaje) {
     throw new Error(
       "Faltan parámetros requeridos: destinatario, asunto, mensaje"
     );
   }
-  if (!nombreDestinatario || !apellidoDestinatario) {
-    throw new Error(
-      "Faltan parámetros requeridos: nombreDestinatario y apellidoDestinatario"
-    );
+
+  let saludo = "Hola,";
+  if (opciones.nombreDestinatario && opciones.apellidoDestinatario) {
+    saludo = `Hola ${opciones.nombreDestinatario} ${opciones.apellidoDestinatario},`;
+  } else if (opciones.nombreDestinatario) {
+    saludo = `Hola ${opciones.nombreDestinatario},`;
   }
 
-  // Personaliza el mensaje de texto y HTML
-  const saludo = `Hola ${nombreDestinatario} ${apellidoDestinatario},`;
   const mensajeTexto = `${saludo}\n\n${mensaje}`;
   const mensajeHtml =
-    html ||
-    `<p>${saludo}</p>
-     <p>${mensaje}</p>`;
+    opciones.html ||
+    `<p style="color:#551a8b;font-size:1.1em;">${saludo}</p>
+     <p style="color:#551a8b;">${mensaje.replace(/\n/g, "<br>")}</p>`;
 
   const mailOptions = {
     from: `"ServiTech" <${process.env.EMAIL_USER}>`,
@@ -112,6 +94,53 @@ const enviarCorreo = async (
   }
 };
 
+/**
+ * Genera el cuerpo del email de recuperación de contraseña según el formato de la imagen.
+ * @param {string} nombreDestinatario
+ * @param {string} apellidoDestinatario
+ * @param {string} enlaceRecuperacion
+ * @returns {{mensaje: string, html: string}}
+ */
+function generarCuerpoRecuperacion(
+  nombreDestinatario,
+  apellidoDestinatario,
+  enlaceRecuperacion
+) {
+  const saludo =
+    nombreDestinatario && apellidoDestinatario
+      ? `Hola ${nombreDestinatario} ${apellidoDestinatario},`
+      : "Hola,";
+
+  const mensaje = `Recibimos una solicitud para recuperar tu contraseña.
+
+Haz clic en el siguiente enlace para crear una nueva contraseña:
+
+${enlaceRecuperacion}
+
+Si no solicitaste esto, deberías ir al aplicativo y cambiar tu contraseña inmediatamente por seguridad.
+
+Saludos,
+Equipo ServiTech`;
+
+  const html = `
+<p style="color:#551a8b;font-size:1.08em;font-weight:500;">${saludo}</p>
+<p style="color:#551a8b;">Recibimos una solicitud para recuperar tu contraseña.</p>
+<p style="color:#551a8b;">Haz clic en el siguiente enlace para crear una nueva contraseña:</p>
+<p>
+  <a href="${enlaceRecuperacion}" style="color:#551a8b;text-decoration:underline;font-weight:500;">
+    ${enlaceRecuperacion}
+  </a>
+</p>
+<p style="color:#551a8b;">
+  Si no solicitaste esto, deberías ir al aplicativo y cambiar tu contraseña inmediatamente por seguridad.
+</p>
+<br>
+<p style="color:#551a8b;">Saludos,<br>Equipo ServiTech</p>
+  `;
+  return { mensaje, html };
+}
+
 module.exports = {
   enviarCorreo,
+  generarCuerpoRecuperacion,
 };
