@@ -10,7 +10,7 @@ const Asesoria = require("../models/asesoria.model.js");
 const Pago = require("../models/pago.model.js");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-const { enviarCorreo } = require("../services/email.service.js");
+const {enviarCorreo,generarCuerpoRecuperacion,} = require("../services/email.service.js");
 const mongoose = require("mongoose");
 const { generateLog } = require("../services/logService.js");
 const generarLogs = require("../services/generarLogs");
@@ -383,6 +383,27 @@ const obtenerUsuarios = async (req, res) => {
 
 /**
  * Solicita recuperación de contraseña por email
+ * @openapi
+ * /api/usuarios/recuperar-password:
+ *   post:
+ *     summary: Solicita recuperación de contraseña
+ *     tags: [Usuarios]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Si el email existe, se enviaron instrucciones
+ *       400:
+ *         description: Email requerido
  */
 const solicitarRecuperacionPassword = async (req, res) => {
   const { email } = req.body;
@@ -394,6 +415,7 @@ const solicitarRecuperacionPassword = async (req, res) => {
     }
 
     const usuario = await Usuario.findOne({ email: email.trim() });
+    // Siempre responder igual para no filtrar emails existentes
     if (!usuario) {
       return res.status(200).json({
         mensaje: "Si el email existe, se enviaron instrucciones.",
@@ -412,18 +434,18 @@ const solicitarRecuperacionPassword = async (req, res) => {
       `http://localhost:${process.env.PORT || 5020}`;
     const enlace = `${baseUrl}/recuperarPassword.html?token=${token}`;
 
-    const asunto = "Recupera tu contraseña - ServiTech";
-    const mensaje = `
-      <p>Hola ${usuario.nombre},</p>
-      <p>Recibimos una solicitud para recuperar tu contraseña.</p>
-      <p>Haz clic en el siguiente enlace para crear una nueva contraseña:</p>
-      <p><a href="${enlace}">${enlace}</a></p>
-      <p>Si no solicitaste esto, puedes ignorar este correo.</p>
-      <br>
-      <p>Saludos,<br>Equipo ServiTech</p>
-    `;
-
-    await enviarCorreo(usuario.email, asunto, mensaje, mensaje);
+    // Cuerpo del email según imagen y estándares.
+    const { mensaje, html } = generarCuerpoRecuperacion(
+      usuario.nombre,
+      usuario.apellido,
+      enlace
+    );
+    await enviarCorreo(
+      usuario.email,
+      "Recupera tu contraseña - ServiTech",
+      mensaje,
+      { nombreDestinatario: usuario.nombre, apellidoDestinatario: usuario.apellido, html }
+    );
 
     generarLogs.registrarEvento({
       usuarioEmail: usuario.email,

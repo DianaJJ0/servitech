@@ -8,3 +8,10 @@
 2025-09-27T00:53:02.067Z | LOGIN | dianajimenez10152312@gmail.com | - | Resultado: Error: credenciales incorrectas
 2025-09-27T00:53:11.462Z | LOGIN | dianajimenez10152312@gmail.com | - | Resultado: Error: credenciales incorrectas
 2025-09-27T00:57:22.889Z | RECUPERACION_PASSWORD | dianacjj23@gmail.com | - | Resultado: Error: Faltan parámetros requeridos: nombreDestinatario y apellidoDestinatario
+2025-09-27T01:42:02.971Z | RECUPERACION_PASSWORD | dianacjj23@gmail.com | Diana Admin | Resultado: Exito
+2025-09-27T01:42:43.168Z | RESET_PASSWORD | dianacjj23@gmail.com | Diana Admin | Resultado: Exito
+2025-09-27T01:43:09.926Z | LOGIN | servitech.app.correo@gmail.com | - | Resultado: Error: credenciales incorrectas
+2025-09-27T01:43:16.203Z | LOGIN | dianacjj23@gmail.com | Diana Admin | Resultado: Exito
+2025-09-27T02:11:31.923Z | SUBIR_AVATAR | dianacjj23@gmail.com | Diana Admin | Resultado: Exito
+2025-09-27T02:13:45.576Z | EDITAR_PERFIL_CLIENTE | dianacjj23@gmail.com | Diana Administrador | Resultado: Exito
+2025-09-27T02:15:15.452Z | EDITAR_PERFIL_CLIENTE | dianacjj23@gmail.com | Diana Jiménez | Resultado: Exito

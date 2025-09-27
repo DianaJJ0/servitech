@@ -20,38 +20,36 @@
       <% } %>
         <section class="perfil-section">
           <h1 class="perfil-title">Mi Perfil</h1>
-          <div class="perfil-card">
-            <!-- imagen de perfil -->
-            <div class="perfil-avatar">
-              <% let avatarSrc='/assets/img/default-avatar.png' ; if (user && (user.avatar || user.avatarUrl)) {
-                avatarSrc=user.avatar || user.avatarUrl; try { if (typeof avatarSrc==='string' &&
-                avatarSrc.indexOf('http://localhost:5021/uploads')===0) {
-                avatarSrc=avatarSrc.replace('http://localhost:5021','http://localhost:5020'); } } catch (e) {} } %>
-                <img src="<%= avatarSrc %>" alt="Avatar de Usuario" id="profileAvatar">
-                <button class="change-avatar-btn">
-                  <i class="fas fa-camera"></i>
-                </button>
-            </div>
-            <!-- Información básica y acciones -->
-            <div class="perfil-info">
-              <h2 id="userName">
-                <%= user ? (user.nombre || 'Sin nombre' ) : 'No autenticado' %>
-              </h2>
-              <p id="userEmail">
-                <%= user ? (user.email || 'Sin email' ) : '' %>
-              </p>
-              <div class="perfil-actions">
-                <% if (user && user.roles && user.roles.includes('experto')) { %>
-                  <a href="/editarExperto" id="btnEditarPerfil" class="btn btn-primary">
-                    <i class="fas fa-edit"></i> Editar datos de experto
-                  </a>
-                  <% } %>
-                    <a href="/misAsesorias.html" class="btn btn-outline">
-                      <i class="fas fa-calendar-alt"></i> Mis asesorías
-                    </a>
-                    <a href="/" class="btn btn-secondary" style="margin-left: 1rem;">
-                      <i class="fas fa-arrow-left"></i> Volver al inicio
-                    </a>
+          <div class="perfil-card-wrapper">
+            <div class="perfil-card">
+              <!-- avatar: aquí inserta el JS la imagen o iniciales -->
+              <div class="perfil-avatar" id="perfilAvatarContainer"></div>
+              <!-- input oculto para subir avatar -->
+              <input type="file" id="avatarInput" accept="image/png,image/jpeg" style="display:none;">
+              <div id="avatarError" class="input-error"></div>
+              <!-- Información básica y acciones -->
+              <div class="perfil-info">
+                <h2 id="userName">
+                  <%= user ? (user.nombre || 'Sin nombre' ) : 'No autenticado' %>
+                </h2>
+                <p id="userEmail">
+                  <%= user ? (user.email || 'Sin email' ) : '' %>
+                </p>
+                <div class="perfil-actions-wrapper">
+                  <div class="perfil-actions">
+                    <% if (user && user.roles && user.roles.includes('experto')) { %>
+                      <a href="/editarExperto" id="btnEditarPerfil" class="btn btn-primary">
+                        <i class="fas fa-edit"></i> Editar datos de experto
+                      </a>
+                      <% } %>
+                        <a href="/misAsesorias.html" class="btn btn-outline">
+                          <i class="fas fa-calendar-alt"></i> Mis asesorías
+                        </a>
+                        <a href="/" class="btn btn-secondary">
+                          <i class="fas fa-arrow-left"></i> Volver al inicio
+                        </a>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -62,7 +60,7 @@
                 <h2>Información personal</h2>
                 <% if (user) { %>
                   <a href="#" id="btnEditarNombreApellido" class="btn btn-secondary btn-sm">
-                    <i class="fas fa-edit"></i> Editar nombre y apellido
+                    <i class="fas fa-edit"></i> Editar
                   </a>
                   <% } %>
               </div>
@@ -113,7 +111,7 @@
   <section class="modal-section *:hidden" id="modalSection">
     <div id="modalEditarNombreApellido" class="modal-perfil" style="display:none;">
       <div class="modal-content-perfil">
-        <h3>Editar nombre y apellido</h3>
+        <h3>Editar datos básicos</h3>
         <form id="formEditarNombreApellido" autocomplete="off">
           <div class="form-row">
             <div class="form-group">
@@ -136,10 +134,9 @@
       </div>
     </div>
   </section>
-</body>
-<script src="/assets/js/common.js"></script>
-<script src="/assets/js/index.js"></script>
-<script src="/assets/js/perfil.js"></script>
+  <script src="/assets/js/common.js"></script>
+  <script src="/assets/js/index.js"></script>
+  <script src="/assets/js/perfil.js"></script>
 </body>
 
 </html>
