@@ -506,78 +506,139 @@ const resetearPassword = async (req, res) => {
   }
 };
 
+
 /**
- * Actualiza perfil del usuario autenticado
+ * Actualiza perfil del usuario autenticado.
+ * Permite editar solo nombre y apellido para clientes.
+ * Permite editar nombre, apellido y campos de experto si es rol experto.
+ * @openapi
+ * /api/usuarios/perfil:
+ *   put:
+ *     summary: Actualiza el perfil del usuario autenticado
+ *     tags: [Usuarios]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nombre: {type: string}
+ *               apellido: {type: string}
+ *               // Para expertos:
+ *               descripcion: {type: string}
+ *               precioPorHora: {type: number}
+ *               categorias: {type: array, items: {type: string}}
+ *               banco: {type: string}
+ *               tipoCuenta: {type: string}
+ *               numeroCuenta: {type: string}
+ *               titular: {type: string}
+ *               tipoDocumento: {type: string}
+ *               numeroDocumento: {type: string}
+ *               telefonoContacto: {type: string}
+ *               diasDisponibles: {type: array, items: {type: string}}
+ *     responses:
+ *       200:
+ *         description: Perfil actualizado
+ *       400:
+ *         description: Datos faltantes o inválidos
+ *       404:
+ *         description: Usuario no encontrado
  */
 const actualizarPerfilUsuario = async (req, res) => {
   try {
-    const datos = req.body;
     if (!req.usuario || !req.usuario._id) {
       return res.status(401).json({ mensaje: "No autenticado" });
     }
     const usuario = await Usuario.findById(req.usuario._id);
-
     if (!usuario) {
       return res.status(404).json({ mensaje: "Usuario no encontrado." });
     }
 
-    let categoriasArray = [];
-    if (datos.categorias) {
-      if (Array.isArray(datos.categorias)) {
-        categoriasArray = datos.categorias.map((id) => String(id));
-      } else if (typeof datos.categorias === "string") {
-        categoriasArray = datos.categorias.split(",").map((id) => id.trim());
-      }
+    const datos = req.body;
+    // Validar nombre y apellido siempre
+    if (!datos.nombre || !datos.apellido) {
+      return res.status(400).json({ mensaje: "Nombre y apellido son obligatorios." });
     }
-
-    let diasArray = [];
-    if (datos.diasDisponibles) {
-      if (Array.isArray(datos.diasDisponibles)) {
-        diasArray = datos.diasDisponibles.map((dia) => String(dia));
-      } else if (typeof datos.diasDisponibles === "string") {
-        diasArray = datos.diasDisponibles.split(",").map((dia) => dia.trim());
-      }
+    const regNombre = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s'-]{1,80}$/;
+    if (!regNombre.test(datos.nombre) || !regNombre.test(datos.apellido)) {
+      return res.status(400).json({ mensaje: "Nombre y apellido solo pueden tener letras y hasta 80 caracteres." });
     }
+    usuario.nombre = datos.nombre.trim();
+    usuario.apellido = datos.apellido.trim();
 
-    if (
-      !datos.descripcion ||
-      !datos.precioPorHora ||
-      categoriasArray.length === 0 ||
-      !datos.banco ||
-      !datos.tipoCuenta ||
-      !datos.numeroCuenta ||
-      !datos.titular ||
-      !datos.tipoDocumento ||
-      !datos.numeroDocumento
-    ) {
-      return res.status(400).json({
-        mensaje:
-          "Faltan campos obligatorios para crear el perfil de experto. Revisa todos los campos y selecciona al menos una categoría.",
-      });
-    }
-
-    usuario.infoExperto = {
-      descripcion: datos.descripcion,
-      precioPorHora: datos.precioPorHora,
-      diasDisponibles: diasArray,
-      categorias: categoriasArray,
-      banco: datos.banco,
-      tipoCuenta: datos.tipoCuenta,
-      numeroCuenta: datos.numeroCuenta,
-      titular: datos.titular,
-      tipoDocumento: datos.tipoDocumento,
-      numeroDocumento: datos.numeroDocumento,
-      telefonoContacto: datos.telefonoContacto,
-    };
+    // Si es cliente puro (no experto), solo puede editar nombre y apellido
     if (!usuario.roles.includes("experto")) {
-      usuario.roles.push("experto");
+      await usuario.save();
+      generarLogs.registrarEvento({
+        usuarioEmail: usuario.email,
+        nombre: usuario.nombre,
+        apellido: usuario.apellido,
+        accion: "EDITAR_PERFIL_CLIENTE",
+        detalle: "Perfil básico actualizado",
+        resultado: "Exito",
+        tipo: "usuarios",
+        persistirEnDB: true,
+      });
+      return res.status(200).json(usuario);
     }
 
-    if (datos.nombre) usuario.nombre = datos.nombre;
-    if (datos.apellido) usuario.apellido = datos.apellido;
-    if (datos.email) usuario.email = datos.email;
-    if (datos.avatarUrl) usuario.avatarUrl = datos.avatarUrl;
-
+    // Si es experto Y el payload trae campos de experto, validar y actualizar infoExperto
+    const camposExperto = [
+      "descripcion", "precioPorHora", "categorias", "banco", "tipoCuenta",
+      "numeroCuenta", "titular", "tipoDocumento", "numeroDocumento"
+    ];
+    const tieneCamposExperto = camposExperto.some((campo) => typeof datos[campo] !== "undefined");
+    if (usuario.roles.includes("experto") && tieneCamposExperto) {
+      let categoriasArray = [];
+      if (datos.categorias) {
+        if (Array.isArray(datos.categorias)) {
+          categoriasArray = datos.categorias.map((id) => String(id));
+        } else if (typeof datos.categorias === "string") {
+          categoriasArray = datos.categorias.split(",").map((id) => id.trim());
+        }
+      }
+      let diasArray = [];
+      if (datos.diasDisponibles) {
+        if (Array.isArray(datos.diasDisponibles)) {
+          diasArray = datos.diasDisponibles.map((dia) => String(dia));
+        } else if (typeof datos.diasDisponibles === "string") {
+          diasArray = datos.diasDisponibles.split(",").map((dia) => dia.trim());
+        }
+      }
+      // Validar todos los campos obligatorios de experto
+      if (
+        !datos.descripcion ||
+        !datos.precioPorHora ||
+        categoriasArray.length === 0 ||
+        !datos.banco ||
+        !datos.tipoCuenta ||
+        !datos.numeroCuenta ||
+        !datos.titular ||
+        !datos.tipoDocumento ||
+        !datos.numeroDocumento
+      ) {
+        return res.status(400).json({
+          mensaje:
+            "Faltan campos obligatorios para actualizar el perfil de experto. Revisa todos los campos y selecciona al menos una categoría.",
+        });
+      }
+      usuario.infoExperto = {
+        descripcion: datos.descripcion,
+        precioPorHora: datos.precioPorHora,
+        diasDisponibles: diasArray,
+        categorias: categoriasArray,
+        banco: datos.banco,
+        tipoCuenta: datos.tipoCuenta,
+        numeroCuenta: datos.numeroCuenta,
+        titular: datos.titular,
+        tipoDocumento: datos.tipoDocumento,
+        numeroDocumento: datos.numeroDocumento,
+        telefonoContacto: datos.telefonoContacto,
+      };
+    }
     await usuario.save();
 
     generarLogs.registrarEvento({
@@ -591,10 +652,7 @@ const actualizarPerfilUsuario = async (req, res) => {
       persistirEnDB: true,
     });
 
-    return res.status(200).json({
-      mensaje: "Perfil de experto actualizado correctamente.",
-      usuario,
-    });
+    return res.status(200).json(usuario);
   } catch (error) {
     console.error("Error al actualizar perfil:", error);
     generarLogs.registrarEvento({
@@ -609,7 +667,7 @@ const actualizarPerfilUsuario = async (req, res) => {
       persistirEnDB: true,
     });
     res.status(500).json({
-      mensaje: "Error interno del servidor al actualizar el perfil de experto.",
+      mensaje: "Error interno del servidor al actualizar el perfil.",
       error: error.message,
     });
   }

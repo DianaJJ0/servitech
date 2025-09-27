@@ -373,3 +373,48 @@
     justify-content: center;
   }
 }
+
+/* --- Modal edición nombre y apellido --- */
+.modal-perfil {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  left: 0; top: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.65);
+  align-items: center;
+  justify-content: center;
+}
+.modal-content-perfil {
+  background: var(--card-bg);
+  color: var(--text-color);
+  border-radius: var(--border-radius);
+  padding: 2rem 2.5rem 1.5rem 2.5rem;
+  box-shadow: var(--card-shadow);
+  min-width: 320px;
+  max-width: 400px;
+}
+.modal-content-perfil h3 {
+  margin-top: 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+}
+.input-error {
+  color: #ff5f5f;
+  font-size: 0.95em;
+  margin-top: 0.25rem;
+  min-height: 1.1em;
+}
+.modal-btns {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+@media (max-width: 600px) {
+  .modal-content-perfil {
+    padding: 1.3rem;
+    min-width: 0;
+    width: 95vw;
+  }
+}
