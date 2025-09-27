@@ -43,6 +43,14 @@
   font-weight: 700;
 }
 
+/* --- Wrapper para mejor control responsive --- */
+
+.perfil-card-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
 /* --- Tarjeta de perfil --- */
 .perfil-card {
   background-color: var(--card-bg);
@@ -52,6 +60,9 @@
   align-items: center;
   gap: 2rem;
   box-shadow: var(--card-shadow);
+  width: 100%;
+  max-width: 800px;
+  min-width: 0;
 }
 
 .perfil-avatar {
@@ -106,21 +117,35 @@
   color: var(--text-secondary);
 }
 
+/* Wrapper para acciones para mejor control en mobile */
+.perfil-actions-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+}
+
 .perfil-actions {
   display: flex;
   gap: 1rem;
+  width: 100%;
+  flex-wrap: wrap;
+  justify-content: flex-start;
 }
 
 .btn {
   padding: 0.75rem 1.5rem;
   border-radius: var(--btn-radius);
   font-weight: 500;
+  font-size: 1rem;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   transition: var(--transition);
   cursor: pointer;
   text-decoration: none;
+  min-width: 120px;
+  justify-content: center;
+  box-sizing: border-box;
 }
 
 .btn-primary {
@@ -336,41 +361,93 @@
 }
 
 /* --- Responsive --- */
+
+@media (max-width: 1200px) {
+  .perfil-card {
+    max-width: 95vw;
+  }
+}
+
+@media (max-width: 900px) {
+  .perfil-card {
+    flex-direction: column;
+    text-align: center;
+    padding: 1.2rem 0.7rem;
+    gap: 1.2rem;
+    max-width: 98vw;
+  }
+  .perfil-actions-wrapper {
+    justify-content: center;
+  }
+  .perfil-actions {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    gap: 0.7rem;
+  }
+  .btn {
+    font-size: 0.98rem;
+    min-width: 100px;
+    padding: 0.7rem 1rem;
+  }
+}
+
 @media (max-width: 768px) {
   .perfil-card {
     flex-direction: column;
     text-align: center;
+    padding: 1rem 0.2rem;
+    gap: 1rem;
+    max-width: 99vw;
   }
-
-  .perfil-actions {
+  .perfil-actions-wrapper {
     justify-content: center;
   }
-
-  .form-row {
-    grid-template-columns: 1fr;
+  .perfil-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+  .btn {
+    width: 100%;
+    min-width: 0;
+    font-size: 0.95rem;
+    padding: 0.6rem 0.2rem;
+  }
+  .perfil-avatar {
+    margin: 0 auto;
+    width: 5.5rem;
+    height: 5.5rem;
+  }
+  .perfil-info h2 {
+    font-size: 1.1rem;
   }
 }
 
 @media (max-width: 576px) {
   .container {
-    padding: 1.5rem 1rem;
+    padding: 0.7rem 0.1rem;
   }
-
   .perfil-card {
-    padding: 1.5rem;
+    padding: 0.7rem 0.1rem;
+    gap: 0.5rem;
   }
-
   .profile-main {
-    padding: 1.5rem;
+    padding: 0.7rem 0.1rem;
   }
-
   .perfil-actions {
     flex-direction: column;
+    gap: 0.3rem;
   }
-
   .btn {
     width: 100%;
-    justify-content: center;
+    min-width: 0;
+    font-size: 0.9rem;
+    padding: 0.5rem 0.1rem;
+  }
+  .perfil-avatar {
+    width: 4.5rem;
+    height: 4.5rem;
   }
 }
 
@@ -379,8 +456,11 @@
   display: none;
   position: fixed;
   z-index: 9999;
-  left: 0; top: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.65);
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.65);
   align-items: center;
   justify-content: center;
 }
@@ -417,4 +497,26 @@
     min-width: 0;
     width: 95vw;
   }
+}
+
+.avatar-iniciales {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 7.5rem;
+  height: 7.5rem;
+  border-radius: 50%;
+  background: #fdf6c3;
+  color: #222;
+  font-size: 2.7rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  border: none;
+  user-select: none;
+}
+.perfil-avatar .avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }

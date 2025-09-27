@@ -1,10 +1,11 @@
 /**
- * Lógica del frontend para la página de perfil.
- * Protege la ruta y carga los datos del usuario autenticado.
+ * Lógica del frontend para la página de perfil:
+ * - Carga datos del usuario autenticado y renderiza el avatar (iniciales si no hay imagen)
+ * - Permite editar nombre/apellido y subir imagen de avatar (PNG/JPG)
  */
 
 document.addEventListener("DOMContentLoaded", async () => {
-  // Verifica si la info de experto ya se renderizó desde el servidor
+  // Verifica si la info de experto ya se renderizó en el SSR
   const expertInfoSection = document.querySelector(".profile-info-card h3");
   if (
     expertInfoSection &&
@@ -16,13 +17,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Sincroniza la sesión si hay token y usuario en localStorage
   const token = localStorage.getItem("token");
-  const usuario = localStorage.getItem("usuario");
-  if (token && usuario) {
+  const usuarioLS = localStorage.getItem("usuario");
+  if (token && usuarioLS) {
     try {
       await fetch("/set-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ usuario: { ...JSON.parse(usuario), token } }),
+        body: JSON.stringify({ usuario: { ...JSON.parse(usuarioLS), token } }),
         credentials: "include",
       });
     } catch (err) {}
@@ -51,35 +52,23 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     const usuario = await response.json();
     document.body.style.display = "block";
+
+    // Renderiza avatar (imagen o iniciales)
+    renderAvatar(usuario);
+
+    // Actualiza campos
     const userName = document.getElementById("userName");
     const userEmail = document.getElementById("userEmail");
-    const profileAvatar = document.getElementById("profileAvatar");
     if (userName)
       userName.textContent = `${usuario.nombre} ${usuario.apellido}`;
     if (userEmail) userEmail.textContent = usuario.email;
-    if (profileAvatar) {
-      try {
-        if (
-          usuario &&
-          usuario.avatarUrl &&
-          typeof usuario.avatarUrl === "string" &&
-          usuario.avatarUrl.trim() !== ""
-        ) {
-          profileAvatar.src = usuario.avatarUrl;
-        } else {
-          profileAvatar.src = `https://ui-avatars.com/api/?name=${usuario.nombre}+${usuario.apellido}&background=3a8eff&color=fff&size=128`;
-        }
-      } catch (e) {
-        profileAvatar.src = `https://ui-avatars.com/api/?name=${usuario.nombre}+${usuario.apellido}&background=3a8eff&color=fff&size=128`;
-      }
-    }
+
     const firstNameInput = document.getElementById("firstName");
     const lastNameInput = document.getElementById("lastName");
     const formEmailInput = document.getElementById("formEmail");
     if (firstNameInput) firstNameInput.value = usuario.nombre;
     if (lastNameInput) lastNameInput.value = usuario.apellido;
     if (formEmailInput) formEmailInput.value = usuario.email;
-    // Si el usuario es experto, la info ya está renderizada en el servidor
   } catch (error) {
     localStorage.removeItem("token");
     if (mensajeError) {
@@ -89,6 +78,95 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 });
+
+// Renderiza el avatar: imagen si existe, si no círculo con iniciales
+function renderAvatar(usuario) {
+  const container = document.getElementById("perfilAvatarContainer");
+  if (!container) return;
+  container.innerHTML = "";
+
+  // Si hay avatarUrl y NO es la default ni vacío, muestra imagen
+  if (
+    usuario.avatarUrl &&
+    usuario.avatarUrl.trim() !== "" &&
+    !usuario.avatarUrl.includes("ui-avatars.com")
+  ) {
+    const img = document.createElement("img");
+    img.src = usuario.avatarUrl;
+    img.alt = "Avatar de Usuario";
+    img.className = "avatar-img";
+    container.appendChild(img);
+  } else {
+    // Si no hay imagen, círculo con iniciales
+    const nombre = (usuario.nombre || "").trim();
+    const apellido = (usuario.apellido || "").trim();
+    const iniciales = (nombre.charAt(0) || "") + (apellido.charAt(0) || "");
+    const circle = document.createElement("div");
+    circle.className = "avatar-iniciales";
+    circle.textContent = iniciales.toUpperCase();
+    container.appendChild(circle);
+  }
+
+  // Botón de cambiar avatar
+  const btn = document.createElement("button");
+  btn.className = "change-avatar-btn";
+  btn.type = "button";
+  btn.title = "Cambiar foto de perfil";
+  btn.innerHTML = '<i class="fas fa-camera"></i>';
+  container.appendChild(btn);
+
+  // Input de archivo y error
+  const avatarInput = document.getElementById("avatarInput");
+  const avatarError = document.getElementById("avatarError");
+
+  btn.onclick = function () {
+    if (avatarInput) avatarInput.click();
+  };
+
+  // Subida de imagen y validación
+  if (avatarInput) {
+    avatarInput.onchange = async function () {
+      avatarError.textContent = "";
+      const file = avatarInput.files && avatarInput.files[0];
+      if (!file) return;
+      if (!file.type.match(/^image\/(png|jpeg)$/)) {
+        avatarError.textContent = "Solo se permiten imágenes PNG o JPG.";
+        avatarInput.value = "";
+        return;
+      }
+      if (file.size > 2 * 1024 * 1024) {
+        avatarError.textContent = "La imagen no debe superar 2MB.";
+        avatarInput.value = "";
+        return;
+      }
+      const fd = new FormData();
+      fd.append("avatar", file);
+
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch("/api/usuarios/avatar", {
+          method: "POST",
+          headers: token ? { Authorization: "Bearer " + token } : {},
+          body: fd,
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.mensaje || "Error al subir el avatar.");
+        }
+        // Actualiza localStorage y recarga avatar
+        if (data.usuario) {
+          localStorage.setItem("usuario", JSON.stringify(data.usuario));
+          renderAvatar(data.usuario);
+        }
+        avatarInput.value = "";
+        avatarError.textContent = "";
+      } catch (err) {
+        avatarError.textContent =
+          err.message || "Error al subir la imagen. Intenta de nuevo.";
+      }
+    };
+  }
+}
 
 // Mostrar/ocultar número de cuenta
 document.addEventListener("click", function (e) {
@@ -210,6 +288,8 @@ document.addEventListener("DOMContentLoaded", function () {
       if (userDisplayName)
         userDisplayName.textContent =
           updatedUser.nombre + " " + updatedUser.apellido;
+      // Actualiza avatar si cambian iniciales
+      renderAvatar(updatedUser);
       modal.style.display = "none";
     } catch (err) {
       modalErrorGeneral.textContent = err.message;
