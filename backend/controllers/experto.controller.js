@@ -232,6 +232,7 @@ const actualizarPerfilExperto = async (req, res) => {
       numeroDocumento,
       telefonoContacto,
       diasDisponibles,
+      avatarUrl
     } = req.body;
 
     // Validar campos obligatorios
@@ -246,7 +247,8 @@ const actualizarPerfilExperto = async (req, res) => {
       !numeroCuenta ||
       !titular ||
       !tipoDocumento ||
-      !numeroDocumento
+      !numeroDocumento ||
+      !telefonoContacto
     ) {
       return res.status(400).json({
         mensaje:
@@ -254,26 +256,20 @@ const actualizarPerfilExperto = async (req, res) => {
       });
     }
 
-    // Normalizar arrays
-    let categoriasArray = [];
-    if (Array.isArray(categorias)) {
-      categoriasArray = categorias.map((id) => String(id));
-    } else if (typeof categorias === "string") {
-      categoriasArray = categorias.split(",").map((id) => id.trim());
-    }
-    let diasArray = [];
-    if (diasDisponibles) {
-      if (Array.isArray(diasDisponibles)) {
-        diasArray = diasDisponibles.map((d) => String(d));
-      } else if (typeof diasDisponibles === "string") {
-        diasArray = diasDisponibles.split(",").map((d) => d.trim());
-      }
-    }
+    let categoriasArray = Array.isArray(categorias)
+      ? categorias.map((id) => String(id))
+      : typeof categorias === "string"
+      ? categorias.split(",").map((id) => id.trim())
+      : [];
+    let diasArray = Array.isArray(diasDisponibles)
+      ? diasDisponibles.map((d) => String(d))
+      : typeof diasDisponibles === "string"
+      ? diasDisponibles.split(",").map((d) => d.trim())
+      : [];
 
     const usuario = await Usuario.findById(usuarioId);
     if (!usuario) return res.status(404).json({ mensaje: "Usuario no encontrado." });
 
-    // Solo campos de experto
     usuario.infoExperto = {
       descripcion,
       precioPorHora,
@@ -287,19 +283,14 @@ const actualizarPerfilExperto = async (req, res) => {
       telefonoContacto,
       diasDisponibles: diasArray,
     };
-
-    // Si el usuario no tiene el rol, lo agregamos
-    if (!usuario.roles.includes("experto")) {
-      usuario.roles.push("experto");
-    }
+    if (avatarUrl) usuario.avatarUrl = avatarUrl;
+    if (!usuario.roles.includes("experto")) usuario.roles.push("experto");
 
     await usuario.save();
 
     try {
       await generarLogs("perfil_experto_update", { usuarioId, infoExperto: usuario.infoExperto });
-    } catch (e) {
-      console.warn("generarLogs fallo:", e && e.message);
-    }
+    } catch (e) {}
 
     res.status(200).json(usuario);
   } catch (err) {
@@ -307,6 +298,7 @@ const actualizarPerfilExperto = async (req, res) => {
     res.status(500).json({ error: "Error interno", message: err.message });
   }
 };
+
 module.exports = {
   listarExpertos,
   obtenerPerfilExperto,
