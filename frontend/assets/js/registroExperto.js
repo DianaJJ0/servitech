@@ -1,12 +1,348 @@
-// JS para registro de experto con validaciones inmediatas y bloqueo de texto en teléfono
+// JS para registro de experto - validaciones inmediatas en el navegador y feedback visual por campo
+
 document.addEventListener("DOMContentLoaded", function () {
+  if (window.__registroExpertoInitialized) return;
+  window.__registroExpertoInitialized = true;
+
   const form = document.getElementById("registroExpertoForm");
   const alerta = document.getElementById("registroAlerta");
+  const categoriasSelect = document.getElementById("categorias");
+  const errorCategorias = document.getElementById("errorCategorias");
 
-  // Bloquear letras en teléfono (solo números)
+  // CATEGORÍAS: Fetch dinámico y Choices.js
+  fetch("/api/categorias")
+    .then((r) => r.json())
+    .then((categorias) => {
+      categoriasSelect.innerHTML = "";
+      (categorias || []).forEach((cat) => {
+        const opt = document.createElement("option");
+        opt.value = cat._id || cat.id || cat.nombre;
+        opt.textContent = cat.nombre;
+        categoriasSelect.appendChild(opt);
+      });
+      if (typeof Choices !== "undefined") {
+        if (categoriasSelect.choicesInstance) {
+          categoriasSelect.choicesInstance.destroy();
+        }
+        categoriasSelect.choicesInstance = new Choices(categoriasSelect, {
+          removeItemButton: true,
+          searchPlaceholderValue: "Buscar categoría...",
+          noResultsText: "Sin resultados",
+        });
+      }
+    });
+
+  categoriasSelect.addEventListener("change", function () {
+    if (categoriasSelect.selectedOptions.length === 0) {
+      errorCategorias.textContent = "Selecciona al menos una categoría.";
+      categoriasSelect.classList.add("invalid");
+    } else {
+      errorCategorias.textContent = "";
+      categoriasSelect.classList.remove("invalid");
+    }
+  });
+
+  // Utilidades de error por campo
+  function setError(campo, mensaje) {
+    const input = form[campo];
+    const errorDiv = document.getElementById("error" + capitalize(campo));
+    if (input) input.classList.add("invalid");
+    if (errorDiv) errorDiv.textContent = mensaje || "Campo obligatorio.";
+  }
+  function clearError(campo) {
+    const input = form[campo];
+    const errorDiv = document.getElementById("error" + capitalize(campo));
+    if (input) input.classList.remove("invalid");
+    if (errorDiv) errorDiv.textContent = "";
+  }
+  function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  // Validar precio por hora
+  form.precio.addEventListener("input", function () {
+    clearError("precio");
+    const val = form.precio.value;
+    if (!val || isNaN(val) || val < 10000 || val > 120000) {
+      setError(
+        "precio",
+        "El precio es obligatorio y debe estar entre $10.000 y $120.000."
+      );
+    }
+  });
+
+  // Validar teléfono de contacto (solo números y longitud)
+  form.telefonoContacto.addEventListener("input", function () {
+    clearError("telefonoContacto");
+    const val = form.telefonoContacto.value;
+    if (!/^[0-9]{7,10}$/.test(val)) {
+      setError(
+        "telefonoContacto",
+        "El teléfono debe tener entre 7 y 10 dígitos."
+      );
+    }
+  });
+
+  // Validar descripción profesional
+  form.descripcion.addEventListener("input", function () {
+    clearError("descripcion");
+    const val = form.descripcion.value;
+    document.getElementById("descContador").textContent = val.length;
+    if (!val.trim()) {
+      setError("descripcion", "Describe tu experiencia profesional.");
+    } else if (val.length > 400) {
+      setError("descripcion", "Máximo 400 caracteres.");
+    }
+  });
+
+  // DÍAS DISPONIBLES: validación y feedback
+  const diasDisponiblesInput = document.getElementById("diasDisponibles");
+  const diasSelector = document.querySelector(".days-selector");
+  const diasDisplay = document.getElementById("diasDisplay");
+
+  function updateDias() {
+    const seleccionados = Array.from(
+      document.querySelectorAll(".day-option.selected")
+    ).map((d) => d.getAttribute("data-day"));
+    diasDisponiblesInput.value = seleccionados.length
+      ? seleccionados.join(",")
+      : "";
+    if (diasDisplay) {
+      diasDisplay.textContent =
+        seleccionados.length > 0
+          ? seleccionados.join(", ")
+          : "Selecciona tus días disponibles";
+    }
+    clearError("diasDisponibles");
+    if (seleccionados.length === 0) {
+      setError("diasDisponibles", "Elige al menos un día disponible.");
+    }
+  }
+  if (diasSelector) {
+    diasSelector.addEventListener("click", function (e) {
+      const btn = e.target.closest(".day-option");
+      if (!btn) return;
+      e.preventDefault();
+      btn.classList.toggle("selected");
+      btn.setAttribute(
+        "aria-pressed",
+        btn.classList.contains("selected") ? "true" : "false"
+      );
+      updateDias();
+    });
+    Array.from(diasSelector.querySelectorAll(".day-option")).forEach((b) => {
+      b.setAttribute(
+        "aria-pressed",
+        b.classList.contains("selected") ? "true" : "false"
+      );
+      if (b.tagName.toLowerCase() === "button") b.type = "button";
+    });
+  }
+  updateDias();
+
+  // Validar banco
+  form.banco.addEventListener("change", function () {
+    clearError("banco");
+    if (!form.banco.value) setError("banco", "Selecciona tu banco.");
+  });
+
+  // Validar tipo de cuenta
+  form.tipoCuenta.addEventListener("change", function () {
+    clearError("tipoCuenta");
+    if (!form.tipoCuenta.value)
+      setError("tipoCuenta", "Selecciona tipo de cuenta.");
+  });
+
+  // Validar número de cuenta
+  form.numeroCuenta.addEventListener("input", function () {
+    clearError("numeroCuenta");
+    const val = form.numeroCuenta.value;
+    if (!/^[0-9]{6,20}$/.test(val))
+      setError("numeroCuenta", "Número de cuenta: 6 a 20 dígitos.");
+  });
+
+  // Validar titular
+  form.titular.addEventListener("input", function () {
+    clearError("titular");
+    if (!form.titular.value.trim()) setError("titular", "Titular obligatorio.");
+  });
+
+  // Validar tipo de documento
+  form.tipoDocumento.addEventListener("change", function () {
+    clearError("tipoDocumento");
+    if (!form.tipoDocumento.value)
+      setError("tipoDocumento", "Selecciona tipo de documento.");
+  });
+
+  // Validar número de documento
+  form.numeroDocumento.addEventListener("input", function () {
+    clearError("numeroDocumento");
+    const val = form.numeroDocumento.value.trim();
+    if (!/^[0-9a-zA-Z]{5,15}$/.test(val))
+      setError("numeroDocumento", "Número de documento: 5 a 15 caracteres.");
+  });
+
+  // Submit global
+  form.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    alerta.textContent = "";
+    alerta.className = "";
+
+    // Limpia errores previos
+    [
+      "precio",
+      "telefonoContacto",
+      "descripcion",
+      "categorias",
+      "diasDisponibles",
+      "banco",
+      "tipoCuenta",
+      "numeroCuenta",
+      "titular",
+      "tipoDocumento",
+      "numeroDocumento",
+    ].forEach(clearError);
+
+    let errores = [];
+
+    if (
+      !form.precio.value ||
+      isNaN(form.precio.value) ||
+      form.precio.value < 10000 ||
+      form.precio.value > 120000
+    ) {
+      setError(
+        "precio",
+        "El precio es obligatorio y debe estar entre $10.000 y $120.000."
+      );
+      errores.push("precio");
+    }
+    if (
+      !form.telefonoContacto.value ||
+      !/^[0-9]{7,10}$/.test(form.telefonoContacto.value)
+    ) {
+      setError(
+        "telefonoContacto",
+        "El teléfono debe tener entre 7 y 10 dígitos."
+      );
+      errores.push("telefonoContacto");
+    }
+    if (!form.descripcion.value.trim()) {
+      setError("descripcion", "Describe tu experiencia profesional.");
+      errores.push("descripcion");
+    } else if (form.descripcion.value.length > 400) {
+      setError("descripcion", "Máximo 400 caracteres.");
+      errores.push("descripcion");
+    }
+    if (
+      !form.categorias.selectedOptions ||
+      form.categorias.selectedOptions.length === 0
+    ) {
+      setError("categorias", "Selecciona al menos una categoría.");
+      errores.push("categorias");
+    }
+    if (!form.diasDisponibles.value) {
+      setError("diasDisponibles", "Elige al menos un día disponible.");
+      errores.push("diasDisponibles");
+    }
+    if (!form.banco.value) {
+      setError("banco", "Selecciona tu banco.");
+      errores.push("banco");
+    }
+    if (!form.tipoCuenta.value) {
+      setError("tipoCuenta", "Selecciona tipo de cuenta.");
+      errores.push("tipoCuenta");
+    }
+    if (
+      !form.numeroCuenta.value ||
+      !/^[0-9]{6,20}$/.test(form.numeroCuenta.value)
+    ) {
+      setError("numeroCuenta", "Número de cuenta: 6 a 20 dígitos.");
+      errores.push("numeroCuenta");
+    }
+    if (!form.titular.value.trim()) {
+      setError("titular", "Titular obligatorio.");
+      errores.push("titular");
+    }
+    if (!form.tipoDocumento.value) {
+      setError("tipoDocumento", "Selecciona tipo de documento.");
+      errores.push("tipoDocumento");
+    }
+    if (
+      !form.numeroDocumento.value.trim() ||
+      !/^[0-9a-zA-Z]{5,15}$/.test(form.numeroDocumento.value.trim())
+    ) {
+      setError("numeroDocumento", "Número de documento: 5 a 15 caracteres.");
+      errores.push("numeroDocumento");
+    }
+
+    if (errores.length > 0) {
+      alerta.textContent =
+        "Por favor, completa correctamente los campos marcados.";
+      alerta.className = "registro-alerta alert-danger";
+      if (form[errores[0]]) form[errores[0]].focus();
+      return;
+    }
+
+    // Arma payload SOLO para experto (no registro)
+    const payload = {
+      descripcion: form.descripcion.value.trim(),
+      precioPorHora: Number(form.precio.value),
+      categorias: Array.from(form.categorias.selectedOptions).map(
+        (opt) => opt.value
+      ),
+      banco: form.banco.value,
+      tipoCuenta: form.tipoCuenta.value,
+      numeroCuenta: form.numeroCuenta.value,
+      titular: form.titular.value.trim(),
+      tipoDocumento: form.tipoDocumento.value,
+      numeroDocumento: form.numeroDocumento.value.trim(),
+      telefonoContacto: form.telefonoContacto.value.trim(),
+      diasDisponibles: form.diasDisponibles.value
+        ? form.diasDisponibles.value.split(",")
+        : [],
+    };
+
+    try {
+      const resp = await fetch("/api/expertos/perfil", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + (localStorage.getItem("token") || ""),
+        },
+        body: JSON.stringify(payload),
+      });
+      const data = await resp.json();
+      if (resp.ok) {
+        alerta.className = "registro-alerta alert-success";
+        alerta.textContent =
+          "¡Solicitud enviada! Revisaremos tu perfil y activaremos tu cuenta de experto.";
+        setTimeout(() => {
+          window.location.href = "/perfil";
+        }, 2300);
+      } else {
+        if (data.camposFaltantes && Array.isArray(data.camposFaltantes)) {
+          data.camposFaltantes.forEach((campo) =>
+            setError(campo, "Campo obligatorio.")
+          );
+          alerta.textContent = "Por favor, completa los campos marcados.";
+        } else if (data.mensaje) {
+          alerta.textContent = data.mensaje;
+        } else {
+          alerta.textContent =
+            "Error al enviar solicitud. Revisa el formulario.";
+        }
+        alerta.className = "registro-alerta alert-danger";
+      }
+    } catch (err) {
+      alerta.className = "registro-alerta alert-danger";
+      alerta.textContent = "Error de red. Intenta de nuevo.";
+    }
+  });
+
+  // Bloqueo de letras en teléfono (solo números)
   const telefono = form.telefonoContacto;
   telefono.addEventListener("keydown", function (e) {
-    // Permitir solo números y teclas de control
     if (
       !(
         (e.key >= "0" && e.key <= "9") ||
@@ -23,7 +359,6 @@ document.addEventListener("DOMContentLoaded", function () {
     let paste = (e.clipboardData || window.clipboardData)
       .getData("text")
       .replace(/\D/g, "");
-    // Solo inserta números
     const start = telefono.selectionStart;
     const end = telefono.selectionEnd;
     const current = telefono.value;
@@ -32,279 +367,9 @@ document.addEventListener("DOMContentLoaded", function () {
     telefono.dispatchEvent(new Event("input"));
   });
   telefono.addEventListener("input", function () {
-    // Elimina cualquier carácter no numérico en tiempo real
     let cleaned = telefono.value.replace(/\D/g, "");
     if (telefono.value !== cleaned) {
       telefono.value = cleaned;
-    }
-  });
-
-  // Validación inmediata teléfono
-  const errorTelefono = document.getElementById("errorTelefono");
-  telefono.addEventListener("input", function () {
-    const v = telefono.value;
-    if (!v) {
-      errorTelefono.textContent = "Teléfono requerido.";
-      telefono.classList.add("invalid");
-    } else if (!/^[0-9]{7,10}$/.test(v)) {
-      errorTelefono.textContent = "Solo números, 7 a 10 dígitos.";
-      telefono.classList.add("invalid");
-    } else {
-      errorTelefono.textContent = "";
-      telefono.classList.remove("invalid");
-    }
-  });
-
-  // Precio: validación inmediata
-  const precio = form.precio;
-  const errorPrecio = document.getElementById("errorPrecio");
-  precio.addEventListener("input", function () {
-    if (precio.value === "" || isNaN(precio.value)) {
-      errorPrecio.textContent = "Precio requerido.";
-      precio.classList.add("invalid");
-    } else if (precio.value < 10000) {
-      errorPrecio.textContent = "El mínimo es $10.000 COP.";
-      precio.classList.add("invalid");
-    } else if (precio.value > 120000) {
-      errorPrecio.textContent = "El máximo es $120.000 COP.";
-      precio.classList.add("invalid");
-    } else {
-      errorPrecio.textContent = "";
-      precio.classList.remove("invalid");
-    }
-  });
-
-  // Descripción: validación inmediata y contador
-  const descripcion = form.descripcion;
-  const errorDescripcion = document.getElementById("errorDescripcion");
-  const descContador = document.getElementById("descContador");
-  descripcion.addEventListener("input", function () {
-    descContador.textContent = descripcion.value.length;
-    if (!descripcion.value.trim()) {
-      errorDescripcion.textContent = "Descripción requerida.";
-      descripcion.classList.add("invalid");
-    } else if (descripcion.value.length > 400) {
-      errorDescripcion.textContent = "Máximo 400 caracteres.";
-      descripcion.classList.add("invalid");
-    } else {
-      errorDescripcion.textContent = "";
-      descripcion.classList.remove("invalid");
-    }
-  });
-
-  // CATEGORÍAS Choices.js y validación
-  const categoriasSelect = document.getElementById("categorias");
-  const errorCategorias = document.getElementById("errorCategorias");
-  fetch("/api/categorias")
-    .then((r) => r.json())
-    .then((categorias) => {
-      categoriasSelect.innerHTML = "";
-      (categorias || []).forEach((cat) => {
-        const opt = document.createElement("option");
-        opt.value = cat._id || cat.id || cat.nombre;
-        opt.textContent = cat.nombre;
-        categoriasSelect.appendChild(opt);
-      });
-      if (typeof Choices !== "undefined") {
-        // Destruir instancia previa si existe
-        if (categoriasSelect.choicesInstance) {
-          categoriasSelect.choicesInstance.destroy();
-        }
-        categoriasSelect.choicesInstance = new Choices(categoriasSelect, {
-          removeItemButton: true,
-          searchPlaceholderValue: "Buscar categoría...",
-          noResultsText: "Sin resultados",
-        });
-      }
-    });
-  categoriasSelect.addEventListener("change", function () {
-    if (categoriasSelect.selectedOptions.length === 0) {
-      errorCategorias.textContent = "Selecciona al menos una categoría.";
-      categoriasSelect.classList.add("invalid");
-    } else {
-      errorCategorias.textContent = "";
-      categoriasSelect.classList.remove("invalid");
-    }
-  });
-
-  // DÍAS DISPONIBLES: validación y feedback
-  const diasDisponiblesInput = document.getElementById("diasDisponibles");
-  const dayOptions = document.querySelectorAll(".day-option");
-  const diasDisplay = document.getElementById("diasDisplay");
-  const errorDias = document.getElementById("errorDias");
-  function updateDias() {
-    const seleccionados = Array.from(
-      document.querySelectorAll(".day-option.selected")
-    ).map((d) => d.getAttribute("data-day"));
-    diasDisponiblesInput.value = seleccionados.join(",");
-    if (seleccionados.length > 0) {
-      diasDisplay.innerHTML = `<span>Días seleccionados:</span> <strong>${seleccionados.join(
-        ", "
-      )}</strong>`;
-    } else {
-      diasDisplay.textContent = "Selecciona tus días disponibles";
-    }
-    if (seleccionados.length === 0) {
-      errorDias.textContent = "Selecciona al menos un día.";
-    } else {
-      errorDias.textContent = "";
-    }
-  }
-  dayOptions.forEach((d) =>
-    d.addEventListener("click", function (e) {
-      e.preventDefault(); // Evita submit accidental
-      this.classList.toggle("selected");
-      updateDias();
-    })
-  );
-  updateDias();
-
-  // DATOS BANCARIOS: validación inmediata
-  const banco = form.banco;
-  banco.addEventListener("change", function () {
-    if (!banco.value) {
-      document.getElementById("errorBanco").textContent =
-        "Selecciona tu banco.";
-      banco.classList.add("invalid");
-    } else {
-      document.getElementById("errorBanco").textContent = "";
-      banco.classList.remove("invalid");
-    }
-  });
-  const tipoCuenta = form.tipoCuenta;
-  tipoCuenta.addEventListener("change", function () {
-    if (!tipoCuenta.value) {
-      document.getElementById("errorTipoCuenta").textContent =
-        "Selecciona tipo de cuenta.";
-      tipoCuenta.classList.add("invalid");
-    } else {
-      document.getElementById("errorTipoCuenta").textContent = "";
-      tipoCuenta.classList.remove("invalid");
-    }
-  });
-  const numeroCuenta = form.numeroCuenta;
-  numeroCuenta.addEventListener("input", function () {
-    if (!numeroCuenta.value || !/^[0-9]{6,20}$/.test(numeroCuenta.value)) {
-      document.getElementById("errorNumeroCuenta").textContent =
-        "Solo números, 6-20 dígitos.";
-      numeroCuenta.classList.add("invalid");
-    } else {
-      document.getElementById("errorNumeroCuenta").textContent = "";
-      numeroCuenta.classList.remove("invalid");
-    }
-  });
-  const titular = form.titular;
-  titular.addEventListener("input", function () {
-    if (!titular.value.trim()) {
-      document.getElementById("errorTitular").textContent =
-        "Titular obligatorio.";
-      titular.classList.add("invalid");
-    } else {
-      document.getElementById("errorTitular").textContent = "";
-      titular.classList.remove("invalid");
-    }
-  });
-  const tipoDocumento = form.tipoDocumento;
-  tipoDocumento.addEventListener("change", function () {
-    if (!tipoDocumento.value) {
-      document.getElementById("errorTipoDocumento").textContent =
-        "Selecciona tipo de documento.";
-      tipoDocumento.classList.add("invalid");
-    } else {
-      document.getElementById("errorTipoDocumento").textContent = "";
-      tipoDocumento.classList.remove("invalid");
-    }
-  });
-  const numeroDocumento = form.numeroDocumento;
-  numeroDocumento.addEventListener("input", function () {
-    if (!numeroDocumento.value.trim()) {
-      document.getElementById("errorNumeroDocumento").textContent =
-        "Número de documento obligatorio.";
-      numeroDocumento.classList.add("invalid");
-    } else {
-      document.getElementById("errorNumeroDocumento").textContent = "";
-      numeroDocumento.classList.remove("invalid");
-    }
-  });
-
-  // Submit handler
-  form.addEventListener("submit", async function (e) {
-    e.preventDefault();
-    alerta.textContent = "";
-    // Dispara validación de todos los inputs (para mostrar errores si hay)
-    precio.dispatchEvent(new Event("input"));
-    telefono.dispatchEvent(new Event("input"));
-    descripcion.dispatchEvent(new Event("input"));
-    categoriasSelect.dispatchEvent(new Event("change"));
-    updateDias();
-    banco.dispatchEvent(new Event("change"));
-    tipoCuenta.dispatchEvent(new Event("change"));
-    numeroCuenta.dispatchEvent(new Event("input"));
-    titular.dispatchEvent(new Event("input"));
-    tipoDocumento.dispatchEvent(new Event("change"));
-    numeroDocumento.dispatchEvent(new Event("input"));
-
-    // Si hay errores visibles, no envía
-    if (
-      errorPrecio.textContent ||
-      errorTelefono.textContent ||
-      errorDescripcion.textContent ||
-      errorCategorias.textContent ||
-      errorDias.textContent ||
-      document.getElementById("errorBanco").textContent ||
-      document.getElementById("errorTipoCuenta").textContent ||
-      document.getElementById("errorNumeroCuenta").textContent ||
-      document.getElementById("errorTitular").textContent ||
-      document.getElementById("errorTipoDocumento").textContent ||
-      document.getElementById("errorNumeroDocumento").textContent
-    ) {
-      alerta.textContent = "Corrige los campos marcados antes de continuar.";
-      alerta.className = "registro-alerta alert-danger";
-      return;
-    }
-
-    // Arma payload
-    const payload = {
-      descripcion: descripcion.value.trim(),
-      precioPorHora: Number(precio.value),
-      categorias: Array.from(categoriasSelect.selectedOptions).map(
-        (opt) => opt.value
-      ),
-      banco: banco.value,
-      tipoCuenta: tipoCuenta.value,
-      numeroCuenta: numeroCuenta.value,
-      titular: titular.value.trim(),
-      tipoDocumento: tipoDocumento.value,
-      numeroDocumento: numeroDocumento.value.trim(),
-      telefonoContacto: telefono.value.trim(),
-      diasDisponibles: diasDisponiblesInput.value.split(","),
-    };
-
-    // Envía a backend
-    try {
-      const resp = await fetch("/api/expertos/perfil", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + (localStorage.getItem("token") || ""),
-        },
-        body: JSON.stringify(payload),
-      });
-      const data = await resp.json();
-      if (resp.ok) {
-        alerta.className = "registro-alerta alert-success";
-        alerta.textContent =
-          "Perfil de experto registrado correctamente. Serás redirigido...";
-        setTimeout(() => {
-          window.location.href = "/perfil";
-        }, 2000);
-      } else {
-        alerta.className = "registro-alerta alert-danger";
-        alerta.textContent = data.mensaje || "Error al registrar perfil.";
-      }
-    } catch (err) {
-      alerta.className = "registro-alerta alert-danger";
-      alerta.textContent = "Error de red. Intenta de nuevo.";
     }
   });
 });
