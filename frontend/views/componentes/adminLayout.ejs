@@ -39,15 +39,21 @@
           <script src="/assets/js/admin-common.js"></script>
           <script>
             // admin-common initialization: safe, idempotent call executed inline to bootstrap CSRF token handling
-            (function(){
+            (function () {
               try {
                 var el = document.getElementById('initial-csrf');
                 if (el && window.__adminCommon && typeof window.__adminCommon.initCsrf === 'function') {
-                  try { var data = JSON.parse(el.textContent || '{}'); if (data.csrfToken) window.__adminCommon.initCsrf(data.csrfToken); } catch(e){}
+                  try { var data = JSON.parse(el.textContent || '{}'); if (data.csrfToken) window.__adminCommon.initCsrf(data.csrfToken); } catch (e) { }
                 }
-              } catch(e){}
+              } catch (e) { }
             })();
           </script>
+          <% if (typeof API_KEY !=='undefined' && API_KEY) { %>
+            <script>
+              // Exponer API key para llamadas admin desde cliente (solo para sesiones admin)
+              window.API_KEY = '<%= API_KEY %>';
+            </script>
+            <% } %>
 </body>
 
 </html>

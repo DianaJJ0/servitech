@@ -20,6 +20,8 @@
     <%- include('../componentes/navbarAdmin.ejs') %>
 
       <main class="admin-main">
+
+        <!-- Header -->
         <header class="admin-header">
           <div class="header-search">
             <i class="fas fa-search"></i>
@@ -41,7 +43,10 @@
           </div>
         </header>
 
+        <!-- Contenido principal -->
         <div class="admin-content">
+
+          <!-- button Nueva categoría / Exportar -->
           <div class="page-header">
             <h1>Gestión de Categorías</h1>
             <div class="page-actions">
@@ -58,6 +63,7 @@
 
           <div class="categorias-grid">
             <div class="table-container categorias-grid__filters">
+              <!-- Filtros -->
               <div class="categorias-filtros">
                 <h3 class="categorias-filtros__title">Filtros</h3>
                 <div class="categorias-filtros__group">
@@ -93,7 +99,7 @@
                   <span>Aplicar filtros</span>
                 </button>
               </div>
-
+              <!-- Estadísticas -->
               <div class="categorias-estadisticas">
                 <h3 class="categorias-estadisticas__title">Estadísticas</h3>
                 <div class="categorias-estadisticas__list">
@@ -132,263 +138,52 @@
               </div>
             </div>
 
-            <div class="table-container categorias-grid__tabla">
-              <table class="admin-table categorias-table">
-                <thead>
-                  <tr>
+            <!-- Tabla de categorías -->
+            <div class="table-container categorias-grid__tabla"> <!-- Contenedor de la tabla principal de categorías -->
+              <table class="admin-table categorias-table"> <!-- Tabla con listado de categorías -->
+                <thead> <!-- Encabezado de la tabla -->
+                  <tr> <!-- Fila del encabezado -->
                     <th>
                       <input type="checkbox" id="selectAll" class="categorias-checkbox" />
+                      <!-- Checkbox para seleccionar todas las filas -->
                     </th>
-                    <th>Categoría</th>
-                    <th>Slug</th>
-                    <th>Categoría Padre</th>
-                    <th>Publicaciones</th>
-                    <th>Expertos</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
+                    <th>Categoría</th> <!-- Columna: Nombre de la categoría -->
+                    <th>Slug</th> <!-- Columna: Slug/URL amigable -->
+                    <th>Categoría Padre</th> <!-- Columna: Categoría padre -->
+                    <th>Publicaciones</th> <!-- Columna: Número de publicaciones -->
+                    <th>Expertos</th> <!-- Columna: Número de expertos -->
+                    <th>Estado</th> <!-- Columna: Estado (Activa/Inactiva) -->
+                    <th>Acciones</th> <!-- Columna: Botones de acción (editar/ver/eliminar) -->
                   </tr>
                 </thead>
-                <tbody>
-                  <tr>
-                    <td>
-                      <input type="checkbox" id="select1" class="categorias-checkbox" />
-                    </td>
-                    <td>
-                      <div class="categorias-table__icon-row">
-                        <div class="categorias-table__icon categorias-table__icon--web">
-                          <i class="fas fa-laptop-code"></i>
-                        </div>
-                        <span>Desarrollo Web</span>
-                      </div>
-                    </td>
-                    <td>desarrollo-web</td>
-                    <td>Desarrollo</td>
-                    <td>145</td>
-                    <td>28</td>
-                    <td><span class="status active">Activa</span></td>
-                    <td>
-                      <div class="action-buttons">
-                        <button class="btn-icon" title="Editar">
-                          <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn-icon" title="Ver detalles">
-                          <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="btn-icon" title="Eliminar">
-                          <i class="fas fa-trash"></i>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <input type="checkbox" id="select2" class="categorias-checkbox" />
-                    </td>
-                    <td>
-                      <div class="categorias-table__icon-row">
-                        <div class="categorias-table__icon categorias-table__icon--movil">
-                          <i class="fas fa-mobile-alt"></i>
-                        </div>
-                        <span>Desarrollo Móvil</span>
-                      </div>
-                    </td>
-                    <td>desarrollo-movil</td>
-                    <td>Desarrollo</td>
-                    <td>98</td>
-                    <td>19</td>
-                    <td><span class="status active">Activa</span></td>
-                    <td>
-                      <div class="action-buttons">
-                        <button class="btn-icon" title="Editar">
-                          <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn-icon" title="Ver detalles">
-                          <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="btn-icon" title="Eliminar">
-                          <i class="fas fa-trash"></i>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <input type="checkbox" id="select3" class="categorias-checkbox" />
-                    </td>
-                    <td>
-                      <div class="categorias-table__icon-row">
-                        <div class="categorias-table__icon categorias-table__icon--uxui">
-                          <i class="fas fa-paint-brush"></i>
-                        </div>
-                        <span>UX/UI Design</span>
-                      </div>
-                    </td>
-                    <td>ux-ui-design</td>
-                    <td>Diseño</td>
-                    <td>76</td>
-                    <td>16</td>
-                    <td><span class="status active">Activa</span></td>
-                    <td>
-                      <div class="action-buttons">
-                        <button class="btn-icon" title="Editar">
-                          <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn-icon" title="Ver detalles">
-                          <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="btn-icon" title="Eliminar">
-                          <i class="fas fa-trash"></i>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <input type="checkbox" id="select4" class="categorias-checkbox" />
-                    </td>
-                    <td>
-                      <div class="categorias-table__icon-row">
-                        <div class="categorias-table__icon categorias-table__icon--datos">
-                          <i class="fas fa-database"></i>
-                        </div>
-                        <span>Ciencia de Datos</span>
-                      </div>
-                    </td>
-                    <td>ciencia-datos</td>
-                    <td>Datos</td>
-                    <td>62</td>
-                    <td>8</td>
-                    <td><span class="status active">Activa</span></td>
-                    <td>
-                      <div class="action-buttons">
-                        <button class="btn-icon" title="Editar">
-                          <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn-icon" title="Ver detalles">
-                          <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="btn-icon" title="Eliminar">
-                          <i class="fas fa-trash"></i>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <input type="checkbox" id="select5" class="categorias-checkbox" />
-                    </td>
-                    <td>
-                      <div class="categorias-table__icon-row">
-                        <div class="categorias-table__icon categorias-table__icon--devops">
-                          <i class="fas fa-server"></i>
-                        </div>
-                        <span>DevOps</span>
-                      </div>
-                    </td>
-                    <td>devops</td>
-                    <td>Infraestructura</td>
-                    <td>41</td>
-                    <td>7</td>
-                    <td><span class="status active">Activa</span></td>
-                    <td>
-                      <div class="action-buttons">
-                        <button class="btn-icon" title="Editar">
-                          <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn-icon" title="Ver detalles">
-                          <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="btn-icon" title="Eliminar">
-                          <i class="fas fa-trash"></i>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <input type="checkbox" id="select6" class="categorias-checkbox" />
-                    </td>
-                    <td>
-                      <div class="categorias-table__icon-row">
-                        <div class="categorias-table__icon categorias-table__icon--blockchain">
-                          <i class="fas fa-cubes"></i>
-                        </div>
-                        <span>Blockchain</span>
-                      </div>
-                    </td>
-                    <td>blockchain</td>
-                    <td>Desarrollo</td>
-                    <td>18</td>
-                    <td>3</td>
-                    <td><span class="status inactive">Inactiva</span></td>
-                    <td>
-                      <div class="action-buttons">
-                        <button class="btn-icon" title="Editar">
-                          <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn-icon" title="Ver detalles">
-                          <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="btn-icon" title="Eliminar">
-                          <i class="fas fa-trash"></i>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <input type="checkbox" id="select7" class="categorias-checkbox" />
-                    </td>
-                    <td>
-                      <div class="categorias-table__icon-row">
-                        <div class="categorias-table__icon categorias-table__icon--cloud">
-                          <i class="fas fa-cloud"></i>
-                        </div>
-                        <span>Cloud Computing</span>
-                      </div>
-                    </td>
-                    <td>cloud-computing</td>
-                    <td>Infraestructura</td>
-                    <td>35</td>
-                    <td>5</td>
-                    <td><span class="status active">Activa</span></td>
-                    <td>
-                      <div class="action-buttons">
-                        <button class="btn-icon" title="Editar">
-                          <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn-icon" title="Ver detalles">
-                          <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="btn-icon" title="Eliminar">
-                          <i class="fas fa-trash"></i>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
+                <tbody></tbody>
               </table>
 
-              <div class="categorias-paginacion">
+              <!-- Paginación -->
+              <div class="categorias-paginacion"> <!-- Contenedor de paginación -->
                 <span class="categorias-paginacion__info">Mostrando 1-7 de 32 categorías</span>
-                <div class="categorias-paginacion__controles">
+                <!-- Texto informativo de paginación -->
+                <div class="categorias-paginacion__controles"> <!-- Controles de navegación de páginas -->
                   <button class="categorias-paginacion__btn categorias-paginacion__btn--disabled">
+                    <!-- Botón anterior deshabilitado -->
                     <i class="fas fa-chevron-left"></i>
                   </button>
-                  <button class="categorias-paginacion__btn categorias-paginacion__btn--active">
+                  <button class="categorias-paginacion__btn categorias-paginacion__btn--active"> <!-- Página activa -->
                     1
                   </button>
-                  <button class="categorias-paginacion__btn">2</button>
-                  <button class="categorias-paginacion__btn">3</button>
-                  <button class="categorias-paginacion__btn">4</button>
-                  <button class="categorias-paginacion__btn">5</button>
-                  <button class="categorias-paginacion__btn">
+                  <button class="categorias-paginacion__btn">2</button> <!-- Página 2 -->
+                  <button class="categorias-paginacion__btn">3</button> <!-- Página 3 -->
+                  <button class="categorias-paginacion__btn">4</button> <!-- Página 4 -->
+                  <button class="categorias-paginacion__btn">5</button> <!-- Página 5 -->
+                  <button class="categorias-paginacion__btn"> <!-- Botón siguiente -->
                     <i class="fas fa-chevron-right"></i>
                   </button>
                 </div>
               </div>
-            </div>
+
+            </div> <!-- Fin del contenedor de la tabla -->
           </div>
+
         </div>
       </main>
   </div>
@@ -433,7 +228,7 @@
           </div>
           <div>
             <label class="modal-categoria__label">Descripción</label>
-            <textarea id="categoryDescription" rows="4" placeholder="Breve descripción de la categoría"
+            <textarea id="categoryDescription" rows="4" maxlength="300" placeholder="Breve descripción de la categoría"
               class="modal-categoria__input modal-categoria__textarea"></textarea>
           </div>
           <div class="modal-categoria__grid">
@@ -481,20 +276,39 @@
           <div class="modal-categoria__grid">
             <div>
               <label class="modal-categoria__label">Categoría padre</label>
-              <input type="text" id="editarPadreCategoria" class="modal-categoria__input" />
+              <select id="editarPadreCategoria" class="modal-categoria__input">
+                <option value="">Sin categoría padre</option>
+                <option value="development">Desarrollo</option>
+                <option value="design">Diseño</option>
+                <option value="data">Datos</option>
+                <option value="infrastructure">Infraestructura</option>
+              </select>
             </div>
             <div>
               <label class="modal-categoria__label">Estado</label>
               <select id="editarEstadoCategoria" class="modal-categoria__input">
-                <option value="Activa">Activa</option>
-                <option value="Inactiva">Inactiva</option>
+                <option value="active">Activa</option>
+                <option value="inactive">Inactiva</option>
               </select>
             </div>
           </div>
           <div>
             <label class="modal-categoria__label">Descripción</label>
-            <textarea id="editarDescripcionCategoria"
+            <textarea id="editarDescripcionCategoria" maxlength="300"
               class="modal-categoria__input modal-categoria__textarea"></textarea>
+          </div>
+          <div class="modal-categoria__grid">
+            <div>
+              <label class="modal-categoria__label">Icono (Font Awesome)</label>
+              <input type="text" id="editarIconoCategoria" placeholder="Ej: laptop-code"
+                class="modal-categoria__input" />
+              <small class="modal-categoria__hint">Ingresa el nombre del icono sin el prefijo 'fa-'</small>
+            </div>
+            <div>
+              <label class="modal-categoria__label">Color del icono</label>
+              <input type="color" id="editarColorCategoria"
+                class="modal-categoria__input modal-categoria__input--color" />
+            </div>
           </div>
         </form>
       </div>
@@ -580,8 +394,15 @@
     </div>
   </div>
 
-  <script src="..//js/admin/admin-common.js"></script>
-  <script src="..//js/admin/admin-categorias.js"></script>
+  <% if (typeof API_KEY !=='undefined' && API_KEY) { %>
+    <script>
+      // Exponer API key para llamadas admin desde cliente (solo para sesiones admin)
+      window.API_KEY = '<%= API_KEY %>';
+    </script>
+    <% } %>
+
+      <script src="/assets/js/admin/admin-common.js"></script>
+      <script src="/assets/js/admin/admin-categorias.js"></script>
 </body>
 
 </html>

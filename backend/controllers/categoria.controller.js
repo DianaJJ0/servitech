@@ -3,7 +3,68 @@
  * Lógica de negocio para la gestión de las categorías de especialización.
  */
 const Categoria = require("../models/categoria.model.js");
+const mongoose = require("mongoose");
 const generarLogs = require("../services/generarLogs");
+
+const parentCategoryMap = {
+  development: "Desarrollo",
+  design: "Diseño",
+  data: "Datos",
+  infrastructure: "Infraestructura",
+};
+
+// Normaliza una categoría a la forma pública que usa el frontend
+function normalizeCategory(c) {
+  if (!c) return null;
+  // Manejar tanto documentos Mongoose como objetos plain
+  const raw = c.toObject ? c.toObject() : c;
+  const id = String(raw._id || raw.id || raw.value || "");
+  const name = String(raw.nombre || raw.name || raw.label || "");
+  const icon = String(raw.icon || raw.icono || "");
+  const slug = String(raw.slug || "");
+  const color = String(raw.color || "#3a8eff");
+  let parentName = "-";
+  let parentId = "";
+  try {
+    if (raw.parent) {
+      if (typeof raw.parent === "object") {
+        parentName =
+          raw.parent.nombre ||
+          raw.parent.name ||
+          String(raw.parent._id || raw.parent.id || "-");
+        parentId = String(raw.parent._id || raw.parent.id || "");
+      } else {
+        // Traducir el ID del padre a su nombre legible
+        parentId = String(raw.parent);
+        parentName = parentCategoryMap[parentId] || parentId;
+      }
+    }
+  } catch (e) {
+    parentName = "-";
+  }
+  // Asegurar que el estado sea siempre 'active' o 'inactive'
+  const estado =
+    String(raw.estado || "active").toLowerCase() === "active"
+      ? "active"
+      : "inactive";
+  const publicacionesCount =
+    Number(raw.publicacionesCount || raw.postsCount || 0) || 0;
+  const expertosCount = Number(raw.expertosCount || raw.expertsCount || 0) || 0;
+  const descripcion = String(raw.descripcion || raw.description || "");
+  return {
+    id,
+    name,
+    icon,
+    slug,
+    parent: parentName,
+    parent_id: parentId,
+    estado,
+    publicacionesCount,
+    expertosCount,
+    descripcion,
+    color,
+  };
+}
 
 /**
  * @openapi
@@ -59,19 +120,44 @@ const generarLogs = require("../services/generarLogs");
  */
 const crearCategoria = async (req, res) => {
   try {
-    const { nombre, descripcion } = req.body;
+    const {
+      nombre,
+      nombreNormalized,
+      slug,
+      slugNormalized,
+      parent,
+      estado,
+      descripcion,
+      icon,
+      color,
+    } = req.body;
+
     if (!nombre) {
       return res
         .status(400)
         .json({ mensaje: "El nombre de la categoría es obligatorio." });
     }
-    const categoriaExistente = await Categoria.findOne({ nombre });
+    // Verificar si ya existe una categoría con el mismo nombre o slug
+    const categoriaExistente = await Categoria.findOne({
+      $or: [{ nombre: nombre }, { slug: slug }],
+    });
     if (categoriaExistente) {
       return res
         .status(409)
-        .json({ mensaje: "Ya existe una categoría con ese nombre." });
+        .json({ mensaje: "Ya existe una categoría con ese nombre o slug." });
     }
-    const nuevaCategoria = new Categoria({ nombre, descripcion });
+
+    const nuevaCategoria = new Categoria({
+      nombre,
+      nombreNormalized,
+      slug,
+      slugNormalized,
+      parent,
+      estado,
+      descripcion,
+      icon,
+      color,
+    });
     await nuevaCategoria.save();
 
     generarLogs.registrarEvento({
@@ -87,7 +173,7 @@ const crearCategoria = async (req, res) => {
 
     res.status(201).json({
       mensaje: "Categoría creada exitosamente.",
-      categoria: nuevaCategoria,
+      categoria: normalizeCategory(nuevaCategoria),
     });
   } catch (error) {
     generarLogs.registrarEvento({
@@ -129,9 +215,27 @@ const obtenerCategorias = async (req, res) => {
       // Busca por nombre parcial, insensible a mayúsculas y minúsculas
       filtro.nombre = { $regex: nombre.trim(), $options: "i" };
     }
+    // Usar sólo el modelo Mongoose para evitar inconsistencias entre instancias/conexiones
+    if (!Categoria || typeof Categoria.find !== "function") {
+      throw new Error("Modelo Categoria no disponible");
+    }
     const categorias = await Categoria.find(filtro).sort({ nombre: "asc" });
-    res.status(200).json(categorias);
+    // devolver forma normalizada para el frontend
+    const normalized = (categorias || []).map(normalizeCategory);
+    res.status(200).json(normalized);
   } catch (error) {
+    // Registrar error internamente si el servicio de logs está disponible
+    try {
+      generarLogs.registrarEvento({
+        accion: "OBTENER_CATEGORIAS_ERROR",
+        detalle: error && error.stack ? error.stack : String(error),
+        resultado: "Error",
+        tipo: "categoria",
+        persistirEnDB: false,
+      });
+    } catch (logErr) {
+      // Silenciar fallos en el logger para no ocultar el error original
+    }
     res.status(500).json({
       mensaje: "Error interno del servidor al obtener las categorías.",
     });
@@ -146,11 +250,34 @@ const obtenerCategorias = async (req, res) => {
  */
 const actualizarCategoria = async (req, res) => {
   try {
-    const { nombre, descripcion } = req.body;
+    const {
+      nombre,
+      nombreNormalized,
+      slug,
+      slugNormalized,
+      parent,
+      estado,
+      descripcion,
+      icon,
+      color,
+    } = req.body;
     const categoriaId = req.params.id;
+
+    const updateFields = {
+      nombre,
+      nombreNormalized,
+      slug,
+      slugNormalized,
+      parent,
+      estado,
+      descripcion,
+      icon,
+      color,
+    };
+
     const categoria = await Categoria.findByIdAndUpdate(
       categoriaId,
-      { nombre, descripcion },
+      updateFields,
       { new: true, runValidators: true }
     );
     if (!categoria) {
@@ -168,7 +295,7 @@ const actualizarCategoria = async (req, res) => {
 
     res.status(200).json({
       mensaje: "Categoría actualizada exitosamente.",
-      categoria,
+      categoria: normalizeCategory(categoria),
     });
   } catch (error) {
     generarLogs.registrarEvento({
@@ -229,4 +356,5 @@ module.exports = {
   obtenerCategorias,
   actualizarCategoria,
   eliminarCategoria,
+  normalizeCategory,
 };
