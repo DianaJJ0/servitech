@@ -1,5 +1,9 @@
 // JS para registro de experto con validaciones inmediatas y bloqueo de texto en teléfono
 document.addEventListener("DOMContentLoaded", function () {
+  // Evita inicializar dos veces si el script se carga más de una vez
+  if (window.__registroExpertoInitialized) return;
+  window.__registroExpertoInitialized = true;
+
   const form = document.getElementById("registroExpertoForm");
   const alerta = document.getElementById("registroAlerta");
 
@@ -129,34 +133,59 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // DÍAS DISPONIBLES: validación y feedback
   const diasDisponiblesInput = document.getElementById("diasDisponibles");
-  const dayOptions = document.querySelectorAll(".day-option");
+  // const dayOptions = document.querySelectorAll(".day-option"); // reemplazado por delegación
+  const diasSelector = document.querySelector(".days-selector");
   const diasDisplay = document.getElementById("diasDisplay");
   const errorDias = document.getElementById("errorDias");
+
+  // Actualiza el input oculto y el texto visible
   function updateDias() {
     const seleccionados = Array.from(
       document.querySelectorAll(".day-option.selected")
     ).map((d) => d.getAttribute("data-day"));
-    diasDisponiblesInput.value = seleccionados.join(",");
+    // Guardar como cadena CSV en input oculto (o vacío)
+    diasDisponiblesInput.value = seleccionados.length
+      ? seleccionados.join(",")
+      : "";
+    // Mostrar texto normal en gris con los días seleccionados, separados por coma
     if (seleccionados.length > 0) {
-      diasDisplay.innerHTML = `<span>Días seleccionados:</span> <strong>${seleccionados.join(
-        ", "
-      )}</strong>`;
+      diasDisplay.textContent = seleccionados.join(", ");
+      diasDisplay.classList.add("days-selected-display");
+      diasDisplay.style.color = ""; // usar color por defecto de la clase
+      errorDias.textContent = "";
     } else {
       diasDisplay.textContent = "Selecciona tus días disponibles";
-    }
-    if (seleccionados.length === 0) {
+      diasDisplay.classList.remove("days-selected-display");
+      // mantener mensaje de error visible en rojo
       errorDias.textContent = "Selecciona al menos un día.";
-    } else {
-      errorDias.textContent = "";
     }
   }
-  dayOptions.forEach((d) =>
-    d.addEventListener("click", function (e) {
-      e.preventDefault(); // Evita submit accidental
-      this.classList.toggle("selected");
+
+  // Delegación: permite togglear múltiples botones sin problemas de foco
+  if (diasSelector) {
+    diasSelector.addEventListener("click", function (e) {
+      const btn = e.target.closest(".day-option");
+      if (!btn) return;
+      // prevenir submit o comportamiento inesperado
+      e.preventDefault();
+      // toggle visual y aria
+      const isSelected = btn.classList.toggle("selected");
+      btn.setAttribute("aria-pressed", isSelected ? "true" : "false");
       updateDias();
-    })
-  );
+    });
+
+    // inicializar atributos aria-pressed
+    Array.from(diasSelector.querySelectorAll(".day-option")).forEach((b) => {
+      b.setAttribute(
+        "aria-pressed",
+        b.classList.contains("selected") ? "true" : "false"
+      );
+      // asegurar type=button por si acaso
+      if (b.tagName.toLowerCase() === "button") b.type = "button";
+    });
+  }
+
+  // inicializa visual (por si hay selección previa)
   updateDias();
 
   // DATOS BANCARIOS: validación inmediata
@@ -277,7 +306,9 @@ document.addEventListener("DOMContentLoaded", function () {
       tipoDocumento: tipoDocumento.value,
       numeroDocumento: numeroDocumento.value.trim(),
       telefonoContacto: telefono.value.trim(),
-      diasDisponibles: diasDisponiblesInput.value.split(","),
+      diasDisponibles: diasDisponiblesInput.value
+        ? diasDisponiblesInput.value.split(",")
+        : [],
     };
 
     // Envía a backend
