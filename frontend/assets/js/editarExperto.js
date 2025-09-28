@@ -267,7 +267,7 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    // Arma payload
+    // Arma payload con infoExperto
     const payload = {
       descripcion: descripcion.value.trim(),
       precioPorHora: Number(precio.value),
@@ -287,7 +287,7 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     try {
-      const resp = await fetch("/api/expertos/perfil", {
+      const resp = await fetch("/api/usuarios/perfil", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -298,11 +298,10 @@ document.addEventListener("DOMContentLoaded", function () {
       const data = await resp.json();
       if (resp.ok) {
         alerta.className = "registro-alerta alert-success";
-        alerta.textContent =
-          "Perfil de experto actualizado correctamente. Serás redirigido...";
+        alerta.textContent = "Perfil actualizado correctamente.";
         setTimeout(() => {
           window.location.href = "/perfil";
-        }, 2000);
+        }, 1500);
       } else {
         alerta.className = "registro-alerta alert-danger";
         alerta.textContent = data.mensaje || "Error al actualizar perfil.";
