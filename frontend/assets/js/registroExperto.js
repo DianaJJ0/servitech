@@ -292,46 +292,45 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    // Arma payload
+    // Arma payload para solicitud de experto (roles y estado)
     const payload = {
-      descripcion: descripcion.value.trim(),
-      precioPorHora: Number(precio.value),
-      categorias: Array.from(categoriasSelect.selectedOptions).map(
-        (opt) => opt.value
-      ),
-      banco: banco.value,
-      tipoCuenta: tipoCuenta.value,
-      numeroCuenta: numeroCuenta.value,
-      titular: titular.value.trim(),
-      tipoDocumento: tipoDocumento.value,
-      numeroDocumento: numeroDocumento.value.trim(),
-      telefonoContacto: telefono.value.trim(),
-      diasDisponibles: diasDisponiblesInput.value
-        ? diasDisponiblesInput.value.split(",")
-        : [],
+      roles: ["cliente", "experto"],
+      infoExperto: {
+        descripcion: descripcion.value.trim(),
+        precioPorHora: Number(precio.value),
+        categorias: Array.from(categoriasSelect.selectedOptions).map(
+          (opt) => opt.value
+        ),
+        banco: banco.value,
+        tipoCuenta: tipoCuenta.value,
+        numeroCuenta: numeroCuenta.value,
+        titular: titular.value.trim(),
+        tipoDocumento: tipoDocumento.value,
+        numeroDocumento: numeroDocumento.value.trim(),
+        telefonoContacto: telefono.value.trim(),
+        diasDisponibles: diasDisponiblesInput.value
+          ? diasDisponiblesInput.value.split(",")
+          : [],
+      },
     };
 
-    // Envía a backend
     try {
-      const resp = await fetch("/api/expertos/perfil", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + (localStorage.getItem("token") || ""),
-        },
+      const resp = await fetch("/api/usuarios/registro", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       const data = await resp.json();
       if (resp.ok) {
         alerta.className = "registro-alerta alert-success";
         alerta.textContent =
-          "Perfil de experto registrado correctamente. Serás redirigido...";
+          "¡Solicitud enviada! Revisaremos tu perfil y activaremos tu cuenta de experto. Recibirás un correo cuando sea aprobada.";
         setTimeout(() => {
           window.location.href = "/perfil";
-        }, 2000);
+        }, 2300);
       } else {
         alerta.className = "registro-alerta alert-danger";
-        alerta.textContent = data.mensaje || "Error al registrar perfil.";
+        alerta.textContent = data.mensaje || "Error al enviar solicitud.";
       }
     } catch (err) {
       alerta.className = "registro-alerta alert-danger";
