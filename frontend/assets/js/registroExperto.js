@@ -1,4 +1,4 @@
-// JS para registro de experto - validaciones inmediatas en el navegador y feedback visual por campo
+// Lógica de registro de experto con validaciones inmediatas y feedback visual por campo
 
 document.addEventListener("DOMContentLoaded", function () {
   if (window.__registroExpertoInitialized) return;
@@ -8,8 +8,9 @@ document.addEventListener("DOMContentLoaded", function () {
   const alerta = document.getElementById("registroAlerta");
   const categoriasSelect = document.getElementById("categorias");
   const errorCategorias = document.getElementById("errorCategorias");
+  const errorDiasDisponibles = document.getElementById("errorDiasDisponibles");
 
-  // CATEGORÍAS: Fetch dinámico y Choices.js
+  // Validación dinámica de categorías y Choices.js
   fetch("/api/categorias")
     .then((r) => r.json())
     .then((categorias) => {
@@ -32,6 +33,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
 
+  // Validación de selección de categorías
   categoriasSelect.addEventListener("change", function () {
     if (categoriasSelect.selectedOptions.length === 0) {
       errorCategorias.textContent = "Selecciona al menos una categoría.";
@@ -42,7 +44,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // Utilidades de error por campo
+  // Utilidad para mostrar y limpiar errores por campo
   function setError(campo, mensaje) {
     const input = form[campo];
     const errorDiv = document.getElementById("error" + capitalize(campo));
@@ -59,7 +61,7 @@ document.addEventListener("DOMContentLoaded", function () {
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
 
-  // Validar precio por hora
+  // Validaciones inmediatas de cada campo
   form.precio.addEventListener("input", function () {
     clearError("precio");
     const val = form.precio.value;
@@ -71,7 +73,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // Validar teléfono de contacto (solo números y longitud)
   form.telefonoContacto.addEventListener("input", function () {
     clearError("telefonoContacto");
     const val = form.telefonoContacto.value;
@@ -83,7 +84,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // Validar descripción profesional
   form.descripcion.addEventListener("input", function () {
     clearError("descripcion");
     const val = form.descripcion.value;
@@ -95,11 +95,10 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // DÍAS DISPONIBLES: validación y feedback
+  // DÍAS DISPONIBLES: lógica visual y validación
   const diasDisponiblesInput = document.getElementById("diasDisponibles");
   const diasSelector = document.querySelector(".days-selector");
   const diasDisplay = document.getElementById("diasDisplay");
-
   function updateDias() {
     const seleccionados = Array.from(
       document.querySelectorAll(".day-option.selected")
@@ -140,55 +139,81 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   updateDias();
 
-  // Validar banco
+  // Validaciones inmediatas para datos bancarios y documento
   form.banco.addEventListener("change", function () {
     clearError("banco");
     if (!form.banco.value) setError("banco", "Selecciona tu banco.");
   });
 
-  // Validar tipo de cuenta
   form.tipoCuenta.addEventListener("change", function () {
     clearError("tipoCuenta");
     if (!form.tipoCuenta.value)
       setError("tipoCuenta", "Selecciona tipo de cuenta.");
   });
 
-  // Validar número de cuenta
   form.numeroCuenta.addEventListener("input", function () {
     clearError("numeroCuenta");
-    const val = form.numeroCuenta.value;
-    if (!/^[0-9]{6,20}$/.test(val))
+    if (!/^[0-9]{6,20}$/.test(form.numeroCuenta.value))
       setError("numeroCuenta", "Número de cuenta: 6 a 20 dígitos.");
   });
 
-  // Validar titular
   form.titular.addEventListener("input", function () {
     clearError("titular");
     if (!form.titular.value.trim()) setError("titular", "Titular obligatorio.");
   });
 
-  // Validar tipo de documento
   form.tipoDocumento.addEventListener("change", function () {
     clearError("tipoDocumento");
     if (!form.tipoDocumento.value)
       setError("tipoDocumento", "Selecciona tipo de documento.");
   });
 
-  // Validar número de documento
   form.numeroDocumento.addEventListener("input", function () {
     clearError("numeroDocumento");
-    const val = form.numeroDocumento.value.trim();
-    if (!/^[0-9a-zA-Z]{5,15}$/.test(val))
+    if (!/^[0-9a-zA-Z]{5,15}$/.test(form.numeroDocumento.value.trim()))
       setError("numeroDocumento", "Número de documento: 5 a 15 caracteres.");
   });
 
-  // Submit global
+  // Bloquear letras en teléfono
+  const telefono = form.telefonoContacto;
+  telefono.addEventListener("keydown", function (e) {
+    if (
+      !(
+        (e.key >= "0" && e.key <= "9") ||
+        ["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"].includes(
+          e.key
+        )
+      )
+    ) {
+      e.preventDefault();
+    }
+  });
+  telefono.addEventListener("paste", function (e) {
+    e.preventDefault();
+    let paste = (e.clipboardData || window.clipboardData)
+      .getData("text")
+      .replace(/\D/g, "");
+    const start = telefono.selectionStart;
+    const end = telefono.selectionEnd;
+    const current = telefono.value;
+    telefono.value = current.slice(0, start) + paste + current.slice(end);
+    telefono.setSelectionRange(start + paste.length, start + paste.length);
+    telefono.dispatchEvent(new Event("input"));
+  });
+  telefono.addEventListener("input", function () {
+    let cleaned = telefono.value.replace(/\D/g, "");
+    if (telefono.value !== cleaned) {
+      telefono.value = cleaned;
+    }
+  });
+
+  // Submit global con validaciones de todos los campos
   form.addEventListener("submit", async function (e) {
     e.preventDefault();
     alerta.textContent = "";
     alerta.className = "";
 
-    // Limpia errores previos
+    // Limpiar todos los errores previos
     [
       "precio",
       "telefonoContacto",
@@ -284,7 +309,7 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    // Arma payload SOLO para experto (no registro)
+    // Payload para solicitud de experto
     const payload = {
       descripcion: form.descripcion.value.trim(),
       precioPorHora: Number(form.precio.value),
@@ -337,39 +362,6 @@ document.addEventListener("DOMContentLoaded", function () {
     } catch (err) {
       alerta.className = "registro-alerta alert-danger";
       alerta.textContent = "Error de red. Intenta de nuevo.";
-    }
-  });
-
-  // Bloqueo de letras en teléfono (solo números)
-  const telefono = form.telefonoContacto;
-  telefono.addEventListener("keydown", function (e) {
-    if (
-      !(
-        (e.key >= "0" && e.key <= "9") ||
-        ["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"].includes(
-          e.key
-        )
-      )
-    ) {
-      e.preventDefault();
-    }
-  });
-  telefono.addEventListener("paste", function (e) {
-    e.preventDefault();
-    let paste = (e.clipboardData || window.clipboardData)
-      .getData("text")
-      .replace(/\D/g, "");
-    const start = telefono.selectionStart;
-    const end = telefono.selectionEnd;
-    const current = telefono.value;
-    telefono.value = current.slice(0, start) + paste + current.slice(end);
-    telefono.setSelectionRange(start + paste.length, start + paste.length);
-    telefono.dispatchEvent(new Event("input"));
-  });
-  telefono.addEventListener("input", function () {
-    let cleaned = telefono.value.replace(/\D/g, "");
-    if (telefono.value !== cleaned) {
-      telefono.value = cleaned;
     }
   });
 });
