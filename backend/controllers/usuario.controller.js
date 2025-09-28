@@ -95,14 +95,17 @@ const registrarUsuario = async (req, res) => {
       // Validar campos requeridos de experto
       const requiredFields = [
         "descripcion", "precioPorHora", "banco", "tipoCuenta", "numeroCuenta",
-        "titular", "tipoDocumento", "numeroDocumento"
+        "titular", "tipoDocumento", "numeroDocumento", "categorias", "diasDisponibles", "telefonoContacto"
       ];
       const missing = requiredFields.filter((f) => !infoExperto[f] || String(infoExperto[f]).trim() === "");
-      if (missing.length > 0) {
-        return res.status(400).json({
-          mensaje: "Faltan campos obligatorios para crear el perfil de experto en el registro: " + missing.join(", "),
-        });
-      }
+        if (missing.length > 0) {
+          return res.status(400).json({
+            mensaje:
+              "Faltan campos obligatorios para crear el perfil de experto en el registro.",
+            camposFaltantes: missing,
+          });
+        }
+      // Procesar categorías y díasDisponibles
       let categoriasArray = [];
       if (infoExperto.categorias) {
         if (Array.isArray(infoExperto.categorias)) categoriasArray = infoExperto.categorias.map(String);

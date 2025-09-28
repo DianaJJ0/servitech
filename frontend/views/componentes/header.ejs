@@ -26,7 +26,7 @@
                                 email.split('@')[0]; return 'Usuario' ; } %>
                                 <div class="user-avatar" id="userAvatar">
                                     <span>
-                                        <%= getInitials(user.nombre, user.apellido, user.email) %>
+                                        <%= getInitials(user && user.nombre, user && user.apellido, user && user.email) %>
                                     </span>
                                 </div>
                                 <span id="userDisplayName">
