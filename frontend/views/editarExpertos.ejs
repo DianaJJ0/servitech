@@ -30,101 +30,145 @@
         </div>
       </div>
 
-      <form id="registroExpertoForm" class="registroExperto-form" enctype="multipart/form-data">
+      <form id="editarExpertoForm" class="registroExperto-form" novalidate>
         <div class="form-row triple">
           <div class="form-group compact email-group">
             <label><i class="fas fa-envelope"></i> Email registrado</label>
-            <div class="email-field" id="emailExperto"></div>
+            <div class="email-field" id="emailExperto">
+              <%= experto && experto.email ? experto.email : "" %>
+            </div>
             <p class="form-hint">Email de tu cuenta (no editable)</p>
           </div>
           <div class="form-group compact price-group">
-            <label for="precio">Precio por hora (COP)</label>
+            <label for="precio">Precio por hora (COP)
+              <span class="price-tooltip" title="Ejemplo recomendado: $30.000 - $120.000 COP"><i
+                  class="fas fa-info-circle"></i></span>
+            </label>
             <div class="price-input">
               <span class="currency">$</span>
-              <input type="number" id="precio" name="precio" min="10000" step="100" required placeholder="Ej: 50000">
+              <input type="number" id="precio" name="precio" min="10000" max="120000" step="100" required
+                placeholder="Ej: 50000"
+                value="<%= experto && experto.infoExperto && experto.infoExperto.precioPorHora ? experto.infoExperto.precioPorHora : '' %>">
             </div>
+            <div class="input-error" id="errorPrecio"></div>
             <p class="form-hint">Define un precio proporcional a tu experiencia</p>
           </div>
           <div class="form-group compact">
             <label for="telefonoContacto"><i class="fas fa-phone"></i> Teléfono de contacto</label>
-            <input type="tel" id="telefonoContacto" name="telefonoContacto" placeholder="Ej: 3001234567" required>
-            <p class="form-hint">Obligatorio para coordinar asesorías</p>
+            <input type="tel" id="telefonoContacto" name="telefonoContacto" placeholder="Ej: 3001234567" required
+              maxlength="10" pattern="^[0-9]{7,10}$" autocomplete="off"
+              value="<%= experto && experto.infoExperto && experto.infoExperto.telefonoContacto ? experto.infoExperto.telefonoContacto : '' %>">
+            <div class="input-error" id="errorTelefono"></div>
+            <p class="form-hint">Para coordinar asesorías</p>
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
             <label for="descripcion">Descripción profesional</label>
-            <textarea id="descripcion" name="descripcion" rows="5"
-              placeholder="Tu experiencia, herramientas y tipos de proyectos" required></textarea>
-            <p class="form-hint">Sé concreto y específico</p>
+            <textarea id="descripcion" name="descripcion" rows="3" maxlength="400" required
+              placeholder="Cuentanos tu experiencia, herramientas y tipos de proyectos"><%= experto && experto.infoExperto && experto.infoExperto.descripcion ? experto.infoExperto.descripcion : '' %></textarea>
+            <div class="input-error" id="errorDescripcion"></div>
+            <div class="form-hint"><span id="descContador">0</span>/400 caracteres</div>
           </div>
         </div>
         <div class="form-row double">
           <div class="form-group">
             <label for="categorias">Categorías</label>
-            <select id="categorias" name="categorias" multiple required></select>
+            <select id="categorias" name="categorias" multiple required>
+              <% if (Array.isArray(categorias)) { categorias.forEach(function(cat) { %>
+                <option value="<%= cat._id || cat.id || cat.nombre %>" <% if (experto && experto.infoExperto &&
+                  Array.isArray(experto.infoExperto.categorias) && (experto.infoExperto.categorias.includes(cat._id) ||
+                  experto.infoExperto.categorias.includes(cat.id) ||
+                  experto.infoExperto.categorias.includes(cat.nombre))) { %>selected<% } %> ><%= cat.nombre %>
+                </option>
+                <% }); } %>
+            </select>
+            <div class="input-error" id="errorCategorias"></div>
           </div>
           <div class="form-group">
             <label>Días disponibles</label>
-            <div class="days-selector" id="daysSelector"></div>
-            <input type="hidden" id="diasDisponibles" name="diasDisponibles">
-            <div class="days-selected-display">Selecciona tus días disponibles</div>
+            <div class="days-selector">
+              <% var diasSemana=["Lunes", "Martes" , "Miércoles" , "Jueves" , "Viernes" , "Sábado" , "Domingo" ]; %>
+                <% diasSemana.forEach(function(dia) { %>
+                  <button type="button"
+                    class="day-option<%= experto && experto.infoExperto && Array.isArray(experto.infoExperto.diasDisponibles) && experto.infoExperto.diasDisponibles.includes(dia) ? ' selected' : '' %>"
+                    data-day="<%= dia %>">
+                    <%= dia %>
+                  </button>
+                  <% }); %>
+            </div>
+            <input type="hidden" id="diasDisponibles" name="diasDisponibles"
+              value="<%= experto && experto.infoExperto && Array.isArray(experto.infoExperto.diasDisponibles) ? experto.infoExperto.diasDisponibles.join(',') : '' %>">
+            <div class="days-selected-display" id="diasDisplay">Selecciona tus días disponibles</div>
+            <div class="input-error" id="errorDias"></div>
           </div>
         </div>
         <div class="form-row double">
-          <div class="form-group">
-            <label for="fotoPerfil"><i class="fas fa-image"></i> Foto de perfil</label>
-            <input type="file" id="fotoPerfil" accept="image/png,image/jpeg">
-            <div id="epPreview" class="avatar-preview">
-              <img id="epImg" alt="Vista previa" />
-              <div id="fotoMeta" class="file-meta"></div>
-              <button type="button" id="epRemove" class="btn btn-secondary btn-sm" style="display:none;">Quitar</button>
-            </div>
-            <div id="fotoError" class="alert alert-danger" style="display:none;"></div>
-          </div>
           <div class="form-group">
             <label>Datos bancarios</label>
             <div class="bank-grid">
               <div>
                 <label for="banco">Banco</label>
-                <input type="text" id="banco" name="banco" required>
+                <select id="banco" name="banco" required>
+                  <option value="">Selecciona</option>
+                  <option value="Bancolombia" <% if (experto && experto.infoExperto &&
+                    experto.infoExperto.banco==="Bancolombia" ) { %>selected<% } %> >Bancolombia</option>
+                  <option value="Nequi" <% if (experto && experto.infoExperto && experto.infoExperto.banco==="Nequi" ) {
+                    %>selected<% } %> >Nequi</option>
+                </select>
+                <div class="input-error" id="errorBanco"></div>
               </div>
               <div>
                 <label for="tipoCuenta">Tipo de cuenta</label>
                 <select id="tipoCuenta" name="tipoCuenta" required>
                   <option value="">Selecciona</option>
-                  <option value="Ahorros">Ahorros</option>
-                  <option value="Corriente">Corriente</option>
-                  <option value="Nequi">Nequi</option>
-                  <option value="Daviplata">Daviplata</option>
+                  <option value="Ahorros" <% if (experto && experto.infoExperto &&
+                    experto.infoExperto.tipoCuenta==="Ahorros" ) { %>selected<% } %> >Ahorros</option>
+                  <option value="Corriente" <% if (experto && experto.infoExperto &&
+                    experto.infoExperto.tipoCuenta==="Corriente" ) { %>selected<% } %> >Corriente</option>
                 </select>
+                <div class="input-error" id="errorTipoCuenta"></div>
               </div>
               <div>
                 <label for="numeroCuenta">Número de cuenta</label>
-                <input type="text" id="numeroCuenta" name="numeroCuenta" required>
+                <input type="text" id="numeroCuenta" name="numeroCuenta" required maxlength="20" pattern="^[0-9]{6,20}$"
+                  autocomplete="off"
+                  value="<%= experto && experto.infoExperto && experto.infoExperto.numeroCuenta ? experto.infoExperto.numeroCuenta : '' %>">
+                <div class="input-error" id="errorNumeroCuenta"></div>
               </div>
               <div>
                 <label for="titular">Titular</label>
-                <input type="text" id="titular" name="titular" required>
+                <input type="text" id="titular" name="titular" required maxlength="80" autocomplete="off"
+                  value="<%= experto && experto.infoExperto && experto.infoExperto.titular ? experto.infoExperto.titular : '' %>">
+                <div class="input-error" id="errorTitular"></div>
               </div>
               <div>
                 <label for="tipoDocumento">Tipo de documento</label>
                 <select id="tipoDocumento" name="tipoDocumento" required>
                   <option value="">Selecciona</option>
-                  <option value="CC">Cédula</option>
-                  <option value="CE">Cédula de extranjería</option>
-                  <option value="PAS">Pasaporte</option>
+                  <option value="CC" <% if (experto && experto.infoExperto && experto.infoExperto.tipoDocumento==="CC" )
+                    { %>selected<% } %> >Cédula</option>
+                  <option value="CE" <% if (experto && experto.infoExperto && experto.infoExperto.tipoDocumento==="CE" )
+                    { %>selected<% } %> >Cédula de extranjería</option>
+                  <option value="PAS" <% if (experto && experto.infoExperto && experto.infoExperto.tipoDocumento==="PAS"
+                    ) { %>selected<% } %> >Pasaporte</option>
                 </select>
+                <div class="input-error" id="errorTipoDocumento"></div>
               </div>
               <div>
                 <label for="numeroDocumento">Número de documento</label>
-                <input type="text" id="numeroDocumento" name="numeroDocumento" required>
+                <input type="text" id="numeroDocumento" name="numeroDocumento" required maxlength="15"
+                  pattern="^[0-9a-zA-Z]{5,15}$" autocomplete="off"
+                  value="<%= experto && experto.infoExperto && experto.infoExperto.numeroDocumento ? experto.infoExperto.numeroDocumento : '' %>">
+                <div class="input-error" id="errorNumeroDocumento"></div>
               </div>
             </div>
           </div>
         </div>
         <div class="form-actions">
-          <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar cambios</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i> Guardar cambios
+          </button>
         </div>
       </form>
     </section>
