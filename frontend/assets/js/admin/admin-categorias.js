@@ -55,9 +55,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!catId) return;
 
         const categoriasCache = window._adminCategorias || [];
-        const cat = categoriasCache.find(
-          (x) => String(x.id) === String(catId)
-        );
+        const cat = categoriasCache.find((x) => String(x.id) === String(catId));
 
         if (!cat) {
           // Fallback to reading from table if not in cache
@@ -65,7 +63,8 @@ document.addEventListener("DOMContentLoaded", function () {
             `Categoría con ID ${catId} no encontrada en caché. Leyendo de la tabla.`
           );
           const name =
-            row.querySelector(".categorias-table__icon-row span")
+            row
+              .querySelector(".categorias-table__icon-row span")
               ?.textContent.trim() || "";
           const slug = row.children[2]?.textContent.trim() || "";
           const parent = row.children[3]?.textContent.trim() || "";
@@ -81,8 +80,10 @@ document.addEventListener("DOMContentLoaded", function () {
           // Populate from cache object
           modalVer.querySelector("#verNombreCategoria").value = cat.name || "";
           modalVer.querySelector("#verSlugCategoria").value = cat.slug || "";
-          modalVer.querySelector("#verPadreCategoria").value = cat.parent || "-";
-          modalVer.querySelector("#verEstadoCategoria").value = cat.estado === 'active' ? 'Activa' : 'Inactiva';
+          modalVer.querySelector("#verPadreCategoria").value =
+            cat.parent || "-";
+          modalVer.querySelector("#verEstadoCategoria").value =
+            cat.estado === "active" ? "Activa" : "Inactiva";
           modalVer.querySelector("#verDescripcionCategoria").value =
             cat.descripcion || "";
         }
@@ -127,88 +128,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 });
-
-// Bind crear categoría: toma los valores del modal y llama a agregarCategoria
-document.addEventListener("DOMContentLoaded", () => {
-  const saveBtn = document.getElementById("saveCategory");
-  const form = document.getElementById("categoryForm");
-  if (!saveBtn || !form) return;
-
-  // prevenir submit tradicional
-  form.addEventListener("submit", (e) => e.preventDefault());
-
-  saveBtn.addEventListener("click", async (e) => {
-    e.preventDefault();
-    const nombre = document.getElementById("categoryName").value.trim();
-    const slug = document.getElementById("categorySlug").value.trim();
-    const parent = document.getElementById("parentCategory").value;
-    const estado = document.getElementById("categoryStatus").value;
-    const descripcion = document
-      .getElementById("categoryDescription")
-      .value.trim();
-    const icon = document.getElementById("categoryIcon").value.trim();
-    const color = document.getElementById("iconColor").value;
-
-    // Limpiar errores visuales previos
-    [
-      "categoryName",
-      "categorySlug",
-      "parentCategory",
-      "categoryStatus",
-      "categoryDescription",
-      "categoryIcon",
-      "iconColor",
-    ].forEach(clearFieldErrors);
-
-    // Validar campos del formulario (todos obligatorios según requerimiento)
-    const validation = validateCategoryForm({
-      nombre,
-      slug,
-      parent,
-      estado,
-      descripcion,
-      icon,
-      color,
-    });
-
-    if (!validation.valid) {
-      // Mostrar primer error y resaltar campos
-      if (validation.errors && validation.errors.length > 0) {
-        showMessage(validation.errors[0].message, "error");
-        validation.errors.forEach((err) =>
-          markFieldInvalid(err.field, err.message)
-        );
-      }
-      return;
-    }
-
-    saveBtn.disabled = true;
-    saveBtn.classList && saveBtn.classList.add("btn--loading");
-    try {
-      await agregarCategoria({
-        nombre,
-        nombreNormalized: normalizeForCompare(nombre),
-        slug,
-        slugNormalized: normalizeForCompare(slug),
-        parent,
-        estado,
-        descripcion,
-        icon,
-        color,
-      });
-      showMessage("Categoría creada correctamente.", "success");
-    } catch (err) {
-      console.error("Error guardando categoría:", err);
-      showMessage("Error al crear categoría.", "error");
-    } finally {
-      saveBtn.disabled = false;
-      saveBtn.classList && saveBtn.classList.remove("btn--loading");
-      // reset form
-      form.reset();
-    }
-  });
-});
-
 // Autogenerar slug desde el nombre mientras el usuario escribe
 document.addEventListener("DOMContentLoaded", () => {
   const nameInput = document.getElementById("categoryName");
@@ -390,7 +309,7 @@ function addCategoryToTable(formData, responseData) {
   const parentSelect = document.getElementById("parentCategory");
   const parentOption = parentSelect.options[parentSelect.selectedIndex];
   const parentName = parentOption.value ? parentOption.text : "-";
-  
+
   // Estandarizar a minúsculas para el caché
   const estadoNormalizado = formData.estado.toLowerCase();
 
@@ -438,22 +357,17 @@ function addCategoryToTable(formData, responseData) {
   const tdStatus = document.createElement("td");
   const statusSpan = document.createElement("span");
   statusSpan.className = `status ${estadoNormalizado}`;
-  statusSpan.textContent = estadoNormalizado === 'active' ? 'Activa' : 'Inactiva';
+  statusSpan.textContent =
+    estadoNormalizado === "active" ? "Activa" : "Inactiva";
   tdStatus.appendChild(statusSpan);
   tr.appendChild(tdStatus);
 
   // 8. Acciones
   const tdActions = document.createElement("td");
   tdActions.innerHTML = `<div class="action-buttons">
-      <button class="btn-icon" title="Editar" data-id="${
-        tr.dataset.id
-      }"><i class="fas fa-edit"></i></button>
-      <button class="btn-icon" title="Ver detalles" data-id="${
-        tr.dataset.id
-      }"><i class="fas fa-eye"></i></button>
-      <button class="btn-icon" title="Eliminar" data-id="${
-        tr.dataset.id
-      }"><i class="fas fa-trash"></i></button>
+      <button class="btn-icon" title="Editar" data-id="${tr.dataset.id}"><i class="fas fa-edit"></i></button>
+      <button class="btn-icon" title="Ver detalles" data-id="${tr.dataset.id}"><i class="fas fa-eye"></i></button>
+      <button class="btn-icon" title="Eliminar" data-id="${tr.dataset.id}"><i class="fas fa-trash"></i></button>
     </div>`;
   tr.appendChild(tdActions);
 
@@ -609,12 +523,12 @@ function getHeaders() {
  * Configura los listeners para los filtros de categoría.
  */
 function setupFilters() {
-  const filterContainer = document.querySelector('.categorias-filtros');
+  const filterContainer = document.querySelector(".categorias-filtros");
   if (!filterContainer) return;
 
-  const applyBtn = filterContainer.querySelector('.categorias-filtros__btn');
+  const applyBtn = filterContainer.querySelector(".categorias-filtros__btn");
   if (applyBtn) {
-    applyBtn.addEventListener('click', () => {
+    applyBtn.addEventListener("click", () => {
       // Al aplicar filtros, renderizar desde la página 1
       displayCategorias(1);
     });
@@ -627,57 +541,64 @@ function setupFilters() {
  * @param {number} pageSize - El número de items por página.
  */
 function displayCategorias(page = 1, pageSize = 7) {
-    const allCategorias = window._adminCategorias || [];
-    
-    const selects = document.querySelectorAll('.categorias-filtros__select');
-    const estadoVal = selects.length > 0 ? selects[0].value : '';
-    const padreVal = selects.length > 1 ? selects[1].value : '';
+  const allCategorias = window._adminCategorias || [];
 
-    const filtered = allCategorias.filter(cat => {
-        // Con datos estandarizados, la comparación es simple y directa.
-        const estadoMatch = !estadoVal || cat.estado === estadoVal;
-        
-        let padreMatch = true;
-        if (padreVal) {
-            if (padreVal === 'none') {
-                padreMatch = !cat.parent_id;
-            } else {
-                padreMatch = String(cat.parent_id || '') === String(padreVal);
-            }
-        }
-        
-        return estadoMatch && padreMatch;
-    });
+  const selects = document.querySelectorAll(".categorias-filtros__select");
+  const estadoVal = selects.length > 0 ? selects[0].value : "";
+  const padreVal = selects.length > 1 ? selects[1].value : "";
 
-    const tbody = document.querySelector(".categorias-grid__tabla .admin-table tbody");
-    if (!tbody) return;
+  const filtered = allCategorias.filter((cat) => {
+    // Con datos estandarizados, la comparación es simple y directa.
+    const estadoMatch = !estadoVal || cat.estado === estadoVal;
 
-    const total = filtered.length;
-    const totalPages = Math.max(1, Math.ceil(total / pageSize));
-    page = Math.max(1, Math.min(page, totalPages));
-    window._adminCategoriasPage = page;
-    window._adminCategoriasPageSize = pageSize;
+    let padreMatch = true;
+    if (padreVal) {
+      if (padreVal === "none") {
+        padreMatch = !cat.parent_id;
+      } else {
+        padreMatch = String(cat.parent_id || "") === String(padreVal);
+      }
+    }
 
-    const start = (page - 1) * pageSize;
-    const end = Math.min(start + pageSize, total);
-    const paginas = filtered.slice(start, end);
+    return estadoMatch && padreMatch;
+  });
 
-    tbody.innerHTML = "";
-    
-    if (paginas.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">No se encontraron categorías con los filtros seleccionados.</td></tr>';
-    } else {
-        paginas.forEach((c) => {
-            const tr = document.createElement("tr");
-            tr.dataset.id = c.id;
-            // El estado en el caché ya está normalizado a minúsculas.
-            const statusClass = c.estado;
-            const statusText = c.estado === 'active' ? 'Activa' : 'Inactiva';
-            tr.innerHTML = `
+  const tbody = document.querySelector(
+    ".categorias-grid__tabla .admin-table tbody"
+  );
+  if (!tbody) return;
+
+  const total = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  page = Math.max(1, Math.min(page, totalPages));
+  window._adminCategoriasPage = page;
+  window._adminCategoriasPageSize = pageSize;
+
+  const start = (page - 1) * pageSize;
+  const end = Math.min(start + pageSize, total);
+  const paginas = filtered.slice(start, end);
+
+  tbody.innerHTML = "";
+
+  if (paginas.length === 0) {
+    tbody.innerHTML =
+      '<tr><td colspan="8" style="text-align: center; padding: 20px;">No se encontraron categorías con los filtros seleccionados.</td></tr>';
+  } else {
+    paginas.forEach((c) => {
+      const tr = document.createElement("tr");
+      tr.dataset.id = c.id;
+      // El estado en el caché ya está normalizado a minúsculas.
+      const statusClass = c.estado;
+      const statusText = c.estado === "active" ? "Activa" : "Inactiva";
+      tr.innerHTML = `
                 <td><input type="checkbox" class="categorias-checkbox" /></td>
                 <td>
                   <div class="categorias-table__icon-row">
-                    <div class="categorias-table__icon" style="color: ${escapeHtml(c.color || '#3a8eff')}"><i class="fas fa-${escapeHtml(c.icon || 'tags')}"></i></div>
+                    <div class="categorias-table__icon" style="color: ${escapeHtml(
+                      c.color || "#3a8eff"
+                    )}"><i class="fas fa-${escapeHtml(
+        c.icon || "tags"
+      )}"></i></div>
                     <span>${escapeHtml(c.name || "")}</span>
                   </div>
                 </td>
@@ -685,56 +606,140 @@ function displayCategorias(page = 1, pageSize = 7) {
                 <td>${escapeHtml(c.parent || "-")}</td>
                 <td>${c.publicacionesCount || 0}</td>
                 <td>${c.expertosCount || 0}</td>
-                <td><span class="status ${statusClass}">${escapeHtml(statusText)}</span></td>
+                <td><span class="status ${statusClass}">${escapeHtml(
+        statusText
+      )}</span></td>
                 <td>
                   <div class="action-buttons">
-                    <button class="btn-icon" title="Editar" data-id="${c.id}"><i class="fas fa-edit"></i></button>
-                    <button class="btn-icon" title="Ver detalles" data-id="${c.id}"><i class="fas fa-eye"></i></button>
-                    <button class="btn-icon" title="Eliminar" data-id="${c.id}"><i class="fas fa-trash"></i></button>
+                    <button class="btn-icon" title="Editar" data-id="${
+                      c.id
+                    }"><i class="fas fa-edit"></i></button>
+                    <button class="btn-icon" title="Ver detalles" data-id="${
+                      c.id
+                    }"><i class="fas fa-eye"></i></button>
+                    <button class="btn-icon" title="Eliminar" data-id="${
+                      c.id
+                    }"><i class="fas fa-trash"></i></button>
                   </div>
                 </td>
             `;
-            tbody.appendChild(tr);
-        });
-    }
+      tbody.appendChild(tr);
+    });
+  }
 
-    renderPagination(total, page, pageSize);
+  renderPagination(total, page, pageSize);
 }
 
 /**
  * Rellena dinámicamente todos los menús desplegables de categorías padre.
  */
 function populateAllParentDropdowns() {
-    const allCategorias = window._adminCategorias || [];
-    // Solo las categorías activas y que no tengan padre pueden ser una categoría padre.
-    const parentCategories = allCategorias.filter(c => !c.parent_id && c.estado === 'active');
+  const allCategorias = window._adminCategorias || [];
+  // Preset parent categories que siempre deben aparecer en los selects
+  const presetParentCategories = [
+    { id: "desarrollo-software", name: "Desarrollo de Software" },
+    { id: "infraestructura-y-redes", name: "Infraestructura y Redes" },
+    { id: "ciberseguridad", name: "Ciberseguridad" },
+    {
+      id: "ciencia-datos-ia",
+      name: "Ciencia de Datos e Inteligencia Artificial",
+    },
+    { id: "bases-de-datos", name: "Bases de Datos" },
+    { id: "diseno-ux-ui", name: "Diseño y UX/UI" },
+    { id: "tecnologias-emergentes", name: "Tecnologías Emergentes" },
+    {
+      id: "ecommerce-marketing-digital",
+      name: "E-commerce y Marketing Digital",
+    },
+    { id: "soporte-ti", name: "Soporte Técnico y TI" },
+    { id: "transformacion-digital", name: "Transformación Digital" },
+    {
+      id: "carrera-educacion-tecnologica",
+      name: "Carrera y Educación Tecnológica",
+    },
+  ];
 
-    const selectsToPopulate = [
-        { id: 'parentCategory', default: '<option value="">Sin categoría padre</option>' },
-        { id: 'editarPadreCategoria', default: '<option value="">Sin categoría padre</option>' },
-        { selector: '.categorias-filtros__select', index: 1, default: '<option value="">Todas</option><option value="none">Sin categoría padre</option>' }
-    ];
+  // Solo las categorías activas y que no tengan padre pueden ser una categoría padre.
+  const parentCategories = allCategorias.filter(
+    (c) => !c.parent_id && c.estado === "active"
+  );
 
-    const optionsHTML = parentCategories.map(cat => `<option value="${cat.id}">${escapeHtml(cat.name)}</option>`).join('');
+  const selectsToPopulate = [
+    {
+      id: "parentCategory",
+      default: '<option value="">Sin categoría padre</option>',
+    },
+    {
+      id: "editarPadreCategoria",
+      default: '<option value="">Sin categoría padre</option>',
+    },
+    {
+      selector: ".categorias-filtros__select",
+      index: 1,
+      default:
+        '<option value="">Todas</option><option value="none">Sin categoría padre</option>',
+    },
+  ];
 
-    selectsToPopulate.forEach(item => {
-        let selectEl;
-        if (item.id) {
-            selectEl = document.getElementById(item.id);
-        } else if (item.selector) {
-            selectEl = document.querySelectorAll(item.selector)[item.index];
-        }
+  // Rellenar cada select según la política: presets para creación/edición, dinámicas para filtros.
+  selectsToPopulate.forEach((item) => {
+    let selectEl;
+    if (item.id) selectEl = document.getElementById(item.id);
+    else if (item.selector)
+      selectEl = document.querySelectorAll(item.selector)[item.index];
+    if (!selectEl) return;
 
-        if (selectEl) {
-            const currentVal = selectEl.value;
-            selectEl.innerHTML = item.default + optionsHTML;
-            try {
-                selectEl.value = currentVal;
-            } catch (e) {
-                selectEl.querySelector('option').selected = true;
-            }
-        }
+    const currentVal = selectEl.value;
+
+    // Si es el select de creación/edición, mostrar sólo presets
+    if (item.id === "parentCategory" || item.id === "editarPadreCategoria") {
+      const options = [
+        item.default || '<option value="">Sin categoría padre</option>',
+      ];
+      presetParentCategories.forEach((p) => {
+        options.push(
+          `<option value="${escapeHtml(String(p.id))}">${escapeHtml(
+            p.name
+          )}</option>`
+        );
+      });
+      try {
+        selectEl.innerHTML = options.join("");
+      } catch (e) {
+        // Fallback manual
+        while (selectEl.firstChild) selectEl.removeChild(selectEl.firstChild);
+        options.forEach((optHtml) => {
+          const tmp = document.createElement("div");
+          tmp.innerHTML = optHtml;
+          const opt = tmp.firstChild;
+          if (opt) selectEl.appendChild(opt);
+        });
+      }
+      try {
+        selectEl.value = currentVal;
+      } catch (e) {
+        const first = selectEl.querySelector("option");
+        if (first) first.selected = true;
+      }
+      return;
+    }
+
+    // Para selects de filtro, mostrar default + dinámicas (padres reales)
+    const options = [item.default || '<option value="">Todas</option>'];
+    parentCategories.forEach((c) => {
+      options.push(
+        `<option value="${escapeHtml(String(c.id || ""))}">${escapeHtml(
+          c.name || c.id || ""
+        )}</option>`
+      );
     });
+    try {
+      selectEl.innerHTML = options.join("");
+    } catch (e) {}
+    try {
+      selectEl.value = currentVal;
+    } catch (e) {}
+  });
 }
 
 /**
@@ -748,20 +753,26 @@ async function loadCategorias() {
       return;
     }
     const rawCategorias = await res.json();
-    
+
     // Normalizar datos al momento de cargarlos para asegurar consistencia.
-    const categoriasNormalizadas = (Array.isArray(rawCategorias) ? rawCategorias : []).map(cat => ({
+    const categoriasNormalizadas = (
+      Array.isArray(rawCategorias) ? rawCategorias : []
+    ).map((cat) => ({
       ...cat,
-      estado: (cat.estado || 'inactive').toLowerCase(),
+      estado: (cat.estado || "inactive").toLowerCase(),
     }));
 
     window._adminCategorias = categoriasNormalizadas;
-    
+
     // Poblar todos los menús de categorías padre.
     populateAllParentDropdowns();
     // Mostrar la tabla inicial.
+    // Asegurarnos de que la página actual esté definida antes de llamar a displayCategorias
+    if (typeof window._adminCategoriasPage === "undefined") {
+      window._adminCategoriasPage = 1;
+    }
     displayCategorias(1);
-    
+
     showMessage("Categorías cargadas.", "info", 800);
   } catch (err) {
     console.error("Error cargando categorías:", err);
@@ -820,7 +831,11 @@ function renderPagination(totalItems, currentPage, pageSize) {
   btns.forEach((b) => {
     b.addEventListener("click", (e) => {
       const p = Number(b.getAttribute("data-page"));
-      if (p === currentPage || b.classList.contains('categorias-paginacion__btn--disabled')) return;
+      if (
+        p === currentPage ||
+        b.classList.contains("categorias-paginacion__btn--disabled")
+      )
+        return;
       displayCategorias(p, pageSize);
     });
   });
@@ -1148,5 +1163,75 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnCancel = modal.querySelector(".btn-outline");
     if (btnClose) btnClose.addEventListener("click", closeAllCategoryModals);
     if (btnCancel) btnCancel.addEventListener("click", closeAllCategoryModals);
+  });
+});
+
+// Handler para crear nueva categoría (botón Guardar en modal de creación)
+document.addEventListener("DOMContentLoaded", () => {
+  const saveBtn = document.getElementById("saveCategory");
+  if (!saveBtn) return;
+
+  saveBtn.addEventListener("click", async (e) => {
+    e.preventDefault();
+    // Recolectar valores del formulario de creación
+    const nombre = (
+      document.getElementById("categoryName")?.value || ""
+    ).trim();
+    const slug = (document.getElementById("categorySlug")?.value || "").trim();
+    const parent = document.getElementById("parentCategory")?.value || "";
+    const estado = document.getElementById("categoryStatus")?.value || "active";
+    const descripcion = (
+      document.getElementById("categoryDescription")?.value || ""
+    ).trim();
+    const icon = (document.getElementById("categoryIcon")?.value || "").trim();
+    const color = document.getElementById("iconColor")?.value || "#3a8eff";
+
+    const payload = {
+      nombre,
+      nombreNormalized: normalizeForCompare(nombre),
+      slug: slug || normalizeSlug(nombre),
+      slugNormalized: normalizeForCompare(slug || normalizeSlug(nombre)),
+      parent,
+      estado,
+      descripcion,
+      icon,
+      color,
+    };
+
+    // Validar antes de enviar
+    clearFieldErrors(document.getElementById("categoryName"));
+    clearFieldErrors(document.getElementById("categorySlug"));
+    clearFieldErrors(document.getElementById("categoryDescription"));
+    clearFieldErrors(document.getElementById("categoryIcon"));
+
+    const validation = validateCategoryForm(payload);
+    if (!validation.valid) {
+      // Mostrar y marcar los primeros errores
+      validation.errors.slice(0, 5).forEach((err) => {
+        try {
+          markFieldInvalid(err.field, err.message);
+        } catch (e) {}
+      });
+      showMessage(
+        "Corrige los errores del formulario antes de guardar.",
+        "error"
+      );
+      return;
+    }
+
+    try {
+      await agregarCategoria(payload);
+      showMessage("Categoría creada correctamente.", "success");
+      // cerrar modal y resetear formulario
+      const modal = document.getElementById("categoryModal");
+      if (modal) modal.style.display = "none";
+      const form = document.getElementById("categoryForm");
+      if (form) form.reset();
+      // Actualizar listas si es necesario
+      populateAllParentDropdowns();
+    } catch (err) {
+      // agregarCategoria ya muestra mensaje en caso de error
+      console.error("Error creando categoría:", err);
+    }
   });
 });
