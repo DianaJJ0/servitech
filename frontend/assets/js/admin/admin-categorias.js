@@ -390,6 +390,13 @@ function addCategoryToTable(formData, responseData) {
       expertosCount: 0,
     };
     window._adminCategorias.unshift(newCacheItem);
+    try {
+      document.dispatchEvent(
+        new CustomEvent("categorias:updated", {
+          detail: { categories: window._adminCategorias },
+        })
+      );
+    } catch (e) {}
     // Después de agregar una nueva categoría, podría ser una categoría padre, así que actualizamos los menús.
     populateAllParentDropdowns();
   }
@@ -764,6 +771,15 @@ async function loadCategorias() {
 
     window._adminCategorias = categoriasNormalizadas;
 
+    // Emitir un evento global para notificar a otras partes del frontend
+    try {
+      document.dispatchEvent(
+        new CustomEvent("categorias:updated", {
+          detail: { categories: categoriasNormalizadas },
+        })
+      );
+    } catch (e) {}
+
     // Poblar todos los menús de categorías padre.
     populateAllParentDropdowns();
     // Mostrar la tabla inicial.
@@ -1132,6 +1148,14 @@ document.addEventListener("DOMContentLoaded", () => {
         const modal = document.getElementById("modalEditarCategoria");
         if (modal) modal.style.display = "none";
         await loadCategorias();
+        try {
+          // loadCategorias ya dispara el evento, pero reproducimos por compatibilidad
+          document.dispatchEvent(
+            new CustomEvent("categorias:updated:afterPut", {
+              detail: { timestamp: Date.now() },
+            })
+          );
+        } catch (e) {}
       } catch (err) {
         console.error(err);
         showMessage("Error al actualizar categoría.", "error");
