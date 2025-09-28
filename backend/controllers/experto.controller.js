@@ -218,7 +218,7 @@ const obtenerPerfilExperto = async (req, res) => {
 const actualizarPerfilExperto = async (req, res) => {
   try {
     const usuarioId = req.usuario && req.usuario._id;
-    if (!usuarioId) return res.status(401).json({ error: "No autenticado" });
+    if (!usuarioId) return res.status(401).json({ mensaje: "No autenticado" });
 
     const {
       descripcion,
@@ -232,48 +232,43 @@ const actualizarPerfilExperto = async (req, res) => {
       numeroDocumento,
       telefonoContacto,
       diasDisponibles,
-      avatarUrl
     } = req.body;
 
     // Validar campos obligatorios
+    let missing = [];
+    if (!descripcion) missing.push("descripcion");
+    if (!precioPorHora) missing.push("precio");
+    if (!categorias || !Array.isArray(categorias) || categorias.length === 0)
+      missing.push("categorias");
+    if (!banco) missing.push("banco");
+    if (!tipoCuenta) missing.push("tipoCuenta");
+    if (!numeroCuenta) missing.push("numeroCuenta");
+    if (!titular) missing.push("titular");
+    if (!tipoDocumento) missing.push("tipoDocumento");
+    if (!numeroDocumento) missing.push("numeroDocumento");
+    if (!telefonoContacto) missing.push("telefonoContacto");
     if (
-      !descripcion ||
-      !precioPorHora ||
-      !categorias ||
-      !Array.isArray(categorias) ||
-      categorias.length === 0 ||
-      !banco ||
-      !tipoCuenta ||
-      !numeroCuenta ||
-      !titular ||
-      !tipoDocumento ||
-      !numeroDocumento ||
-      !telefonoContacto
-    ) {
+      !diasDisponibles ||
+      !Array.isArray(diasDisponibles) ||
+      diasDisponibles.length === 0
+    )
+      missing.push("diasDisponibles");
+
+    if (missing.length > 0) {
       return res.status(400).json({
-        mensaje:
-          "Faltan campos obligatorios para actualizar el perfil de experto.",
+        mensaje: "Faltan campos obligatorios para completar tu solicitud.",
+        camposFaltantes: missing,
       });
     }
 
-    let categoriasArray = Array.isArray(categorias)
-      ? categorias.map((id) => String(id))
-      : typeof categorias === "string"
-      ? categorias.split(",").map((id) => id.trim())
-      : [];
-    let diasArray = Array.isArray(diasDisponibles)
-      ? diasDisponibles.map((d) => String(d))
-      : typeof diasDisponibles === "string"
-      ? diasDisponibles.split(",").map((d) => d.trim())
-      : [];
-
     const usuario = await Usuario.findById(usuarioId);
-    if (!usuario) return res.status(404).json({ mensaje: "Usuario no encontrado." });
+    if (!usuario)
+      return res.status(404).json({ mensaje: "Usuario no encontrado." });
 
     usuario.infoExperto = {
       descripcion,
       precioPorHora,
-      categorias: categoriasArray,
+      categorias,
       banco,
       tipoCuenta,
       numeroCuenta,
@@ -281,21 +276,25 @@ const actualizarPerfilExperto = async (req, res) => {
       tipoDocumento,
       numeroDocumento,
       telefonoContacto,
-      diasDisponibles: diasArray,
+      diasDisponibles,
     };
-    if (avatarUrl) usuario.avatarUrl = avatarUrl;
+
     if (!usuario.roles.includes("experto")) usuario.roles.push("experto");
+    usuario.estado = "pendiente";
 
     await usuario.save();
 
-    try {
-      await generarLogs("perfil_experto_update", { usuarioId, infoExperto: usuario.infoExperto });
-    } catch (e) {}
-
-    res.status(200).json(usuario);
+    res
+      .status(200)
+      .json({
+        mensaje:
+          "Solicitud de perfil de experto enviada. Un administrador la revisará.",
+        usuario,
+      });
   } catch (err) {
-    console.error("actualizarPerfilExperto error:", err);
-    res.status(500).json({ error: "Error interno", message: err.message });
+    res
+      .status(500)
+      .json({ mensaje: "Error interno del servidor.", error: err.message });
   }
 };
 
