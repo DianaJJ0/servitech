@@ -921,7 +921,34 @@ router.post("/editarExperto", async (req, res) => {
 
 // --- Panel de administración (rutas protegidas) ---
 router.get("/admin/adminCategorias", requireAdmin, (req, res) => {
-  res.render("admin/adminCategorias", { user: req.session.user || {} });
+  // Exponer API_KEY al cliente sólo si la sesión pertenece a un admin
+  const isAdmin =
+    req.session && req.session.user && Array.isArray(req.session.user.roles)
+      ? req.session.user.roles.includes("admin")
+      : false;
+  // En entornos de desarrollo, exponer la API_KEY localmente facilita pruebas.
+  // En producción, sólo exponerla cuando la sesión es admin.
+  let apiKey = "";
+  try {
+    if (process.env.API_KEY) {
+      if (String(process.env.NODE_ENV || "").toLowerCase() !== "production") {
+        apiKey = process.env.API_KEY;
+      } else if (isAdmin) {
+        apiKey = process.env.API_KEY;
+      }
+    }
+  } catch (e) {
+    apiKey = "";
+  }
+  console.log(
+    `Rendering /admin/adminCategorias - expose API_KEY to client: ${
+      apiKey ? "yes" : "no"
+    }`
+  );
+  res.render("admin/adminCategorias", {
+    user: req.session.user || {},
+    API_KEY: apiKey,
+  });
 });
 router.get("/admin/adminNotificaciones", requireAdmin, (req, res) => {
   res.render("admin/adminNotificaciones", { user: req.session.user || {} });
