@@ -11,34 +11,49 @@
                 <a href="/expertos.html" class="nav-item"><i class="fas fa-users"></i> Expertos</a>
                 <a href="/contacto.html" class="nav-item"><i class="fas fa-envelope"></i> Contacto</a>
             </div>
-            <div class="auth-buttons">
-                <a href="/login.html" class="btn btn-outline">Iniciar sesión</a>
-                <a href="/registro.html" class="btn btn-primary">Registrarse</a>
-            </div>
-            <div class="user-menu" id="userMenuContainer">
-                <div class="user-avatar" id="userAvatar"></div>
-                <span id="userDisplayName">Usuario</span>
-                <i class="fas fa-chevron-down"></i>
-                <div class="user-dropdown" id="userDropdown">
-                    <a href="/perfil" class="dropdown-item"><i class="fas fa-user"></i> Mi perfil</a>
-                    <a href="/misAsesorias.html" class="dropdown-item"><i class="fas fa-calendar-alt"></i> Mis
-                        asesorías</a>
-                    <% if (user && user.roles && user.roles.includes('experto')) { %>
-                        <a href="/editarExperto" class="dropdown-item"><i class="fas fa-calendar-alt"></i> Editar datos
-                            de experto</a>
-                        <% } %>
-                            <button class="dropdown-item" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Cerrar
-                                sesión</button>
+            <% if (!(user && user.email)) { %>
+                <div class="auth-buttons">
+                    <a href="/login.html" class="btn btn-outline">Iniciar sesión</a>
+                    <a href="/registro.html" class="btn btn-primary">Registrarse</a>
                 </div>
-            </div>
-            <div class="admin-access" id="adminAccess" role="region" aria-label="Acceso administradores"
-                style="display: none;">
-                <a href="/admin/adminExpertos" class="btn btn-admin" id="adminPanelBtn"
-                    title="Abrir panel de administradores">
-                    <i class="fas fa-tools" aria-hidden="true"></i>
-                    <span class="btn-text">Admin</span>
-                </a>
-            </div>
+                <% } %>
+                    <% if (user && user.email) { %>
+                        <div class="user-menu" id="userMenuContainer">
+                            <% function getInitials(nombre, apellido, email) { if (nombre && apellido) return (nombre[0]
+                                + apellido[0]).toUpperCase(); if (nombre) return nombre[0].toUpperCase(); if (apellido)
+                                return apellido[0].toUpperCase(); if (email) return email[0].toUpperCase(); return 'U' ;
+                                } function getDisplayName(nombre, email) { if (nombre) return nombre; if (email) return
+                                email.split('@')[0]; return 'Usuario' ; } %>
+                                <div class="user-avatar" id="userAvatar">
+                                    <span>
+                                        <%= getInitials(user && user.nombre, user && user.apellido, user && user.email) %>
+                                    </span>
+                                </div>
+                                <span id="userDisplayName">
+                                    <%= getDisplayName(user.nombre, user.email) %>
+                                </span>
+                                <i class="fas fa-chevron-down"></i>
+                                <div class="user-dropdown" id="userDropdown">
+                                    <a href="/perfil" class="dropdown-item"><i class="fas fa-user"></i> Mi perfil</a>
+                                    <a href="/misAsesorias.html" class="dropdown-item"><i
+                                            class="fas fa-calendar-alt"></i> Mis asesorías</a>
+                                    <% if (user && user.roles && user.roles.includes('experto')) { %>
+                                        <a href="/editarExperto" class="dropdown-item"><i
+                                                class="fas fa-calendar-alt"></i> Editar datos de experto</a>
+                                        <% } %>
+                                            <button class="dropdown-item" id="logoutBtn"><i
+                                                    class="fas fa-sign-out-alt"></i> Cerrar sesión</button>
+                                </div>
+                        </div>
+                        <% } %>
+                            <div class="admin-access" id="adminAccess" role="region" aria-label="Acceso administradores"
+                                <% if (!(user && user.roles && user.roles.includes('admin'))) { %>style="display: none;"<% } %> >
+                                <a href="/admin/adminExpertos" class="btn btn-admin" id="adminPanelBtn"
+                                    title="Abrir panel de administradores">
+                                    <i class="fas fa-tools" aria-hidden="true"></i>
+                                    <span class="btn-text">Admin</span>
+                                </a>
+                            </div>
         </div>
         <div class="mobile-menu-toggle" id="mobileMenuToggle">
             <i class="fas fa-bars"></i>
