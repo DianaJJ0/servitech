@@ -122,17 +122,18 @@
 
 /* Select personalizado para categorías */
 .categorias-filtros__select,
-.modal-categoria__input[type="select"],
-select.categorias-filtros__select,
-select.modal-categoria__input,
-select.modal-categoria__input option {
-  background-color: #181c23;
-  color: #fff;
+select.modal-categoria__input {
+  background-color: var(
+    --admin-input-bg,
+    #181c23
+  ); /* Usar variable o fallback */
+  color: var(--admin-text-primary, #fff);
 }
+
 select.categorias-filtros__select option,
 select.modal-categoria__input option {
-  background-color: #181c23;
-  color: #fff;
+  background-color: var(--admin-card-bg, #1f2937); /* Fondo para las opciones */
+  color: var(--admin-text-primary, #fff);
 }
 
 /* --- Estadísticas Categorías --- */
