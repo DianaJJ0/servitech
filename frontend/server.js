@@ -530,6 +530,30 @@ router.post("/editarExperto", async (req, res) => {
   }
 });
 
+// Ruta: calendario de un experto (por id)
+router.get("/expertos/:id/calendario", async (req, res) => {
+  try {
+    const experto = await Usuario.findById(req.params.id);
+    if (!experto || !experto.roles.includes("experto")) {
+      return res.status(404).render("404", { mensaje: "Experto no encontrado" });
+    }
+    // Sus asesorías agendadas (pendiente, confirmada, completada)
+    const asesoriasExistentes = await Asesoria.find({
+      "experto.email": experto.email,
+      estado: { $in: ["pendiente-pago", "confirmada"] }
+    });
+    // Usuario autenticado (puede ser null si no ha iniciado sesión)
+    const usuario = req.session.user || null;
+    return res.render("calendario", {
+      experto,
+      usuario,
+      asesoriasExistentes
+    });
+  } catch (err) {
+    res.status(500).render("error", { mensaje: "Error interno en calendario" });
+  }
+});
+
 // --- Panel de administración (rutas protegidas) ---
 router.get("/admin/adminCategorias", requireAdmin, (req, res) => {
   // Exponer API_KEY al cliente sólo si la sesión pertenece a un admin
