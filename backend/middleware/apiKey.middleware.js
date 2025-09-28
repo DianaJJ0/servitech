@@ -23,6 +23,15 @@ module.exports = function (req, res, next) {
   // Normalizar y comparar con la clave esperada (trim para tolerar espacios accidentales)
   const expected = (process.env.API_KEY || "").toString().trim();
 
+  // Debug: log para ayudar a diagnosticar 403 por API Key
+  try {
+    console.log(
+      `apiKeyMiddleware: recibido='${String(apiKey)}' expected='${String(
+        expected
+      )}'`
+    );
+  } catch (e) {}
+
   if (!apiKey || apiKey !== expected) {
     return res
       .status(403)

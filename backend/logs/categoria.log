@@ -1,0 +1,4 @@
+2025-09-28T01:59:54.037Z | CREAR_CATEGORIA | 1@gmail.com | Juan Castro | Resultado: Exito
+2025-09-28T02:17:14.647Z | CREAR_CATEGORIA | 1@gmail.com | Juan Castro | Resultado: Exito
+2025-09-28T02:24:31.693Z | ACTUALIZAR_CATEGORIA | 1@gmail.com | - | Resultado: Error: Validation failed: slugNormalized: Path `slugNormalized` is required., slug: Path `slug` is required.
+2025-09-28T03:08:19.962Z | CREAR_CATEGORIA | 1@gmail.com | Juan Castro | Resultado: Exito
