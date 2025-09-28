@@ -24,7 +24,7 @@ function normalizeCategory(c) {
   const slug = String(raw.slug || "");
   const color = String(raw.color || "#3a8eff");
   let parentName = "-";
-  let parentId = "";
+  let parentId = raw.parent || ""; // Asignar el valor de parent directamente. Esta es la declaración correcta.
   try {
     if (raw.parent) {
       if (typeof raw.parent === "object") {
