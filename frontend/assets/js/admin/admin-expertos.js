@@ -125,8 +125,18 @@
             null
           );
         }
-        // si el item es string/número: intentar resolver mediante categoriesMap primero, si no usar el valor crudo
+        // si el item es string/número: intentar resolver mediante categoriesMap primero
         var key = String(item);
+        // ocultar categorías inactivas si conocemos su estado
+        try {
+          if (
+            window.__categoriesStateMap &&
+            window.__categoriesStateMap[key] &&
+            window.__categoriesStateMap[key] !== "active"
+          ) {
+            return null;
+          }
+        } catch (e) {}
         return (
           (categoriesMap && (categoriesMap[key] || categoriesMap[item])) ||
           String(item)
@@ -910,6 +920,135 @@
     } catch (e) {
       console.warn("admin-expertos diagnóstico: error al imprimir datos", e);
     }
+
+    // Escuchar actualizaciones de categorías desde el panel de categorías
+    try {
+      document.addEventListener("categorias:updated", function (ev) {
+        try {
+          const updated = (ev && ev.detail && ev.detail.categories) || [];
+          if (Array.isArray(updated) && updated.length) {
+            // actualizar array local 'categorias' usado por este módulo
+            categorias.splice(
+              0,
+              categorias.length,
+              ...updated.map(function (c) {
+                return {
+                  id: String(c._id || c.id || c.id),
+                  name: String(c.nombre || c.name || c.label || c.name),
+                  icon: c.icon || "",
+                };
+              })
+            );
+
+            // reconstruir mapa
+            Object.keys(categoriesMap).forEach(function (k) {
+              delete categoriesMap[k];
+            });
+            (updated || []).forEach(function (c) {
+              const id = String(c._id || c.id || "");
+              const name = String(c.nombre || c.name || c.label || "");
+              categoriesMap[id] = name;
+            });
+
+            // construir mapa de estado de categorias para uso global
+            try {
+              window.__categoriesStateMap = window.__categoriesStateMap || {};
+              (updated || []).forEach(function (c) {
+                const id = String(c._id || c.id || "");
+                const estado = String(
+                  c.estado || c.active || "inactive"
+                ).toLowerCase();
+                window.__categoriesStateMap[id] = estado;
+              });
+            } catch (e) {}
+
+            // actualizar filtro de categoría
+            try {
+              const catSelect = document.getElementById("filterCategoria");
+              if (catSelect) {
+                const prev = catSelect.value;
+                catSelect.innerHTML =
+                  "<option value=''>Todas</option>" +
+                  (categorias || [])
+                    .map(function (c) {
+                      return (
+                        '<option value="' +
+                        (c.id || "") +
+                        '">' +
+                        escapeHtml(c.name || "") +
+                        "</option>"
+                      );
+                    })
+                    .join("");
+                try {
+                  catSelect.value = prev;
+                } catch (e) {}
+              }
+            } catch (e) {}
+
+            // actualizar select multiple dentro del modal editar experto
+            try {
+              const multi = document.getElementById("categorias_edit");
+              if (multi) {
+                const prev = Array.from(multi.selectedOptions || []).map(
+                  function (o) {
+                    return o.value;
+                  }
+                );
+                multi.innerHTML = (categorias || [])
+                  .map(function (c) {
+                    return (
+                      '<option value="' +
+                      (c.id || "") +
+                      '">' +
+                      escapeHtml(c.name || "") +
+                      "</option>"
+                    );
+                  })
+                  .join("");
+                // restaurar selección previa si es posible
+                prev.forEach(function (v) {
+                  try {
+                    const opt = multi.querySelector(
+                      'option[value="' + v + '"]'
+                    );
+                    if (opt) opt.selected = true;
+                  } catch (e) {}
+                });
+              }
+            } catch (e) {}
+
+            // actualizar el selector de categorías (widget) si existe
+            try {
+              if (
+                window._categoriasSelector &&
+                typeof window._categoriasSelector.renderOptions === "function"
+              ) {
+                window._categoriasSelector.renderOptions(
+                  updated.map(function (c) {
+                    return {
+                      id: String(c._id || c.id || ""),
+                      name: String(c.nombre || c.name || c.label || ""),
+                      icon: c.icon || "",
+                      slug: c.slug || "",
+                      parent: c.parent || "",
+                      estado: (c.estado || "inactive").toLowerCase(),
+                    };
+                  })
+                );
+              }
+            } catch (e) {}
+          }
+          // Forzar re-render de la tabla de expertos para que refleje categorías inactivas
+          try {
+            currentPage = 1;
+            applyFilters();
+          } catch (e) {}
+        } catch (err) {
+          console.warn("Error procesando categorias:updated", err);
+        }
+      });
+    } catch (e) {}
 
     // ===== MOVED FROM INLINE SCRIPTS IN EJS =====
     // Mitigaciones para evitar autofill en inputs email dentro de modales.
