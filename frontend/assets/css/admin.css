@@ -463,6 +463,61 @@
   object-fit: cover;
 }
 
+/* Columna de acciones para la tabla de expertos */
+.expertos-col--actions,
+.clientes-list .admin-table th.expertos-col--actions {
+  /* Usar ancho mínimo para evitar que las acciones queden pegadas al contenido
+     de la columna anterior. Se usa min-width para respetar tablas responsivas. */
+  min-width: 220px;
+  text-align: center;
+}
+
+/* Si la clase se aplica al <tr> del thead, forzamos el centrado de sus <th>
+   Esto sobreescribe la regla por defecto que alinea a la izquierda. */
+.clientes-list .admin-table thead tr.expertos-col--actions th {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.clientes-list .admin-table thead tr.expertos-col--actions th:last-child {
+  /* Asegurar ancho del encabezado "Acciones" cuando la clase está en el tr */
+  width: 160px;
+}
+
+.clientes-list .admin-table td:nth-child(6) {
+  /* Centrar los botones y garantizar espacio mínimo para que no se peguen
+     al contenido anterior (estado). */
+  min-width: 220px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  vertical-align: middle;
+  white-space: nowrap;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+/* Asegurar espaciado si los botones tienen margin interno u otras reglas */
+.clientes-list .admin-table td:nth-child(6) .btn-outline,
+.clientes-list .admin-table td:nth-child(6) .btn-primary {
+  margin: 0;
+}
+
+/* Si el HTML inyectado usa la clase 'expertos-actions-cell' la centramos también */
+.expertos-actions-cell {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  vertical-align: middle;
+}
+
+.expertos-actions-cell .action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
 .user-info div {
   display: flex;
   flex-direction: column;
@@ -1298,7 +1353,6 @@
     gap: 0.625rem;
   }
 
-  .expertos-paginacion,
   .usuarios-paginacion,
   .categorias-paginacion,
   .publicaciones-paginacion {

@@ -214,7 +214,7 @@
 
   // ===== RENDERIZADO =====
   function renderRows(list, categoriesMap, page = 1, pageSize = 10) {
-    const tbody = $("table.admin-table tbody");
+    const tbody = $("table.admin-table--expertos tbody");
     if (!tbody) return;
 
     const start = (page - 1) * pageSize;
@@ -222,7 +222,7 @@
 
     if (slice.length === 0) {
       tbody.innerHTML =
-        '<tr class="placeholder-row"><td colspan="7" style="text-align:center;padding:24px;color:var(--admin-text-secondary);">No hay expertos para mostrar.</td></tr>';
+        '<tr class="placeholder-row"><td colspan="6" style="text-align:center;padding:24px;color:var(--admin-text-secondary);">No hay expertos para mostrar.</td></tr>';
       updatePagination(list.length, page, pageSize);
       return;
     }
@@ -230,7 +230,7 @@
     tbody.innerHTML = slice
       .map((expert) => createExpertRow(expert, categoriesMap))
       .join("");
-    bindRowActions();
+    bindRowActions(tbody.closest("table"));
     updatePagination(list.length, page, pageSize);
   }
 
@@ -276,7 +276,6 @@
 
     return `
       <tr data-id="${id}">
-        <td><input type="checkbox" class="expertos-checkbox-row" data-id="${id}"></td>
         <td>
           <div style="display:flex;gap:.6rem;align-items:center">
             <img src="${avatar}" alt="avatar" style="width:40px;height:40px;border-radius:999px;object-fit:cover"/>
@@ -290,71 +289,76 @@
         <td>${registro}</td>
         <td>${sesiones}</td>
         <td><span class="badge ${badgeClass}">${escapeHtml(status)}</span></td>
-        <td style="white-space:nowrap">
-          <button class="btn-outline btn-view" data-id="${id}">Ver</button>
-          <button class="btn-outline btn-edit" data-id="${id}">Editar</button>
-          <button class="btn-primary btn-inactivate" data-id="${id}">Inactivar</button>
+        <td class="expertos-actions-cell">
+          <div class="action-buttons" role="group" aria-label="Acciones experto">
+            <button class="btn-outline btn-view" data-id="${id}">Ver</button>
+            <button class="btn-outline btn-edit" data-id="${id}">Editar</button>
+            <button class="btn-primary btn-inactivate" data-id="${id}">Inactivar</button>
+          </div>
         </td>
       </tr>
     `;
   }
 
   function updatePagination(total, page, pageSize) {
-    const info = $(".expertos-paginacion__info");
+    const info = $("#expertos-pagination-info");
     if (info) {
       const from = total === 0 ? 0 : (page - 1) * pageSize + 1;
       const to = Math.min(total, page * pageSize);
       info.textContent = `Mostrando ${from}-${to} de ${total} expertos`;
     }
 
-    const controls = $(".expertos-paginacion__controles");
+    const controls = $("#expertos-pagination-controls");
     if (!controls) return;
 
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
-    let html = createPaginationButton(
-      Math.max(1, page - 1),
-      '<i class="fas fa-chevron-left"></i>',
-      page <= 1
-    );
+    let html = "";
 
-    // Simplified pagination - show first 5 pages, ellipsis, and last page
-    for (let p = 1; p <= Math.min(5, totalPages); p++) {
+    // Botón Anterior
+    html += createPaginationButton(page - 1, '<i class="fas fa-chevron-left"></i>', page <= 1);
+
+    // Lógica de botones de página (ej. 1 ... 4 5 6 ... 10)
+    const maxButtons = 5;
+    let startPage = Math.max(1, page - Math.floor(maxButtons / 2));
+    let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+
+    if (endPage - startPage + 1 < maxButtons) {
+      startPage = Math.max(1, endPage - maxButtons + 1);
+    }
+
+    if (startPage > 1) {
+      html += createPaginationButton(1, '1');
+      if (startPage > 2) {
+        html += '<span class="admin-pagination__ellipsis">…</span>';
+      }
+    }
+
+    for (let p = startPage; p <= endPage; p++) {
       html += createPaginationButton(p, p.toString(), false, p === page);
     }
 
-    if (totalPages > 5) {
-      html += '<span class="expertos-paginacion__ellipsis">…</span>';
-      html += createPaginationButton(
-        totalPages,
-        totalPages.toString(),
-        false,
-        page === totalPages
-      );
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        html += '<span class="admin-pagination__ellipsis">…</span>';
+      }
+      html += createPaginationButton(totalPages, totalPages.toString());
     }
 
-    html += createPaginationButton(
-      Math.min(totalPages, page + 1),
-      '<i class="fas fa-chevron-right"></i>',
-      page >= totalPages
-    );
+    // Botón Siguiente
+    html += createPaginationButton(page + 1, '<i class="fas fa-chevron-right"></i>', page >= totalPages);
 
     controls.innerHTML = html;
     bindPaginationEvents();
   }
 
-  function createPaginationButton(
-    page,
-    content,
-    disabled = false,
-    active = false
-  ) {
+  function createPaginationButton(page, content, disabled = false, active = false) {
     const disabledAttr = disabled ? 'disabled aria-disabled="true"' : "";
-    const activeClass = active ? "expertos-paginacion__btn--active" : "";
-    return `<button class="expertos-paginacion__btn ${activeClass}" data-page="${page}" ${disabledAttr}>${content}</button>`;
+    const activeClass = active ? "active" : "";
+    return `<button class="admin-pagination__btn ${activeClass}" data-page="${page}" ${disabledAttr}>${content}</button>`;
   }
 
   function bindPaginationEvents() {
-    $$(".expertos-paginacion__controles .expertos-paginacion__btn").forEach(
+    $$("#expertos-pagination-controls .admin-pagination__btn").forEach(
       (btn) => {
         btn.addEventListener("click", function () {
           const page = parseInt(this.getAttribute("data-page") || "1", 10);
@@ -366,14 +370,21 @@
   }
 
   // ===== MANEJO DE EVENTOS =====
-  function bindRowActions() {
-    bindActionToButtons(".btn-view", openModalView);
-    bindActionToButtons(".btn-edit", openModalEdit);
-    bindActionToButtons(".btn-inactivate", inactivateExpert);
+  function bindRowActions(tableEl) {
+    // tableEl puede ser el <table> o null; si no se proporciona, buscar la tabla de expertos
+    const root =
+      tableEl || document.querySelector("table.admin-table--expertos");
+    if (!root) return;
+    bindActionToButtons(root, ".btn-view", openModalView);
+    bindActionToButtons(root, ".btn-edit", openModalEdit);
+    bindActionToButtons(root, ".btn-inactivate", inactivateExpert);
   }
 
-  function bindActionToButtons(selector, handler) {
-    $$(selector).forEach((btn) => {
+  function bindActionToButtons(root, selector, handler) {
+    // root: elemento contenedor donde buscar los botones (table o tbody)
+    // selector: selector relativo para los botones dentro del root
+    const mount = root || document;
+    Array.from(mount.querySelectorAll(selector)).forEach((btn) => {
       btn.addEventListener("click", function () {
         const id = this.getAttribute("data-id");
         handler(id);
@@ -382,7 +393,9 @@
   }
 
   function inactivateExpert(id) {
-    const row = $(`tr[data-id="${id}"]`);
+    const row = document.querySelector(
+      `table.admin-table--expertos tr[data-id="${id}"]`
+    );
     if (!row) return;
 
     const badge = row.querySelector(".badge");
@@ -524,9 +537,6 @@
       renderRows(filteredExperts, categoriesMap, currentPage, pageSize);
 
       // Inicializaciones auxiliares
-      try {
-        initSelectAll();
-      } catch (e) {}
       try {
         initModalClose();
       } catch (e) {}
