@@ -69,10 +69,7 @@
       </a>
     </li>
     <li class="mobile-nav-item">
-      <a href="#" class="mobile-nav-link" id="mobileMenuToggle">
-        <i class="fas fa-bars"></i>
-        <span>Más</span>
-      </a>
+      <!-- mobile menu toggle removed intentionally -->
     </li>
   </ul>
 </nav>
@@ -82,7 +79,7 @@
   document.addEventListener('DOMContentLoaded', function () {
     const sidebarToggle = document.getElementById('sidebarToggle');
     const adminSidebar = document.getElementById('adminSidebar');
-    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+  // mobileMenuToggle removed from template
     const mobileBottomNav = document.getElementById('mobileBottomNav');
 
     // Alternar sidebar en tablet/móvil
@@ -92,13 +89,7 @@
       });
     }
 
-    // Alternar menú desde la barra inferior móvil
-    if (mobileMenuToggle) {
-      mobileMenuToggle.addEventListener('click', function (e) {
-        e.preventDefault();
-        adminSidebar.classList.toggle('sidebar-open');
-      });
-    }
+    // mobile menu toggle removed: sidebar open/close handled via header button
 
     // Cerrar sidebar al hacer clic en un enlace (en móviles)
     const navLinks = document.querySelectorAll('.sidebar-nav .nav-link');
