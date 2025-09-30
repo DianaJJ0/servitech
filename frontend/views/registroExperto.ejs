@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Registro | Servitech</title>
+  <title>Registro Experto | Servitech</title>
   <link rel="stylesheet" href="/assets/css/auth.css" />
   <link rel="stylesheet" href="/assets/css/registroExperto.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -15,166 +15,136 @@
 <body>
   <main class="registroExperto-main">
     <section class="registroExperto-section">
-      <% if (typeof error !=='undefined' && error) { %>
-        <div class="alert alert-danger">
-          <%= error %>
+      <div id="registroAlerta" class="registro-alerta"></div>
+      <div class="registro-header">
+        <div class="registro-header-content">
+          <a href="/" class="logo-link">
+            <img src="/assets/img/logo.png" alt="Logo de ServiTech" class="logo-img">
+          </a>
+          <h1 class="registro-header-title">Registro de Experto</h1>
+          <p class="subtitle registro-header-subtitle">Completa tu perfil para solicitar ser Experto</p>
         </div>
-        <% } %>
-          <% if (typeof success !=='undefined' && success) { %>
-            <div class="alert alert-success">
-              <%= success %><br />Serás redirigido a tu panel de experto en unos segundos...
+        <span id="currentDate" class="registro-fecha"></span>
+        <div class="back-home-center">
+          <a href="/" class="back-link"><i class="fas fa-arrow-left"></i>Volver al inicio</a>
+        </div>
+      </div>
+      <form id="registroExpertoForm" class="registroExperto-form" novalidate>
+        <div class="form-row triple">
+          <div class="form-group compact price-group">
+            <label for="precio">Precio por hora (COP)
+              <span class="price-tooltip" title="Ejemplo recomendado: $30.000 - $120.000 COP"><i
+                  class="fas fa-info-circle"></i></span>
+            </label>
+            <div class="price-input">
+              <span class="currency">$</span>
+              <input type="number" id="precio" name="precio" min="10000" max="120000" step="100" required
+                placeholder="Ej: 50000" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
             </div>
-            <% } %>
-
-              <div class="registro-header">
-                <div class="registro-header-content">
-                  <a href="/" class="logo-link">
-                    <img src="/assets/img/logo.png" alt="Logo de ServiTech" class="logo-img">
-                  </a>
-                  <h1 class="registro-header-title">Registro de Experto</h1>
-                  <p class="subtitle registro-header-subtitle">Completa tu perfil para ofrecer asesorías</p>
-                </div>
-                <span id="currentDate" class="registro-fecha"></span>
-                <div class="back-home-center">
-                  <a href="/" class="back-link"><i class="fas fa-arrow-left"></i>Volver al inicio</a>
-                </div>
+            <div class="input-error" id="errorPrecio"></div>
+            <p class="form-hint">Define un precio proporcional a tu experiencia</p>
+          </div>
+          <div class="form-group compact">
+            <label for="telefonoContacto"><i class="fas fa-phone"></i> Teléfono de contacto</label>
+            <input type="tel" id="telefonoContacto" name="telefonoContacto" placeholder="Ej: 3001234567" required maxlength="10"
+              pattern="^[0-9]{7,10}$" autocomplete="off">
+            <div class="input-error" id="errorTelefonoContacto"></div>
+            <p class="form-hint">Para coordinar asesorías</p>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="descripcion">Descripción profesional</label>
+            <textarea id="descripcion" name="descripcion" rows="3" maxlength="400" required
+              placeholder="Cuentanos tu experiencia, herramientas y tipos de proyectos"></textarea>
+            <div class="input-error" id="errorDescripcion"></div>
+            <div class="form-hint"><span id="descContador">0</span>/400 caracteres</div>
+          </div>
+        </div>
+        <div class="form-row double">
+          <div class="form-group">
+            <label for="categorias">Categorías</label>
+            <!-- El select se llena dinámicamente por JS -->
+            <select id="categorias" name="categorias" multiple required></select>
+            <div class="input-error" id="errorCategorias"></div>
+          </div>
+          <div class="form-group">
+            <label>Días disponibles</label>
+            <div class="days-selector">
+              <button type="button" class="day-option" data-day="Lunes">Lunes</button>
+              <button type="button" class="day-option" data-day="Martes">Martes</button>
+              <button type="button" class="day-option" data-day="Miércoles">Miércoles</button>
+              <button type="button" class="day-option" data-day="Jueves">Jueves</button>
+              <button type="button" class="day-option" data-day="Viernes">Viernes</button>
+              <button type="button" class="day-option" data-day="Sábado">Sábado</button>
+              <button type="button" class="day-option" data-day="Domingo">Domingo</button>
+            </div>
+            <input type="hidden" id="diasDisponibles" name="diasDisponibles" value="">
+            <input type="hidden" id="diasDisponibles" name="diasDisponibles" value="">
+            <div class="days-selected-display" id="diasDisplay">Selecciona tus días disponibles</div>
+            <div class="input-error" id="errorDiasDisponibles"></div>
+          </div>
+        </div>
+        <div class="form-row double">
+          <div class="form-group">
+            <label>Datos bancarios</label>
+            <div class="bank-grid">
+              <div>
+                <label for="banco">Banco</label>
+                <select id="banco" name="banco" required>
+                  <option value="">Selecciona</option>
+                  <option value="Bancolombia">Bancolombia</option>
+                  <option value="Nequi">Nequi</option>
+                </select>
+                <div class="input-error" id="errorBanco"></div>
               </div>
-
-              <form id="registroExpertoForm" class="registroExperto-form">
-                <div class="form-row triple">
-                  <div class="form-group compact email-group">
-                    <label for="email"><i class="fas fa-envelope"></i> Email registrado</label>
-                    <div class="email-field">
-                      <%= typeof email !=='undefined' && email ? email : (user && user.email ? user.email
-                        : 'No disponible' ) %>
-                    </div>
-                    <p class="form-hint">Email de tu cuenta</p>
-                  </div>
-
-                  <div class="form-group compact price-group">
-                    <label for="precio">Precio por hora (COP)
-                      <span class="price-tooltip" title="Ejemplo recomendado: $30.000 - $200.000 COP"><i
-                          class="fas fa-info-circle"></i></span>
-                    </label>
-                    <div class="price-input">
-                      <span class="currency">$</span>
-                      <input type="number" id="precio" name="precio" min="10000" step="100" required
-                        placeholder="Ej: 50000" inputmode="numeric" pattern="[0-9]*">
-                    </div>
-                    <p class="form-hint">Define un precio proporcional a tu experiencia</p>
-                  </div>
-
-                  <div class="form-group compact">
-                    <label for="telefonoContacto"><i class="fas fa-phone"></i> Teléfono de contacto</label>
-                    <input type="tel" id="telefonoContacto" name="telefonoContacto" placeholder="Ej: 3001234567">
-                    <p class="form-hint">Usado para coordinar asesorías</p>
-                  </div>
-                </div>
-
-                <div class="form-row">
-                  <div class="form-group">
-                    <label for="descripcion">Descripción profesional</label>
-                    <textarea id="descripcion" name="descripcion" rows="5"
-                      placeholder="Cuentanos tu experiencia, herramientas y tipos de proyectos"></textarea>
-                    <p class="form-hint">Sé concreto y específico</p>
-                  </div>
-                </div>
-
-                <div class="form-row double">
-                  <div class="form-group">
-                    <label for="categorias">Categorías</label>
-                    <select id="categorias" name="categorias" multiple
-                      placeholder="Selecciona tus categorías principales"></select>
-                  </div>
-
-                  <div class="form-group">
-                    <label>Días disponibles</label>
-                    <div class="days-selector">
-                      <button type="button" class="day-option" data-day="Lunes">Lunes</button>
-                      <button type="button" class="day-option" data-day="Martes">Martes</button>
-                      <button type="button" class="day-option" data-day="Miércoles">Miércoles</button>
-                      <button type="button" class="day-option" data-day="Jueves">Jueves</button>
-                      <button type="button" class="day-option" data-day="Viernes">Viernes</button>
-                      <button type="button" class="day-option" data-day="Sábado">Sábado</button>
-                      <button type="button" class="day-option" data-day="Domingo">Domingo</button>
-                    </div>
-                    <input type="hidden" id="diasDisponibles" name="diasDisponibles" value="">
-                    <div class="days-selected-display">Selecciona tus días disponibles</div>
-                  </div>
-                </div>
-
-                <div class="form-row double">
-                  <div class="form-group">
-                    <label for="fotoPerfil"><i class="fas fa-image"></i> Foto de perfil</label>
-                    <input type="file" id="fotoPerfil" accept="image/*">
-                    <!-- Vista previa compacta: caja pequeña debajo del input y botón quitar debajo -->
-                    <div id="epPreview" class="ep-preview">
-                      <img id="epImg" class="ep-img" alt="Vista previa" />
-                      <div id="fotoMeta" class="ep-meta">
-                        <span id="fotoNombre"></span>
-                        <span id="fotoTamano"></span>
-                      </div>
-                    </div>
-                    <button type="button" id="epRemove" class="ep-remove btn btn-secondary btn-sm">Quitar</button>
-                    <div id="fotoError" class="ep-error" style="display:none;"></div>
-
-                    <!-- Datos bancarios movidos aquí para mostrarse debajo de la imagen -->
-                    <div class="bank-grid" style="margin-top:1rem;">
-                      <div>
-                        <label for="banco">Banco</label>
-                        <input type="text" id="banco" name="banco" placeholder="Banco">
-                      </div>
-                      <div>
-                        <label for="tipoCuenta">Tipo de cuenta</label>
-                        <select id="tipoCuenta" name="tipoCuenta">
-                          <option value="">Selecciona</option>
-                          <option value="Ahorros">Ahorros</option>
-                          <option value="Corriente">Corriente</option>
-                          <option value="Nequi">Nequi</option>
-                          <option value="Daviplata">Daviplata</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label for="numeroCuenta">Número de cuenta</label>
-                        <div class="password-wrapper">
-                          <input type="password" id="numeroCuenta" name="numeroCuenta" placeholder="********">
-                          <button type="button" id="toggleAccountNumber" class="btn-icon" title="Mostrar/ocultar">
-                            <i class="fas fa-eye"></i>
-                          </button>
-                        </div>
-                      </div>
-                      <div>
-                        <label for="titular">Titular</label>
-                        <input type="text" id="titular" name="titular" placeholder="Nombre del titular">
-                      </div>
-                      <div>
-                        <label for="tipoDocumento">Tipo de documento</label>
-                        <select id="tipoDocumento" name="tipoDocumento">
-                          <option value="">Selecciona</option>
-                          <option value="CC">Cédula</option>
-                          <option value="CE">Cédula de extranjería</option>
-                          <option value="PAS">Pasaporte</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label for="numeroDocumento">Número de documento</label>
-                        <input type="text" id="numeroDocumento" name="numeroDocumento" placeholder="Ej: 3004888442">
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Eliminado el segundo form-group (antes: Datos bancarios) -->
-                </div>
-
-                <div class="form-actions">
-                  <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save"></i> Guardar y solicitar
-                  </button>
-                </div>
-              </form>
+              <div>
+                <label for="tipoCuenta">Tipo de cuenta</label>
+                <select id="tipoCuenta" name="tipoCuenta" required>
+                  <option value="">Selecciona</option>
+                  <option value="Ahorros">Ahorros</option>
+                  <option value="Corriente">Corriente</option>
+                </select>
+                <div class="input-error" id="errorTipoCuenta"></div>
+              </div>
+              <div>
+                <label for="numeroCuenta">Número de cuenta</label>
+                <input type="text" id="numeroCuenta" name="numeroCuenta" required maxlength="20" pattern="^[0-9]{6,20}$"
+                  autocomplete="off">
+                <div class="input-error" id="errorNumeroCuenta"></div>
+              </div>
+              <div>
+                <label for="titular">Titular</label>
+                <input type="text" id="titular" name="titular" required maxlength="80" autocomplete="off">
+                <div class="input-error" id="errorTitular"></div>
+              </div>
+              <div>
+                <label for="tipoDocumento">Tipo de documento</label>
+                <select id="tipoDocumento" name="tipoDocumento" required>
+                  <option value="">Selecciona</option>
+                  <option value="CC">Cédula</option>
+                  <option value="CE">Cédula de extranjería</option>
+                  <option value="PAS">Pasaporte</option>
+                </select>
+                <div class="input-error" id="errorTipoDocumento"></div>
+              </div>
+              <div>
+                <label for="numeroDocumento">Número de documento</label>
+                <input type="text" id="numeroDocumento" name="numeroDocumento" required maxlength="15"
+                  pattern="^[0-9a-zA-Z]{5,15}$" autocomplete="off">
+                <div class="input-error" id="errorNumeroDocumento"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i> Guardar y solicitar
+          </button>
+        </div>
+      </form>
     </section>
   </main>
-
   <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
   <script src="/assets/js/registroExperto.js"></script>
 </body>

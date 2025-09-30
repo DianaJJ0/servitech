@@ -1,7 +1,9 @@
 /**
- * RUTAS DE ASESORÍAS
- * CRUD y flujo de pago + finalización.
+ * @file Rutas de Asesoría
+ * @module routes/asesoria
+ * @description Endpoints para la gestión de asesorías y su flujo de aceptación, rechazo y finalización.
  */
+
 const express = require("express");
 const router = express.Router();
 const asesoriaController = require("../controllers/asesoria.controller.js");
@@ -9,17 +11,17 @@ const authMiddleware = require("../middleware/auth.middleware");
 const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
 
 /**
- * @swagger
+ * @openapi
  * tags:
  *   - name: Asesorías
  *     description: Gestión de asesorías y flujo de pagos
  */
 
 /**
- * @swagger
+ * @openapi
  * /api/asesorias:
  *   post:
- *     summary: Crear nueva asesoría
+ *     summary: Crear nueva asesoría (cliente autenticado)
  *     tags: [Asesorías]
  *     security:
  *       - bearerAuth: []
@@ -28,42 +30,80 @@ const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required:
- *               - titulo
- *               - cliente
- *               - experto
- *               - categoria
- *               - fechaHoraInicio
- *               - duracionMinutos
- *               - pago
+ *             $ref: '#/components/schemas/Asesoria'
  *     responses:
  *       201:
- *         description: Asesoría creada exitosamente
- *       400:
- *         description: Datos faltantes o inválidos
+ *         description: Asesoría creada y pendiente de aceptación del experto
  */
 router.post("/", authMiddleware.autenticar, asesoriaController.crearAsesoria);
 
 /**
- * @swagger
- * /api/asesorias/{id}/finalizar:
+ * @openapi
+ * /api/asesorias/{id}/aceptar:
  *   put:
- *     summary: Finalizar asesoría y liberar pago
+ *     summary: Aceptar asesoría (experto autenticado)
  *     tags: [Asesorías]
  *     security:
  *       - bearerAuth: []
  *     parameters:
- *       - in: path
- *         name: id
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Asesoría aceptada y pago retenido
+ */
+router.put(
+  "/:id/aceptar",
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("experto"),
+  asesoriaController.aceptarAsesoria
+);
+
+/**
+ * @openapi
+ * /api/asesorias/{id}/rechazar:
+ *   put:
+ *     summary: Rechazar asesoría (experto autenticado)
+ *     tags: [Asesorías]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Asesoría rechazada y pago reembolsado
+ */
+router.put(
+  "/:id/rechazar",
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("experto"),
+  asesoriaController.rechazarAsesoria
+);
+
+/**
+ * @openapi
+ * /api/asesorias/{id}/finalizar:
+ *   put:
+ *     summary: Finalizar asesoría y liberar pago (cliente o admin)
+ *     tags: [Asesorías]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
  *         required: true
  *         schema:
  *           type: string
  *     responses:
  *       200:
  *         description: Asesoría finalizada y pago liberado
- *       404:
- *         description: Asesoría no encontrada
  */
 router.put(
   "/:id/finalizar",
@@ -72,10 +112,10 @@ router.put(
 );
 
 /**
- * @swagger
+ * @openapi
  * /api/asesorias:
  *   get:
- *     summary: Listar todas las asesorías (admin)
+ *     summary: Listar todas las asesorías (solo admin)
  *     tags: [Asesorías]
  *     security:
  *       - bearerAuth: []
@@ -92,22 +132,22 @@ router.get(
 );
 
 /**
- * @swagger
+ * @openapi
  * /api/asesorias/cliente/{email}:
  *   get:
- *     summary: Listar asesorías por cliente (admin)
+ *     summary: Listar asesorías por cliente (solo admin)
  *     tags: [Asesorías]
  *     security:
  *       - bearerAuth: []
  *     parameters:
- *       - in: path
- *         name: email
+ *       - name: email
+ *         in: path
  *         required: true
  *         schema:
  *           type: string
  *     responses:
  *       200:
- *         description: Asesorías del cliente
+ *         description: Lista de asesorías del cliente
  */
 router.get(
   "/cliente/:email",
@@ -118,22 +158,22 @@ router.get(
 );
 
 /**
- * @swagger
+ * @openapi
  * /api/asesorias/experto/{email}:
  *   get:
- *     summary: Listar asesorías por experto (admin)
+ *     summary: Listar asesorías por experto (solo admin)
  *     tags: [Asesorías]
  *     security:
  *       - bearerAuth: []
  *     parameters:
- *       - in: path
- *         name: email
+ *       - name: email
+ *         in: path
  *         required: true
  *         schema:
  *           type: string
  *     responses:
  *       200:
- *         description: Asesorías del experto
+ *         description: Lista de asesorías del experto
  */
 router.get(
   "/experto/:email",
@@ -144,24 +184,22 @@ router.get(
 );
 
 /**
- * @swagger
+ * @openapi
  * /api/asesorias/{id}:
  *   get:
- *     summary: Obtener asesoría por ID (admin)
+ *     summary: Obtener asesoría por ID (solo admin)
  *     tags: [Asesorías]
  *     security:
  *       - bearerAuth: []
  *     parameters:
- *       - in: path
- *         name: id
+ *       - name: id
+ *         in: path
  *         required: true
  *         schema:
  *           type: string
  *     responses:
  *       200:
- *         description: Datos de la asesoría
- *       404:
- *         description: Asesoría no encontrada
+ *         description: Asesoría encontrada
  */
 router.get(
   "/:id",
@@ -172,56 +210,54 @@ router.get(
 );
 
 /**
- * @swagger
+ * @openapi
  * /api/asesorias/{id}:
  *   put:
- *     summary: Actualizar asesoría (admin)
- * @swagger
- * /api/asesorias/{id}:
- *   put:
- *     summary: Actualizar asesoría (admin)
+ *     summary: Actualizar asesoría por ID (admin)
  *     tags: [Asesorías]
  *     security:
  *       - bearerAuth: []
  *     parameters:
- *       - in: path
- *         name: id
+ *       - name: id
+ *         in: path
  *         required: true
  *         schema:
  *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Asesoria'
  *     responses:
  *       200:
  *         description: Asesoría actualizada
- *       404:
- *         description: Asesoría no encontrada
  */
 router.put(
   "/:id",
   apiKeyMiddleware,
   authMiddleware.autenticar,
   authMiddleware.asegurarRol("admin"),
-  asesoriaController.actualizarAsesoria
+  asesoriaController.aceptarAsesoria
 );
 
 /**
- * @swagger
+ * @openapi
  * /api/asesorias/{id}:
  *   delete:
- *     summary: Eliminar asesoría (admin)
+ *     summary: Eliminar asesoría por ID (admin)
  *     tags: [Asesorías]
  *     security:
  *       - bearerAuth: []
  *     parameters:
- *       - in: path
- *         name: id
+ *       - name: id
+ *         in: path
  *         required: true
  *         schema:
  *           type: string
  *     responses:
  *       200:
  *         description: Asesoría eliminada
- *       404:
- *         description: Asesoría no encontrada
  */
 router.delete(
   "/:id",
@@ -231,49 +267,4 @@ router.delete(
   asesoriaController.eliminarAsesoria
 );
 
-/**
- * @openapi
- * tags:
- *   - name: Asesorias
- *     description: Gestión de asesorías
- */
-/**
- * @openapi
- * /api/asesorias:
- *   post:
- *     tags: [Asesorias]
- *     summary: Crear asesoría (requiere auth)
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/Asesoria'
- *     responses:
- *       201:
- *         description: Asesoría creada
- *       401:
- *         description: No autenticado
- *   get:
- *     tags: [Asesorias]
- *     summary: Listar asesorías
- *     responses:
- *       200:
- *         description: Lista de asesorías
- * /api/asesorias/{id}:
- *   get:
- *     tags: [Asesorias]
- *     summary: Obtener asesoría por ID
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Asesoría encontrada
- */
 module.exports = router;

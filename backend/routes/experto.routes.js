@@ -1,8 +1,9 @@
 /**
- * RUTAS DE EXPERTOS
- * Endpoints para listar, filtrar y eliminar expertos por email.
- * Incluye edición de perfil de experto autenticado.
+ * @file Rutas de expertos
+ * @module routes/experto
+ * @description Endpoints públicos y protegidos para gestión y edición de perfil experto en Servitech.
  */
+
 const express = require("express");
 const router = express.Router();
 const expertoController = require("../controllers/experto.controller");
@@ -18,16 +19,9 @@ const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
 
 /**
  * @openapi
- * tags:
- *   - name: Expertos
- *     description: Gestión de expertos
- */
-
-/**
- * @swagger
  * /api/expertos:
  *   get:
- *     summary: Listar expertos con filtros
+ *     summary: Listar expertos con filtros y paginación
  *     tags: [Expertos]
  *     parameters:
  *       - in: query
@@ -49,12 +43,14 @@ const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
  *         name: categoria
  *         schema:
  *           type: string
- *         description: Filtro por categoría
+ *         description: Filtro por categoría (ObjectId)
  *     responses:
  *       200:
  *         description: Lista de expertos
+ *       500:
+ *         description: Error interno
  */
-// Ruta pública - listar expertos (sin autenticación)
+// Ruta pública: listar expertos
 router.get("/", (req, res, next) =>
   expertoController.listarExpertos(req, res, next)
 );
@@ -116,10 +112,10 @@ router.delete(
 );
 
 /**
- * @swagger
+ * @openapi
  * /api/expertos/perfil:
  *   put:
- *     summary: Actualizar perfil de experto autenticado
+ *     summary: Actualizar solo los datos de experto del usuario autenticado (no nombre ni apellido)
  *     tags: [Expertos]
  *     security:
  *       - bearerAuth: []
@@ -128,28 +124,39 @@ router.delete(
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               descripcion:
- *                 type: string
- *               precioPorHora:
- *                 type: number
- *               categorias:
- *                 type: array
- *               banco:
- *                 type: string
- *               tipoCuenta:
- *                 type: string
- *               numeroCuenta:
- *                 type: string
+ *             $ref: '#/components/schemas/PerfilExpertoInput'
  *     responses:
  *       200:
- *         description: Perfil actualizado
+ *         description: Perfil de experto actualizado
  *       400:
- *         description: Datos faltantes
+ *         description: Datos obligatorios faltantes
+ *       401:
+ *         description: No autenticado
  */
-router.put("/perfil", authMiddleware.autenticar, (req, res, next) =>
-  expertoController.actualizarPerfilExperto(req, res, next)
+router.put(
+  "/perfil",
+  authMiddleware.autenticar,
+  expertoController.actualizarPerfilExperto
+);
+
+/**
+ * @openapi
+ * /api/expertos/perfil:
+ *   get:
+ *     summary: Obtener perfil del experto autenticado
+ *     tags: [Expertos]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Perfil del experto
+ *       401:
+ *         description: No autenticado
+ */
+router.get(
+  "/perfil",
+  authMiddleware.autenticar,
+  expertoController.obtenerPerfilExperto
 );
 
 module.exports = router;

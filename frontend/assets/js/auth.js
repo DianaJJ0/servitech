@@ -1,30 +1,32 @@
 /**
- * FUNCIONES DE AUTENTICACIÓN PARA EL FRONTEND DE SERVITECH
- * Permite iniciar sesión (login) y obtener el token JWT, así como acceder a rutas protegidas del backend.
+ * Funciones de autenticación para el frontend de Servitech.
+ * Maneja login/logout, token y usuario en localStorage.
  */
 
 /**
- * Inicia sesión enviando las credenciales al backend.
- * Si el login es exitoso, guarda el token y los datos del usuario en localStorage.
- * 
- * @param {string} email - Correo electrónico del usuario.
- * @param {string} password - Contraseña del usuario.
- * @returns {Promise<Object>} - Objeto usuario autenticado.
- * @throws {Error} - Si las credenciales son inválidas o hay error de red.
+ * Inicia sesión y sincroniza sesión (localStorage + backend).
+ * @param {string} email
+ * @param {string} password
+ * @returns {Promise<Object>} usuario autenticado
  */
 async function login(email, password) {
-  // CORRECCIÓN CLAVE: Se usa ruta relativa en lugar de URL absoluta
   const res = await fetch("/api/usuarios/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
+    credentials: "include",
   });
-
   const data = await res.json();
-
-  if (res.ok && data.token) {
+  if (res.ok && data.token && data.usuario) {
     localStorage.setItem("token", data.token);
-    localStorage.setItem("currentUser", JSON.stringify(data.usuario));
+    localStorage.setItem("usuario", JSON.stringify(data.usuario));
+    // Sincroniza la sesión backend para SSR/proxy
+    await fetch("/set-session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ usuario: { ...data.usuario, token: data.token } }),
+      credentials: "include",
+    });
     return data.usuario;
   } else {
     throw new Error(data.mensaje || "Login fallido");
@@ -32,32 +34,22 @@ async function login(email, password) {
 }
 
 /**
- * Obtiene la lista de usuarios desde una ruta protegida del backend.
- * Envía el token JWT en el encabezado Authorization.
- * @returns {Promise<Array>} - Lista de usuarios.
- * @throws {Error} - Si el usuario no está autorizado.
+ * Obtiene lista de usuarios autenticados.
+ * @returns {Promise<Array>}
  */
 async function getUsuarios() {
   const token = localStorage.getItem("token");
-
-  // CORRECCIÓN CLAVE: Se usa ruta relativa en lugar de URL absoluta
   const res = await fetch("/api/usuarios", {
-    headers: {
-      Authorization: "Bearer " + token,
-    },
+    headers: { Authorization: "Bearer " + token },
   });
-
-  if (res.status === 401) {
-    throw new Error("No autorizado");
-  }
-
+  if (res.status === 401) throw new Error("No autorizado");
   return await res.json();
 }
 
 /**
- * Registra un nuevo usuario en el sistema.
- * @param {Object} datosUsuario - Datos del usuario a registrar.
- * @returns {Promise<Object>} - Resultado del registro.
+ * Registra un nuevo usuario.
+ * @param {Object} datosUsuario
+ * @returns {Promise<Object>}
  */
 async function registrarUsuario(datosUsuario) {
   const res = await fetch("/api/usuarios/registro", {
@@ -65,38 +57,35 @@ async function registrarUsuario(datosUsuario) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(datosUsuario),
   });
-
   const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.mensaje || "Error en el registro");
-  }
-
+  if (!res.ok) throw new Error(data.mensaje || "Error en el registro");
   return data;
 }
 
 /**
- * Cierra la sesión del usuario eliminando el token del localStorage.
+ * Cierra sesión y limpia storage.
  */
 function logout() {
   localStorage.removeItem("token");
-  localStorage.removeItem("currentUser");
-  window.location.href = "/login.html";
+  localStorage.removeItem("usuario");
+  fetch("/logout", { method: "POST", credentials: "include" }).finally(() => {
+    window.location.href = "/login.html";
+  });
 }
 
 /**
  * Verifica si el usuario está autenticado.
- * @returns {boolean} - True si está autenticado, false si no.
+ * @returns {boolean}
  */
 function isAuthenticated() {
-  return localStorage.getItem("token") !== null;
+  return !!localStorage.getItem("token");
 }
 
 /**
- * Obtiene los datos del usuario actual desde localStorage.
- * @returns {Object|null} - Datos del usuario o null si no está autenticado.
+ * Obtiene usuario actual desde localStorage.
+ * @returns {Object|null}
  */
-function getCurrentUser() {
-  const userData = localStorage.getItem("currentUser");
+function usuarioActual() {
+  const userData = localStorage.getItem("usuario");
   return userData ? JSON.parse(userData) : null;
 }
