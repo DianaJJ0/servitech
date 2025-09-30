@@ -7,9 +7,10 @@
   <title>Gestión de Categorías - Servitech Admin</title>
   <link rel="stylesheet" href="/assets/css/administrador.css" />
   <link rel="stylesheet" href="/assets/css/admin.css" />
-  <link rel="stylesheet" href="/assets/css/admin-responsive.css" />
+  <!--<link rel="stylesheet" href="/assets/css/admin-responsive.css" />-->
   <link rel="stylesheet" href="/assets/css/admin-components.css" />
   <!-- page-specific CSS -->
+  <link rel="stylesheet" href="/assets/css/admin-clientes.css" />
   <link rel="stylesheet" href="/assets/css/admin-categoria.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -58,92 +59,6 @@
                 <i class="fas fa-file-export"></i>
                 <span>Exportar</span>
               </button>
-            </div>
-          </div>
-
-          <div class="categorias-grid">
-            <div class="table-container categorias-grid__filters">
-              <!-- Toggle filtros (visible en pantallas pequeñas) -->
-              <button class="categorias-filters-toggle" aria-expanded="true" aria-controls="categoriasFiltersPanel">
-                <i class="fas fa-filter"></i>
-                <span class="categorias-filters-toggle__label">Filtros</span>
-              </button>
-              <!-- Filtros -->
-              <div id="categoriasFiltersPanel" class="categorias-filters-panel">
-                <div class="categorias-filtros">
-                  <h3 class="categorias-filtros__title">Filtros</h3>
-                  <div class="categorias-filtros__group">
-                    <label class="categorias-filtros__label">Estado</label>
-                    <select class="categorias-filtros__select">
-                      <option value="">Todos los estados</option>
-                      <option value="active">Activas</option>
-                      <option value="inactive">Inactivas</option>
-                    </select>
-                  </div>
-                  <div class="categorias-filtros__group">
-                    <label class="categorias-filtros__label">Categoría padre</label>
-                    <select class="categorias-filtros__select">
-                      <option value="">Todas</option>
-                      <option value="none">Sin categoría padre</option>
-                      <option value="development">Desarrollo</option>
-                      <option value="design">Diseño</option>
-                      <option value="data">Datos</option>
-                      <option value="infrastructure">Infraestructura</option>
-                    </select>
-                  </div>
-                  <div class="categorias-filtros__group">
-                    <label class="categorias-filtros__label">Uso</label>
-                    <select class="categorias-filtros__select">
-                      <option value="">Todos</option>
-                      <option value="high">Alto uso</option>
-                      <option value="medium">Uso medio</option>
-                      <option value="low">Bajo uso</option>
-                    </select>
-                  </div>
-                  <button class="btn-primary categorias-filtros__btn categorias-filtros__btn--center">
-                    <i class="fas fa-filter"></i>
-                    <span>Aplicar filtros</span>
-                  </button>
-                </div>
-              </div>
-
-              <!-- Estadísticas -->
-              <div class="categorias-estadisticas">
-                <h3 class="categorias-estadisticas__title">Estadísticas</h3>
-                <div class="categorias-estadisticas__list">
-                  <div class="categorias-estadisticas__item categorias-estadisticas__item--total">
-                    <div class="categorias-estadisticas__item-info">
-                      <i class="fas fa-tags categorias-estadisticas__icon categorias-estadisticas__icon--total"></i>
-                      <span>Total Categorías</span>
-                    </div>
-                    <span class="categorias-estadisticas__value">32</span>
-                  </div>
-                  <div class="categorias-estadisticas__item categorias-estadisticas__item--activas">
-                    <div class="categorias-estadisticas__item-info">
-                      <i
-                        class="fas fa-check-circle categorias-estadisticas__icon categorias-estadisticas__icon--activas"></i>
-                      <span>Categorías Activas</span>
-                    </div>
-                    <span class="categorias-estadisticas__value">28</span>
-                  </div>
-                  <div class="categorias-estadisticas__item categorias-estadisticas__item--publicaciones">
-                    <div class="categorias-estadisticas__item-info">
-                      <i
-                        class="fas fa-chart-line categorias-estadisticas__icon categorias-estadisticas__icon--publicaciones"></i>
-                      <span>Publicaciones/Categoría</span>
-                    </div>
-                    <span class="categorias-estadisticas__value">45</span>
-                  </div>
-                  <div class="categorias-estadisticas__item categorias-estadisticas__item--subcategorias">
-                    <div class="categorias-estadisticas__item-info">
-                      <i
-                        class="fas fa-sitemap categorias-estadisticas__icon categorias-estadisticas__icon--subcategorias"></i>
-                      <span>Subcategorías</span>
-                    </div>
-                    <span class="categorias-estadisticas__value">18</span>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
 
