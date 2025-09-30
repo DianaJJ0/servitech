@@ -1,40 +1,19 @@
 /**
  * @file Controlador de usuarios
  * @module controllers/usuario
- * @description Lógica de negocio para registro, inicio de sesión, recuperación y gestión de perfiles en Servitech.
+ * @description Lógica de negocio para registro, inicio de sesión, recuperación, gestión de perfiles y desactivación segura de usuarios en Servitech.
  */
 
 const Usuario = require("../models/usuario.model.js");
 const Categoria = require("../models/categoria.model.js");
+const Asesoria = require("../models/asesoria.model.js");
+const Pago = require("../models/pago.model.js");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-const { enviarCorreo } = require("../services/email.service.js");
+const {enviarCorreo,generarCuerpoRecuperacion,} = require("../services/email.service.js");
 const mongoose = require("mongoose");
-const { generateLog } = require("../services/logService.js"); // logs
+const { generateLog } = require("../services/logService.js");
 const generarLogs = require("../services/generarLogs");
-
-/**
- * @openapi
- * tags:
- *   - name: Usuarios
- *     description: Operaciones relacionadas con usuarios (registro, login, perfil)
- */
-
-/**
- * @openapi
- * components:
- *   schemas:
- *     ErrorResponse:
- *       type: object
- *       properties:
- *         error:
- *           type: string
- *         message:
- *           type: string
- *       required:
- *         - error
- *         - message
- */
 
 /**
  * @openapi
@@ -69,116 +48,75 @@ const generarToken = (id) => {
 };
 
 /**
- * Crea un nuevo usuario.
- * @param {import('express').Request} req - objeto request de Express
- * @param {import('express').Response} res - objeto response de Express
- * @returns {Promise<void>} Respuesta HTTP
- * @openapi
- * /api/usuarios:
+ * @swagger
+ * /api/usuarios/registro:
  *   post:
+ *     summary: Registra un nuevo usuario
  *     tags: [Usuarios]
- *     summary: Crear un usuario
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Usuario'
+ *             type: object
+ *             required: [nombre, apellido, email, password]
+ *             properties:
+ *               nombre: { type: string }
+ *               apellido: { type: string }
+ *               email: { type: string }
+ *               password: { type: string }
+ *               roles: { type: array, items: { type: string } }
+ *               infoExperto: { type: object }
  *     responses:
- *       201:
- *         description: Usuario creado
+ *       201: { description: Usuario registrado exitosamente }
+ *       400: { description: Error en la solicitud }
+ *       409: { description: Usuario ya existe }
+ */
+/**
+ * Registra un usuario y permite solicitar ser experto
  */
 const registrarUsuario = async (req, res) => {
   const { nombre, apellido, email, password, roles, infoExperto } = req.body;
   try {
     if (!nombre || !apellido || !email || !password) {
-      return res.status(400).json({
-        mensaje: "Por favor, complete todos los campos obligatorios.",
-      });
+      return res.status(400).json({ mensaje: "Por favor, complete todos los campos obligatorios." });
     }
     const usuarioExistente = await Usuario.findOne({ email });
     if (usuarioExistente) {
-      return res.status(409).json({
-        mensaje: "El correo electrónico ya está registrado.",
-      });
+      return res.status(409).json({ mensaje: "El correo electrónico ya está registrado." });
     }
-    const nuevoUsuario = new Usuario({
-      nombre,
-      apellido,
-      email,
-      password,
-      roles: Array.isArray(roles) && roles.length > 0 ? roles : undefined,
-    });
-
-    // Si el payload solicita rol 'experto' y viene infoExperto, validar y guardarlo
-    if (
-      Array.isArray(roles) &&
-      roles.includes("experto") &&
-      infoExperto &&
-      typeof infoExperto === "object"
-    ) {
-      // Normalizar categorias: convertir strings de 24 hex a ObjectId (para guardado)
+    // Siempre es cliente y puede ser experto
+    let nuevosRoles = ["cliente"];
+    if (Array.isArray(roles) && roles.includes("experto")) nuevosRoles.push("experto");
+    // Si infoExperto viene en la solicitud, es una solicitud de experto (queda pendiente)
+    let infoExpToSave = undefined;
+    let estadoUsuario = "activo";
+    if (infoExperto && typeof infoExperto === "object") {
+      // Validar campos requeridos de experto
+      const requiredFields = [
+        "descripcion", "precioPorHora", "banco", "tipoCuenta", "numeroCuenta",
+        "titular", "tipoDocumento", "numeroDocumento", "categorias", "diasDisponibles", "telefonoContacto"
+      ];
+      const missing = requiredFields.filter((f) => !infoExperto[f] || String(infoExperto[f]).trim() === "");
+        if (missing.length > 0) {
+          return res.status(400).json({
+            mensaje:
+              "Faltan campos obligatorios para crear el perfil de experto en el registro.",
+            camposFaltantes: missing,
+          });
+        }
+      // Procesar categorías y díasDisponibles
       let categoriasArray = [];
       if (infoExperto.categorias) {
-        if (Array.isArray(infoExperto.categorias)) {
-          categoriasArray = infoExperto.categorias
-            .map((id) =>
-              typeof id === "string" && id.match(/^[0-9a-fA-F]{24}$/)
-                ? new mongoose.Types.ObjectId(id)
-                : null
-            )
-            .filter((id) => id !== null);
-        } else if (typeof infoExperto.categorias === "string") {
-          categoriasArray = infoExperto.categorias
-            .split(",")
-            .map((id) => id.trim())
-            .filter((id) => id.length === 24 && id.match(/^[0-9a-fA-F]{24}$/))
-            .map((id) => new mongoose.Types.ObjectId(id));
-        }
+        if (Array.isArray(infoExperto.categorias)) categoriasArray = infoExperto.categorias.map(String);
+        else if (typeof infoExperto.categorias === "string") categoriasArray = infoExperto.categorias.split(",").map((id) => id.trim());
       }
-
-      // Normalizar diasDisponibles (opcional)
       let diasArray = [];
       if (infoExperto.diasDisponibles) {
-        if (Array.isArray(infoExperto.diasDisponibles)) {
-          diasArray = infoExperto.diasDisponibles.map((d) => String(d));
-        } else if (typeof infoExperto.diasDisponibles === "string") {
-          diasArray = infoExperto.diasDisponibles
-            .split(",")
-            .map((d) => d.trim());
-        }
+        if (Array.isArray(infoExperto.diasDisponibles)) diasArray = infoExperto.diasDisponibles.map(String);
+        else if (typeof infoExperto.diasDisponibles === "string") diasArray = infoExperto.diasDisponibles.split(",").map((d) => d.trim());
       }
-
-      // Campos obligatorios del sub-esquema experto
-      const requiredFields = [
-        "descripcion",
-        "precioPorHora",
-        "banco",
-        "tipoCuenta",
-        "numeroCuenta",
-        "titular",
-        "tipoDocumento",
-        "numeroDocumento",
-      ];
-
-      const missing = requiredFields.filter((f) => {
-        const v = infoExperto[f];
-        return (
-          typeof v === "undefined" || v === null || String(v).trim() === ""
-        );
-      });
-
-      if (missing.length > 0) {
-        return res.status(400).json({
-          mensaje:
-            "Faltan campos obligatorios para crear el perfil de experto en el registro: " +
-            missing.join(", ") +
-            ". Proporciona todos los campos requeridos o usa el flujo de actualización de perfil.",
-        });
-      }
-
-      // Construir objeto infoExperto completo para guardar
-      const info = {
+      infoExpToSave = {
         descripcion: String(infoExperto.descripcion),
         precioPorHora: Number(infoExperto.precioPorHora),
         banco: String(infoExperto.banco),
@@ -187,20 +125,22 @@ const registrarUsuario = async (req, res) => {
         titular: String(infoExperto.titular),
         tipoDocumento: String(infoExperto.tipoDocumento),
         numeroDocumento: String(infoExperto.numeroDocumento),
+        categorias: categoriasArray,
+        diasDisponibles: diasArray,
+        telefonoContacto: infoExperto.telefonoContacto ? String(infoExperto.telefonoContacto) : undefined
       };
-
-      if (categoriasArray.length > 0) info.categorias = categoriasArray;
-      if (diasArray.length > 0) info.diasDisponibles = diasArray;
-      if (infoExperto.horario) info.horario = infoExperto.horario;
-      if (infoExperto.telefonoContacto)
-        info.telefonoContacto = String(infoExperto.telefonoContacto);
-
-      nuevoUsuario.infoExperto = info;
+      estadoUsuario = "pendiente"; // Experto queda pendiente hasta aprobación admin
     }
-
+    const nuevoUsuario = new Usuario({
+      nombre,
+      apellido,
+      email,
+      password,
+      roles: nuevosRoles,
+      infoExperto: infoExpToSave,
+      estado: estadoUsuario
+    });
     await nuevoUsuario.save();
-
-    // Log: de éxito
     generarLogs.registrarEvento({
       usuarioEmail: nuevoUsuario.email,
       nombre: nuevoUsuario.nombre,
@@ -211,14 +151,18 @@ const registrarUsuario = async (req, res) => {
       tipo: "usuarios",
       persistirEnDB: true,
     });
-
+    let mensaje = "Usuario registrado exitosamente.";
+    if (infoExpToSave) {
+      mensaje = "Solicitud de perfil de experto enviada. Revisaremos tu perfil y activaremos tu cuenta de experto.";
+    }
     res.status(201).json({
-      mensaje: "Usuario registrado exitosamente.",
+      mensaje,
       token: generarToken(nuevoUsuario._id),
+      estado: estadoUsuario,
+      roles: nuevosRoles
     });
   } catch (error) {
     console.error("Error en el proceso de registro:", error);
-    // Log: error
     generarLogs.registrarEvento({
       usuarioEmail: req.body.email || null,
       nombre: req.body.nombre || null,
@@ -232,66 +176,39 @@ const registrarUsuario = async (req, res) => {
     if (error.name === "ValidationError") {
       return res.status(400).json({ mensaje: error.message });
     }
-    res.status(500).json({
-      mensaje: "Error interno del servidor al registrar el usuario.",
-    });
+    res.status(500).json({ mensaje: "Error interno del servidor al registrar el usuario." });
   }
 };
 
 /**
- * Loguear un usuario.
- * @param {import('express').Request} req
- * @param {import('express').Response} res
+ * Inicia sesión de usuario y guarda nombre/apellido reales en sesión.
  * @openapi
  * /api/usuarios/login:
  *   post:
+ *     summary: Inicia sesión de usuario
  *     tags: [Usuarios]
- *     summary: Login de usuario
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required: [email, password]
  *             properties:
- *               email:
- *                 type: string
- *               password:
- *                 type: string
+ *               email: { type: string }
+ *               password: { type: string }
  *     responses:
- *       200:
- *         description: Token de autenticación
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 token:
- *                   type: string
- *       400:
- *         description: Petición inválida
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       401:
- *         description: Credenciales inválidas
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *       200: { description: Login exitoso }
+ *       401: { description: Credenciales incorrectas }
  */
 const iniciarSesion = async (req, res) => {
   const { email, password } = req.body;
   try {
     if (!email || !password) {
-      return res.status(400).json({
-        mensaje: "Correo y contraseña son requeridos.",
-      });
+      return res.status(400).json({ mensaje: "Correo y contraseña son requeridos." });
     }
     const usuario = await Usuario.findOne({ email });
     if (!usuario) {
-      // Log intento fallido
       generarLogs.registrarEvento({
         usuarioEmail: email || null,
         accion: "LOGIN",
@@ -300,23 +217,21 @@ const iniciarSesion = async (req, res) => {
         tipo: "usuarios",
         persistirEnDB: true,
       });
-      return res.status(401).json({
-        mensaje: "Credenciales incorrectas.",
-      });
+      return res.status(401).json({ mensaje: "Credenciales incorrectas." });
     }
     if (await usuario.matchPassword(password)) {
       const token = generarToken(usuario._id);
       if (req.session) {
+        // Guarda SIEMPRE nombre y apellido reales para mostrar en el header
         req.session.user = {
           _id: usuario._id,
           nombre: usuario.nombre,
           apellido: usuario.apellido,
           email: usuario.email,
           roles: usuario.roles,
+          token: token,
         };
       }
-
-      // Log de login exitoso
       generarLogs.registrarEvento({
         usuarioEmail: usuario.email,
         nombre: usuario.nombre,
@@ -327,7 +242,6 @@ const iniciarSesion = async (req, res) => {
         tipo: "usuarios",
         persistirEnDB: true,
       });
-
       return res.status(200).json({
         mensaje: "Login exitoso.",
         token,
@@ -340,7 +254,6 @@ const iniciarSesion = async (req, res) => {
         },
       });
     } else {
-      // Log intento fallido por password
       generarLogs.registrarEvento({
         usuarioEmail: email || null,
         accion: "LOGIN",
@@ -349,9 +262,7 @@ const iniciarSesion = async (req, res) => {
         tipo: "usuarios",
         persistirEnDB: true,
       });
-      return res.status(401).json({
-        mensaje: "Credenciales incorrectas.",
-      });
+      return res.status(401).json({ mensaje: "Credenciales incorrectas." });
     }
   } catch (error) {
     console.error("Error en el proceso de inicio de sesión:", error);
@@ -365,17 +276,12 @@ const iniciarSesion = async (req, res) => {
       tipo: "usuarios",
       persistirEnDB: true,
     });
-    res.status(500).json({
-      mensaje: "Error interno del servidor al iniciar sesión.",
-    });
+    res.status(500).json({ mensaje: "Error interno del servidor al iniciar sesión." });
   }
 };
 
 /**
  * Obtiene el perfil del usuario autenticado
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- * @returns {Promise<void>}
  */
 const obtenerPerfilUsuario = async (req, res) => {
   try {
@@ -385,15 +291,12 @@ const obtenerPerfilUsuario = async (req, res) => {
     if (!usuario) {
       return res.status(404).json({ mensaje: "Usuario no encontrado." });
     }
-    // Convertir referencias (IDs) en nombres legibles para el frontend
     const userObj = usuario.toObject({ getters: true, virtuals: false });
 
     if (userObj.infoExperto) {
-      // Categorías: array de ObjectId
       try {
         const cats = userObj.infoExperto.categorias || [];
         if (Array.isArray(cats) && cats.length > 0) {
-          // Buscar nombres por ids
           const foundCats = await Categoria.find({ _id: { $in: cats } }).select(
             "nombre"
           );
@@ -403,11 +306,8 @@ const obtenerPerfilUsuario = async (req, res) => {
             (c) => mapCat[String(c)] || c
           );
         }
-      } catch (e) {
-        // si falla, dejar los ids
-      }
+      } catch (e) {}
     }
-
     res.json(userObj);
   } catch (error) {
     console.error("Error al obtener perfil:", error);
@@ -417,9 +317,6 @@ const obtenerPerfilUsuario = async (req, res) => {
 
 /**
  * Lista usuarios con filtros y paginación (solo admin)
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- * @returns {Promise<void>}
  */
 const obtenerUsuarios = async (req, res) => {
   try {
@@ -436,16 +333,10 @@ const obtenerUsuarios = async (req, res) => {
     if (email) {
       filtro.email = { $regex: email, $options: "i" };
     }
-
-    // Estado (opcional)
     if (typeof estado !== "undefined" && estado !== "") {
       filtro.estado = estado;
     }
-
-    // --- FILTRADO POR ROLES ---
-    // Si se pide solo clientes filtra roles exactamente ["cliente"]
     if (soloClientesPuros === "true" || roles === "cliente") {
-      // Solo usuarios con exactamente el rol cliente
       filtro.roles = ["cliente"];
     } else if (roles) {
       const rolesArray = Array.isArray(roles)
@@ -454,7 +345,6 @@ const obtenerUsuarios = async (req, res) => {
       filtro.roles = { $in: rolesArray };
     }
 
-    // PAGINACIÓN
     const usuarios = await Usuario.find(filtro)
       .select("-passwordHash")
       .skip((page - 1) * limit)
@@ -470,27 +360,40 @@ const obtenerUsuarios = async (req, res) => {
 
 /**
  * Solicita recuperación de contraseña por email
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- * @returns {Promise<void>}
+ * @openapi
+ * /api/usuarios/recuperar-password:
+ *   post:
+ *     summary: Solicita recuperación de contraseña
+ *     tags: [Usuarios]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Si el email existe, se enviaron instrucciones
+ *       400:
+ *         description: Email requerido
  */
 const solicitarRecuperacionPassword = async (req, res) => {
   const { email } = req.body;
-
-  console.log("Solicitud de recuperación de contraseña recibida para:", email);
-
   try {
-    // Validar que el email fue proporcionado
     if (!email || !email.trim()) {
-      console.warn("Intento de recuperación sin email");
       return res.status(400).json({
         mensaje: "El correo electrónico es requerido.",
       });
     }
 
     const usuario = await Usuario.findOne({ email: email.trim() });
+    // Siempre responder igual para no filtrar emails existentes
     if (!usuario) {
-      console.log("Intento de recuperación para email no registrado:", email);
       return res.status(200).json({
         mensaje: "Si el email existe, se enviaron instrucciones.",
       });
@@ -501,7 +404,6 @@ const solicitarRecuperacionPassword = async (req, res) => {
     usuario.passwordResetExpires = Date.now() + 60 * 60 * 1000;
     await usuario.save();
 
-    // Corregir la construcción del enlace para servidor unificado
     const baseUrl =
       process.env.FRONTEND_URL ||
       process.env.RENDER_EXTERNAL_URL ||
@@ -509,25 +411,18 @@ const solicitarRecuperacionPassword = async (req, res) => {
       `http://localhost:${process.env.PORT || 5020}`;
     const enlace = `${baseUrl}/recuperarPassword.html?token=${token}`;
 
-    console.log(
-      "Enviando correo de recuperación a:",
-      email,
-      "con enlace:",
+    // Cuerpo del email según imagen y estándares.
+    const { mensaje, html } = generarCuerpoRecuperacion(
+      usuario.nombre,
+      usuario.apellido,
       enlace
     );
-
-    const asunto = "Recupera tu contraseña - ServiTech";
-    const mensaje = `
-      <p>Hola ${usuario.nombre},</p>
-      <p>Recibimos una solicitud para recuperar tu contraseña.</p>
-      <p>Haz clic en el siguiente enlace para crear una nueva contraseña:</p>
-      <p><a href="${enlace}">${enlace}</a></p>
-      <p>Si no solicitaste esto, puedes ignorar este correo.</p>
-      <br>
-      <p>Saludos,<br>Equipo ServiTech</p>
-    `;
-
-    await enviarCorreo(usuario.email, asunto, mensaje, mensaje);
+    await enviarCorreo(
+      usuario.email,
+      "Recupera tu contraseña - ServiTech",
+      mensaje,
+      { nombreDestinatario: usuario.nombre, apellidoDestinatario: usuario.apellido, html }
+    );
 
     generarLogs.registrarEvento({
       usuarioEmail: usuario.email,
@@ -540,7 +435,6 @@ const solicitarRecuperacionPassword = async (req, res) => {
       persistirEnDB: true,
     });
 
-    console.log("Correo de recuperación enviado exitosamente a:", email);
     res.status(200).json({
       mensaje: "Si el email existe, se enviaron instrucciones.",
     });
@@ -568,9 +462,6 @@ const solicitarRecuperacionPassword = async (req, res) => {
 
 /**
  * Restablece contraseña usando token de recuperación
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- * @returns {Promise<void>}
  */
 const resetearPassword = async (req, res) => {
   const { token, newPassword } = req.body;
@@ -614,91 +505,111 @@ const resetearPassword = async (req, res) => {
   }
 };
 
+
 /**
- * Actualiza perfil del usuario autenticado
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- * @returns {Promise<void>}
+ * Actualiza perfil de usuario autenticado (cliente o experto).
+ * @swagger
+ * /api/usuarios/perfil:
+ *   put:
+ *     summary: Actualiza el perfil del usuario autenticado
+ *     tags: [Usuarios]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200: { description: Perfil actualizado }
+ *       400: { description: Datos faltantes o inválidos }
+ *       404: { description: Usuario no encontrado }
  */
 const actualizarPerfilUsuario = async (req, res) => {
   try {
-    const datos = req.body;
-    // Guardas: asegurar que req.usuario existe y tenga _id.
     if (!req.usuario || !req.usuario._id) {
-      console.error(
-        "actualizarPerfilUsuario: req.usuario ausente o sin _id - headers:",
-        req.headers && { authorization: req.headers.authorization }
-      );
       return res.status(401).json({ mensaje: "No autenticado" });
     }
     const usuario = await Usuario.findById(req.usuario._id);
-
     if (!usuario) {
       return res.status(404).json({ mensaje: "Usuario no encontrado." });
     }
-
-    let categoriasArray = [];
-    if (datos.categorias) {
-      if (Array.isArray(datos.categorias)) {
-        categoriasArray = datos.categorias.map((id) => String(id));
-      } else if (typeof datos.categorias === "string") {
-        categoriasArray = datos.categorias.split(",").map((id) => id.trim());
-      }
+    const datos = req.body;
+    // Validar nombre y apellido siempre
+    if (!datos.nombre || !datos.apellido) {
+      return res.status(400).json({ mensaje: "Nombre y apellido son obligatorios." });
     }
-
-    let diasArray = [];
-    if (datos.diasDisponibles) {
-      if (Array.isArray(datos.diasDisponibles)) {
-        diasArray = datos.diasDisponibles.map((dia) => String(dia));
-      } else if (typeof datos.diasDisponibles === "string") {
-        diasArray = datos.diasDisponibles.split(",").map((dia) => dia.trim());
-      }
+    const regNombre = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s'-]{1,80}$/;
+    if (!regNombre.test(datos.nombre) || !regNombre.test(datos.apellido)) {
+      return res.status(400).json({ mensaje: "Nombre y apellido solo pueden tener letras y hasta 80 caracteres." });
     }
+    usuario.nombre = datos.nombre.trim();
+    usuario.apellido = datos.apellido.trim();
 
-    // Validación de campos obligatorios para experto
-    if (
-      !datos.descripcion ||
-      !datos.precioPorHora ||
-      categoriasArray.length === 0 ||
-      !datos.banco ||
-      !datos.tipoCuenta ||
-      !datos.numeroCuenta ||
-      !datos.titular ||
-      !datos.tipoDocumento ||
-      !datos.numeroDocumento
-    ) {
-      return res.status(400).json({
-        mensaje:
-          "Faltan campos obligatorios para crear el perfil de experto. Revisa todos los campos y selecciona al menos una categoría.",
-      });
-    }
-
-    // Si hay datos completos de experto, actualiza infoExperto y el rol
-    usuario.infoExperto = {
-      descripcion: datos.descripcion,
-      precioPorHora: datos.precioPorHora,
-      diasDisponibles: diasArray,
-      categorias: categoriasArray,
-      banco: datos.banco,
-      tipoCuenta: datos.tipoCuenta,
-      numeroCuenta: datos.numeroCuenta,
-      titular: datos.titular,
-      tipoDocumento: datos.tipoDocumento,
-      numeroDocumento: datos.numeroDocumento,
-      telefonoContacto: datos.telefonoContacto,
-    };
+    // Solo puede editar nombre/apellido si es cliente puro
     if (!usuario.roles.includes("experto")) {
-      usuario.roles.push("experto");
+      await usuario.save();
+      generarLogs.registrarEvento({
+        usuarioEmail: usuario.email,
+        nombre: usuario.nombre,
+        apellido: usuario.apellido,
+        accion: "EDITAR_PERFIL_CLIENTE",
+        detalle: "Perfil básico actualizado",
+        resultado: "Exito",
+        tipo: "usuarios",
+        persistirEnDB: true,
+      });
+      return res.status(200).json({ mensaje: "Perfil actualizado correctamente.", usuario });
     }
 
-    if (datos.nombre) usuario.nombre = datos.nombre;
-    if (datos.apellido) usuario.apellido = datos.apellido;
-    if (datos.email) usuario.email = datos.email;
-    if (datos.avatarUrl) usuario.avatarUrl = datos.avatarUrl;
-
+    // Si es experto Y el payload trae campos de experto, validar y actualizar infoExperto
+    const camposExperto = [
+      "descripcion", "precioPorHora", "categorias", "banco", "tipoCuenta",
+      "numeroCuenta", "titular", "tipoDocumento", "numeroDocumento"
+    ];
+    const tieneCamposExperto = camposExperto.some((campo) => typeof datos[campo] !== "undefined");
+    if (usuario.roles.includes("experto") && tieneCamposExperto) {
+      let categoriasArray = [];
+      if (datos.categorias) {
+        if (Array.isArray(datos.categorias)) categoriasArray = datos.categorias.map(String);
+        else if (typeof datos.categorias === "string") categoriasArray = datos.categorias.split(",").map((id) => id.trim());
+      }
+      let diasArray = [];
+      if (datos.diasDisponibles) {
+        if (Array.isArray(datos.diasDisponibles)) diasArray = datos.diasDisponibles.map(String);
+        else if (typeof datos.diasDisponibles === "string") diasArray = datos.diasDisponibles.split(",").map((dia) => dia.trim());
+      }
+      if (
+        !datos.descripcion ||
+        !datos.precioPorHora ||
+        categoriasArray.length === 0 ||
+        !datos.banco ||
+        !datos.tipoCuenta ||
+        !datos.numeroCuenta ||
+        !datos.titular ||
+        !datos.tipoDocumento ||
+        !datos.numeroDocumento
+      ) {
+        return res.status(400).json({
+          mensaje: "Faltan campos obligatorios para actualizar el perfil de experto. Revisa todos los campos y selecciona al menos una categoría.",
+        });
+      }
+      usuario.infoExperto = {
+        descripcion: datos.descripcion,
+        precioPorHora: datos.precioPorHora,
+        diasDisponibles: diasArray,
+        categorias: categoriasArray,
+        banco: datos.banco,
+        tipoCuenta: datos.tipoCuenta,
+        numeroCuenta: datos.numeroCuenta,
+        titular: datos.titular,
+        tipoDocumento: datos.tipoDocumento,
+        numeroDocumento: datos.numeroDocumento,
+        telefonoContacto: datos.telefonoContacto,
+      };
+    }
     await usuario.save();
-
-    // Log éxito actualización
     generarLogs.registrarEvento({
       usuarioEmail: usuario.email,
       nombre: usuario.nombre,
@@ -709,16 +620,11 @@ const actualizarPerfilUsuario = async (req, res) => {
       tipo: "usuarios",
       persistirEnDB: true,
     });
-
-    return res.status(200).json({
-      mensaje: "Perfil de experto actualizado correctamente.",
-      usuario,
-    });
+    return res.status(200).json({ mensaje: "Perfil actualizado correctamente.", usuario });
   } catch (error) {
     console.error("Error al actualizar perfil:", error);
     generarLogs.registrarEvento({
-      usuarioEmail:
-        (req.usuario && req.usuario.email) || req.body.email || null,
+      usuarioEmail: (req.usuario && req.usuario.email) || req.body.email || null,
       nombre: req.body.nombre || null,
       apellido: req.body.apellido || null,
       accion: "EDITAR_PERFIL",
@@ -728,12 +634,11 @@ const actualizarPerfilUsuario = async (req, res) => {
       persistirEnDB: true,
     });
     res.status(500).json({
-      mensaje: "Error interno del servidor al actualizar el perfil de experto.",
+      mensaje: "Error interno del servidor al actualizar el perfil.",
       error: error.message,
     });
   }
 };
-
 /**
  * Sube un avatar para el usuario autenticado (campo 'avatar')
  */
@@ -747,15 +652,9 @@ const subirAvatar = async (req, res) => {
       return res.status(400).json({ mensaje: "Archivo no recibido." });
     }
 
-    // Construir URL pública absoluta para que el frontend (puerto 5021)
-    // pueda cargar la imagen directamente desde el backend.
     const filename = req.file.filename;
     const uploadsPath = process.env.UPLOAD_PATH || "uploads";
-    // Preferir BACKEND_URL si está configurado (ej: http://localhost:5020)
     const configured = (process.env.BACKEND_URL || "").trim();
-    // Forzar BACKEND_URL si está presente, sino usar el backend local por defecto.
-    // Evitar inferir el host desde X-Forwarded o req.host para que las URLs
-    // devueltas siempre apunten al servidor que sirve los archivos estáticos.
     const base = configured || "http://localhost:5020";
     const avatarUrl = `${base.replace(/\/$/, "")}/${uploadsPath.replace(
       /^\//,
@@ -764,7 +663,6 @@ const subirAvatar = async (req, res) => {
     usuario.avatarUrl = avatarUrl;
     await usuario.save();
 
-    // Log subida avatar
     generarLogs.registrarEvento({
       usuarioEmail: usuario.email,
       nombre: usuario.nombre,
@@ -798,33 +696,71 @@ const subirAvatar = async (req, res) => {
 };
 
 /**
- * Desactiva cuenta del usuario autenticado
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- * @returns {Promise<void>}
+ * Desactiva cuenta del usuario autenticado y actualiza asesorías/pagos asociados
+ * @openapi
+ * /api/usuarios/perfil:
+ *   delete:
+ *     summary: Desactiva usuario autenticado y reembolsa pagos/asesorías
+ *     tags: [Usuarios]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Cuenta desactivada y pagos/asesorías actualizados
+ *       404:
+ *         description: Usuario no encontrado
  */
 const eliminarUsuarioPropio = async (req, res) => {
   try {
     const usuarioId = req.usuario._id;
     const usuario = await Usuario.findById(usuarioId);
+
     if (!usuario) {
       return res.status(404).json({ mensaje: "Usuario no encontrado." });
     }
+
+    // Desactivar usuario
     usuario.estado = "inactivo";
     await usuario.save();
+
+    // Buscar asesorías "confirmadas" donde el usuario es cliente o experto
+    const asesorias = await Asesoria.find({
+      $or: [
+        { "cliente.email": usuario.email },
+        { "experto.email": usuario.email },
+      ],
+      estado: "confirmada",
+    });
+
+    // Actualizar estado de asesorías y pagos asociados
+    for (const asesoria of asesorias) {
+      asesoria.estado = "reembolsada";
+      await asesoria.save();
+      if (asesoria.pagoId) {
+        const pago = await Pago.findById(asesoria.pagoId);
+        if (pago && ["retenido", "liberado"].includes(pago.estado)) {
+          pago.estado = "reembolsado";
+          pago.fechaLiberacion = new Date();
+          await pago.save();
+        }
+      }
+    }
 
     generarLogs.registrarEvento({
       usuarioEmail: usuario.email,
       nombre: usuario.nombre,
       apellido: usuario.apellido,
       accion: "DESACTIVAR_CUENTA",
-      detalle: "Cuenta desactivada por usuario",
+      detalle: "Cuenta desactivada y asesorías/pagos reembolsados.",
       resultado: "Exito",
       tipo: "usuarios",
       persistirEnDB: true,
     });
 
-    res.json({ mensaje: "Cuenta desactivada correctamente." });
+    res.json({
+      mensaje:
+        "Cuenta desactivada correctamente. Todas las asesorías y pagos confirmados han sido reembolsados.",
+    });
   } catch (error) {
     console.error("Error al desactivar usuario propio:", error);
     generarLogs.registrarEvento({
@@ -842,37 +778,79 @@ const eliminarUsuarioPropio = async (req, res) => {
 };
 
 /**
- * Desactiva usuario por admin
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- * @returns {Promise<void>}
+ * Desactiva usuario por email (admin) y reembolsa pagos/asesorías
+ * @openapi
+ * /api/usuarios/{email}:
+ *   delete:
+ *     summary: Desactiva usuario por email (admin)
+ *     tags: [Usuarios]
+ *     parameters:
+ *       - in: path
+ *         name: email
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Email del usuario
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Usuario desactivado y pagos/asesorías actualizados
+ *       404:
+ *         description: Usuario no encontrado
  */
 const eliminarUsuarioPorAdmin = async (req, res) => {
   try {
-    const usuarioId = req.params.id;
-    const usuario = await Usuario.findById(usuarioId);
+    const email = req.params.email;
+    const usuario = await Usuario.findOne({ email });
+
     if (!usuario) {
       return res.status(404).json({ mensaje: "Usuario no encontrado." });
     }
+
+    // Desactivar usuario
     usuario.estado = "inactivo";
     await usuario.save();
+
+    // Buscar asesorías "confirmadas" donde el usuario es cliente o experto
+    const asesorias = await Asesoria.find({
+      $or: [{ "cliente.email": email }, { "experto.email": email }],
+      estado: "confirmada",
+    });
+
+    // Actualizar estado de asesorías y pagos asociados
+    for (const asesoria of asesorias) {
+      asesoria.estado = "reembolsada";
+      await asesoria.save();
+      if (asesoria.pagoId) {
+        const pago = await Pago.findById(asesoria.pagoId);
+        if (pago && ["retenido", "liberado"].includes(pago.estado)) {
+          pago.estado = "reembolsado";
+          pago.fechaLiberacion = new Date();
+          await pago.save();
+        }
+      }
+    }
 
     generarLogs.registrarEvento({
       usuarioEmail: usuario.email,
       nombre: usuario.nombre,
       apellido: usuario.apellido,
       accion: "DESACTIVAR_POR_ADMIN",
-      detalle: "Cuenta desactivada por admin",
+      detalle: "Usuario desactivado por admin y asesorías/pagos reembolsados.",
       resultado: "Exito",
       tipo: "usuarios",
       persistirEnDB: true,
     });
 
-    res.json({ mensaje: "Usuario desactivado correctamente por el admin." });
+    res.json({
+      mensaje:
+        "Usuario desactivado correctamente por admin. Todas las asesorías y pagos confirmados han sido reembolsados.",
+    });
   } catch (error) {
     console.error("Error al desactivar usuario por admin:", error);
     generarLogs.registrarEvento({
-      usuarioEmail: null,
+      usuarioEmail: req.params.email || null,
       accion: "DESACTIVAR_POR_ADMIN",
       detalle: "Error al desactivar usuario por admin",
       resultado: "Error: " + (error.message || "desconocido"),
@@ -880,16 +858,14 @@ const eliminarUsuarioPorAdmin = async (req, res) => {
       persistirEnDB: true,
     });
     res.status(500).json({
-      mensaje: "Error interno del servidor al desactivar el usuario.",
+      mensaje: "Error interno del servidor al desactivar usuario.",
+      error: error.message,
     });
   }
 };
 
 /**
  * Actualiza usuario por email (solo admin)
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- * @returns {Promise<void>}
  */
 const actualizarUsuarioPorEmailAdmin = async (req, res) => {
   try {
@@ -901,17 +877,10 @@ const actualizarUsuarioPorEmailAdmin = async (req, res) => {
     }
 
     if (datos.roles && datos.roles.includes("experto")) {
-      // Si el admin envía infoExperto parcial (por ejemplo especialidad/categorias/skills),
-      // no asignar directamente el subdocumento para evitar forzar la validación
-      // completa del esquema (campos bancarios obligatorios). En lugar de eso,
-      // construiremos un update parcial ($set) y lo aplicaremos más abajo.
-      // Para mantener compatibilidad con el flujo anterior, si no viene
-      // infoExperto mantendremos lo existente.
       if (!datos.infoExperto) {
         if (!usuario.infoExperto) usuario.infoExperto = undefined;
       }
     } else {
-      // Si no se solicita el rol experto, eliminar infoExperto
       usuario.infoExperto = undefined;
     }
 
@@ -922,10 +891,7 @@ const actualizarUsuarioPorEmailAdmin = async (req, res) => {
     if (datos.avatarUrl) usuario.avatarUrl = datos.avatarUrl;
     if (datos.email) usuario.email = datos.email;
 
-    // Si el payload incluye infoExperto, aplicar un update parcial directo
-    // para persistir sólo las claves provistas (evita validación completa del subdocumento)
     if (datos.infoExperto && typeof datos.infoExperto === "object") {
-      // Normalizar categorias y skills para guardado consistente
       let categoriasArray = [];
       if (datos.infoExperto.categorias) {
         if (Array.isArray(datos.infoExperto.categorias)) {
@@ -947,14 +913,12 @@ const actualizarUsuarioPorEmailAdmin = async (req, res) => {
         }
       }
 
-      // Merge con lo existente si existe, o crear nuevo objeto si es null
       const existingInfo =
         usuario.infoExperto && typeof usuario.infoExperto === "object"
           ? usuario.infoExperto.toObject
             ? usuario.infoExperto.toObject()
             : usuario.infoExperto
           : {};
-      // Aceptar tambien especialidad enviada en la raíz del payload
       if (!datos.infoExperto) datos.infoExperto = {};
       if (datos.especialidad && !datos.infoExperto.especialidad) {
         datos.infoExperto.especialidad = datos.especialidad;
@@ -964,7 +928,6 @@ const actualizarUsuarioPorEmailAdmin = async (req, res) => {
       if (categoriasArray.length > 0) mergedInfo.categorias = categoriasArray;
       if (skillsArray.length > 0) mergedInfo.skills = skillsArray;
 
-      // Convertir categorias que parezcan ObjectId (24 hex) a mongoose.Types.ObjectId
       try {
         if (mergedInfo && Array.isArray(mergedInfo.categorias)) {
           mergedInfo.categorias = mergedInfo.categorias.map((c) => {
@@ -980,7 +943,6 @@ const actualizarUsuarioPorEmailAdmin = async (req, res) => {
         }
       } catch (e) {}
 
-      // Normalizar y persistir especialidad: aceptar id (24 hex) o nombre.
       try {
         if (
           mergedInfo &&
@@ -994,9 +956,7 @@ const actualizarUsuarioPorEmailAdmin = async (req, res) => {
             mergedInfo.especialidad = s;
           }
         }
-      } catch (e) {
-        // ignore normalization errors
-      }
+      } catch (e) {}
 
       const setObj = { infoExperto: mergedInfo };
       if (datos.nombre) setObj["nombre"] = datos.nombre;
@@ -1016,8 +976,6 @@ const actualizarUsuarioPorEmailAdmin = async (req, res) => {
 
       try {
         const r = await Usuario.updateOne({ email }, { $set: setObj });
-        // Loguear resultado para facilitar debugging en entornos de dev
-        console.log("actualizarUsuarioPorEmailAdmin: updateOne result:", r);
         const refreshed = await Usuario.findOne({ email }).select(
           "-passwordHash"
         );
@@ -1033,7 +991,6 @@ const actualizarUsuarioPorEmailAdmin = async (req, res) => {
       }
     }
 
-    // Si no se proporciona infoExperto, guardar cambios simples en el documento
     try {
       await usuario.save();
 
@@ -1074,27 +1031,6 @@ const actualizarUsuarioPorEmailAdmin = async (req, res) => {
 
 /**
  * Obtiene usuario por email (solo admin)
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- * @returns {Promise<void>}
- * @openapi
- * /api/usuarios/{email}:
- *   get:
- *     tags: [Usuarios]
- *     summary: Obtener usuario por email
- *     parameters:
- *       - in: path
- *         name: email
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Usuario encontrado
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Usuario'
  */
 const obtenerUsuarioPorEmailAdmin = async (req, res) => {
   try {
@@ -1108,28 +1044,6 @@ const obtenerUsuarioPorEmailAdmin = async (req, res) => {
     res.status(500).json({ mensaje: "Error interno al obtener usuario." });
   }
 };
-
-/**
- * @openapi
- * /api/usuarios/{id}:
- *   get:
- *     tags: [Usuarios]
- *     summary: Obtener usuario por ID (requiere auth)
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Usuario encontrado
- *         content:
- *           application/json:
- *
- */
 
 module.exports = {
   registrarUsuario,
