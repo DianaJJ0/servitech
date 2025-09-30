@@ -8,9 +8,10 @@
   <link rel="stylesheet" href="/assets/css/administrador.css" />
   <link rel="stylesheet" href="/assets/css/admin.css" />
   <link rel="stylesheet" href="/assets/css/admin-components.css" />
+  <link rel="stylesheet" href="/assets/css/admin-expertos.css" />
   <!-- page-specific CSS -->
   <link rel="stylesheet" href="/assets/css/admin-clientes.css" />
-  <link rel="stylesheet" href="/assets/css/admin-responsive.css" />
+  <!--<link rel="stylesheet" href="/assets/css/admin-responsive.css" />-->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 </head>
@@ -20,11 +21,10 @@
   <div class="admin-layout">
     <%- include('../componentes/navbarAdmin.ejs') %>
       <main class="admin-main">
-        <!-- Contenido principal -->
         <header class="admin-header">
           <div class="header-search">
             <i class="fas fa-search"></i>
-            <input type="text" id="inputBuscarUsuario" placeholder="Buscar usuarios..." />
+            <input type="text" id="inputBuscarUsuario" placeholder="Buscar expertos..." />
           </div>
           <div class="header-actions">
             <div class="notification-icon">
@@ -43,8 +43,6 @@
         </header>
 
         <div class="admin-content">
-
-          <!-- Título y acciones principales -->
           <div class="page-header">
             <h1>Gestión de Expertos</h1>
             <div class="page-actions">
@@ -59,746 +57,118 @@
             </div>
           </div>
 
-          <!-- Modernized filtros, estadísticas, tabla y paginación -->
-          <div class="clientes-grid">
-            <!-- Filtros -->
-            <div class="table-container clientes-grid__filters">
+          <div class="expertos-grid">
+            <div class="table-container admin-table--expertos-container">
+              <table class="admin-table admin-table--expertos">
+                <thead>
+                  <tr>
+                    <th>Expertos</th>
+                    <th>Categorías</th>
+                    <th>Registro</th>
+                    <th>Sesiones</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <div class="experto-card">
+                        <img src="https://i.pravatar.cc/150?img=32" alt="Diana" class="experto-avatar" />
+                        <div class="experto-info">
+                          <div class="experto-name">Diana Jiménez</div>
+                          <div class="experto-email">diarajimereojimenez10152310@gmail.com</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="sin-categorias">Sin categorías</span>
+                    </td>
+                    <td>
+                      <span class="fecha-registro">-</span>
+                    </td>
+                    <td>
+                      <span class="sesiones-count">0</span>
+                    </td>
+                    <td>
+                      <span class="estado-badge estado-activo">
+                        <i class="fas fa-circle"></i>
+                        activo
+                      </span>
+                    </td>
+                    <td>
+                      <div class="experto-acciones">
+                        <button class="accion-btn">
+                          <i class="fas fa-eye"></i>
+                          Ver
+                        </button>
+                        <button class="accion-btn accion-btn--editar">
+                          <i class="fas fa-edit"></i>
+                          Editar
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="experto-card">
+                        <img src="https://i.pravatar.cc/150?img=45" alt="Pedro" class="experto-avatar" />
+                        <div class="experto-info">
+                          <div class="experto-name">Pedro pruebas</div>
+                          <div class="experto-email">experto@correo.com</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="sin-categorias">Sin categorías</span>
+                    </td>
+                    <td>
+                      <span class="fecha-registro">-</span>
+                    </td>
+                    <td>
+                      <span class="sesiones-count">0</span>
+                    </td>
+                    <td>
+                      <span class="estado-badge estado-activo">
+                        <i class="fas fa-circle"></i>
+                        activo
+                      </span>
+                    </td>
+                    <td>
+                      <div class="experto-acciones">
+                        <button class="accion-btn">
+                          <i class="fas fa-eye"></i>
+                          Ver
+                        </button>
+                        <button class="accion-btn accion-btn--editar">
+                          <i class="fas fa-edit"></i>
+                          Editar
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
 
-              <!-- Toggle para pantallas pequeñas / medias: sigue el mismo patrón que categorias -->
-              <button class="categorias-filters-toggle clientes-filters-toggle" aria-expanded="true"
-                aria-controls="expertosFiltersPanel">
-                <i class="fas fa-filter"></i>
-                <span class="categorias-filters-toggle__label">Filtros</span>
-              </button>
-
-              <div id="expertosFiltersPanel" class="clientes-filters-panel categorias-filters-panel">
-                <div class="clientes-filtros">
-                  <h3 class="clientes-filtros__title">Filtros</h3>
-                  <div class="clientes-filtros__group">
-                    <label class="clientes-filtros__label">Estado</label>
-                    <select class="clientes-filtros__select" id="filtroEstadoUsuario">
-                      <option value="">Todos los estados</option>
-                      <option value="activo">Activos</option>
-                      <option value="inactivo">Inactivos</option>
-                      <option value="suspendido">Suspendidos</option>
-                    </select>
-                  </div>
-                  <div class="clientes-filtros__group">
-                    <label class="clientes-filtros__label">Fecha de registro</label>
-                    <select class="clientes-filtros__select" id="filtroFechaRegistroUsuario">
-                      <option value="">Todas las fechas</option>
-                      <option value="today">Hoy</option>
-                      <option value="week">Esta semana</option>
-                      <option value="month">Este mes</option>
-                      <option value="year">Este año</option>
-                    </select>
-                  </div>
-                  <button class="btn-primary clientes-filtros__btn clientes-filtros__btn--center">
-                    <i class="fas fa-filter"></i>
-                    <span>Aplicar filtros</span>
+              <div class="admin-pagination">
+                <span class="admin-pagination__info">Mostrando 1-2 de 2 expertos</span>
+                <div class="admin-pagination__controles">
+                  <button class="admin-pagination__btn admin-pagination__btn--disabled">
+                    <i class="fas fa-chevron-left"></i>
+                  </button>
+                  <button class="admin-pagination__btn admin-pagination__btn--active">1</button>
+                  <button class="admin-pagination__btn">
+                    <i class="fas fa-chevron-right"></i>
                   </button>
                 </div>
               </div>
             </div>
-
-            <!-- Tabla de expertos -->
-            <div class="table-container">
-              <div class="clientes-list">
-                <table class="admin-table admin-table--expertos">
-                  <thead>
-                    <tr class="expertos-col--actions">
-                      <th>Expertos</th>
-                      <th>Categorías</th>
-                      <th>Registro</th>
-                      <th>Sesiones</th>
-                      <th>Estado</th>
-                      <th>Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-
-                    <tr class="placeholder-row">
-                      <td colspan="6" style="text-align:center;padding:24px;color:var(--admin-text-secondary);">
-                        Cargando expertos...
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              <!-- Paginación (ubicada directamente bajo la tabla) -->
-              <div class="admin-pagination" role="navigation" aria-label="Paginación de expertos" id="expertos-pagination-container">
-                <span class="admin-pagination__info" id="expertos-pagination-info">Cargando...</span>
-                <div class="admin-pagination__controles" id="expertos-pagination-controls"></div>
-              </div>
-
-            </div>
-
           </div>
         </div>
-
       </main>
   </div>
 
-  <!--css para agregar expertos-->
-  <style>
-    /* ===== Variables globales proporcionadas ===== */
-    :root {
-      --admin-bg: #0e1525;
-      --admin-card-bg: #1c2333;
-      --admin-border-color: #2b3245;
-      --admin-hover-bg: #252e43;
-      --admin-accent-color: #3a8eff;
-      --admin-accent-secondary: #12d8fa;
-      --admin-text-primary: #f5f5f5;
-      --admin-text-secondary: #a0a0a0;
-      --admin-shadow: 0 4px 12px #00000040;
-    }
 
-    /* ===== Variables locales del modal ===== */
-    :root {
-      --ae-modal-max-width: 920px;
-      --ae-modal-radius: 12px;
-      --ae-modal-padding: 1rem 1.25rem;
-      --ae-modal-z: 1200;
-      --ae-backdrop: rgba(4, 8, 16, 0.62);
-      --ae-transition: 160ms cubic-bezier(.2, .9, .2, 1);
-    }
-
-    /* ===== Reset y base ===== */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      line-height: 1.5;
-      background-color: var(--admin-bg);
-      color: var(--admin-text-primary);
-      padding: 1rem;
-      min-height: 100vh;
-    }
-
-    /* ===== Estructura del modal ===== */
-    .modal-expert {
-      display: none;
-      position: fixed;
-      inset: 0;
-      z-index: var(--ae-modal-z);
-      background: var(--ae-backdrop);
-      align-items: center;
-      justify-content: center;
-      padding: 1.25rem;
-    }
-
-    .modal-expert.is-open {
-      display: flex;
-      animation: ae-fade-in 220ms ease both;
-    }
-
-    @keyframes ae-fade-in {
-      from {
-        opacity: 0;
-        transform: translateY(6px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .modal-expert__container {
-      width: 100%;
-      max-width: var(--ae-modal-max-width);
-      border-radius: var(--ae-modal-radius);
-      overflow: hidden;
-      box-shadow: var(--admin-shadow);
-      border: 1px solid var(--admin-border-color);
-      background: var(--admin-card-bg);
-      color: var(--admin-text-primary);
-      max-height: 95vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* ===== Header del modal ===== */
-    .modal-expert__header {
-      padding: var(--ae-modal-padding);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--admin-border-color);
-      background: var(--admin-card-bg);
-    }
-
-    .modal-expert__title {
-      margin: 0;
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: var(--admin-text-primary);
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .btn-close {
-      background: transparent;
-      border: none;
-      color: var(--admin-text-secondary);
-      font-size: 1.1rem;
-      padding: 0.5rem;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all var(--ae-transition);
-    }
-
-    .btn-close:hover {
-      background: var(--admin-hover-bg);
-      color: var(--admin-text-primary);
-    }
-
-    /* ===== Cuerpo del modal ===== */
-    .modal-expert__body {
-      padding: var(--ae-modal-padding);
-      overflow-y: auto;
-      flex: 1;
-    }
-
-    .modal-expert__grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 1.5rem;
-    }
-
-    .full-width {
-      grid-column: 1 / -1;
-    }
-
-    /* ===== Grupos de formulario ===== */
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .form-section {
-      margin-bottom: 2rem;
-      padding-bottom: 1.5rem;
-      border-bottom: 1px solid var(--admin-border-color);
-    }
-
-    .form-section:last-of-type {
-      border-bottom: none;
-      margin-bottom: 0;
-    }
-
-    /* ===== Elementos de formulario ===== */
-    .modal-expert__label {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-weight: 600;
-      font-size: 0.95rem;
-      color: var(--admin-text-primary);
-    }
-
-    .modal-expert__icon {
-      width: 16px;
-      color: var(--admin-accent-color);
-    }
-
-    .modal-expert__input,
-    .modal-expert__select,
-    .modal-expert__textarea {
-      width: 100%;
-      padding: 0.75rem;
-      border: 1px solid var(--admin-border-color);
-      border-radius: 8px;
-      background: var(--admin-card-bg);
-      color: var(--admin-text-primary);
-      font-size: 0.95rem;
-      transition: all var(--ae-transition);
-    }
-
-    .modal-expert__input:focus,
-    .modal-expert__select:focus,
-    .modal-expert__textarea:focus {
-      outline: none;
-      border-color: var(--admin-accent-color);
-      box-shadow: 0 0 0 3px rgba(58, 142, 255, 0.1);
-    }
-
-    /* Visual para campos inválidos (aplicado por JS con la clase input-error o aria-invalid)
-       Usado para el campo Nombre cuando queda vacío o contiene caracteres no permitidos */
-    .input-error,
-    input[aria-invalid="true"],
-    textarea[aria-invalid="true"] {
-      border-color: #e53e3e !important;
-      box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.08) !important;
-    }
-
-    .modal-expert__textarea {
-      min-height: 100px;
-      resize: vertical;
-    }
-
-    .modal-expert__hint {
-      font-size: 0.85rem;
-      color: var(--admin-text-secondary);
-    }
-
-    /* ===== Componentes específicos ===== */
-
-    /* Precio con símbolo de moneda */
-    .price-input-wrapper {
-      position: relative;
-    }
-
-    .price-symbol {
-      position: absolute;
-      left: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--admin-text-secondary);
-    }
-
-    .price-input {
-      padding-left: 24px;
-    }
-
-    /* Selector de días */
-    .days-selector {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .days-buttons {
-      display: flex;
-      gap: 0.35rem;
-      flex-wrap: wrap;
-    }
-
-    .day-button {
-      flex: 1;
-      min-width: 40px;
-      padding: 0.5rem;
-      border: 1px solid var(--admin-border-color);
-      background: var(--admin-card-bg);
-      color: var(--admin-text-primary);
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all var(--ae-transition);
-      text-align: center;
-    }
-
-    .day-button.active {
-      background: var(--admin-accent-color);
-      color: var(--admin-card-bg);
-      border-color: var(--admin-accent-color);
-    }
-
-    .days-display {
-      padding: 0.75rem;
-      background: var(--admin-hover-bg);
-      border-radius: 6px;
-      font-size: 0.9rem;
-      min-height: 44px;
-      display: flex;
-      align-items: center;
-    }
-
-    /* Select con iconos */
-    .select-with-icons {
-      position: relative;
-    }
-
-    .select-with-icons .icon-left {
-      position: absolute;
-      left: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--admin-text-secondary);
-      pointer-events: none;
-    }
-
-    .select-with-icons .icon-right {
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--admin-text-secondary);
-      pointer-events: none;
-      /* dejar que el click pase al select */
-    }
-
-    .select-with-icons select {
-      padding-left: 36px;
-      padding-right: 36px;
-      /* ocultar la flecha nativa para evitar el doble indicador */
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      appearance: none;
-      background: transparent;
-      background-repeat: no-repeat;
-      background-position: right 12px center;
-    }
-
-    /* Asegurar que el select y sus opciones respeten el tema oscuro */
-    .select-with-icons select {
-      color: var(--admin-text-primary);
-      background-color: transparent;
-      /* el contenedor ya pinta el fondo */
-      -webkit-text-fill-color: var(--admin-text-primary);
-    }
-
-    .select-with-icons select option {
-      /* Muchos navegadores (Firefox/Chrome) respetan estos valores; en otros
-         puede que dependa del sistema, pero normalmente mejora legibilidad */
-      background-color: var(--admin-card-bg);
-      color: var(--admin-text-primary);
-    }
-
-    /* Compatibilidad Windows/IE: ocultar flecha nativa extra */
-    .select-with-icons select::-ms-expand {
-      display: none;
-    }
-
-    /* Mejorar contraste dentro del desplegable: elementos hover/selected */
-    .select-with-icons select option:hover,
-    .select-with-icons select option:checked,
-    .select-with-icons select option:active {
-      background-color: rgba(20, 28, 40, 0.98);
-      /* tono ligeramente más oscuro */
-      color: var(--admin-text-primary);
-    }
-
-    /* Reforzar el color del área desplegada en WebKit/Chromium cuando está abierto */
-    .select-with-icons select:focus,
-    .select-with-icons select:active {
-      background-color: var(--admin-card-bg);
-      color: var(--admin-text-primary);
-    }
-
-    /* Custom select styles */
-    .custom-select {
-      position: relative;
-      width: 100%;
-      font-size: 0.95rem;
-    }
-
-    .custom-select__trigger {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.5rem;
-      padding: 0.75rem;
-      border-radius: 8px;
-      border: 1px solid var(--admin-border-color);
-      background: var(--admin-card-bg);
-      color: var(--admin-text-primary);
-      cursor: pointer;
-    }
-
-    .custom-select__options {
-      position: absolute;
-      left: 0;
-      right: 0;
-      margin-top: 8px;
-      list-style: none;
-      padding: 0.25rem;
-      border-radius: 8px;
-      border: 1px solid var(--admin-border-color);
-      background: linear-gradient(180deg, var(--admin-card-bg), var(--admin-hover-bg));
-      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.5);
-      display: none;
-      z-index: 2000;
-      max-height: 220px;
-      overflow: auto;
-    }
-
-    .custom-select__options li {
-      padding: 0.6rem 0.75rem;
-      cursor: pointer;
-      color: var(--admin-text-primary);
-      border-radius: 6px;
-    }
-
-    .custom-select__options li[aria-selected="true"],
-    .custom-select__options li:hover {
-      background: rgba(58, 142, 255, 0.08);
-      color: var(--admin-text-primary);
-    }
-
-    .custom-select.open .custom-select__options {
-      display: block;
-    }
-
-    /* Upload de imagen */
-    .upload-wrapper {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      flex-wrap: wrap;
-    }
-
-    .upload-box {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.75rem 1rem;
-      border: 1px dashed var(--admin-border-color);
-      border-radius: 8px;
-      color: var(--admin-text-secondary);
-      background: var(--admin-card-bg);
-      cursor: pointer;
-      transition: all var(--ae-transition);
-      position: relative;
-      /* permite posicionar el input absoluto dentro del label */
-    }
-
-    .upload-box:hover {
-      border-color: var(--admin-accent-color);
-      color: var(--admin-text-primary);
-    }
-
-    .file-input {
-      /* No usar display:none: el input debe estar presente para que el label lo dispare.
-         Lo mantenemos invisible pero interactivo llenando la caja del label. */
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      margin: 0;
-      padding: 0;
-      opacity: 0;
-      cursor: pointer;
-      z-index: 2;
-    }
-
-    .preview-container {
-      position: relative;
-      display: none;
-    }
-
-    .preview-image {
-      width: 64px;
-      height: 64px;
-      border-radius: 8px;
-      object-fit: cover;
-      border: 1px solid var(--admin-border-color);
-    }
-
-    .remove-preview {
-      position: absolute;
-      top: -6px;
-      right: -6px;
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      border: none;
-      background: rgba(0, 0, 0, 0.7);
-      color: white;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.8rem;
-    }
-
-    /* Sección de datos bancarios */
-    .bank-section {
-      padding: 1.5rem;
-      border-radius: 10px;
-      border: 1px solid var(--admin-border-color);
-      background: var(--admin-hover-bg);
-    }
-
-    .bank-title {
-      margin: 0 0 0.5rem 0;
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: var(--admin-text-primary);
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .bank-subtitle {
-      margin: 0 0 1.5rem 0;
-      color: var(--admin-text-secondary);
-      font-size: 0.9rem;
-    }
-
-    .bank-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-
-    /* Campo de número de cuenta con toggle */
-    .account-input-wrapper {
-      display: flex;
-    }
-
-    .account-input {
-      flex: 1;
-      border-radius: 8px 0 0 8px;
-      border-right: none;
-    }
-
-    .toggle-password {
-      flex: 0 0 44px;
-      border: 1px solid var(--admin-border-color);
-      border-left: none;
-      border-radius: 0 8px 8px 0;
-      background: var(--admin-card-bg);
-      color: var(--admin-text-secondary);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    /* Campos de teléfono */
-    .phone-fields {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.75rem;
-    }
-
-    /* Caja de información */
-    .info-box {
-      padding: 1rem;
-      border-radius: 8px;
-      background: rgba(58, 142, 255, 0.05);
-      border: 1px solid rgba(58, 142, 255, 0.1);
-    }
-
-    .info-header {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 0.75rem;
-      color: var(--admin-accent-color);
-      font-weight: 600;
-    }
-
-    .info-list {
-      margin: 0;
-      padding-left: 0;
-      list-style: none;
-    }
-
-    .info-list li {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 0.5rem;
-      color: var(--admin-text-secondary);
-      font-size: 0.9rem;
-    }
-
-    .info-list li i {
-      color: var(--admin-accent-color);
-    }
-
-    /* ===== Footer del modal ===== */
-    .modal-expert__footer {
-      padding: 1rem 1.25rem;
-      display: flex;
-      gap: 0.75rem;
-      justify-content: flex-end;
-      border-top: 1px solid var(--admin-border-color);
-      background: var(--admin-card-bg);
-    }
-
-    .btn {
-      padding: 0.6rem 1.25rem;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 0.95rem;
-      cursor: pointer;
-      transition: all var(--ae-transition);
-      border: none;
-    }
-
-    .btn-outline {
-      background: transparent;
-      color: var(--admin-text-primary);
-      border: 1px solid var(--admin-border-color);
-    }
-
-    .btn-outline:hover {
-      background: var(--admin-hover-bg);
-    }
-
-    .btn-primary {
-      background: var(--admin-accent-color);
-      color: white;
-    }
-
-    .btn-primary:hover {
-      background: #2d7de8;
-      transform: translateY(-1px);
-    }
-
-    /* ===== Responsive ===== */
-    @media (max-width: 768px) {
-      .modal-expert__grid {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-      }
-
-      .bank-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .phone-fields {
-        grid-template-columns: 1fr;
-      }
-
-      .upload-wrapper {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
-      .modal-expert__footer {
-        flex-direction: column-reverse;
-      }
-
-      .btn {
-        width: 100%;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .modal-expert {
-        padding: 0.5rem;
-      }
-
-      .modal-expert__body {
-        padding: 1rem;
-      }
-
-      .bank-section {
-        padding: 1rem;
-      }
-
-      .days-buttons {
-        gap: 0.25rem;
-      }
-
-      .day-button {
-        min-width: 36px;
-        padding: 0.4rem;
-      }
-    }
-  </style>
 
   <!-- Script: toggle filtros expertos -->
   <script src="/assets/js/admin/admin-expertos-filters.js"></script>

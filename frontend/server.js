@@ -585,6 +585,11 @@ router.get("/admin/adminCategorias", requireAdmin, (req, res) => {
     API_KEY: apiKey,
   });
 });
+// Ruta principal del panel de administración (dashboard)
+router.get("/admin", requireAdmin, (req, res) => {
+  // Renderiza la vista principal del dashboard: frontend/views/admin/admin.ejs
+  res.render("admin/admin", { user: req.session.user || {} });
+});
 router.get("/admin/adminNotificaciones", requireAdmin, (req, res) => {
   res.render("admin/adminNotificaciones", { user: req.session.user || {} });
 });
