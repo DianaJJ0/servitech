@@ -1,0 +1,107 @@
+/* Estilos específicos para la página de Registro de Acciones (Logs) */
+
+/* --- Filtros de Logs --- */
+.logs-filtros {
+  background-color: var(--admin-card-bg);
+  padding: 1.25rem;
+  border-radius: 0.75rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--admin-border-color);
+  box-shadow: var(--admin-shadow);
+}
+
+.logs-filtros__form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  align-items: flex-end;
+}
+
+.logs-filtros__group {
+  display: flex;
+  flex-direction: column;
+}
+
+.logs-filtros__label {
+  font-size: 0.875rem;
+  color: var(--admin-text-secondary);
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.logs-filtros__input,
+.logs-filtros__select {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--admin-border-color);
+  border-radius: 0.375rem;
+  color: var(--admin-text-primary);
+  font-size: 0.875rem;
+}
+
+.logs-filtros__btn {
+  padding: 0.625rem 1rem;
+}
+
+/* --- Tabla de Logs --- */
+.logs-table__wrapper {
+  overflow-x: auto; /* Permite scroll horizontal en tablas grandes */
+}
+
+.logs-table th,
+.logs-table td {
+  white-space: nowrap; /* Evita que el contenido de las celdas se rompa */
+}
+
+.logs-success {
+  color: #28a745;
+  font-weight: 500;
+}
+
+.logs-error {
+  color: #dc3545;
+  font-weight: 500;
+}
+
+/* --- Paginación de Logs --- */
+.logs-paginacion {
+  padding: 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--admin-border-color);
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.logs-paginacion__info {
+  color: var(--admin-text-secondary);
+  font-size: 0.875rem;
+}
+
+.logs-paginacion__controles {
+  display: flex;
+  gap: 0.3125rem;
+  align-items: center;
+}
+
+.logs-paginacion__btn {
+  width: 2.25rem;
+  height: 2.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--admin-border-color);
+  border-radius: 0.375rem;
+  background: none;
+  color: var(--admin-text-primary);
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background 0.2s, color 0.2s;
+}
+
+.logs-paginacion__ellipsis {
+  color: var(--admin-text-secondary);
+  padding: 0 0.25rem;
+}

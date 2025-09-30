@@ -39,40 +39,8 @@ function setupNotifications() {
   }
 }
 
-// Ensure Bootstrap Offcanvas is programmatically available and bind toggle as a fallback
-document.addEventListener("DOMContentLoaded", function () {
-  try {
-    const toggle = document.getElementById("menu-toggle");
-    const offEl = document.getElementById("offcanvasAdminSidebar");
-    if (toggle && offEl) {
-      if (typeof bootstrap !== "undefined" && bootstrap.Offcanvas) {
-        try {
-          // Create instance if not already created by Data API
-          const existing = bootstrap.Offcanvas.getInstance(offEl);
-          const inst = existing || new bootstrap.Offcanvas(offEl);
-          // Bind a safe click handler that calls show() to guarantee opening
-          toggle.addEventListener("click", function (e) {
-            try {
-              if (!offEl.classList.contains("show")) inst.show();
-              else inst.hide();
-            } catch (err) {
-              console.warn("offcanvas toggle error", err);
-            }
-          });
-        } catch (e) {
-          console.warn("bootstrap Offcanvas init failed", e);
-        }
-      } else {
-        // Debug fallback: log clicks so user can report
-        toggle.addEventListener("click", function () {
-          console.log("menu-toggle clicked (no bootstrap)");
-        });
-      }
-    }
-  } catch (e) {
-    console.warn("offcanvas setup error", e);
-  }
-});
+// menu-toggle element removed from templates; offcanvas behavior handled via Bootstrap data attributes
+// and `setupMobileMenu` which checks element existence before binding. No auto-binding here.
 
 /**
  * Configura el dropdown del perfil de administrador

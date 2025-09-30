@@ -7,7 +7,7 @@
   <title>Gestión de Clientes - Servitech Admin</title>
   <link rel="stylesheet" href="/assets/css/administrador.css" />
   <link rel="stylesheet" href="/assets/css/admin.css" />
-  <link rel="stylesheet" href="/assets/css/admin-responsive.css" />
+  <!-- admin-responsive.css retirado: reglas migradas a hojas por página -->
   <link rel="stylesheet" href="/assets/css/admin-components.css" />
   <!-- page-specific CSS -->
   <link rel="stylesheet" href="/assets/css/admin-clientes.css" />
@@ -54,60 +54,6 @@
             </div>
           </div>
           <div class="clientes-grid">
-            <div class="table-container clientes-grid__filters">
-              <div class="clientes-filtros">
-                <h3 class="clientes-filtros__title">Filtros</h3>
-                <div class="clientes-filtros__group">
-                  <label class="clientes-filtros__label">Estado</label>
-                  <select class="clientes-filtros__select" id="filtroEstadoCliente">
-                    <option value="">Todos los estados</option>
-                    <option value="activo">Activos</option>
-                    <option value="inactivo">Inactivos</option>
-                    <option value="suspendido">Suspendidos</option>
-                  </select>
-                </div>
-                <div class="clientes-filtros__group">
-                  <label class="clientes-filtros__label">Fecha de registro</label>
-                  <select class="clientes-filtros__select" id="filtroFechaRegistroCliente">
-                    <option value="">Todas las fechas</option>
-                    <option value="today">Hoy</option>
-                    <option value="week">Esta semana</option>
-                    <option value="month">Este mes</option>
-                    <option value="year">Este año</option>
-                  </select>
-                </div>
-                <button class="btn-primary clientes-filtros__btn clientes-filtros__btn--center">
-                  <i class="fas fa-filter"></i>
-                  <span>Aplicar filtros</span>
-                </button>
-              </div>
-              <div class="clientes-estadisticas">
-                <h3 class="clientes-estadisticas__title">Estadísticas</h3>
-                <div class="clientes-estadisticas__list">
-                  <div class="clientes-estadisticas__item clientes-estadisticas__item--total">
-                    <div class="clientes-estadisticas__item-info">
-                      <i class="fas fa-users clientes-estadisticas__icon clientes-estadisticas__icon--total"></i>
-                      <span>Total Clientes</span>
-                    </div>
-                    <span class="clientes-estadisticas__value" id="clientesTotalCount">-</span>
-                  </div>
-                  <div class="clientes-estadisticas__item clientes-estadisticas__item--activos">
-                    <div class="clientes-estadisticas__item-info">
-                      <i class="fas fa-user-check clientes-estadisticas__icon clientes-estadisticas__icon--activos"></i>
-                      <span>Clientes Activos</span>
-                    </div>
-                    <span class="clientes-estadisticas__value" id="clientesActivosCount">-</span>
-                  </div>
-                  <div class="clientes-estadisticas__item clientes-estadisticas__item--nuevos">
-                    <div class="clientes-estadisticas__item-info">
-                      <i class="fas fa-user-clock clientes-estadisticas__icon clientes-estadisticas__icon--nuevos"></i>
-                      <span>Nuevos este mes</span>
-                    </div>
-                    <span class="clientes-estadisticas__value" id="clientesNuevosMesCount">-</span>
-                  </div>
-                </div>
-              </div>
-            </div>
             <div class="table-container clientes-grid__tabla">
               <table class="admin-table" id="tablaClientes">
                 <thead>

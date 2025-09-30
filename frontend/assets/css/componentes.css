@@ -55,22 +55,7 @@
   align-items: center;
 }
 
-.mobile-menu-toggle {
-  display: none;
-  font-size: 1.5rem;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: var(--transition);
-  padding: 0.5rem;
-  z-index: 1002;
-  background: none;
-  border: none;
-}
-
-.mobile-menu-toggle:hover {
-  color: var(--primary-color);
-  transform: scale(1.1);
-}
+/* mobile menu toggle removed; styles intentionally deleted to avoid orphan selectors */
 
 .nav-item {
   display: flex;
@@ -355,9 +340,7 @@
     transform: translateY(-2px);
   }
 
-  .mobile-menu-toggle {
-    display: block;
-  }
+  /* mobile menu toggle removed; no mobile toggle element present */
 
   .user-menu {
     display: flex;
@@ -539,8 +522,6 @@
     font-size: 0.9rem;
   }
 }
-
-
 
 /* =========================
   FOOTER - IMPROVED DESIGN
