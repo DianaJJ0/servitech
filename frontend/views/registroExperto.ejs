@@ -4,8 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Registro Experto | Servitech</title>
-  <link rel="stylesheet" href="/assets/css/auth.css" />
+  <title>Registro de Experto | Servitech</title>
+  <link rel="stylesheet" href="/assets/css/base.css" />
   <link rel="stylesheet" href="/assets/css/registroExperto.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -13,138 +13,359 @@
 </head>
 
 <body>
+
   <main class="registroExperto-main">
     <section class="registroExperto-section">
-      <div id="registroAlerta" class="registro-alerta"></div>
+      <!-- Alertas -->
+      <div class="alert alert-danger" style="display: none;">
+        Mensaje de error
+      </div>
+      <div class="alert alert-success" style="display: none;">
+        Mensaje de éxito
+      </div>
+
+      <!-- Encabezado -->
       <div class="registro-header">
+        <a href="/" class="logo-link"><img src="/assets/img/logo.png" alt="Logo de ServiTech" class="logo-img"></a>
         <div class="registro-header-content">
-          <a href="/" class="logo-link">
-            <img src="/assets/img/logo.png" alt="Logo de ServiTech" class="logo-img">
-          </a>
           <h1 class="registro-header-title">Registro de Experto</h1>
-          <p class="subtitle registro-header-subtitle">Completa tu perfil para solicitar ser Experto</p>
+          <p class="subtitle registro-header-subtitle">Completa tu perfil para ofrecer asesorías de forma profesional
+          </p>
         </div>
-        <span id="currentDate" class="registro-fecha"></span>
-        <div class="back-home-center">
-          <a href="/" class="back-link"><i class="fas fa-arrow-left"></i>Volver al inicio</a>
+        <div style="display:flex;flex-direction:column;gap:0.5rem;align-items:flex-end;">
+          <span id="currentDate" class="registro-fecha"></span>
+          <a href="/" class="back-link"><i class="fas fa-arrow-left"></i>Inicio</a>
         </div>
       </div>
-      <form id="registroExpertoForm" class="registroExperto-form" novalidate>
-        <div class="form-row triple">
-          <div class="form-group compact price-group">
-            <label for="precio">Precio por hora (COP)
-              <span class="price-tooltip" title="Ejemplo recomendado: $30.000 - $120.000 COP"><i
-                  class="fas fa-info-circle"></i></span>
-            </label>
-            <div class="price-input">
-              <span class="currency">$</span>
-              <input type="number" id="precio" name="precio" min="10000" max="120000" step="100" required
-                placeholder="Ej: 50000" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
+
+      <!-- Formulario -->
+      <form id="registroExpertoForm" class="registroExperto-form" autocomplete="off">
+        <!-- Sección 1: Información básica -->
+        <div class="form-section">
+          <h2 class="form-section-title"><i class="fas fa-user"></i> Información básica</h2>
+
+          <div class="form-row triple">
+            <div class="form-group compact email-group">
+              <label for="email"><i class="fas fa-envelope"></i> Email registrado</label>
+              <div class="email-field">
+                <span id="email-display">usuario@ejemplo.com</span>
+              </div>
+              <p class="form-hint">Email asociado a tu cuenta</p>
             </div>
-            <div class="input-error" id="errorPrecio"></div>
-            <p class="form-hint">Define un precio proporcional a tu experiencia</p>
-          </div>
-          <div class="form-group compact">
-            <label for="telefonoContacto"><i class="fas fa-phone"></i> Teléfono de contacto</label>
-            <input type="tel" id="telefonoContacto" name="telefonoContacto" placeholder="Ej: 3001234567" required maxlength="10"
-              pattern="^[0-9]{7,10}$" autocomplete="off">
-            <div class="input-error" id="errorTelefonoContacto"></div>
-            <p class="form-hint">Para coordinar asesorías</p>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="descripcion">Descripción profesional</label>
-            <textarea id="descripcion" name="descripcion" rows="3" maxlength="400" required
-              placeholder="Cuentanos tu experiencia, herramientas y tipos de proyectos"></textarea>
-            <div class="input-error" id="errorDescripcion"></div>
-            <div class="form-hint"><span id="descContador">0</span>/400 caracteres</div>
-          </div>
-        </div>
-        <div class="form-row double">
-          <div class="form-group">
-            <label for="categorias">Categorías</label>
-            <!-- El select se llena dinámicamente por JS -->
-            <select id="categorias" name="categorias" multiple required></select>
-            <div class="input-error" id="errorCategorias"></div>
-          </div>
-          <div class="form-group">
-            <label>Días disponibles</label>
-            <div class="days-selector">
-              <button type="button" class="day-option" data-day="Lunes">Lunes</button>
-              <button type="button" class="day-option" data-day="Martes">Martes</button>
-              <button type="button" class="day-option" data-day="Miércoles">Miércoles</button>
-              <button type="button" class="day-option" data-day="Jueves">Jueves</button>
-              <button type="button" class="day-option" data-day="Viernes">Viernes</button>
-              <button type="button" class="day-option" data-day="Sábado">Sábado</button>
-              <button type="button" class="day-option" data-day="Domingo">Domingo</button>
+
+            <div class="form-group compact price-group">
+              <label for="precio">Precio por hora (COP)
+                <span class="price-tooltip" title="Ej: 30.000 - 200.000"><i class="fas fa-info-circle"></i></span>
+              </label>
+              <div class="price-input">
+                <span class="currency">$</span>
+                <input type="number" id="precio" name="precio" min="10000" step="100" required placeholder="Ej: 50000"
+                  inputmode="numeric" class="form-control">
+              </div>
+              <p class="form-hint">Define un precio proporcional a tu experiencia</p>
             </div>
-            <input type="hidden" id="diasDisponibles" name="diasDisponibles" value="">
-            <input type="hidden" id="diasDisponibles" name="diasDisponibles" value="">
-            <div class="days-selected-display" id="diasDisplay">Selecciona tus días disponibles</div>
-            <div class="input-error" id="errorDiasDisponibles"></div>
-          </div>
-        </div>
-        <div class="form-row double">
-          <div class="form-group">
-            <label>Datos bancarios</label>
-            <div class="bank-grid">
-              <div>
-                <label for="banco">Banco</label>
-                <select id="banco" name="banco" required>
-                  <option value="">Selecciona</option>
-                  <option value="Bancolombia">Bancolombia</option>
-                  <option value="Nequi">Nequi</option>
-                </select>
-                <div class="input-error" id="errorBanco"></div>
-              </div>
-              <div>
-                <label for="tipoCuenta">Tipo de cuenta</label>
-                <select id="tipoCuenta" name="tipoCuenta" required>
-                  <option value="">Selecciona</option>
-                  <option value="Ahorros">Ahorros</option>
-                  <option value="Corriente">Corriente</option>
-                </select>
-                <div class="input-error" id="errorTipoCuenta"></div>
-              </div>
-              <div>
-                <label for="numeroCuenta">Número de cuenta</label>
-                <input type="text" id="numeroCuenta" name="numeroCuenta" required maxlength="20" pattern="^[0-9]{6,20}$"
-                  autocomplete="off">
-                <div class="input-error" id="errorNumeroCuenta"></div>
-              </div>
-              <div>
-                <label for="titular">Titular</label>
-                <input type="text" id="titular" name="titular" required maxlength="80" autocomplete="off">
-                <div class="input-error" id="errorTitular"></div>
-              </div>
-              <div>
-                <label for="tipoDocumento">Tipo de documento</label>
-                <select id="tipoDocumento" name="tipoDocumento" required>
-                  <option value="">Selecciona</option>
-                  <option value="CC">Cédula</option>
-                  <option value="CE">Cédula de extranjería</option>
-                  <option value="PAS">Pasaporte</option>
-                </select>
-                <div class="input-error" id="errorTipoDocumento"></div>
-              </div>
-              <div>
-                <label for="numeroDocumento">Número de documento</label>
-                <input type="text" id="numeroDocumento" name="numeroDocumento" required maxlength="15"
-                  pattern="^[0-9a-zA-Z]{5,15}$" autocomplete="off">
-                <div class="input-error" id="errorNumeroDocumento"></div>
-              </div>
+
+            <div class="form-group compact">
+              <label for="telefonoContacto"><i class="fas fa-phone"></i> Teléfono de contacto</label>
+              <input type="tel" id="telefonoContacto" name="telefonoContacto" placeholder="Ej: 3001234567"
+                class="form-control">
+              <p class="form-hint">Se usa solo para coordinar asesorías</p>
             </div>
           </div>
         </div>
+
+        <!-- Sección 2: Descripción profesional -->
+        <div class="form-section">
+          <h2 class="form-section-title"><i class="fas fa-file-alt"></i> Descripción profesional</h2>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="descripcion">Tu experiencia y especialidades</label>
+              <textarea id="descripcion" name="descripcion" rows="4"
+                placeholder="Cuenta brevemente tu experiencia, herramientas y tipos de proyectos"
+                class="form-control"></textarea>
+              <p class="form-hint">Sé concreto y destaca resultados</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sección 3: Categorías y disponibilidad -->
+        <div class="form-section">
+          <h2 class="form-section-title"><i class="fas fa-tags"></i> Categorías y disponibilidad</h2>
+          <div class="form-row double">
+            <!-- Sección de categorías -->
+            <div class="form-group">
+              <label for="categorias">Categorías de especialización</label>
+              <select id="categorias" name="categorias[]" multiple class="form-control"
+                aria-label="Categorías de especialización">
+                <% if (Array.isArray(typeof categorias !=='undefined' ? categorias : []) && (categorias || []).length) {
+                  %>
+                  <% (categorias || []).forEach(function(cat){ %>
+                    <option value="<%= cat.id %>">
+                      <%= cat.name %>
+                    </option>
+                    <% }); %>
+                      <% } else { %>
+                        <option disabled>No hay categorías disponibles</option>
+                        <% } %>
+              </select>
+              <p class="form-hint">Selecciona hasta 5 categorías</p>
+            </div>
+            <!-- Sección de días disponibles -->
+            <div class="form-group">
+              <label>Días disponibles</label>
+              <div class="days-selector">
+                <button type="button" class="day-option" data-day="Lunes">Lun</button>
+                <button type="button" class="day-option" data-day="Martes">Mar</button>
+                <button type="button" class="day-option" data-day="Miércoles">Mié</button>
+                <button type="button" class="day-option" data-day="Jueves">Jue</button>
+                <button type="button" class="day-option" data-day="Viernes">Vie</button>
+                <button type="button" class="day-option" data-day="Sábado">Sáb</button>
+                <button type="button" class="day-option" data-day="Domingo">Dom</button>
+              </div>
+              <input type="hidden" id="diasDisponibles" name="diasDisponibles" value="">
+              <div class="days-selected-display">Selecciona tus días disponibles</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sección 4: Foto de perfil -->
+        <div class="form-section">
+          <h2 class="form-section-title"><i class="fas fa-camera"></i> Foto de perfil</h2>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="fotoPerfil">Imagen profesional</label>
+              <div class="file-input-wrapper">
+                <div class="file-input-button" role="button">
+                  <i class="fas fa-cloud-upload-alt"></i>
+                  <span id="file-input-text">Seleccionar archivo</span>
+                </div>
+                <input type="file" id="fotoPerfil" accept="image/*" class="file-input">
+              </div>
+
+              <!-- Vista previa de imagen -->
+              <div id="epPreview" class="ep-preview">
+                <img id="epImg" class="ep-img" alt="Vista previa" />
+                <div id="fotoMeta" class="ep-meta">
+                  <span id="fotoNombre"></span>
+                  <span id="fotoTamano" style="color:var(--muted);font-size:0.82rem;"></span>
+                </div>
+              </div>
+              <button type="button" id="epRemove" class="ep-remove btn btn-secondary btn-sm">Quitar imagen</button>
+              <div id="fotoError" class="ep-error" style="display:none;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sección 5: Datos bancarios (estructura mejorada) -->
+        <section class="form-section" aria-labelledby="bank-data-title">
+          <header class="form-section-header">
+            <h2 id="bank-data-title" class="form-section-title">
+              <i class="fas fa-university" aria-hidden="true"></i>
+              Datos bancarios
+            </h2>
+            <p class="form-section-description">
+              Información requerida para realizar transferencias y pagos
+            </p>
+          </header>
+
+          <div class="form-content">
+            <div class="bank-data-grid">
+              <div class="form-field-group">
+                <h4 class="form-subtitle">Información del banco</h4>
+                <div class="form-row cols-4">
+                  <!-- Banco (selector con búsqueda) -->
+                  <div class="form-field">
+                    <label for="banco" class="form-label">Banco</label>
+
+                    <div class="bank-selector-wrapper">
+                      <div class="bank-selector" role="combobox" aria-expanded="false" aria-haspopup="listbox"
+                        aria-controls="bank-options-list">
+                        <button type="button" class="bank-selector-trigger" id="bank-trigger"
+                          aria-labelledby="bank-trigger selected-bank-name" aria-expanded="false">
+                          <span id="selected-bank" class="selected-bank">
+                            <span id="selected-bank-name" class="selected-bank-name">Selecciona tu banco</span>
+                          </span>
+                          <span class="bank-selector-icon" aria-hidden="true">
+                            <i class="fas fa-chevron-down"></i>
+                          </span>
+                        </button>
+
+                        <div class="bank-options-container" id="bank-options-container" aria-hidden="true">
+                          <div class="bank-search-container">
+                            <input type="search" id="bank-search" class="bank-search" placeholder="Buscar banco..."
+                              aria-label="Buscar banco" autocomplete="off">
+                            <i class="fas fa-search bank-search-icon" aria-hidden="true"></i>
+                          </div>
+
+                          <div class="bank-options-list" id="bank-options-list" role="listbox"
+                            aria-label="Opciones de bancos">
+                            <!-- Opciones de bancos -->
+                            <div class="bank-option" data-value="Bancolombia" role="option" tabindex="0">
+                              <span class="bank-logo" aria-hidden="true">B</span>
+                              <span class="bank-name">Bancolombia</span>
+                            </div>
+                            <div class="bank-option" data-value="Davivienda" role="option" tabindex="0">
+                              <span class="bank-logo" aria-hidden="true">D</span>
+                              <span class="bank-name">Davivienda</span>
+                            </div>
+                            <div class="bank-option" data-value="BBVA" role="option" tabindex="0">
+                              <span class="bank-logo" aria-hidden="true">BB</span>
+                              <span class="bank-name">BBVA</span>
+                            </div>
+                            <div class="bank-option" data-value="Banco de Bogotá" role="option" tabindex="0">
+                              <span class="bank-logo" aria-hidden="true">BG</span>
+                              <span class="bank-name">Banco de Bogotá</span>
+                            </div>
+                            <div class="bank-option" data-value="Banco Popular" role="option" tabindex="0">
+                              <span class="bank-logo" aria-hidden="true">P</span>
+                              <span class="bank-name">Banco Popular</span>
+                            </div>
+                            <div class="bank-option" data-value="Scotiabank" role="option" tabindex="0">
+                              <span class="bank-logo" aria-hidden="true">S</span>
+                              <span class="bank-name">Scotiabank</span>
+                            </div>
+                            <div class="bank-option" data-value="Colpatria" role="option" tabindex="0">
+                              <span class="bank-logo" aria-hidden="true">C</span>
+                              <span class="bank-name">Colpatria</span>
+                            </div>
+                            <div class="bank-option" data-value="Banco AV Villas" role="option" tabindex="0">
+                              <span class="bank-logo" aria-hidden="true">AV</span>
+                              <span class="bank-name">Banco AV Villas</span>
+                            </div>
+                            <div class="bank-option" data-value="Bancoomeva" role="option" tabindex="0">
+                              <span class="bank-logo" aria-hidden="true">O</span>
+                              <span class="bank-name">Bancoomeva</span>
+                            </div>
+                            <div class="bank-option" data-value="Nequi" role="option" tabindex="0">
+                              <span class="bank-logo" aria-hidden="true">N</span>
+                              <span class="bank-name">Nequi</span>
+                            </div>
+                            <div class="bank-option" data-value="Daviplata" role="option" tabindex="0">
+                              <span class="bank-logo" aria-hidden="true">DP</span>
+                              <span class="bank-name">Daviplata</span>
+                            </div>
+                            <div class="bank-option" data-value="Other" role="option" tabindex="0">
+                              <span class="bank-logo" aria-hidden="true">+</span>
+                              <span class="bank-name">Otro (Especificar)</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <input type="hidden" id="banco" name="banco" value="">
+                    </div>
+
+                    <p class="form-hint">Selecciona el banco donde recibirás los pagos</p>
+                  </div>
+                  <!-- Tipo de cuenta -->
+                  <div class="form-field">
+                    <label for="tipo-cuenta" class="form-label">Tipo de cuenta</label>
+                    <div class="select-wrapper">
+                      <select id="tipo-cuenta" name="tipoCuenta" class="form-control"
+                        aria-describedby="tipo-cuenta-hint">
+                        <option value="">Selecciona</option>
+                        <option value="Ahorros">Ahorros</option>
+                        <option value="Corriente">Corriente</option>
+                        <option value="Nequi">Nequi</option>
+                        <option value="Daviplata">Daviplata</option>
+                        <option value="Tarjeta débito">Tarjeta débito</option>
+                        <option value="Otro">Otro</option>
+                      </select>
+                      <i class="fas fa-chevron-down select-arrow" aria-hidden="true"></i>
+                    </div>
+                    <p id="tipo-cuenta-hint" class="form-hint">Tipo de cuenta bancaria</p>
+                  </div>
+                  <!-- Número de cuenta -->
+                  <div class="form-field">
+                    <label for="numeroCuenta" class="form-label">Número de cuenta</label>
+                    <div class="password-wrapper">
+                      <input type="password" id="numeroCuenta" name="numeroCuenta" placeholder="********"
+                        class="form-control" aria-describedby="numero-cuenta-hint">
+                      <button type="button" id="toggleAccountNumber" class="btn-icon"
+                        aria-label="Mostrar/ocultar número de cuenta" aria-pressed="false">
+                        <i class="fas fa-eye" aria-hidden="true"></i>
+                      </button>
+                    </div>
+                    <p id="numero-cuenta-hint" class="form-hint">Número de cuenta o identificación asociado a la cuenta
+                    </p>
+                  </div>
+                  <!-- Confirmar número de cuenta -->
+                  <div class="form-field">
+                    <label for="numeroCuentaConfirm" class="form-label">Confirmar cuenta</label>
+                    <div class="password-wrapper">
+                      <input type="password" id="numeroCuentaConfirm" name="numeroCuentaConfirm"
+                        placeholder="Reingresa el número" class="form-control"
+                        aria-describedby="numero-cuenta-confirm-hint" autocomplete="off">
+                    </div>
+                    <p id="numero-cuenta-confirm-hint" class="form-hint">Reingresa el número para confirmar</p>
+                    <p id="numero-cuenta-error" class="form-hint"
+                      style="color:var(--danger);display:none;margin-top:0.25rem;">
+                      Los números de cuenta no coinciden
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <!-- Información del titular -->
+              <div class="form-field-group">
+                <h4 class="form-subtitle">Información del titular</h4>
+                <div class="form-row cols-4">
+                  <!-- Nombre del titular -->
+                  <div class="form-field">
+                    <label for="titular" class="form-label">Nombre completo</label>
+                    <input type="text" id="titular" name="titular" placeholder="Nombre del titular" class="form-control"
+                      aria-describedby="titular-hint">
+                    <p id="titular-hint" class="form-hint">Nombre tal como aparece en la cuenta</p>
+                  </div>
+                  <!-- Tipo de documento -->
+                  <div class="form-field">
+                    <label for="tipo-documento" class="form-label">Tipo de documento</label>
+                    <div class="select-wrapper">
+                      <select id="tipo-documento" name="tipoDocumento" class="form-control">
+                        <option value="">Selecciona</option>
+                        <option value="CC">Cédula</option>
+                        <option value="CE">Cédula de extranjería</option>
+                        <option value="NIT">NIT</option>
+                        <option value="PAS">Pasaporte</option>
+                      </select>
+                      <i class="fas fa-chevron-down select-arrow" aria-hidden="true"></i>
+                    </div>
+                  </div>
+                  <!-- Número de documento -->
+                  <div class="form-field">
+                    <label for="numero-documento" class="form-label">Número de documento</label>
+                    <input type="text" id="numero-documento" name="numeroDocumento" placeholder="Ej: 3004888442"
+                      class="form-control" aria-describedby="numero-documento-hint" inputmode="numeric">
+                    <p id="numero-documento-hint" class="form-hint">Sin puntos ni espacios</p>
+                  </div>
+                  <!-- Confirmar número de documento -->
+                  <div class="form-field">
+                    <label for="numero-documento-confirm" class="form-label">Confirmar documento</label>
+                    <input type="text" id="numero-documento-confirm" name="numeroDocumentoConfirm"
+                      placeholder="Reingresa tu número de documento" class="form-control"
+                      aria-describedby="numero-documento-confirm-hint" inputmode="numeric" autocomplete="off">
+                    <p id="numero-documento-confirm-hint" class="form-hint">Reingresa el mismo número para confirmar</p>
+                    <p id="numero-documento-error" class="form-hint"
+                      style="color:var(--danger);display:none;margin-top:0.25rem;">Los números no coinciden</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- Botón de envío -->
         <div class="form-actions">
           <button type="submit" class="btn btn-primary">
-            <i class="fas fa-save"></i> Guardar y solicitar
+            <i class="fas fa-save"></i> Guardar y solicitar verificación
           </button>
         </div>
       </form>
     </section>
   </main>
+
   <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
   <script src="/assets/js/registroExperto.js"></script>
 </body>

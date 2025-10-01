@@ -5,453 +5,44 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gestión de Expertos - Servitech Admin</title>
-  <!-- Cargar estilos base y luego los específicos del panel admin (orden importante) -->
-  <link rel="stylesheet" href="/assets/css/base.css" />
+  <link rel="stylesheet" href="/assets/css/administrador.css" />
   <link rel="stylesheet" href="/assets/css/admin.css" />
-  <!-- Estilos específicos del panel: componentes y experto -->
   <link rel="stylesheet" href="/assets/css/admin-components.css" />
-  <link rel="stylesheet" href="/assets/css/Admin-expertos.css" />
-  <!-- Choices.js styles for enhanced multi-selects -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
-  <!-- Responsive último para que sus media queries tengan prioridad sobre reglas de componentes/página -->
-  <link rel="stylesheet" href="/assets/css/admin-responsive.css" />
+  <link rel="stylesheet" href="/assets/css/admin-expertos.css" />
+  <!-- page-specific CSS -->
+  <link rel="stylesheet" href="/assets/css/admin-clientes.css" />
+  <!--<link rel="stylesheet" href="/assets/css/admin-responsive.css" />-->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 </head>
 
 <body>
-
-  <!--css Navbar, + filtros/estadísticas (responsive, limpio y sin duplicados)-->
-  <style>
-    /* ============================
-       Variables: usar las definidas en :root (no redefinir)
-       ============================ */
-
-    /* ============================
-       Layout principal de la sección de expertos
-       ============================ */
-    .expertos-grid {
-      display: grid;
-      grid-template-columns: 300px 1fr;
-      /* sidebar + contenido */
-      gap: 1.25rem;
-      align-items: start;
-    }
-
-    /* contenedores tipo tarjeta compartidas */
-    .expertos-card {
-      background: var(--admin-card-bg);
-      border: 1px solid var(--admin-border-color);
-      border-radius: 12px;
-      padding: 1rem;
-      color: var(--admin-text-primary);
-      box-shadow: var(--admin-shadow);
-      box-sizing: border-box;
-    }
-
-    /* ============================
-       FILTROS (sidebar)
-       ============================ */
-    .expertos-grid__filters {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      min-width: 220px;
-    }
-
-    .expertos-filtros__title {
-      margin: 0;
-      font-size: 1rem;
-      font-weight: 600;
-      color: var(--admin-text-primary);
-      padding-bottom: 0.45rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-    }
-
-    .expertos-filtros {
-      display: grid;
-      gap: 0.75rem;
-    }
-
-    .expertos-filtros__group {
-      display: flex;
-      flex-direction: column;
-      gap: 0.35rem;
-    }
-
-    .expertos-filtros__label {
-      margin: 0;
-      font-size: 0.86rem;
-      color: var(--admin-text-secondary);
-    }
-
-    /* Select estilizado reutilizable */
-    .expertos-filtros__select {
-      width: 100%;
-      padding: 0.5rem 0.75rem;
-      background: transparent;
-      border: 1px solid var(--admin-border-color);
-      color: var(--admin-text-primary);
-      border-radius: 8px;
-      font-size: 0.95rem;
-      outline: none;
-      appearance: none;
-      background-image:
-        linear-gradient(45deg, transparent 50%, var(--admin-text-secondary) 50%),
-        linear-gradient(135deg, var(--admin-text-secondary) 50%, transparent 50%);
-      background-position: calc(100% - 18px) calc(1em + 2px), calc(100% - 13px) calc(1em + 2px);
-      background-size: 6px 6px, 6px 6px;
-      background-repeat: no-repeat;
-      padding-right: 2.25rem;
-    }
-
-    .expertos-filtros__select:focus {
-      border-color: var(--admin-accent-color);
-      box-shadow: 0 6px 18px rgba(58, 142, 255, 0.08);
-    }
-
-    /* Botón primario de filtros */
-    .expertos-filtros__btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      justify-content: center;
-      padding: 0.55rem 0.85rem;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      border: none;
-      background: linear-gradient(180deg, var(--admin-accent-color), var(--admin-accent-secondary));
-      color: #071426;
-      box-shadow: 0 6px 18px rgba(58, 142, 255, 0.06);
-      transition: transform 120ms ease, filter 120ms ease;
-    }
-
-    .expertos-filtros__btn:hover {
-      transform: translateY(-2px);
-      filter: brightness(1.03);
-    }
-
-    /* pequeñas ayudas de texto */
-    .expertos-filtros small {
-      color: var(--admin-text-secondary);
-      font-size: 0.82rem;
-    }
-
-    /* ============================
-       ESTADÍSTICAS (reutilizable dentro del sidebar)
-       ============================ */
-    .expertos-estadisticas {
-      display: grid;
-      gap: 0.6rem;
-      margin-top: 0.25rem;
-    }
-
-    .expertos-estadisticas__title {
-      margin: 0;
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: var(--admin-text-primary);
-      padding-bottom: 0.45rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-    }
-
-    .expertos-estadisticas__list {
-      display: grid;
-      gap: 0.6rem;
-      grid-template-columns: 1fr;
-      margin-top: 0.5rem;
-    }
-
-    .expertos-estadisticas__item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.75rem;
-      padding: 0.6rem;
-      border-radius: 8px;
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.01), transparent);
-      border: 1px solid rgba(255, 255, 255, 0.02);
-      color: var(--admin-text-secondary);
-      font-size: 0.92rem;
-    }
-
-    .expertos-estadisticas__item-info {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    .expertos-estadisticas__icon {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 36px;
-      height: 36px;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.02);
-      color: var(--admin-accent-color);
-      font-size: 1rem;
-    }
-
-    .expertos-estadisticas__value {
-      font-weight: 700;
-      color: var(--admin-text-primary);
-      margin-left: 0.5rem;
-    }
-
-    /* ============================
-       TABLA (contenido principal)
-       ============================ */
-    .expertos-grid__tabla {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    /* contenedor scroll para tablas largas en pantallas pequeñas */
-    .expertos-table-wrapper {
-      overflow: auto;
-      border-radius: 10px;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    table.admin-table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 760px;
-      /* permite scroll horizontal razonable */
-      color: var(--admin-text-primary);
-    }
-
-    table.admin-table thead th {
-      text-align: left;
-      font-weight: 600;
-      padding: 0.75rem 0.9rem;
-      font-size: 0.88rem;
-      color: var(--admin-text-secondary);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-      background: transparent;
-    }
-
-    table.admin-table tbody td {
-      padding: 0.75rem 0.9rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.02);
-      vertical-align: middle;
-      font-size: 0.92rem;
-      color: var(--admin-text-primary);
-    }
-
-    /* estado / badges */
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.28rem 0.5rem;
-      border-radius: 999px;
-      font-weight: 600;
-      font-size: 0.85rem;
-    }
-
-    .badge--active {
-      background: rgba(58, 142, 255, 0.1);
-      color: var(--admin-accent-color);
-    }
-
-    .badge--inactive {
-      background: rgba(255, 255, 255, 0.02);
-      color: var(--admin-text-secondary);
-    }
-
-    .badge--pending {
-      background: rgba(255, 200, 0, 0.08);
-      color: #ffd66b;
-    }
-
-    /* acciones */
-    .expertos-actions {
-      display: flex;
-      gap: 0.5rem;
-      justify-content: flex-end;
-    }
-
-    /* ============================
-       PAGINACIÓN
-       ============================ */
-    .expertos-paginacion {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-      padding-top: 0.25rem;
-    }
-
-    .expertos-paginacion__controles {
-      display: flex;
-      gap: 0.4rem;
-      align-items: center;
-    }
-
-    .expertos-paginacion__btn {
-      background: transparent;
-      border: 1px solid var(--admin-border-color);
-      color: var(--admin-text-primary);
-      padding: 0.45rem 0.6rem;
-      border-radius: 8px;
-      cursor: pointer;
-      min-width: 38px;
-    }
-
-    .expertos-paginacion__btn--active {
-      background: linear-gradient(180deg, var(--admin-accent-color), var(--admin-accent-secondary));
-      color: #071426;
-      border: none;
-    }
-
-    .expertos-paginacion__btn--disabled {
-      opacity: 0.45;
-      cursor: default;
-    }
-
-    .expertos-paginacion__info {
-      color: var(--admin-text-secondary);
-      font-size: 0.9rem;
-    }
-
-    /* ============================
-       ACCESIBILIDAD Y PEQUEÑAS MEJORAS
-       ============================ */
-    .expertos-card * {
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-
-    /* focus visible para accesibilidad */
-    .expertos-filtros__select:focus,
-    .expertos-paginacion__btn:focus,
-    .expertos-filtros__btn:focus {
-      outline: 3px solid rgba(58, 142, 255, 0.12);
-      outline-offset: 2px;
-    }
-
-    /* ============================
-       RESPONSIVE: adaptaciones por ancho
-       ============================ */
-    @media (max-width: 1100px) {
-      .expertos-grid {
-        grid-template-columns: 260px 1fr;
-      }
-
-      .expertos-grid__filters {
-        min-width: 220px;
-        padding: 0.9rem;
-      }
-    }
-
-    @media (max-width: 820px) {
-
-      /* pasar sidebar arriba y permitir scroll vertical natural */
-      .expertos-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .expertos-grid__filters {
-        order: -1;
-        /* mostrar antes del contenido */
-        width: 100%;
-        display: grid;
-        grid-auto-flow: row;
-        gap: 0.6rem;
-      }
-
-      .expertos-filtros {
-        grid-template-columns: 1fr 1fr;
-        gap: 0.5rem;
-      }
-
-      .expertos-filtros__btn {
-        grid-column: 1 / -1;
-      }
-
-      /* estadísticas: dos columnas en pantallas medianas */
-      .expertos-estadisticas__list {
-        grid-template-columns: 1fr 1fr;
-      }
-
-      table.admin-table {
-        min-width: 640px;
-      }
-    }
-
-    @media (max-width: 520px) {
-      .expertos-filtros {
-        grid-template-columns: 1fr;
-      }
-
-      .expertos-estadisticas__list {
-        grid-template-columns: 1fr;
-      }
-
-      .expertos-filtros__title,
-      .expertos-estadisticas__title {
-        font-size: 0.96rem;
-      }
-
-      table.admin-table {
-        min-width: 480px;
-        font-size: 0.92rem;
-      }
-
-      .expertos-paginacion {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 0.5rem;
-      }
-
-      .expertos-paginacion__controles {
-        justify-content: center;
-      }
-    }
-  </style>
-
   <!-- Navbar -->
   <div class="admin-layout">
     <%- include('../componentes/navbarAdmin.ejs') %>
-
-      <script id="initial-expertos" type="application/json"><%- JSON.stringify(initialExpertos || []) %></script>
-      <script id="categorias-data" type="application/json"><%- JSON.stringify(categorias || []) %></script>
-
       <main class="admin-main">
-        <!-- Contenido principal -->
         <header class="admin-header">
-          <div class="admin-content-wrapper">
-            <div class="header-search">
-              <i class="fas fa-search"></i>
-              <input type="text" placeholder="Buscar expertos..." />
+          <div class="header-search">
+            <i class="fas fa-search"></i>
+            <input type="text" id="inputBuscarUsuario" placeholder="Buscar expertos..." />
+          </div>
+          <div class="header-actions">
+            <div class="notification-icon">
+              <i class="fas fa-bell"></i>
+              <span class="notification-badge">5</span>
             </div>
-            <div class="header-actions">
-              <div class="notification-icon">
-                <i class="fas fa-bell"></i>
-                <span class="notification-badge">5</span>
+            <div class="admin-profile">
+              <img src="https://i.pravatar.cc/150?img=11" alt="Admin profile" class="profile-img" />
+              <div class="profile-info">
+                <span class="profile-name">Admin ServiTech</span>
+                <span class="profile-role">Administrador</span>
               </div>
-              <div class="admin-profile">
-                <img src="https://i.pravatar.cc/150?img=11" alt="Admin profile" class="profile-img" />
-                <div class="profile-info">
-                  <span class="profile-name">Admin ServiTech</span>
-                  <span class="profile-role">Administrador</span>
-                </div>
-                <i class="fas fa-chevron-down"></i>
-              </div>
+              <i class="fas fa-chevron-down"></i>
             </div>
-
-            <!-- Autofill mitigation moved to /assets/js/admin/admin-expertos.js -->
-            <!-- Autofill mitigation moved to /assets/js/admin/admin-expertos.js -->
           </div>
         </header>
 
         <div class="admin-content">
-
-          <!-- Título y acciones principales -->
           <div class="page-header">
             <h1>Gestión de Expertos</h1>
             <div class="page-actions">
@@ -466,816 +57,122 @@
             </div>
           </div>
 
-          <script>
-            // Early mitigation for autofill/placeholder issues inside the view expert modal.
-            (function () {
-              try {
-                var m = document.getElementById('verPerfilExperto');
-                if (!m) return;
-                var email = m.querySelector && m.querySelector('#email');
-                if (!email) return;
-                try {
-                  email.value = '';
-                  email.setAttribute('autocomplete', 'off');
-                  email.setAttribute('autocorrect', 'off');
-                  email.setAttribute('autocapitalize', 'off');
-                  email.setAttribute('spellcheck', 'false');
-                  email.readOnly = true;
-                  var sec = getComputedStyle(document.documentElement).getPropertyValue('--admin-text-secondary') || '#8892a6';
-                  try { email.style.setProperty('color', sec, 'important'); } catch (e) { }
-                  try { email.style.setProperty('-webkit-text-fill-color', sec, 'important'); } catch (e) { }
-                  setTimeout(function () { try { email.readOnly = false; } catch (e) { } }, 80);
-                } catch (e) { }
-              } catch (e) { }
-            })();
-          </script>
-
-          <!-- Modernized filtros, estadísticas, tabla y paginación -->
           <div class="expertos-grid">
-            <aside class="expertos-card expertos-grid__filters" aria-label="Filtros y estadísticas">
-              <div class="expertos-filtros">
-                <h3 class="expertos-filtros__title">Filtros</h3>
+            <div class="table-container admin-table--expertos-container">
+              <table class="admin-table admin-table--expertos">
+                <thead>
+                  <tr>
+                    <th>Expertos</th>
+                    <th>Categorías</th>
+                    <th>Registro</th>
+                    <th>Sesiones</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <div class="experto-card">
+                        <img src="https://i.pravatar.cc/150?img=32" alt="Diana" class="experto-avatar" />
+                        <div class="experto-info">
+                          <div class="experto-name">Diana Jiménez</div>
+                          <div class="experto-email">diarajimereojimenez10152310@gmail.com</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="sin-categorias">Sin categorías</span>
+                    </td>
+                    <td>
+                      <span class="fecha-registro">-</span>
+                    </td>
+                    <td>
+                      <span class="sesiones-count">0</span>
+                    </td>
+                    <td>
+                      <span class="estado-badge estado-activo">
+                        <i class="fas fa-circle"></i>
+                        activo
+                      </span>
+                    </td>
+                    <td>
+                      <div class="experto-acciones">
+                        <button class="accion-btn">
+                          <i class="fas fa-eye"></i>
+                          Ver
+                        </button>
+                        <button class="accion-btn accion-btn--editar">
+                          <i class="fas fa-edit"></i>
+                          Editar
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="experto-card">
+                        <img src="https://i.pravatar.cc/150?img=45" alt="Pedro" class="experto-avatar" />
+                        <div class="experto-info">
+                          <div class="experto-name">Pedro pruebas</div>
+                          <div class="experto-email">experto@correo.com</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="sin-categorias">Sin categorías</span>
+                    </td>
+                    <td>
+                      <span class="fecha-registro">-</span>
+                    </td>
+                    <td>
+                      <span class="sesiones-count">0</span>
+                    </td>
+                    <td>
+                      <span class="estado-badge estado-activo">
+                        <i class="fas fa-circle"></i>
+                        activo
+                      </span>
+                    </td>
+                    <td>
+                      <div class="experto-acciones">
+                        <button class="accion-btn">
+                          <i class="fas fa-eye"></i>
+                          Ver
+                        </button>
+                        <button class="accion-btn accion-btn--editar">
+                          <i class="fas fa-edit"></i>
+                          Editar
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
 
-                <div class="expertos-filtros__group">
-                  <label class="expertos-filtros__label" for="filterEstado">Estado</label>
-                  <select class="expertos-filtros__select" id="filterEstado">
-                    <option value="">Todos los estados</option>
-                    <option value="active">Activos</option>
-                    <option value="pending">Pendientes</option>
-                    <option value="inactive">Inactivos</option>
-                  </select>
-                </div>
-
-                <div class="expertos-filtros__group">
-                  <label class="expertos-filtros__label" for="filterCategoria">Categoría</label>
-                  <select class="expertos-filtros__select" id="filterCategoria">
-                    <option value="">Todas las categorías</option>
-                    <% if (typeof categorias !=='undefined' && Array.isArray(categorias)) { %>
-                      <% categorias.forEach(function(c){ %>
-                        <option value="<%= c._id %>">
-                          <%= c.nombre || c.name %>
-                        </option>
-                        <% }) %>
-                          <% } %>
-                  </select>
-                </div>
-
-                <button class="btn-primary expertos-filtros__btn" id="applyFiltersBtn">
-                  <i class="fas fa-filter" aria-hidden="true"></i>
-                  <span>Aplicar filtros</span>
-                </button>
-              </div>
-
-              <div class="expertos-estadisticas" aria-hidden="false">
-                <h3 class="expertos-estadisticas__title">Estadísticas</h3>
-                <div class="expertos-estadisticas__list">
-                  <div class="expertos-estadisticas__item">
-                    <div class="expertos-estadisticas__item-info">
-                      <i class="fas fa-user-tie expertos-estadisticas__icon" aria-hidden="true"></i>
-                      <span>Total Expertos</span>
-                    </div>
-                    <div class="expertos-estadisticas__value">128</div>
-                  </div>
-
-                  <div class="expertos-estadisticas__item">
-                    <div class="expertos-estadisticas__item-info">
-                      <i class="fas fa-check-circle expertos-estadisticas__icon" aria-hidden="true"></i>
-                      <span>Activos</span>
-                    </div>
-                    <div class="expertos-estadisticas__value">98</div>
-                  </div>
-
-                  <div class="expertos-estadisticas__item">
-                    <div class="expertos-estadisticas__item-info">
-                      <i class="fas fa-clock expertos-estadisticas__icon" aria-hidden="true"></i>
-                      <span>Pendientes</span>
-                    </div>
-                    <div class="expertos-estadisticas__value">22</div>
-                  </div>
-
-                  <div class="expertos-estadisticas__item">
-                    <div class="expertos-estadisticas__item-info">
-                      <i class="fas fa-star expertos-estadisticas__icon" aria-hidden="true"></i>
-                      <span>Promedio</span>
-                    </div>
-                    <div class="expertos-estadisticas__value">4.7</div>
-                  </div>
-                </div>
-              </div>
-            </aside>
-
-            <section class="expertos-card expertos-grid__tabla" aria-label="Tabla de expertos">
-              <div class="expertos-table-wrapper">
-                <table class="admin-table" role="table" aria-label="Lista de expertos">
-                  <thead>
-                    <tr>
-                      <th style="width:40px;">
-                        <input type="checkbox" id="selectAll" class="expertos-checkbox" />
-                      </th>
-                      <th>Experto</th>
-                      <th>Categorías</th>
-                      <th>Registro</th>
-                      <th>Sesiones</th>
-                      <th>Estado</th>
-                      <th style="width:160px;">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr class="placeholder-row">
-                      <td colspan="7" style="text-align:center;padding:24px;color:var(--admin-text-secondary);">
-                        Cargando expertos...
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              <!-- Paginación (ubicada directamente bajo la tabla) -->
-              <div class="expertos-paginacion" role="navigation" aria-label="Paginación de expertos">
-                <span class="expertos-paginacion__info">Mostrando 1-7 de 128 expertos</span>
-                <div class="expertos-paginacion__controles" aria-hidden="false">
-                  <button class="expertos-paginacion__btn expertos-paginacion__btn--disabled" aria-disabled="true">
-                    <i class="fas fa-chevron-left" aria-hidden="true"></i>
+              <div class="admin-pagination">
+                <span class="admin-pagination__info">Mostrando 1-2 de 2 expertos</span>
+                <div class="admin-pagination__controles">
+                  <button class="admin-pagination__btn admin-pagination__btn--disabled">
+                    <i class="fas fa-chevron-left"></i>
                   </button>
-                  <button class="expertos-paginacion__btn expertos-paginacion__btn--active"
-                    aria-current="page">1</button>
-                  <button class="expertos-paginacion__btn">2</button>
-                  <button class="expertos-paginacion__btn">3</button>
-                  <span class="expertos-paginacion__ellipsis">…</span>
-                  <button class="expertos-paginacion__btn">18</button>
-                  <button class="expertos-paginacion__btn">
-                    <i class="fas fa-chevron-right" aria-hidden="true"></i>
+                  <button class="admin-pagination__btn admin-pagination__btn--active">1</button>
+                  <button class="admin-pagination__btn">
+                    <i class="fas fa-chevron-right"></i>
                   </button>
                 </div>
               </div>
-            </section>
+            </div>
           </div>
         </div>
       </main>
   </div>
 
-  <!--css para agregar expertos-->
-  <style>
-    /* ===== Variables globales proporcionadas ===== */
-    :root {
-      --admin-bg: #0e1525;
-      --admin-card-bg: #1c2333;
-      --admin-border-color: #2b3245;
-      --admin-hover-bg: #252e43;
-      --admin-accent-color: #3a8eff;
-      --admin-accent-secondary: #12d8fa;
-      --admin-text-primary: #f5f5f5;
-      --admin-text-secondary: #a0a0a0;
-      --admin-shadow: 0 4px 12px #00000040;
-    }
 
-    /* ===== Variables locales del modal ===== */
-    :root {
-      --ae-modal-max-width: 920px;
-      --ae-modal-radius: 12px;
-      --ae-modal-padding: 1rem 1.25rem;
-      --ae-modal-z: 1200;
-      --ae-backdrop: rgba(4, 8, 16, 0.62);
-      --ae-transition: 160ms cubic-bezier(.2, .9, .2, 1);
-    }
 
-    /* ===== Reset y base ===== */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      line-height: 1.5;
-      background-color: var(--admin-bg);
-      color: var(--admin-text-primary);
-      padding: 1rem;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    /* ===== Estructura del modal ===== */
-    .modal-expert {
-      display: none;
-      position: fixed;
-      inset: 0;
-      z-index: var(--ae-modal-z);
-      background: var(--ae-backdrop);
-      align-items: center;
-      justify-content: center;
-      padding: 1.25rem;
-    }
-
-    .modal-expert.is-open {
-      display: flex;
-      animation: ae-fade-in 220ms ease both;
-    }
-
-    @keyframes ae-fade-in {
-      from {
-        opacity: 0;
-        transform: translateY(6px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .modal-expert__container {
-      width: 100%;
-      max-width: var(--ae-modal-max-width);
-      border-radius: var(--ae-modal-radius);
-      overflow: hidden;
-      box-shadow: var(--admin-shadow);
-      border: 1px solid var(--admin-border-color);
-      background: var(--admin-card-bg);
-      color: var(--admin-text-primary);
-      max-height: 95vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* ===== Header del modal ===== */
-    .modal-expert__header {
-      padding: var(--ae-modal-padding);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--admin-border-color);
-      background: var(--admin-card-bg);
-    }
-
-    .modal-expert__title {
-      margin: 0;
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: var(--admin-text-primary);
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .btn-close {
-      background: transparent;
-      border: none;
-      color: var(--admin-text-secondary);
-      font-size: 1.1rem;
-      padding: 0.5rem;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all var(--ae-transition);
-    }
-
-    .btn-close:hover {
-      background: var(--admin-hover-bg);
-      color: var(--admin-text-primary);
-    }
-
-    /* ===== Cuerpo del modal ===== */
-    .modal-expert__body {
-      padding: var(--ae-modal-padding);
-      overflow-y: auto;
-      flex: 1;
-    }
-
-    .modal-expert__grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 1.5rem;
-    }
-
-    .full-width {
-      grid-column: 1 / -1;
-    }
-
-    /* ===== Grupos de formulario ===== */
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .form-section {
-      margin-bottom: 2rem;
-      padding-bottom: 1.5rem;
-      border-bottom: 1px solid var(--admin-border-color);
-    }
-
-    .form-section:last-of-type {
-      border-bottom: none;
-      margin-bottom: 0;
-    }
-
-    /* ===== Elementos de formulario ===== */
-    .modal-expert__label {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-weight: 600;
-      font-size: 0.95rem;
-      color: var(--admin-text-primary);
-    }
-
-    .modal-expert__icon {
-      width: 16px;
-      color: var(--admin-accent-color);
-    }
-
-    .modal-expert__input,
-    .modal-expert__select,
-    .modal-expert__textarea {
-      width: 100%;
-      padding: 0.75rem;
-      border: 1px solid var(--admin-border-color);
-      border-radius: 8px;
-      background: var(--admin-card-bg);
-      color: var(--admin-text-primary);
-      font-size: 0.95rem;
-      transition: all var(--ae-transition);
-    }
-
-    .modal-expert__input:focus,
-    .modal-expert__select:focus,
-    .modal-expert__textarea:focus {
-      outline: none;
-      border-color: var(--admin-accent-color);
-      box-shadow: 0 0 0 3px rgba(58, 142, 255, 0.1);
-    }
-
-    /* Visual para campos inválidos (aplicado por JS con la clase input-error o aria-invalid)
-       Usado para el campo Nombre cuando queda vacío o contiene caracteres no permitidos */
-    .input-error,
-    input[aria-invalid="true"],
-    textarea[aria-invalid="true"] {
-      border-color: #e53e3e !important;
-      box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.08) !important;
-    }
-
-    .modal-expert__textarea {
-      min-height: 100px;
-      resize: vertical;
-    }
-
-    .modal-expert__hint {
-      font-size: 0.85rem;
-      color: var(--admin-text-secondary);
-    }
-
-    /* ===== Componentes específicos ===== */
-
-    /* Precio con símbolo de moneda */
-    .price-input-wrapper {
-      position: relative;
-    }
-
-    .price-symbol {
-      position: absolute;
-      left: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--admin-text-secondary);
-    }
-
-    .price-input {
-      padding-left: 24px;
-    }
-
-    /* Selector de días */
-    .days-selector {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .days-buttons {
-      display: flex;
-      gap: 0.35rem;
-      flex-wrap: wrap;
-    }
-
-    .day-button {
-      flex: 1;
-      min-width: 40px;
-      padding: 0.5rem;
-      border: 1px solid var(--admin-border-color);
-      background: var(--admin-card-bg);
-      color: var(--admin-text-primary);
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all var(--ae-transition);
-      text-align: center;
-    }
-
-    .day-button.active {
-      background: var(--admin-accent-color);
-      color: var(--admin-card-bg);
-      border-color: var(--admin-accent-color);
-    }
-
-    .days-display {
-      padding: 0.75rem;
-      background: var(--admin-hover-bg);
-      border-radius: 6px;
-      font-size: 0.9rem;
-      min-height: 44px;
-      display: flex;
-      align-items: center;
-    }
-
-    /* Select con iconos */
-    .select-with-icons {
-      position: relative;
-    }
-
-    .select-with-icons .icon-left {
-      position: absolute;
-      left: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--admin-text-secondary);
-      pointer-events: none;
-    }
-
-    .select-with-icons .icon-right {
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--admin-text-secondary);
-      pointer-events: none;
-      /* dejar que el click pase al select */
-    }
-
-    .select-with-icons select {
-      padding-left: 36px;
-      padding-right: 36px;
-      /* ocultar la flecha nativa para evitar el doble indicador */
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      appearance: none;
-      background: transparent;
-      background-repeat: no-repeat;
-      background-position: right 12px center;
-    }
-
-    /* Asegurar que el select y sus opciones respeten el tema oscuro */
-    .select-with-icons select {
-      color: var(--admin-text-primary);
-      background-color: transparent;
-      /* el contenedor ya pinta el fondo */
-      -webkit-text-fill-color: var(--admin-text-primary);
-    }
-
-    .select-with-icons select option {
-      /* Muchos navegadores (Firefox/Chrome) respetan estos valores; en otros
-         puede que dependa del sistema, pero normalmente mejora legibilidad */
-      background-color: var(--admin-card-bg);
-      color: var(--admin-text-primary);
-    }
-
-    /* Compatibilidad Windows/IE: ocultar flecha nativa extra */
-    .select-with-icons select::-ms-expand {
-      display: none;
-    }
-
-    /* Mejorar contraste dentro del desplegable: elementos hover/selected */
-    .select-with-icons select option:hover,
-    .select-with-icons select option:checked,
-    .select-with-icons select option:active {
-      background-color: rgba(20, 28, 40, 0.98);
-      /* tono ligeramente más oscuro */
-      color: var(--admin-text-primary);
-    }
-
-    /* Reforzar el color del área desplegada en WebKit/Chromium cuando está abierto */
-    .select-with-icons select:focus,
-    .select-with-icons select:active {
-      background-color: var(--admin-card-bg);
-      color: var(--admin-text-primary);
-    }
-
-    /* Custom select styles */
-    .custom-select {
-      position: relative;
-      width: 100%;
-      font-size: 0.95rem;
-    }
-
-    .custom-select__trigger {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.5rem;
-      padding: 0.75rem;
-      border-radius: 8px;
-      border: 1px solid var(--admin-border-color);
-      background: var(--admin-card-bg);
-      color: var(--admin-text-primary);
-      cursor: pointer;
-    }
-
-    .custom-select__options {
-      position: absolute;
-      left: 0;
-      right: 0;
-      margin-top: 8px;
-      list-style: none;
-      padding: 0.25rem;
-      border-radius: 8px;
-      border: 1px solid var(--admin-border-color);
-      background: linear-gradient(180deg, var(--admin-card-bg), var(--admin-hover-bg));
-      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.5);
-      display: none;
-      z-index: 2000;
-      max-height: 220px;
-      overflow: auto;
-    }
-
-    .custom-select__options li {
-      padding: 0.6rem 0.75rem;
-      cursor: pointer;
-      color: var(--admin-text-primary);
-      border-radius: 6px;
-    }
-
-    .custom-select__options li[aria-selected="true"],
-    .custom-select__options li:hover {
-      background: rgba(58, 142, 255, 0.08);
-      color: var(--admin-text-primary);
-    }
-
-    .custom-select.open .custom-select__options {
-      display: block;
-    }
-
-    /* Upload de imagen */
-    .upload-wrapper {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      flex-wrap: wrap;
-    }
-
-    .upload-box {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.75rem 1rem;
-      border: 1px dashed var(--admin-border-color);
-      border-radius: 8px;
-      color: var(--admin-text-secondary);
-      background: var(--admin-card-bg);
-      cursor: pointer;
-      transition: all var(--ae-transition);
-      position: relative;
-      /* permite posicionar el input absoluto dentro del label */
-    }
-
-    .upload-box:hover {
-      border-color: var(--admin-accent-color);
-      color: var(--admin-text-primary);
-    }
-
-    .file-input {
-      /* No usar display:none: el input debe estar presente para que el label lo dispare.
-         Lo mantenemos invisible pero interactivo llenando la caja del label. */
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      margin: 0;
-      padding: 0;
-      opacity: 0;
-      cursor: pointer;
-      z-index: 2;
-    }
-
-    .preview-container {
-      position: relative;
-      display: none;
-    }
-
-    .preview-image {
-      width: 64px;
-      height: 64px;
-      border-radius: 8px;
-      object-fit: cover;
-      border: 1px solid var(--admin-border-color);
-    }
-
-    .remove-preview {
-      position: absolute;
-      top: -6px;
-      right: -6px;
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      border: none;
-      background: rgba(0, 0, 0, 0.7);
-      color: white;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.8rem;
-    }
-
-    /* Sección de datos bancarios */
-    .bank-section {
-      padding: 1.5rem;
-      border-radius: 10px;
-      border: 1px solid var(--admin-border-color);
-      background: var(--admin-hover-bg);
-    }
-
-    .bank-title {
-      margin: 0 0 0.5rem 0;
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: var(--admin-text-primary);
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .bank-subtitle {
-      margin: 0 0 1.5rem 0;
-      color: var(--admin-text-secondary);
-      font-size: 0.9rem;
-    }
-
-    .bank-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-
-    /* Campo de número de cuenta con toggle */
-    .account-input-wrapper {
-      display: flex;
-    }
-
-    .account-input {
-      flex: 1;
-      border-radius: 8px 0 0 8px;
-      border-right: none;
-    }
-
-    .toggle-password {
-      flex: 0 0 44px;
-      border: 1px solid var(--admin-border-color);
-      border-left: none;
-      border-radius: 0 8px 8px 0;
-      background: var(--admin-card-bg);
-      color: var(--admin-text-secondary);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    /* Campos de teléfono */
-    .phone-fields {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.75rem;
-    }
-
-    /* Caja de información */
-    .info-box {
-      padding: 1rem;
-      border-radius: 8px;
-      background: rgba(58, 142, 255, 0.05);
-      border: 1px solid rgba(58, 142, 255, 0.1);
-    }
-
-    .info-header {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 0.75rem;
-      color: var(--admin-accent-color);
-      font-weight: 600;
-    }
-
-    .info-list {
-      margin: 0;
-      padding-left: 0;
-      list-style: none;
-    }
-
-    .info-list li {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 0.5rem;
-      color: var(--admin-text-secondary);
-      font-size: 0.9rem;
-    }
-
-    .info-list li i {
-      color: var(--admin-accent-color);
-    }
-
-    /* ===== Footer del modal ===== */
-    .modal-expert__footer {
-      padding: 1rem 1.25rem;
-      display: flex;
-      gap: 0.75rem;
-      justify-content: flex-end;
-      border-top: 1px solid var(--admin-border-color);
-      background: var(--admin-card-bg);
-    }
-
-    .btn {
-      padding: 0.6rem 1.25rem;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 0.95rem;
-      cursor: pointer;
-      transition: all var(--ae-transition);
-      border: none;
-    }
-
-    .btn-outline {
-      background: transparent;
-      color: var(--admin-text-primary);
-      border: 1px solid var(--admin-border-color);
-    }
-
-    .btn-outline:hover {
-      background: var(--admin-hover-bg);
-    }
-
-    .btn-primary {
-      background: var(--admin-accent-color);
-      color: white;
-    }
-
-    .btn-primary:hover {
-      background: #2d7de8;
-      transform: translateY(-1px);
-    }
-
-    /* ===== Responsive ===== */
-    @media (max-width: 768px) {
-      .modal-expert__grid {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-      }
-
-      .bank-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .phone-fields {
-        grid-template-columns: 1fr;
-      }
-
-      .upload-wrapper {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
-      .modal-expert__footer {
-        flex-direction: column-reverse;
-      }
-
-      .btn {
-        width: 100%;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .modal-expert {
-        padding: 0.5rem;
-      }
-
-      .modal-expert__body {
-        padding: 1rem;
-      }
-
-      .bank-section {
-        padding: 1rem;
-      }
-
-      .days-buttons {
-        gap: 0.25rem;
-      }
-
-      .day-button {
-        min-width: 36px;
-        padding: 0.4rem;
-      }
-    }
-  </style>
+  <!-- Script: toggle filtros expertos -->
+  <script src="/assets/js/admin/admin-expertos-filters.js"></script>
+  <script src="/assets/js/admin/admin-expertos-accessibility.js"></script>
 
   <!-- Modal para agregar nuevo experto -->
   <div id="expertModal" class="modal-expert">
@@ -2312,8 +1209,34 @@
     </div>
   </div>
 
-  <script src="/assets/js/admin/admin-common.js"></script>
+  <script>
+    // Early mitigation for autofill/placeholder issues inside the view expert modal.
+    (function () {
+      try {
+        var m = document.getElementById('verPerfilExperto');
+        if (!m) return;
+        var email = m.querySelector && m.querySelector('#email');
+        if (!email) return;
+        try {
+          email.value = '';
+          email.setAttribute('autocomplete', 'off');
+          email.setAttribute('autocorrect', 'off');
+          email.setAttribute('autocapitalize', 'off');
+          email.setAttribute('spellcheck', 'false');
+          email.readOnly = true;
+          var sec = getComputedStyle(document.documentElement).getPropertyValue('--admin-text-secondary') || '#8892a6';
+          try { email.style.setProperty('color', sec, 'important'); } catch (e) { }
+          try { email.style.setProperty('-webkit-text-fill-color', sec, 'important'); } catch (e) { }
+          setTimeout(function () { try { email.readOnly = false; } catch (e) { } }, 80);
+        } catch (e) { }
+      } catch (e) { }
+    })();
+  </script>
 
+  <script id="initial-expertos" type="application/json"><%- JSON.stringify(initialExpertos || []) %></script>
+  <script id="categorias-data" type="application/json"><%- JSON.stringify(categorias || []) %></script>
+
+  <script src="/assets/js/admin/admin-common.js"></script>
   <script src="/assets/js/admin/admin-expertos.js"></script>
   <script src="/assets/js/admin/admin-expertos.bootstrap.js"></script>
 

@@ -7,9 +7,10 @@
   <title>Gestión de Categorías - Servitech Admin</title>
   <link rel="stylesheet" href="/assets/css/administrador.css" />
   <link rel="stylesheet" href="/assets/css/admin.css" />
-  <link rel="stylesheet" href="/assets/css/admin-responsive.css" />
+  <!--<link rel="stylesheet" href="/assets/css/admin-responsive.css" />-->
   <link rel="stylesheet" href="/assets/css/admin-components.css" />
   <!-- page-specific CSS -->
+  <link rel="stylesheet" href="/assets/css/admin-clientes.css" />
   <link rel="stylesheet" href="/assets/css/admin-categoria.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -61,126 +62,54 @@
             </div>
           </div>
 
-          <div class="categorias-grid">
-            <div class="table-container categorias-grid__filters">
-              <!-- Filtros -->
-              <div class="categorias-filtros">
-                <h3 class="categorias-filtros__title">Filtros</h3>
-                <div class="categorias-filtros__group">
-                  <label class="categorias-filtros__label">Estado</label>
-                  <select class="categorias-filtros__select">
-                    <option value="">Todos los estados</option>
-                    <option value="active">Activas</option>
-                    <option value="inactive">Inactivas</option>
-                  </select>
-                </div>
-                <div class="categorias-filtros__group">
-                  <label class="categorias-filtros__label">Categoría padre</label>
-                  <select class="categorias-filtros__select">
-                    <!-- Opciones cargadas dinámicamente por JS -->
-                  </select>
-                </div>
-                <div class="categorias-filtros__group">
-                  <label class="categorias-filtros__label">Uso</label>
-                  <select class="categorias-filtros__select">
-                    <option value="">Todos</option>
-                    <option value="high">Alto uso</option>
-                    <option value="medium">Uso medio</option>
-                    <option value="low">Bajo uso</option>
-                  </select>
-                </div>
-                <button class="btn-primary categorias-filtros__btn categorias-filtros__btn--center">
-                  <i class="fas fa-filter"></i>
-                  <span>Aplicar filtros</span>
+          <!-- Tabla de categorías -->
+          <div class="table-container categorias-grid__tabla"> <!-- Contenedor de la tabla principal de categorías -->
+            <table class="admin-table categorias-table"> <!-- Tabla con listado de categorías -->
+              <thead> <!-- Encabezado de la tabla -->
+                <tr> <!-- Fila del encabezado -->
+                  <th>
+                    <input type="checkbox" id="selectAll" class="categorias-checkbox" />
+                    <!-- Checkbox para seleccionar todas las filas -->
+                  </th>
+                  <th>Categoría</th> <!-- Columna: Nombre de la categoría -->
+                  <th>Slug</th> <!-- Columna: Slug/URL amigable -->
+                  <th>Categoría Padre</th> <!-- Columna: Categoría padre -->
+                  <th>Publicaciones</th> <!-- Columna: Número de publicaciones -->
+                  <th>Expertos</th> <!-- Columna: Número de expertos -->
+                  <th>Estado</th> <!-- Columna: Estado (Activa/Inactiva) -->
+                  <th>Acciones</th> <!-- Columna: Botones de acción (editar/ver/eliminar) -->
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+
+            <!-- Paginación -->
+            <div class="categorias-paginacion"> <!-- Contenedor de paginación -->
+              <span class="categorias-paginacion__info">Mostrando 1-7 de 32 categorías</span>
+              <!-- Texto informativo de paginación -->
+              <div class="categorias-paginacion__controles"> <!-- Controles de navegación de páginas -->
+                <button class="categorias-paginacion__btn categorias-paginacion__btn--disabled">
+                  <!-- Botón anterior deshabilitado -->
+                  <i class="fas fa-chevron-left"></i>
                 </button>
-              </div>
-              <!-- Estadísticas -->
-              <div class="categorias-estadisticas">
-                <h3 class="categorias-estadisticas__title">Estadísticas</h3>
-                <div class="categorias-estadisticas__list">
-                  <div class="categorias-estadisticas__item categorias-estadisticas__item--total">
-                    <div class="categorias-estadisticas__item-info">
-                      <i class="fas fa-tags categorias-estadisticas__icon categorias-estadisticas__icon--total"></i>
-                      <span>Total Categorías</span>
-                    </div>
-                    <span class="categorias-estadisticas__value">32</span>
-                  </div>
-                  <div class="categorias-estadisticas__item categorias-estadisticas__item--activas">
-                    <div class="categorias-estadisticas__item-info">
-                      <i
-                        class="fas fa-check-circle categorias-estadisticas__icon categorias-estadisticas__icon--activas"></i>
-                      <span>Categorías Activas</span>
-                    </div>
-                    <span class="categorias-estadisticas__value">28</span>
-                  </div>
-                  <div class="categorias-estadisticas__item categorias-estadisticas__item--publicaciones">
-                    <div class="categorias-estadisticas__item-info">
-                      <i
-                        class="fas fa-chart-line categorias-estadisticas__icon categorias-estadisticas__icon--publicaciones"></i>
-                      <span>Publicaciones/Categoría</span>
-                    </div>
-                    <span class="categorias-estadisticas__value">45</span>
-                  </div>
-                  <div class="categorias-estadisticas__item categorias-estadisticas__item--subcategorias">
-                    <div class="categorias-estadisticas__item-info">
-                      <i
-                        class="fas fa-sitemap categorias-estadisticas__icon categorias-estadisticas__icon--subcategorias"></i>
-                      <span>Subcategorías</span>
-                    </div>
-                    <span class="categorias-estadisticas__value">18</span>
-                  </div>
-                </div>
+                <button class="categorias-paginacion__btn categorias-paginacion__btn--active"> <!-- Página activa -->
+                  1
+                </button>
+                <button class="categorias-paginacion__btn">2</button> <!-- Página 2 -->
+                <button class="categorias-paginacion__btn">3</button> <!-- Página 3 -->
+                <button class="categorias-paginacion__btn">4</button> <!-- Página 4 -->
+                <button class="categorias-paginacion__btn">5</button> <!-- Página 5 -->
+                <button class="categorias-paginacion__btn"> <!-- Botón siguiente -->
+                  <i class="fas fa-chevron-right"></i>
+                </button>
               </div>
             </div>
 
-            <!-- Tabla de categorías -->
-            <div class="table-container categorias-grid__tabla"> <!-- Contenedor de la tabla principal de categorías -->
-              <table class="admin-table categorias-table"> <!-- Tabla con listado de categorías -->
-                <thead> <!-- Encabezado de la tabla -->
-                  <tr> <!-- Fila del encabezado -->
-                    <th>
-                      <input type="checkbox" id="selectAll" class="categorias-checkbox" />
-                      <!-- Checkbox para seleccionar todas las filas -->
-                    </th>
-                    <th>Categoría</th> <!-- Columna: Nombre de la categoría -->
-                    <th>Slug</th> <!-- Columna: Slug/URL amigable -->
-                    <th>Categoría Padre</th> <!-- Columna: Categoría padre -->
-                    <th>Publicaciones</th> <!-- Columna: Número de publicaciones -->
-                    <th>Expertos</th> <!-- Columna: Número de expertos -->
-                    <th>Estado</th> <!-- Columna: Estado (Activa/Inactiva) -->
-                    <th>Acciones</th> <!-- Columna: Botones de acción (editar/ver/eliminar) -->
-                  </tr>
-                </thead>
-                <tbody></tbody>
-              </table>
-
-              <!-- Paginación -->
-              <div class="categorias-paginacion"> <!-- Contenedor de paginación -->
-                <span class="categorias-paginacion__info">Mostrando 1-7 de 32 categorías</span>
-                <!-- Texto informativo de paginación -->
-                <div class="categorias-paginacion__controles"> <!-- Controles de navegación de páginas -->
-                  <button class="categorias-paginacion__btn categorias-paginacion__btn--disabled">
-                    <!-- Botón anterior deshabilitado -->
-                    <i class="fas fa-chevron-left"></i>
-                  </button>
-                  <button class="categorias-paginacion__btn categorias-paginacion__btn--active"> <!-- Página activa -->
-                    1
-                  </button>
-                  <button class="categorias-paginacion__btn">2</button> <!-- Página 2 -->
-                  <button class="categorias-paginacion__btn">3</button> <!-- Página 3 -->
-                  <button class="categorias-paginacion__btn">4</button> <!-- Página 4 -->
-                  <button class="categorias-paginacion__btn">5</button> <!-- Página 5 -->
-                  <button class="categorias-paginacion__btn"> <!-- Botón siguiente -->
-                    <i class="fas fa-chevron-right"></i>
-                  </button>
-                </div>
-              </div>
-
-            </div> <!-- Fin del contenedor de la tabla -->
-          </div>
-
+          </div> <!-- Fin del contenedor de la tabla -->
         </div>
-      </main>
+
+  </div>
+  </main>
   </div>
 
   <!-- Modal para agregar categoría -->
@@ -207,7 +136,7 @@
               <label class="modal-categoria__label">Categoría padre</label>
               <select id="parentCategory" class="modal-categoria__input">
                 <option value="">Sin categoría padre</option>
-                <!-- Opciones pobladas dinámicamente -->
+                <!-- Las opciones se cargarán dinámicamente -->
               </select>
             </div>
             <div>
@@ -270,7 +199,10 @@
               <label class="modal-categoria__label">Categoría padre</label>
               <select id="editarPadreCategoria" class="modal-categoria__input">
                 <option value="">Sin categoría padre</option>
-                <!-- Opciones pobladas dinámicamente -->
+                <option value="development">Desarrollo</option>
+                <option value="design">Diseño</option>
+                <option value="data">Datos</option>
+                <option value="infrastructure">Infraestructura</option>
               </select>
             </div>
             <div>
@@ -391,6 +323,8 @@
     <% } %>
 
       <script src="/assets/js/admin/admin-common.js"></script>
+      <script src="/assets/js/admin/admin-categorias-filters.js"></script>
+      <script src="/assets/js/admin/admin-categorias-accessibility.js"></script>
       <script src="/assets/js/admin/admin-categorias.js"></script>
 </body>
 
