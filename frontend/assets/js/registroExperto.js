@@ -917,6 +917,21 @@
         };
 
         try {
+          // Verificar que la sesión está activa y el usuario autenticado en el proxy frontend
+          try {
+            const authCheck = await fetch('/api/usuarios/perfil', { method: 'GET', credentials: 'include' });
+            if (!authCheck.ok) {
+              // Si no está autenticado, redirigir al login con next para volver luego
+              if (authCheck.status === 401) {
+                alert('Debes iniciar sesión para completar el registro de experto. Serás redirigido al login.');
+                window.location.href = '/login.html?next=/registroExperto';
+                return;
+              }
+            }
+          } catch (e) {
+            // Si falla la comprobación, permitir que el flujo principal intente, pero avisar en consola
+            console.warn('No se pudo comprobar autenticación previa:', e);
+          }
           const csrfToken = await getCsrfToken();
           // Enviar al endpoint correcto del backend: PUT /api/expertos/perfil
           const response = await fetch("/api/expertos/perfil", {
