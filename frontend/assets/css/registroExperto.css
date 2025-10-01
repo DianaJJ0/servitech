@@ -1,103 +1,280 @@
 @import url("base.css");
 
-/* Estructura principal */
-.registro-experto-main {
-  width: 100%;
-  max-width: 1100px; /* límite máximo razonable en pantallas grandes */
-  margin: 1.5rem auto;
-  padding: 1rem 1rem;
+:root {
+  --primary-color: #3a8eff;
+  --primary-hover: #2a7af0;
+  --accent-color: #12d8fa;
+  --text-color: #fff;
+  --text-secondary: #d0d0d0;
+  --text-light: #a0a0a0;
+  --background: #0f0f0f;
+  --card-bg: #1a1a1a;
+  --input-bg: #2a2a2a;
+  --border-color: #3a3a3a;
+  --border-light: #ffffff14;
+  --focus-shadow: 0 0 0 0.1875rem #3a8eff33;
+  --card-shadow: 0 1.25rem 2.5rem #0000004d;
+  --hover-shadow: 0 0.625rem 1.5625rem #0000004d;
+  --btn-shadow: 0 0.3125rem 0.9375rem #2a7af04d;
+  --border-radius: 1rem;
+  --btn-radius: 0.5rem;
+  --input-radius: 0.5rem;
+  --transition: all 0.5s ease;
+  --header-height: 4.5rem;
+  --content-max-width: 81.25rem;
+}
+
+* {
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 }
 
-/* Ajustes responsivos: usar anchos más amplios en pantallas mayores */
-@media (min-width: 576px) {
-  .registro-experto-main {
-    max-width: 720px;
-    padding: 1.25rem;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
-@media (min-width: 768px) {
-  .registro-experto-main {
-    max-width: 960px;
-    padding: 1.5rem 2rem;
-  }
+body {
+  background-color: var(--background);
+  color: var(--text-color);
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-image: radial-gradient(
+      circle at 15% 50%,
+      #3a8eff1a 0%,
+      transparent 25%
+    ),
+    radial-gradient(circle at 85% 30%, #3a8eff1a 0%, transparent 25%);
 }
 
-@media (min-width: 1200px) {
-  .registro-experto-main {
-    max-width: 1100px;
-    margin: 2.5rem auto;
-    padding: 2rem 2.5rem;
-  }
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: var(--transition);
 }
 
-.registro-experto-section {
+a:hover {
+  opacity: 0.85;
+}
+
+button,
+.btn {
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+.btn {
+  display: inline-block;
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--btn-radius);
+  font-weight: 600;
+  transition: var(--transition);
+  text-align: center;
+}
+
+.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+.btn-lg {
+  padding: 0.85rem 1.8rem;
+  font-size: 1.1rem;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-0.125rem);
+  box-shadow: var(--btn-shadow);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: #fff;
+  border: 1px solid #fff;
+}
+
+.btn-secondary:hover {
+  background-color: #ffffff1a;
+  transform: translateY(-0.125rem);
+}
+
+.btn-outline {
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  background-color: transparent;
+}
+
+.btn-outline:hover {
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+  transform: translateY(-0.125rem);
+}
+
+.btn-light {
+  background-color: #fff;
+  color: var(--primary-color);
+}
+
+.btn-light:hover {
+  background-color: #f0f0f0;
+  transform: translateY(-0.125rem);
+  box-shadow: 0 0.3125rem 0.9375rem #fff3;
+}
+
+.card {
   background-color: var(--card-bg);
   border-radius: var(--border-radius);
-  padding: 1.25rem;
+  padding: 1.5625rem;
+  border: 0.0625rem solid var(--border-light);
   box-shadow: var(--card-shadow);
-  border: 1px solid var(--border-color);
-  margin-bottom: 1rem;
-  position: relative;
-  overflow: hidden;
+  transition: var(--transition);
 }
 
-.registro-experto-section::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 4px;
-  height: 100%;
-  background: linear-gradient(
-    to bottom,
-    var(--primary-color),
-    var(--accent-color)
-  );
-  z-index: 0;
+.card:hover {
+  transform: translateY(-0.3125rem);
+  box-shadow: 0 1.5625rem 3.125rem #0006;
 }
 
-/* Header del formulario */
-.registro-header {
-  text-align: center;
+.form-group {
+  margin-bottom: 0.9375rem;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: var(--input-bg);
+  border: 0.0625rem solid var(--border-color);
+  border-radius: var(--input-radius);
+  color: var(--text-color);
+  font-size: 1rem;
+  transition: var(--transition);
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: var(--focus-shadow);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(1.25rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Estilos específicos para el formulario */
+.registroExperto-main {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 2rem 1rem;
+}
+
+.registroExperto-section {
+  width: 100%;
+  max-width: var(--content-max-width);
+}
+
+.alert {
+  padding: 1rem;
+  border-radius: var(--input-radius);
   margin-bottom: 1.5rem;
-  position: relative;
-  z-index: 1;
+  font-weight: 500;
+}
+
+.alert-danger {
+  background-color: rgba(220, 53, 69, 0.1);
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  color: #f8d7da;
+}
+
+.alert-success {
+  background-color: rgba(25, 135, 84, 0.1);
+  border: 1px solid rgba(25, 135, 84, 0.3);
+  color: #d1e7dd;
+}
+
+.registro-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  box-shadow: var(--card-shadow);
+  border-left: 4px solid var(--primary-color);
+}
+
+.logo-link {
+  display: inline-block;
 }
 
 .logo-img {
-  max-width: 120px;
-  height: auto;
-  margin: 0 auto 0.75rem;
-  display: block;
-  filter: brightness(0) invert(1);
-  opacity: 0.9;
+  height: 3rem;
+  width: auto;
 }
 
-.registro-header h1 {
-  color: var(--primary-color);
-  font-size: 1.4rem;
-  margin-bottom: 0.5rem;
+.registro-header-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  text-align: center;
+}
+
+.registro-header-title {
+  font-size: 1.75rem;
   font-weight: 700;
+  color: var(--text-color);
+  margin: 0;
+  background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.subtitle {
+.registro-header-subtitle {
+  font-size: 1rem;
   color: var(--text-secondary);
-  font-size: 0.85rem;
-  margin-bottom: 0.75rem;
-  display: inline-block;
-  padding: 0.4rem 0.8rem;
-  background: rgba(58, 142, 255, 0.05);
-  border-radius: 1rem;
-  border: 1px solid var(--border-light);
+  margin: 0;
 }
 
 .registro-fecha {
   color: var(--text-light);
-  font-size: 0.75rem;
-  margin-bottom: 1rem;
-  display: inline-block;
+  font-size: 0.875rem;
+  font-weight: 500;
 }
 
 .back-link {
@@ -105,154 +282,433 @@
   align-items: center;
   gap: 0.5rem;
   color: var(--text-secondary);
-  font-size: 0.85rem;
-  text-decoration: none;
-  padding: 0.5rem 0.8rem;
-  border-radius: var(--btn-radius);
+  font-size: 0.875rem;
   transition: var(--transition);
-  margin-top: 0.5rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border-light);
+  padding: 0.5rem 1rem;
+  border-radius: var(--btn-radius);
+  background: var(--input-bg);
 }
 
-/* Alertas */
-.alert {
-  padding: 0.8rem;
-  border-radius: var(--input-radius);
-  margin-bottom: 1rem;
-  font-size: 0.85rem;
-  position: relative;
-  overflow: hidden;
-  border-left: 4px solid transparent;
+.back-link:hover {
+  color: var(--primary-color);
+  background: var(--border-color);
 }
 
-/* Formulario principal */
-.registro-experto-form {
+.registroExperto-form {
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius);
+  padding: 2rem;
+  border: 0.0625rem solid var(--border-light);
+  box-shadow: var(--card-shadow);
+}
+
+.form-section {
+  margin-bottom: 2.5rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.form-section:last-of-type {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.form-section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: var(--text-color);
   display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  position: relative;
-  z-index: 1;
-  width: 100%;
+  align-items: center;
+  gap: 0.75rem;
 }
 
-/* Filas del formulario */
-.form-row {
-  display: flex;
-  flex-direction: column;
+/* Select múltiple y adaptación para Choices.js */
+.form-control[multiple],
+.choices__inner {
+  background-color: var(--input-bg);
+  border: 0.0625rem solid var(--border-color);
+  color: var(--text-color);
+}
+
+.form-control[multiple] {
+  min-height: 3.5rem;
+  padding: 0.5rem 0.75rem;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* Tokens (selecciones) en Choices.js */
+.choices__list--multiple .choices__item {
+  background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+  color: #ffffff;
+  padding: 0.28rem 0.6rem;
+  margin: 0.18rem 0.25rem;
+  border-radius: 0.4rem;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.choices__inner.is-focused {
+  box-shadow: var(--focus-shadow);
+  border-color: var(--primary-color);
+}
+
+.choices__input,
+.choices__list--single .choices__item {
+  color: var(--text-color);
+}
+
+/* Forzar tema oscuro en el dropdown de Choices.js */
+.choices__list--dropdown {
+  background: var(--card-bg) !important;
+  border: 0.0625rem solid var(--border-color) !important;
+  box-shadow: var(--card-shadow) !important;
+  color: var(--text-color) !important;
+}
+
+.choices__list--dropdown .choices__item {
+  background: transparent !important;
+  color: var(--text-color) !important;
+}
+.choices__list--dropdown .choices__item .choices__item__text {
+  color: var(--text-color) !important;
+}
+.choices__item--highlighted {
+  background: rgba(58, 142, 255, 0.12);
+  color: var(--text-color);
+}
+
+/* placeholder/input dentro del control */
+.choices__inner .choices__placeholder,
+.choices__inner .choices__input {
+  color: var(--text-light) !important;
+}
+
+/* texto dentro del input de búsqueda de dropdown */
+.choices__input--cloned {
+  color: var(--text-color) !important;
+}
+
+/* Mejor separación entre tokens y el input */
+.choices__list--multiple {
+  padding: 0.35rem 0.5rem;
+}
+
+/* Si el navegador no soporta Choices, hacemos el select multiple más legible */
+select.form-control[size] {
+  padding: 0.5rem;
+  line-height: 1.6;
+}
+
+/* Forzar color visible en opciones nativas de select en tema oscuro */
+select.form-control option {
+  color: var(--text-color);
+  background: var(--input-bg);
+}
+
+/* Mejor contraste del borde cuando está enfocado */
+select.form-control:focus {
+  box-shadow: var(--focus-shadow);
+  border-color: var(--primary-color);
+}
+
+/* Sección: Datos bancarios - estilos consolidados y organizados */
+.bank-data-grid {
+  display: grid;
+  /* Two columns: enforce a comfortable minimum to avoid cramped inputs */
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 1rem 1.25rem;
+  align-items: start;
+  margin-top: 1rem;
+}
+
+/* Forzar que ciertos campos ocupen toda la fila */
+.bank-field--full {
+  grid-column: 1 / -1;
+}
+
+/* Ensure direct children of the bank-data-grid flow into the two-column layout */
+.bank-data-grid > .form-field,
+.bank-data-grid > .form-row,
+.bank-data-grid > .form-field-group {
+  /* occupy a single column by default */
+  grid-column: auto;
+}
+
+/* Nested rows inside a group should also be two columns */
+.bank-data-grid .form-field-group .form-row,
+.bank-data-grid .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 1rem;
-  background: rgba(58, 142, 255, 0.05);
-  border-radius: var(--border-radius);
-  padding: 1rem;
-  margin-bottom: 1rem;
-  border: 1px solid var(--border-light);
 }
 
-/* Ensure flex children can shrink so contents (like long emails) don't overflow */
-.form-row .form-group {
-  min-width: 0; /* allows flex items to shrink below their content width */
+/* If a nested row contains a field that should be full width, force it */
+.bank-data-grid .form-row .bank-field--full,
+.bank-data-grid .form-field-group {
+  grid-column: 1 / -1;
 }
 
-/* Grupos de campos */
-.form-group {
-  margin-bottom: 1rem;
-  position: relative;
+/* Make sure common wrappers fill their grid cell */
+.bank-data-grid .select-wrapper,
+.bank-data-grid .password-wrapper,
+.bank-data-grid .file-input-wrapper,
+.bank-data-grid .bank-selector-wrapper {
   width: 100%;
 }
 
-.form-group.compact {
-  padding: 0.9rem;
-  background: var(--card-bg);
-  border-radius: calc(var(--border-radius) - 0.2rem);
-  border: 1px solid transparent;
+/* Tighter spacing for labels inside the grid */
+.bank-data-grid .form-label {
+  margin-bottom: 0.4rem;
 }
 
-.form-group.full-width {
-  padding: 1rem;
-  background: var(--card-bg);
-  border-radius: var(--border-radius);
-  border: 1px solid var(--border-light);
+.bank-field {
+  display: flex;
+  flex-direction: column;
 }
 
-.form-group label {
-  display: block;
+.bank-selector-wrapper {
+  position: relative;
+}
+
+.bank-selector {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.bank-selector-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  padding: 0.65rem 0.8rem;
+  border-radius: var(--input-radius);
+  color: var(--text-color);
+  transition: var(--transition);
+}
+
+.bank-selector-trigger:focus,
+.bank-selector[aria-expanded="true"] .bank-selector-trigger {
+  border-color: var(--primary-color);
+  box-shadow: var(--focus-shadow);
+}
+
+.selected-bank {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.selected-bank-name {
   color: var(--text-secondary);
-  font-size: 0.85rem;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
+  font-weight: 600;
+}
+
+.bank-selector-icon {
+  color: var(--text-light);
+}
+
+.bank-options-container {
+  position: absolute;
+  top: calc(100% + 0.375rem);
+  left: 0;
+  right: 0;
+  z-index: 60;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--card-shadow);
+  border-radius: 0.5rem;
+  max-height: 16rem;
+  overflow: hidden;
+  display: none;
+}
+
+.bank-options-container[aria-hidden="false"] {
+  display: block;
+}
+
+.bank-search-container {
+  position: relative;
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--border-light);
+  background: transparent;
+}
+
+.bank-search {
+  width: 100%;
+  padding: 0.6rem 2.2rem 0.6rem 0.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--border-color);
+  background: var(--input-bg);
+  color: var(--text-color);
+  outline: none;
+}
+
+.bank-search-icon {
+  position: absolute;
+  right: 0.9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-light);
+  pointer-events: none;
+}
+
+.bank-options-list {
+  padding: 0.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-height: 12rem;
+  overflow: auto;
+}
+
+.bank-option {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.6rem 0.75rem;
+  cursor: pointer;
+  border-radius: 0.375rem;
+  color: var(--text-color);
+}
+
+.bank-option .bank-name {
+  color: var(--text-color);
+  font-weight: 600;
+}
+
+.bank-option:focus,
+.bank-option:hover,
+.bank-option[aria-selected="true"] {
+  background: rgba(58, 142, 255, 0.08);
+  outline: none;
+}
+
+.bank-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.5rem;
+  color: #fff;
+  font-weight: 700;
+  background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+  flex-shrink: 0;
 }
 
 .form-hint {
-  color: var(--text-light);
-  font-size: 0.75rem;
-  margin-top: 0.25rem;
-  line-height: 1.3;
+  margin-top: 0.5rem;
 }
 
-/* Campos de entrada */
-input[type="text"],
-input[type="email"],
-input[type="password"],
-input[type="number"],
-input[type="tel"],
-/* Aislar select solo dentro de registro-experto / registroExperto */
-.registro-experto select,
-.registroExperto select,
-.registroExperto-form select,
-textarea {
-  width: 100%;
-  padding: 0.75rem;
+/* Ensure password toggle/button stays aligned */
+.password-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.btn-icon {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  padding: 0.35rem 0.5rem;
+}
+
+/* Responsive tweaks */
+@media (max-width: 992px) {
+  .bank-data-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.password-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.password-wrapper .form-control {
+  flex: 1 1 auto;
+}
+
+.btn-icon {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  padding: 0.35rem 0.5rem;
+  margin-left: 0.5rem;
+}
+
+.btn-icon:hover {
+  color: var(--text-color);
+}
+
+.form-section-title i {
+  color: var(--primary-color);
+  background: rgba(58, 142, 255, 0.1);
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-row.double > * {
+  flex: 1 1 calc(50% - 1.5rem);
+  min-width: 250px;
+}
+
+.form-row.triple > * {
+  flex: 1 1 calc(33.333% - 1.5rem);
+  min-width: 200px;
+}
+
+.form-group {
+  flex: 1 1 100%;
+}
+
+.form-group.compact {
+  flex: 1 1 auto;
+}
+
+.form-group label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.form-hint {
+  font-size: 0.75rem;
+  color: var(--text-light);
+  margin-top: 0.25rem;
+}
+
+.email-field {
+  padding: 0.75rem 1rem;
   background-color: var(--input-bg);
-  border: 1px solid var(--border-color);
+  border: 0.0625rem solid var(--border-color);
   border-radius: var(--input-radius);
   color: var(--text-color);
-  font-size: 0.9rem;
-  transition: var(--transition);
-  min-height: 44px;
+  font-weight: 500;
 }
 
-/* Aislar select solo dentro de registro-experto */
-.registro-experto select {
-  appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23a0a0a0'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 0.75rem center;
-  background-size: 1rem;
-  padding-right: 2rem;
-}
-
-/* Textarea */
-textarea {
-  resize: vertical;
-  min-height: 100px;
-  line-height: 1.5;
-}
-
-/* Selectores múltiples */
-.select-multiple,
-.registro-experto .select-multiple,
-.registroExperto .select-multiple,
-.registroExperto-form .select-multiple {
-  min-height: 100px;
-  padding: 0.5rem !important;
-  overflow-y: auto;
-  background: var(--input-bg);
-  color: var(--text-color);
-}
-
-.select-multiple option,
-.registro-experto .select-multiple option,
-.registroExperto .select-multiple option,
-.registroExperto-form .select-multiple option {
-  padding: 0.5rem;
-  margin: 0.1rem 0;
-  white-space: normal;
-  word-break: break-word;
-  background: var(--input-bg);
-  color: var(--text-color);
-}
-
-/* Input de precio */
 .price-group {
   position: relative;
 }
@@ -263,880 +719,377 @@ textarea {
   align-items: center;
 }
 
-.price-input .currency {
+.currency {
   position: absolute;
-  left: 0.75rem;
-  color: var(--primary-color);
-  font-weight: 700;
-  pointer-events: none;
+  left: 1rem;
+  color: var(--text-secondary);
+  z-index: 1;
+  font-weight: 500;
 }
 
 .price-input input {
-  padding-left: 1.75rem;
+  padding-left: 2rem;
 }
 
-/* Días disponibles - responsive: use flex-wrap on small screens to avoid overflow,
-   switch back to 7-column grid on wider viewports. */
-.days-selector,
-.registro-experto .days-selector,
-.registroExperto .days-selector,
-.registroExperto-form .days-selector,
-.registroExperto-section .days-selector,
-.registroExperto-main .days-selector {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-top: 0.5rem;
-  align-items: center;
-  /* prevent the container from forcing wider than its parent */
-  max-width: 100%;
+.price-tooltip {
+  cursor: help;
+  color: var(--text-light);
 }
 
-.day-option {
-  flex: 0 0 32px; /* fixed visual size */
-  width: 32px;
-  height: 32px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--input-bg);
-  border-radius: 50%;
+textarea.form-control {
+  resize: vertical;
+  min-height: 120px;
+}
+
+/* Select múltiple mejorado para categorías */
+select[multiple] {
+  height: auto;
+  min-height: 120px;
+  padding: 0.5rem;
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--input-radius);
+  color: var(--text-color);
+  font-size: 0.9rem;
+  transition: var(--transition);
+}
+
+select[multiple]:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: var(--focus-shadow);
+}
+
+select[multiple] option {
+  padding: 0.75rem 1rem;
+  margin: 0.25rem 0;
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  border-radius: 0.25rem;
   cursor: pointer;
-  font-weight: 600;
-  font-size: 0.8rem;
-  border: 1px solid transparent;
-  box-sizing: border-box;
+  transition: var(--transition);
 }
 
-/* Medium screens (tablet): show days in 2 rows (4 + 3) to avoid overflow */
-@media (min-width: 600px) and (max-width: 991px) {
-  .days-selector,
-  .registro-experto .days-selector,
-  .registroExperto .days-selector,
-  .registroExperto-form .days-selector,
-  .registroExperto-section .days-selector,
-  .registroExperto-main .days-selector {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0.35rem;
-    align-items: center;
-    justify-items: center;
-  }
-  /* Make the last item span to keep two rows visually balanced if needed */
-  .days-selector .day-option:nth-child(7) {
-    /* in a 4-column grid the 7th item will naturally be on the second row; keep it centered */
-    justify-self: center;
-  }
-  .day-option {
-    width: 30px;
-    height: 30px;
-    font-size: 0.78rem;
-  }
-}
-
-/* On wider screens (desktop) restore a neat 7-column grid */
-@media (min-width: 992px) {
-  .days-selector,
-  .registro-experto .days-selector,
-  .registroExperto .days-selector,
-  .registroExperto-form .days-selector,
-  .registroExperto-section .days-selector,
-  .registroExperto-main .days-selector {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 0.4rem;
-  }
-  .day-option {
-    margin: 0 auto; /* center within the grid cell */
-  }
-}
-
-/* Ensure the days-group doesn't push layout horizontally */
-.form-group.compact.days-group {
-  overflow: hidden;
-  min-width: 0;
-}
-
-.day-option.selected,
-.registro-experto .day-option.selected,
-.registroExperto .day-option.selected,
-.registroExperto-form .day-option.selected,
-.registroExperto-section .day-option.selected,
-.registroExperto-main .day-option.selected {
-  background: var(--primary-color);
+select[multiple] option:hover {
+  background-color: var(--primary-color);
   color: white;
 }
 
-/* Sección de datos bancarios */
-.form-section {
-  margin-top: 1.5rem;
-  padding: 1rem;
-  background: rgba(18, 216, 250, 0.03);
-  border-radius: var(--border-radius);
-  border: 1px solid var(--border-light);
-}
-
-.section-title {
-  color: var(--accent-color);
-  font-size: 1.1rem;
-  margin-bottom: 0.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.section-subtitle {
-  color: var(--text-secondary);
-  font-size: 0.8rem;
-  margin-bottom: 1rem;
-}
-
-/* Contenedor de número de cuenta */
-.cuenta-container {
-  position: relative;
-}
-
-.btn-toggle-cuenta {
-  position: absolute;
-  right: 0.5rem;
-  top: 50%;
-  transform: translateY(-50%);
-  background: transparent;
-  border: none;
-  color: var(--text-light);
-  cursor: pointer;
-}
-
-/* Tarjeta de información */
-.info-card {
-  border-left: 3px solid var(--accent-color);
-  background: rgba(18, 216, 250, 0.05);
-  padding: 0.8rem;
-  border-radius: var(--input-radius);
-  margin-top: 1rem;
-}
-
-.info-list li {
-  position: relative;
-  padding-left: 1.25rem;
-  margin-bottom: 0.3rem;
-  font-size: 0.8rem;
-}
-
-/* Botón de envío */
-.form-footer {
-  margin-top: 1.5rem;
-  text-align: center;
-}
-
-.btn-primary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.9rem 1.5rem;
+select[multiple] option:checked {
   background-color: var(--primary-color);
-  color: var(--text-color);
-  border-radius: var(--btn-radius);
-  font-weight: 600;
-  cursor: pointer;
-  border: none;
-  width: 100%;
-  max-width: 300px;
-}
-
-/* Media Queries para tablets */
-@media (min-width: 768px) {
-  body {
-    font-size: 16px;
-  }
-
-  .registro-experto-main {
-    padding: 1.5rem;
-  }
-
-  .registro-experto-section {
-    padding: 1.75rem;
-  }
-
-  .registro-header h1 {
-    font-size: 1.6rem;
-  }
-
-  .form-row {
-    flex-direction: row;
-    gap: 1.5rem;
-  }
-
-  .form-row.double {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1.5rem;
-  }
-
-  .form-row.triple {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 1.5rem;
-  }
-
-  .form-group.compact {
-    padding: 1rem;
-  }
-
-  textarea {
-    min-height: 120px;
-  }
-}
-
-/* Reduce the email group's minimum width slightly on narrower desktops/tablets to avoid forcing overflow */
-@media (max-width: 991px) {
-  .form-group.compact.email-group {
-    min-width: 160px; /* was 220px; allow smaller so triple columns fit at ~960px */
-    padding: 10px 8px;
-  }
-}
-
-/* Media Queries para desktop */
-@media (min-width: 992px) {
-  .registro-experto-section {
-    padding: 2rem;
-  }
-
-  .registro-header h1 {
-    font-size: 1.8rem;
-  }
-
-  .form-row {
-    padding: 1.5rem;
-  }
-
-  .btn-primary {
-    max-width: none;
-    padding: 1rem 2rem;
-  }
-}
-
-/* Correcciones específicas */
-/* 1. Evitar desbordamiento en selects */
-.select-multiple {
-  max-width: 100%;
-}
-
-/* 2. Ajuste para tooltips */
-.price-tooltip:hover::after {
-  content: "Precio sugerido: $15 - $150 USD";
-  position: absolute;
-  right: 0;
-  top: 100%;
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  padding: 0.5rem;
-  border-radius: var(--input-radius);
-  font-size: 0.8rem;
-  width: 180px;
-  z-index: 10;
-}
-
-/* 3. Mejor espaciado en móviles */
-@media (max-width: 767px) {
-  .form-group {
-    margin-bottom: 0.75rem;
-  }
-
-  .form-row {
-    margin-bottom: 0.75rem;
-  }
-}
-
-/* 4. Ajuste para campos bancarios en móviles */
-@media (max-width: 767px) {
-  .form-section .form-row.double {
-    display: flex;
-    flex-direction: column;
-  }
-}
-
-/* 5. Corrección para días seleccionados */
-.days-selected-display {
-  font-size: 0.75rem;
-  word-break: break-word;
-  margin-top: 0.5rem;
-}
-
-/* Header principal limpio */
-.registro-header-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5em;
-}
-
-.registro-header-content .logo-img {
-  max-width: 120px;
-}
-
-.registro-header-title {
-  margin: 0.3em 0 0.1em 0;
-}
-
-.registro-header-subtitle {
-  margin: 0;
-}
-
-.categorias-label-text {
-  color: var(--accent-color);
+  color: white;
   font-weight: 600;
 }
 
-.fa-layer-group {
-  color: var(--accent-color);
+select[multiple] option:focus {
+  background-color: var(--primary-hover);
 }
 
-.tags-container {
-  margin-top: 8px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+/* Select simple mejorado */
+select:not([multiple]) {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23a0a0a0'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1rem;
+  padding-right: 2.5rem;
 }
 
-.tag {
-  background: #e0f7fa;
-  color: #00796b;
-  border-radius: 12px;
-  padding: 4px 12px;
-  font-size: 13px;
-  display: inline-block;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-}
-
-.registro-experto .select-arrow,
-.registroExperto .select-arrow,
-.registroExperto-form .select-arrow {
-  position: absolute;
-  right: 10px;
-  pointer-events: none;
-  color: var(--text-light);
-  font-size: 16px;
-}
-
-.form-tooltip {
-  margin-left: 6px;
-  color: var(--accent-color);
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.especialidad-label-text {
-  color: var(--accent-color);
-  font-weight: 600;
-}
-
-.skills-label-text {
-  color: var(--accent-color);
-  font-weight: 600;
-}
-.fa-bolt {
-  color: var(--accent-color);
-}
-
-.form-group.compact.email-group {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  background: var(--input-bg);
-  border-radius: var(--input-radius);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  padding: 14px 0;
-  min-width: 220px;
-}
-
-.form-group.compact.email-group label[for="email"] {
-  font-size: 1em;
-  font-weight: 600;
-  color: var(--accent-color);
-  margin-bottom: 6px;
-  letter-spacing: 0.01em;
-}
-
-.form-group.compact.email-group label[for="email"] i.fas.fa-envelope {
-  margin-right: 6px;
-  color: var(--accent-color);
-}
-
-.form-group.compact.email-group .email-field {
-  font-size: 0.98em;
-  font-weight: 500;
-  color: var(--text-secondary);
-  background: var(--card-bg);
-  border-radius: var(--input-radius);
-  padding: 6px 14px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
-  margin-bottom: 4px;
-  border: 1px solid var(--border-color);
-}
-
-/* Prevent long emails from expanding the layout: truncate with ellipsis and keep tooltip */
-.form-group.compact.email-group .email-field {
-  display: block;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  box-sizing: border-box;
-}
-
-.form-group.compact.email-group .form-hint {
-  font-size: 0.92em;
-  color: var(--accent-color);
-  margin-top: 2px;
-}
-
-#precio-feedback {
-  color: #ff5252;
-  font-size: 0.95em;
-  margin-top: 4px;
-}
-
-/* Corrección: estilos para las clases usadas en la vista EJS (sin guion) */
-.registroExperto-main {
-  width: 100%;
-  max-width: 1100px;
-  margin: 1.5rem auto;
-  padding: 1rem 1rem;
-  box-sizing: border-box;
-}
-
-.registroExperto-section {
-  background-color: var(--card-bg);
-  border-radius: var(--border-radius);
-  padding: 1.25rem;
-  box-shadow: var(--card-shadow);
-  border: 1px solid var(--border-color);
-  margin-bottom: 1rem;
-  position: relative;
-  overflow: hidden;
-}
-
-@media (min-width: 576px) {
-  .registroExperto-main {
-    max-width: 720px;
-    padding: 1.25rem;
-  }
-}
-
-@media (min-width: 768px) {
-  .registroExperto-main {
-    max-width: 960px;
-    padding: 1.5rem 2rem;
-  }
-}
-
-@media (min-width: 1200px) {
-  .registroExperto-main {
-    max-width: 1100px;
-    margin: 2.5rem auto;
-    padding: 2rem 2.5rem;
-  }
-}
-
-/* -----------------------------------------------------------
-                     Estilos para la sección de subida y vista previa de imagen
-                     Comentarios en español y estructura ordenada
-                     ----------------------------------------------------------- */
-
-/* Contenedor principal del bloque */
-.ep-section {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.01), transparent);
-  border-radius: calc(var(--border-radius) * 0.5);
-  padding: 1rem;
-  box-shadow: var(--card-shadow);
-  border: 1px solid var(--border-light);
-  margin-bottom: 1.25rem;
-  color: var(--text-color);
-}
-
-/* Fieldset para mejor semántica visual */
-.ep-fieldset {
-  border: none;
-  margin: 0;
-  padding: 0;
-}
-
-/* Leyenda con icono */
-.ep-legend {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: 600;
-  color: var(--text-color);
-  margin-bottom: 0.5rem;
-  font-size: 1rem;
-}
-.ep-icon {
-  color: var(--accent-color);
-  font-size: 1.125rem;
-}
-
-/* Texto de ayuda debajo de la leyenda */
-.ep-help {
-  margin: 0 0 0.75rem 0;
-  color: var(--text-light);
-  font-size: 0.9rem;
-}
-
-/* Contenedor del uploader (flex para disposición) */
-.ep-uploader {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-/* Input de archivo oculto (se usa el label como botón) */
-.ep-file {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-  width: 0;
-  height: 0;
-}
-
-/* Caja actuable para seleccionar imagen */
-.ep-box {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.02),
-    rgba(255, 255, 255, 0.01)
-  );
-  color: var(--text-secondary);
-  border: 1px dashed var(--border-color);
-  padding: 0.75rem 1rem;
-  border-radius: var(--input-radius);
-  cursor: pointer;
-  transition: var(--transition);
-  user-select: none;
-  min-width: 12rem;
-  justify-content: center;
-}
-.ep-box i {
-  color: var(--primary-color);
-}
-.ep-box:hover {
-  border-color: var(--primary-color);
-  color: var(--text-color);
-  box-shadow: var(--hover-shadow);
-}
-.ep-box:focus {
+select:not([multiple]):focus {
   outline: none;
-  box-shadow: var(--focus-shadow);
   border-color: var(--primary-color);
+  box-shadow: var(--focus-shadow);
 }
 
-/* Vista previa de imagen */
+.days-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.day-option {
+  padding: 0.5rem 0.75rem;
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--input-radius);
+  color: var(--text-secondary);
+  transition: var(--transition);
+  flex: 1;
+  min-width: 60px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.day-option:hover {
+  background-color: var(--border-color);
+  color: var(--text-color);
+}
+
+.day-option.selected {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(58, 142, 255, 0.3);
+}
+
+.days-selected-display {
+  padding: 0.75rem;
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--input-radius);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  transition: var(--transition);
+}
+
+.days-selected-display.has-selection {
+  color: var(--text-color);
+  border-color: var(--primary-color);
+  background-color: rgba(58, 142, 255, 0.05);
+}
+
 .ep-preview {
   display: none;
-  position: relative;
-  width: 7.5rem;
-  height: 7.5rem;
-  min-width: 7.5rem;
-  border-radius: 0.5rem;
-  overflow: hidden;
-  background: linear-gradient(180deg, #111, #151515);
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  background-color: var(--input-bg);
   border: 1px solid var(--border-color);
+  border-radius: var(--input-radius);
   align-items: center;
-  justify-content: center;
-  transition: transform 0.25s ease, opacity 0.25s ease;
+  gap: 1rem;
 }
-.ep-preview.show {
-  display: flex;
-}
+
 .ep-img {
-  width: 100%;
-  height: 100%;
+  width: 60px;
+  height: 60px;
   object-fit: cover;
-  display: block;
+  border-radius: 50%;
+  border: 2px solid var(--primary-color);
 }
 
-/* Botón para eliminar la imagen seleccionada */
-.ep-remove {
-  position: absolute;
-  top: 0.35rem;
-  right: 0.35rem;
-  background: rgba(0, 0, 0, 0.45);
-  border: 1px solid var(--border-light);
-  color: var(--text-color);
-  width: 2rem;
-  height: 2rem;
-  display: grid;
-  place-items: center;
-  border-radius: 0.375rem;
-  cursor: pointer;
-  transition: background 0.2s ease, transform 0.12s ease;
-  opacity: 0;
-  transform: translateY(-6px);
-}
-.ep-remove.show {
-  opacity: 1;
-  transform: translateY(0);
-}
-.ep-remove i {
-  font-size: 0.85rem;
-}
-.ep-remove:hover {
-  background: var(--primary-color);
-  color: var(--text-color);
-  transform: scale(1.03);
-}
-
-/* Información del archivo (nombre, tamaño) */
 .ep-meta {
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
-  color: var(--text-light);
-  font-size: 0.85rem;
-  margin-left: 0.5rem;
-  min-width: 10rem;
-}
-#fotoNombre {
-  color: var(--text-secondary);
-  font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-#fotoTamano {
-  color: var(--text-light);
-  font-size: 0.8rem;
+  gap: 0.25rem;
 }
 
-/* Mensaje de error en subida */
+.ep-remove {
+  display: none;
+  margin-top: 0.5rem;
+}
+
 .ep-error {
   color: #ff6b6b;
-  background: rgba(255, 107, 107, 0.06);
-  border: 1px solid rgba(255, 107, 107, 0.12);
-  padding: 0.5rem;
-  border-radius: 0.375rem;
-  margin-top: 0.5rem;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
 }
 
-/* Adaptaciones responsive */
-@media (max-width: 640px) {
-  .ep-uploader {
-    gap: 0.5rem;
-    align-items: flex-start;
-  }
-  .ep-meta {
-    min-width: 0;
-  }
-  .ep-box {
-    width: 100%;
-    justify-content: center;
-  }
-  .ep-preview {
-    width: 5.5rem;
-    height: 5.5rem;
-    min-width: 5.5rem;
-  }
-}
-
-/* High-specificity fixes for registroExperto selects and Choices.js elements
-   These selectors have higher specificity than plugin defaults and avoid !important */
-.registroExperto-main .form-row .form-group.compact select#categorias,
-.registroExperto-main .form-row .form-group.compact select#skills,
-.registroExperto-main .form-row .form-group.compact .categorias-modern,
-.registroExperto-main .form-row .form-group.compact .skills-modern,
-.registroExperto-main .form-row .form-group.compact .select-multiple {
-  background: var(--input-bg);
-  color: var(--text-color);
-  border-color: var(--border-color);
-}
-
-.registroExperto-main .form-row .form-group.compact select#categorias option,
-.registroExperto-main .form-row .form-group.compact select#skills option,
-.registroExperto-main .form-row .form-group.compact .select-multiple option {
-  background: var(--input-bg);
-  color: var(--text-color);
-}
-
-/* More specific Choices.js overrides under registroExperto-main */
-.registroExperto-main .choices__inner,
-.registroExperto-main .choices__list--dropdown,
-.registroExperto-main .choices__list[role="listbox"],
-.registroExperto-main .choices__item,
-.registroExperto-main .choices__item--selectable,
-.registroExperto-main .choices__input,
-.registroExperto-main .choices__placeholder {
-  background: var(--input-bg);
-  color: var(--text-color);
-}
-
-.registroExperto-main .choices__item--selectable.is-highlighted,
-.registroExperto-main .choices__item--selectable:hover {
-  background-color: var(--accent-color);
-  /* ensure highlighted item text contrasts with accent background */
-  color: var(--background);
-}
-
-/* Add a colored line on hover different from the text color using inset box-shadow
-   This provides a colored accent 'line' while keeping the text readable */
-.registroExperto-main .choices__item--selectable:hover,
-.registroExperto-main .choices__item--selectable.is-highlighted {
-  /* right-side accent line, slightly thicker for visibility */
-  box-shadow: inset -4px 0 0 0 var(--accent-color);
-}
-
-/* Native select / modern select hover: change border to primary and keep text readable */
-.registroExperto-main .categorias-modern:hover,
-.registroExperto-main .skills-modern:hover,
-.registroExperto-main .select-multiple:hover {
-  border-color: var(--primary-color);
-  color: var(--text-color);
-}
-
-/* Tags in the tags-container: add left accent on hover */
-.registroExperto-main .tags-container .tag:hover {
-  /* right-side accent for tags too */
-  box-shadow: inset -4px 0 0 0 var(--accent-color);
-  transform: translateY(-1px);
-}
-
-/* Overrides for Choices.js scoped to this page. Placed after choices.min.css so it wins without !important */
-.registroExperto-main .choices__inner,
-.registroExperto-main .choices__list--dropdown,
-.registroExperto-main .choices__list[role="listbox"] {
-  background-color: var(--input-bg);
-  color: var(--text-color);
-}
-
-.registroExperto-main .choices__item,
-.registroExperto-main .choices__item--selectable {
-  color: var(--text-color);
-  background: var(--input-bg);
-}
-
-.registroExperto-main .choices__item--disabled {
-  color: var(--text-light);
-}
-
-.registroExperto-main .choices__input,
-.registroExperto-main .choices__placeholder {
-  color: var(--text-light);
-  background: var(--input-bg);
-}
-
-.registroExperto-main .choices__item--selectable.is-highlighted,
-.registroExperto-main .choices__item--selectable:hover {
-  background-color: var(--accent-color);
-  /* ensure highlighted item text contrasts with accent background */
-  color: var(--background);
-}
-
-/* Ensure native select fallback is readable */
-.registroExperto-main select,
-.registroExperto-main .select-multiple,
-.registroExperto-main .select-multiple option {
-  background: var(--input-bg);
-  color: var(--text-color);
-}
-
-/* ===== Ajustes para vista previa compacta y layout bancario ===== */
-
-/* Contenedor de preview (usar el id que deja el EJS: #epPreview) */
-#epPreview.ep-preview,
-.ep-preview#epPreview {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 6.5rem; /* tamaño pequeño y fijo */
-  height: 6.5rem;
-  min-width: 6.5rem;
-  min-height: 6.5rem;
-  border-radius: 0.5rem;
-  overflow: hidden;
-  background: linear-gradient(180deg, #0f0f0f, #151515);
-  border: 1px solid var(--border-color);
-  margin-top: 0.6rem;
-}
-
-/* Imagen ajustada dentro del recuadro (cubre sin deformar) */
-#epImg.ep-img,
-.ep-img#epImg {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+/* Error visuals for inline validation messages and invalid inputs */
+.input-error {
+  color: #ff6b6b;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
   display: block;
 }
 
-/* Metadatos (nombre/tamaño) manténgalos discretos debajo del preview si hay espacio */
-#fotoMeta.ep-meta,
-.ep-meta#fotoMeta {
-  display: none; /* ocultar por defecto para mantener compacta la UI; el JS puede mostrar si se desea */
+/* Apply a red border and subtle red glow to invalid inputs (including Choices.js inner container) */
+.invalid-input {
+  border-color: #ff6b6b !important;
+  box-shadow: 0 0 0 0.1875rem rgba(255, 107, 107, 0.12) !important;
 }
 
-/* Botón quitar debajo de la preview, no superpuesto */
-#epRemove.ep-remove,
-.ep-remove#epRemove {
+/* When the custom bank selector is invalid, visually indicate it on the trigger */
+.bank-selector-trigger.invalid {
+  border-color: #ff6b6b;
+  box-shadow: 0 0 0 0.1875rem rgba(255, 107, 107, 0.12);
+}
+
+.selected-bank-name.invalid {
+  color: #ff6b6b;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.form-actions .btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 2rem;
+  font-size: 1.1rem;
+  border-radius: var(--border-radius);
+  background: linear-gradient(
+    135deg,
+    var(--primary-color),
+    var(--accent-color)
+  );
+  transition: var(--transition);
+}
+
+.form-actions .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(58, 142, 255, 0.4);
+}
+
+/* Dentro de .bank-data-grid: forzar layout de dos columnas para campos */
+.bank-data-grid .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.bank-data-grid .form-field {
+  margin-bottom: 0.5rem;
+}
+
+.bank-data-grid .form-field-group {
+  grid-column: 1 / -1; /* grupo completo ocupa ambas columnas */
+}
+
+/* Disponer los campos del bloque 'Información del titular' en hasta 4 columnas */
+.bank-data-grid .form-field-group {
+  display: block; /* base: block, we'll target rows with utility classes */
+}
+
+/* .cols-4 ahora se renderiza como 2 columnas por fila (par izquierdo/derecho) */
+.form-row.cols-4 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem 1.25rem;
+}
+
+/* Si se necesita que un campo ocupe ambas columnas */
+.form-row.cols-4 .full-span {
+  grid-column: 1 / -1;
+}
+
+/* El subtítulo debe ocupar toda la fila */
+.bank-data-grid .form-field-group .form-subtitle {
+  grid-column: 1 / -1;
+  margin-bottom: 0.75rem;
+}
+
+/* Asegurar que cualquier .form-field descendiente actúe como celda del grid */
+.bank-data-grid .form-field-group .form-field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.5rem;
+}
+
+/* Si existen wrappers .form-row dentro del grupo, los hacemos una grid de 2 columnas */
+.bank-data-grid .form-field-group .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem 1.25rem;
+}
+
+/* Responsive: 2 columnas medianas, 1 columna móvil */
+@media (max-width: 992px) {
+  .bank-data-grid .form-field-group {
+    grid-template-columns: repeat(2, minmax(160px, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .bank-data-grid .form-field-group {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Asegurar que select-wrapper y otros elementos llenen su celda */
+.bank-data-grid .select-wrapper,
+.bank-data-grid .password-wrapper,
+.bank-data-grid .file-input-wrapper {
+  width: 100%;
+}
+
+/* Mantener compatibilidad con versiones anteriores que usaban .bank-grid */
+.bank-grid,
+.bank-data-grid {
+  border-top: 1px solid var(--border-light);
+  padding-top: 1rem;
+  margin-top: 1rem;
+}
+
+/* Estilos para el campo de archivo personalizado */
+.file-input-wrapper {
+  position: relative;
+  overflow: hidden;
   display: inline-block;
-  margin-top: 0.5rem;
-  padding: 0.35rem 0.6rem;
-  border-radius: 0.35rem;
-  background: transparent;
-  border: 1px solid var(--border-light);
-  color: var(--text-color);
+  width: 100%;
+}
+
+.file-input-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--input-radius);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition);
+  width: 100%;
+  justify-content: center;
+  font-weight: 500;
+}
+
+.file-input-button:hover {
+  background: var(--border-color);
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.file-input {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
   cursor: pointer;
 }
 
-/* Mensaje de error específico para la subida (ya existe .ep-error) */
-#fotoError.ep-error,
-.ep-error#fotoError {
-  display: none;
-}
+/* Responsive */
+@media (max-width: 768px) {
+  .registro-header {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
 
-/* Grid para campos bancarios: en móviles 1 columna, en tablet/desktop 2 columnas */
-.bank-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.65rem;
-  align-items: start;
-  margin-top: 0.5rem;
-}
+  .form-row.double > *,
+  .form-row.triple > * {
+    flex: 1 1 100%;
+  }
 
-/* En pantallas medias y mayores, disponer campos en 2 columnas para apariencia horizontal */
-@media (min-width: 768px) {
   .bank-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.9rem;
+    grid-template-columns: 1fr;
   }
 
-  /* Si quieres que el campo numeroCuenta ocupe ambas columnas en desktop, puedes descomentarlo:
-  .bank-grid > div:nth-child(3) { grid-column: 1 / -1; }
-  */
-}
-
-/* Evitar que la preview empuje o flote sobre los inputs circundantes */
-.ep-preview,
-#epPreview {
-  box-sizing: border-box;
-}
-
-/* Forzar que la primera columna del form-row.double (ahora con foto + bank-grid) ocupe todo el ancho si se usa grid */
-@media (min-width: 768px) {
-  .form-row.double {
-    display: grid;
-    grid-template-columns: 1fr; /* forzamos una sola columna ya que foto + banco deben ir apilados */
+  .days-selector {
+    justify-content: center;
   }
-}
 
-/* Pequeña mejora: asegurar que el input file no desborde */
-#fotoPerfil {
-  display: block;
-  margin-top: 0.1rem;
+  .day-option {
+    flex: 0 1 calc(33.333% - 0.5rem);
+  }
+
+  .registroExperto-form {
+    padding: 1.5rem;
+  }
+
+  .form-section {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+  }
 }
