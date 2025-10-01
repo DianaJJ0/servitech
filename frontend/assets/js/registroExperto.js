@@ -35,6 +35,86 @@
       }
     }
 
+    // Intento proactivo de restaurar sesión desde localStorage si el proxy
+    // aún no tiene la sesión (evita que un usuario "loggeado" en otra pestaña
+    // pierda la sesión en este origen/puerto).
+    (async function restoreSessionOnLoad() {
+      try {
+        // Hacer una comprobación sencilla; si devuelve 401, intentar set-session
+        const chk = await fetch("/api/usuarios/perfil", {
+          method: "GET",
+          credentials: "include",
+          cache: "no-store",
+          headers: {
+            "Cache-Control": "no-cache",
+            Pragma: "no-cache",
+          },
+        });
+        console.log(
+          "restoreSessionOnLoad: auth check status=",
+          chk && chk.status
+        );
+        if (chk.ok) return; // ya autenticado
+        if (chk.status === 401) {
+          const token = localStorage.getItem("token");
+          const usuarioStr = localStorage.getItem("usuario");
+          console.log(
+            "restoreSessionOnLoad: auth check 401, token present?",
+            !!token
+          );
+          if (!token) return;
+          let usuario = null;
+          try {
+            usuario = usuarioStr ? JSON.parse(usuarioStr) : null;
+          } catch (e) {
+            usuario = null;
+          }
+          if (!usuario) usuario = { token };
+          usuario.token = token;
+          // Intentar establecer la sesión en el proxy
+          try {
+            const sr = await fetch("/set-session", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ usuario }),
+              credentials: "include",
+            });
+            console.log(
+              "restoreSessionOnLoad: /set-session status=",
+              sr.status,
+              "ok=",
+              sr.ok
+            );
+          } catch (e) {
+            console.warn("restoreSessionOnLoad: /set-session failed", e);
+          }
+        }
+      } catch (e) {
+        // No crítico
+      }
+    })();
+
+    // --- Helper para obtener token CSRF (cacheado) ---
+    async function getCsrfToken() {
+      try {
+        // Reusar token si ya lo obtuvimos antes
+        if (window.__csrfTokenCached) return window.__csrfTokenCached;
+
+        const res = await fetch("/csrf-token", { credentials: "include" });
+        if (!res.ok) return "";
+        const data = await res.json().catch(() => null);
+        const token =
+          data && (data.csrfToken || data.token)
+            ? data.csrfToken || data.token
+            : "";
+        window.__csrfTokenCached = token;
+        return token;
+      } catch (e) {
+        // No bloquear el flujo si no hay CSRF en este entorno
+        return "";
+      }
+    }
+
     // --- Fecha actual ---
     (function showDate() {
       const currentDateElement = document.getElementById("currentDate");
@@ -552,24 +632,68 @@
       );
       const optionsList = document.getElementById("bank-options-list");
       const searchInput = document.getElementById("bank-search");
-      const options = Array.from(document.querySelectorAll(".bank-option"));
+      // scope the options to the list container so we don't pick unrelated elements
+      const options = optionsList
+        ? Array.from(optionsList.querySelectorAll(".bank-option"))
+        : [];
       const selectedName = document.getElementById("selected-bank-name");
       const hiddenInput = document.getElementById("banco");
 
-      if (!trigger || !optionsContainer || !optionsList) return;
+      if (!trigger || !optionsContainer || !optionsList) {
+        console.warn("bankSelector: elementos faltantes", {
+          trigger,
+          optionsContainer,
+          optionsList,
+        });
+        return;
+      }
+
+      // elemento padre .bank-selector (donde el CSS mira aria-expanded)
+      const bankSelectorEl = trigger.closest(".bank-selector");
+      if (!bankSelectorEl) {
+        console.warn(
+          "bankSelector: .bank-selector no encontrado como ancestro del trigger"
+        );
+        return;
+      }
+
+      // Asegurar estado inicial consistente (oculto)
+      try {
+        if (!optionsContainer.style.display)
+          optionsContainer.style.display = "none";
+        optionsContainer.setAttribute("aria-hidden", "true");
+        trigger.setAttribute("aria-expanded", "false");
+      } catch (e) {
+        console.warn("bankSelector: no se pudo inicializar visibilidad", e);
+      }
 
       let open = false;
       let focusedIndex = -1;
 
       function openList() {
+        // mostrar internamente y actualizar el atributo aria-expanded en el contenedor
         optionsContainer.style.display = "block";
+        bankSelectorEl.setAttribute("aria-expanded", "true");
         trigger.setAttribute("aria-expanded", "true");
         optionsContainer.setAttribute("aria-hidden", "false");
         open = true;
+        // recalcular opciones en caso de que el DOM haya cambiado dinámicamente
+        if (optionsList) {
+          const refreshed = Array.from(
+            optionsList.querySelectorAll(".bank-option")
+          );
+          // actualizar la lista 'options' si hay diferencias
+          if (refreshed.length !== options.length) {
+            // pequeño mutating pero seguro: vaciar y volver a poblar
+            options.length = 0;
+            refreshed.forEach((o) => options.push(o));
+          }
+        }
       }
 
       function closeList() {
         optionsContainer.style.display = "none";
+        bankSelectorEl.setAttribute("aria-expanded", "false");
         trigger.setAttribute("aria-expanded", "false");
         optionsContainer.setAttribute("aria-hidden", "true");
         open = false;
@@ -610,7 +734,8 @@
         if (open) closeList();
         else {
           openList();
-          searchInput?.focus();
+          // focus con pequeño delay para asegurar que el elemento es visible
+          if (searchInput) setTimeout(() => searchInput.focus(), 40);
         }
       });
 
@@ -650,7 +775,11 @@
       if (searchInput) {
         searchInput.addEventListener("input", function () {
           const query = this.value.toLowerCase().trim();
-          options.forEach((opt) => {
+          // solo iterar las opciones actualmente en el list container
+          const currentOptions = optionsList
+            ? Array.from(optionsList.querySelectorAll(".bank-option"))
+            : options;
+          currentOptions.forEach((opt) => {
             const name = (
               opt.querySelector(".bank-name")?.textContent || opt.textContent
             ).toLowerCase();
@@ -868,24 +997,178 @@
         };
 
         try {
+          // Verificar que la sesión está activa y el usuario autenticado en el proxy frontend
+          // Comprobar sesión en el proxy. Si devuelve 401, intentar restaurar sesión
+          // a partir del token almacenado en localStorage antes de redirigir al login.
+          async function attemptRestoreSessionFromLocalStorage() {
+            try {
+              const token = localStorage.getItem("token");
+              const usuarioStr = localStorage.getItem("usuario");
+              console.log(
+                "attemptRestoreSessionFromLocalStorage: token present?",
+                !!token
+              );
+              if (!token) return false;
+              let usuario = null;
+              try {
+                usuario = usuarioStr ? JSON.parse(usuarioStr) : null;
+              } catch (e) {
+                usuario = null;
+              }
+              if (!usuario) usuario = { token };
+              usuario.token = token;
+
+              const setRes = await fetch("/set-session", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ usuario }),
+                credentials: "include",
+              });
+              console.log(
+                "attemptRestoreSessionFromLocalStorage: /set-session status=",
+                setRes.status,
+                "ok=",
+                setRes.ok
+              );
+              return setRes.ok;
+            } catch (e) {
+              return false;
+            }
+          }
+
+          try {
+            const authCheck = await fetch("/api/usuarios/perfil", {
+              method: "GET",
+              credentials: "include",
+              cache: "no-store",
+              headers: {
+                "Cache-Control": "no-cache",
+                Pragma: "no-cache",
+              },
+            });
+            if (!authCheck.ok) {
+              if (authCheck.status === 401) {
+                // Intentar restaurar sesión desde localStorage (si el token existe)
+                const restored = await attemptRestoreSessionFromLocalStorage();
+                if (!restored) {
+                  alert(
+                    "Debes iniciar sesión para completar el registro de experto. Serás redirigido al login."
+                  );
+                  window.location.href = "/login.html?next=/registroExperto";
+                  return;
+                }
+                // Si se restauró la sesión, seguir adelante (la próxima petición incluirá la cookie)
+              }
+            }
+          } catch (e) {
+            // No bloquear el flujo por un error momentáneo de comprobación
+            console.warn("No se pudo comprobar autenticación previa:", e);
+          }
           const csrfToken = await getCsrfToken();
-          const response = await fetch("/api/perfil-experto/perfil", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "x-csrf-token": csrfToken,
-            },
+          // Enviar al endpoint correcto del backend: PUT /api/expertos/perfil
+          const headers = {
+            "Content-Type": "application/json",
+          };
+          if (csrfToken) headers["x-csrf-token"] = csrfToken;
+          // Si hay token JWT en localStorage, anexarlo en Authorization para
+          // que el backend lo reciba incluso si la sesión proxy no se restauró.
+          try {
+            const localToken = localStorage.getItem("token");
+            if (localToken) {
+              headers["Authorization"] = `Bearer ${localToken}`;
+              console.log(
+                "registroExperto: usando token desde localStorage para Authorization"
+              );
+            }
+          } catch (e) {}
+
+          const response = await fetch("/api/expertos/perfil", {
+            method: "PUT",
+            headers,
             credentials: "include",
             body: JSON.stringify(payload),
           });
 
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            throw new Error(
-              errorData.mensaje || `Error del servidor: ${response.status}`
+            const backendMsg = errorData.mensaje || errorData.message || null;
+            let detail = backendMsg || `Error del servidor: ${response.status}`;
+            // Si el backend envía campos faltantes, mostrarlos
+            if (
+              errorData.camposFaltantes &&
+              Array.isArray(errorData.camposFaltantes)
+            ) {
+              detail +=
+                "\nCampos faltantes: " + errorData.camposFaltantes.join(", ");
+            }
+            throw new Error(detail);
+          }
+
+          // Leer respuesta del backend (contiene el usuario actualizado)
+          const respData = await response.json().catch(() => null);
+
+          // Intentar actualizar la sesión del proxy con el usuario devuelto
+          try {
+            const usuarioBackend =
+              respData && respData.usuario ? respData.usuario : null;
+            const token = localStorage.getItem("token");
+            let usuarioToSet = usuarioBackend || null;
+            if (usuarioToSet && token) {
+              usuarioToSet.token = token;
+            }
+            if (usuarioToSet) {
+              try {
+                const setRes = await fetch("/set-session", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  credentials: "include",
+                  body: JSON.stringify({ usuario: usuarioToSet }),
+                });
+                console.log(
+                  "registroExperto: set-session status",
+                  setRes.status,
+                  "ok=",
+                  setRes.ok
+                );
+                // Esperar a que la sesión proxy esté activa: comprobar /api/usuarios/perfil
+                const maxRetries = 3;
+                let ok = false;
+                for (let i = 0; i < maxRetries; i++) {
+                  try {
+                    const perfilChk = await fetch("/api/usuarios/perfil", {
+                      method: "GET",
+                      credentials: "include",
+                      cache: "no-store",
+                      headers: {
+                        "Cache-Control": "no-cache",
+                        Pragma: "no-cache",
+                      },
+                    });
+                    if (perfilChk.ok) {
+                      ok = true;
+                      break;
+                    }
+                  } catch (e) {}
+                  // small backoff
+                  await new Promise((r) => setTimeout(r, 250 * (i + 1)));
+                }
+                if (!ok) {
+                  console.warn(
+                    "registroExperto: /api/usuarios/perfil no responde OK tras set-session"
+                  );
+                }
+              } catch (e) {
+                console.warn("registroExperto: set-session failed", e);
+              }
+            }
+          } catch (e) {
+            console.warn(
+              "registroExperto: no se pudo actualizar sesión proxy",
+              e
             );
           }
 
+          // Éxito: redirigir al perfil del usuario donde podrá ver su información
           alert("Perfil de experto guardado correctamente.");
           window.location.href = "/perfil";
         } catch (error) {
@@ -897,18 +1180,6 @@
       });
     }
   });
-
-  // --- Utilidad CSRF Token ---
-  async function getCsrfToken() {
-    try {
-      const response = await fetch("/csrf-token", { credentials: "include" });
-      if (!response.ok) return "";
-      const data = await response.json();
-      return data.csrfToken || "";
-    } catch {
-      return "";
-    }
-  }
 })();
 
 console.log("registroExperto.js cargado correctamente");
