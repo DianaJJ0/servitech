@@ -318,3 +318,66 @@ input[type="color"] {
 .publicaciones-filtros__btn--center {
   justify-content: center;
 }
+
+/* --- Paginación Genérica --- */
+.admin-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-top: 1px solid var(--admin-border-color);
+  background: var(--admin-card-bg);
+  color: var(--admin-text-secondary);
+  font-size: 0.9rem;
+}
+
+.admin-pagination__info {
+  white-space: nowrap;
+}
+
+.admin-pagination__controles {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.admin-pagination__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid var(--admin-border-color);
+  background: transparent;
+  color: var(--admin-text-primary);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-pagination__btn:hover:not(:disabled) {
+  background: var(--admin-hover-bg);
+  border-color: var(--admin-accent-color);
+  color: var(--admin-text-primary);
+  transform: translateY(-2px);
+}
+
+.admin-pagination__btn.active,
+.admin-pagination__btn[aria-current="page"] {
+  background: var(--admin-accent-color);
+  color: white;
+  border-color: var(--admin-accent-color);
+  box-shadow: 0 4px 12px rgba(58, 142, 255, 0.2);
+}
+
+.admin-pagination__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.admin-pagination__ellipsis {
+  color: var(--admin-text-secondary);
+  padding: 0 0.25rem;
+}

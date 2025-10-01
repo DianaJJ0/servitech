@@ -37,9 +37,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
   try {
+    console.log("perfil.js: fetching /api/usuarios/perfil with token present");
     const response = await fetch("/api/usuarios/perfil", {
       method: "GET",
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Cache-Control": "no-cache",
+        Pragma: "no-cache",
+      },
+      cache: "no-store",
     });
     if (!response.ok) {
       localStorage.removeItem("token");
@@ -148,6 +154,7 @@ function renderAvatar(usuario) {
           method: "POST",
           headers: token ? { Authorization: "Bearer " + token } : {},
           body: fd,
+          cache: "no-store",
         });
         const data = await res.json();
         if (!res.ok) {

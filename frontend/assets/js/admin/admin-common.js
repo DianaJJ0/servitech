@@ -39,6 +39,9 @@ function setupNotifications() {
   }
 }
 
+// menu-toggle element removed from templates; offcanvas behavior handled via Bootstrap data attributes
+// and `setupMobileMenu` which checks element existence before binding. No auto-binding here.
+
 /**
  * Configura el dropdown del perfil de administrador
  */
@@ -86,16 +89,95 @@ function setupMobileMenu() {
 
       // Cerrar menú al hacer clic en el overlay
       overlay.addEventListener("click", () => {
-        document.body.classList.remove("menu-open");
+        closeMobileMenu();
       });
     }
 
     // Configurar botón de menú hamburguesa
     const menuToggle = document.getElementById("menu-toggle");
-    if (menuToggle) {
+    // If the toggle is using Bootstrap data attributes, don't intercept the click
+    // instead listen to Bootstrap offcanvas events to set body/menu state
+    if (
+      menuToggle &&
+      menuToggle.hasAttribute &&
+      menuToggle.hasAttribute("data-bs-toggle")
+    ) {
+      const targetSelector =
+        menuToggle.getAttribute("data-bs-target") ||
+        menuToggle.getAttribute("data-target");
+      const selector =
+        targetSelector && targetSelector.startsWith("#")
+          ? targetSelector.slice(1)
+          : targetSelector;
+      const offcanvasEl = selector ? document.getElementById(selector) : null;
+      if (
+        offcanvasEl &&
+        typeof bootstrap !== "undefined" &&
+        offcanvasEl.addEventListener
+      ) {
+        offcanvasEl.addEventListener("shown.bs.offcanvas", () => {
+          document.body.classList.add("menu-open");
+          menuToggle.setAttribute("aria-expanded", "true");
+          document.documentElement.style.overflow = "hidden";
+          document.body.style.overflow = "hidden";
+          const firstLink = document.querySelector(
+            ".offcanvas.admin-sidebar .sidebar-nav a"
+          );
+          if (firstLink) firstLink.focus();
+        });
+        offcanvasEl.addEventListener("hidden.bs.offcanvas", () => {
+          document.body.classList.remove("menu-open");
+          menuToggle.setAttribute("aria-expanded", "false");
+          document.documentElement.style.overflow = "";
+          document.body.style.overflow = "";
+          try {
+            menuToggle.focus();
+          } catch (e) {}
+        });
+      } else if (offcanvasEl) {
+        // Fallback simple toggle when Bootstrap JS is not available
+        menuToggle.addEventListener("click", (e) => {
+          e.preventDefault();
+          const isOpen = offcanvasEl.classList.toggle("show");
+          if (isOpen) {
+            document.body.classList.add("menu-open");
+            menuToggle.setAttribute("aria-expanded", "true");
+            offcanvasEl.setAttribute("aria-hidden", "false");
+            document.documentElement.style.overflow = "hidden";
+            document.body.style.overflow = "hidden";
+            const firstLink = offcanvasEl.querySelector(".sidebar-nav a");
+            if (firstLink) firstLink.focus();
+          } else {
+            closeMobileMenu();
+          }
+        });
+
+        // Close buttons inside offcanvas
+        offcanvasEl
+          .querySelectorAll('[data-bs-dismiss="offcanvas"], .btn-close')
+          .forEach((btn) => {
+            btn.addEventListener("click", () => {
+              closeMobileMenu();
+            });
+          });
+      }
+    } else if (menuToggle) {
+      // Fallback: non-Bootstrap toggle
       menuToggle.addEventListener("click", (e) => {
         e.preventDefault();
-        document.body.classList.toggle("menu-open");
+        const isOpen = document.body.classList.toggle("menu-open");
+        menuToggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+        // prevent background scroll when menu open
+        if (isOpen) {
+          document.documentElement.style.overflow = "hidden";
+          document.body.style.overflow = "hidden";
+          // move focus to first nav link
+          const firstLink = document.querySelector(".sidebar-nav a");
+          if (firstLink) firstLink.focus();
+        } else {
+          document.documentElement.style.overflow = "";
+          document.body.style.overflow = "";
+        }
       });
     }
 
@@ -114,7 +196,7 @@ function setupMobileMenu() {
     navLinks.forEach((link) => {
       link.addEventListener("click", () => {
         if (window.innerWidth <= 991) {
-          document.body.classList.remove("menu-open");
+          closeMobileMenu();
         }
       });
     });
@@ -123,6 +205,27 @@ function setupMobileMenu() {
     document.body.classList.add("mobile-menu-ready");
   }, 300);
 }
+
+function closeMobileMenu() {
+  const menuToggle = document.getElementById("menu-toggle");
+  document.body.classList.remove("menu-open");
+  if (menuToggle) {
+    menuToggle.setAttribute("aria-expanded", "false");
+    menuToggle.focus();
+  }
+  // restore scrolling
+  document.documentElement.style.overflow = "";
+  document.body.style.overflow = "";
+}
+
+// Close menu on ESC globally
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" || e.key === "Esc") {
+    if (document.body.classList.contains("menu-open")) {
+      closeMobileMenu();
+    }
+  }
+});
 
 /**
  * Inicializa el menú lateral y la navegación del panel de administración.

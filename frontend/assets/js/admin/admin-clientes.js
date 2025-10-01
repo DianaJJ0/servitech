@@ -150,15 +150,29 @@ const limit = 10;
 async function cargarClientes(page) {
   try {
     currentPage = page;
+    const headers = {
+      Authorization: "Bearer " + (localStorage.getItem("token") || ""),
+      "Content-Type": "application/json",
+    };
+    if (window.API_KEY) headers["x-api-key"] = window.API_KEY;
+
     const res = await fetch(
-      `/api/usuarios?soloClientesPuros=true&page=${page}&limit=${limit}`,
+      `/api/usuarios?roles=usuario&page=${page}&limit=${limit}`,
       {
-        headers: {
-          Authorization: "Bearer " + (localStorage.getItem("token") || ""),
-        },
+        credentials: "same-origin",
+        headers,
       }
     );
-    if (!res.ok) throw new Error("Error al obtener clientes");
+    if (!res.ok) {
+      const text = await res.text().catch(() => null);
+      console.error(
+        `cargarClientes: fetch failed status=${res.status} text=`,
+        text
+      );
+      throw new Error(
+        "Error al obtener clientes: " + (res.status || "unknown")
+      );
+    }
     const data = await res.json();
     clientes = data.usuarios || [];
     totalClientes = data.total || 0;
@@ -302,16 +316,26 @@ async function editarCliente() {
 
   const body = { nombre, apellido, estado, avatarUrl, roles: ["cliente"] };
   try {
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + (localStorage.getItem("token") || ""),
+    };
+    if (window.API_KEY) headers["x-api-key"] = window.API_KEY;
+
     const res = await fetch(`/api/usuarios/${email}`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + (localStorage.getItem("token") || ""),
-        "x-api-key": window.API_KEY || "",
-      },
+      credentials: "same-origin",
+      headers,
       body: JSON.stringify(body),
     });
-    if (!res.ok) throw new Error("Error al editar cliente");
+    if (!res.ok) {
+      const text = await res.text().catch(() => null);
+      console.error(
+        `editarCliente: PUT /api/usuarios/${email} failed status=${res.status} text=`,
+        text
+      );
+      throw new Error("Error al editar cliente: " + (res.status || "unknown"));
+    }
   } catch (err) {
     console.error("Error:", err);
   }
@@ -340,14 +364,26 @@ function abrirModalVerCliente(row) {
  */
 async function inactivarCliente(email) {
   try {
+    const headers = {
+      Authorization: "Bearer " + (localStorage.getItem("token") || ""),
+    };
+    if (window.API_KEY) headers["x-api-key"] = window.API_KEY;
+
     const res = await fetch(`/api/usuarios/${email}`, {
       method: "DELETE",
-      headers: {
-        Authorization: "Bearer " + (localStorage.getItem("token") || ""),
-        "x-api-key": window.API_KEY || "",
-      },
+      credentials: "same-origin",
+      headers,
     });
-    if (!res.ok) throw new Error("Error al inactivar cliente");
+    if (!res.ok) {
+      const text = await res.text().catch(() => null);
+      console.error(
+        `inactivarCliente: DELETE /api/usuarios/${email} failed status=${res.status} text=`,
+        text
+      );
+      throw new Error(
+        "Error al inactivar cliente: " + (res.status || "unknown")
+      );
+    }
   } catch (err) {
     console.error("Error:", err);
   }
