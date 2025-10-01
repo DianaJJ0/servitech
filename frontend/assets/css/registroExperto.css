@@ -1,5 +1,71 @@
 @import url("base.css");
 
+:root {
+  --primary-color: #3a8eff;
+  --primary-hover: #2a7af0;
+  --accent-color: #12d8fa;
+  --text-color: #fff;
+  --text-secondary: #d0d0d0;
+  --text-light: #a0a0a0;
+  --background: #0f0f0f;
+  --card-bg: #1a1a1a;
+  --input-bg: #2a2a2a;
+  --border-color: #3a3a3a;
+  --border-light: #ffffff14;
+  --focus-shadow: 0 0 0 0.1875rem #3a8eff33;
+  --card-shadow: 0 1.25rem 2.5rem #0000004d;
+  --hover-shadow: 0 0.625rem 1.5625rem #0000004d;
+  --btn-shadow: 0 0.3125rem 0.9375rem #2a7af04d;
+  --border-radius: 1rem;
+  --btn-radius: 0.5rem;
+  --input-radius: 0.5rem;
+  --transition: all 0.5s ease;
+  --header-height: 4.5rem;
+  --content-max-width: 81.25rem;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--text-color);
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-image: radial-gradient(
+      circle at 15% 50%,
+      #3a8eff1a 0%,
+      transparent 25%
+    ),
+    radial-gradient(circle at 85% 30%, #3a8eff1a 0%, transparent 25%);
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: var(--transition);
+}
+
+a:hover {
+  opacity: 0.85;
+}
+
+button,
+.btn {
+  cursor: pointer;
+  border: none;
+  outline: none;
 /* --- Fondo y layout principal --- */
 .registroExperto-main {
   width: 100%;
@@ -31,15 +97,31 @@
     border-radius: 2rem;
   }
 }
+
+.btn {
+  display: inline-block;
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--btn-radius);
+  font-weight: 600;
+  transition: var(--transition);
 .registroExperto-section {
   width: 100%;
   padding: 0;
 }
 .registro-header-content {
   text-align: center;
+}
+
+.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
   margin-bottom: 1.15rem;
   padding-top: 2.2rem;
 }
+
+.btn-lg {
+  padding: 0.85rem 1.8rem;
+  font-size: 1.1rem;
 .logo-img {
   max-width: 130px; /* mayor en escritorio/móvil por defecto */
   margin: 1 auto 0.9rem;
@@ -49,6 +131,10 @@
     max-width: 200px; /* más grande en pantallas amplias */
   }
 }
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: #fff;
 .registro-header-title {
   color: var(--primary-color);
   font-size: 2.1rem;
@@ -56,6 +142,17 @@
   margin-bottom: 0.2rem;
   letter-spacing: 0.01em;
 }
+
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-0.125rem);
+  box-shadow: var(--btn-shadow);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: #fff;
+  border: 1px solid #fff;
 .subtitle {
   color: var(--text-secondary);
   font-size: 1.01rem;
@@ -66,12 +163,38 @@
   border-radius: 1.5rem;
   border: 1px solid var(--border-light);
 }
+
+.btn-secondary:hover {
+  background-color: #ffffff1a;
+  transform: translateY(-0.125rem);
 .registro-fecha {
   color: var(--text-light);
   font-size: 0.85rem;
   margin-bottom: 1rem;
   display: inline-block;
 }
+
+.btn-outline {
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  background-color: transparent;
+}
+
+.btn-outline:hover {
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+  transform: translateY(-0.125rem);
+}
+
+.btn-light {
+  background-color: #fff;
+  color: var(--primary-color);
+}
+
+.btn-light:hover {
+  background-color: #f0f0f0;
+  transform: translateY(-0.125rem);
+  box-shadow: 0 0.3125rem 0.9375rem #fff3;
 .back-link {
   margin: 0.7rem 0 0 0;
   color: var(--text-secondary);
@@ -139,6 +262,22 @@
   }
 }
 
+.card {
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius);
+  padding: 1.5625rem;
+  border: 0.0625rem solid var(--border-light);
+  box-shadow: var(--card-shadow);
+  transition: var(--transition);
+}
+
+.card:hover {
+  transform: translateY(-0.3125rem);
+  box-shadow: 0 1.5625rem 3.125rem #0006;
+}
+
+.form-group {
+  margin-bottom: 0.9375rem;
 /* --- Tarjetas internas --- */
 .form-row {
   display: flex;
@@ -174,6 +313,16 @@
   display: flex;
   flex-direction: column;
 }
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.form-control {
 .form-group label {
   color: var(--text-secondary);
   font-size: 1rem;
@@ -186,16 +335,42 @@ input,
 select,
 textarea {
   width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: var(--input-bg);
+  border: 0.0625rem solid var(--border-color);
   padding: 0.8rem 1rem;
   background: var(--input-bg);
   border: 1.5px solid var(--border-color);
   border-radius: var(--input-radius);
   color: var(--text-color);
   font-size: 1rem;
+  font-size: 1rem;
   min-height: 44px;
   font-family: inherit;
   box-shadow: none;
   transition: var(--transition);
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: var(--focus-shadow);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(1.25rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade {
+  animation: fadeIn 0.5s ease-out forwards;
 }
 input::placeholder,
 textarea::placeholder {
@@ -226,6 +401,9 @@ textarea.invalid {
   display: block;
 }
 
+/* Estilos específicos para el formulario */
+.registroExperto-main {
+  flex: 1;
 /* --- Precio por hora --- */
 .price-group {
   position: relative;
@@ -233,6 +411,14 @@ textarea.invalid {
 .price-input {
   position: relative;
   display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 2rem 1rem;
+}
+
+.registroExperto-section {
+  width: 100%;
+  max-width: var(--content-max-width);
   align-items: center;
 }
 .price-input .currency {
@@ -306,6 +492,186 @@ textarea.invalid {
   justify-content: flex-start;
   max-width: 100%;
 }
+
+.alert {
+  padding: 1rem;
+  border-radius: var(--input-radius);
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+
+.alert-danger {
+  background-color: rgba(220, 53, 69, 0.1);
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  color: #f8d7da;
+}
+
+.alert-success {
+  background-color: rgba(25, 135, 84, 0.1);
+  border: 1px solid rgba(25, 135, 84, 0.3);
+  color: #d1e7dd;
+}
+
+.registro-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  box-shadow: var(--card-shadow);
+  border-left: 4px solid var(--primary-color);
+}
+
+.logo-link {
+  display: inline-block;
+}
+
+.logo-img {
+  height: 3rem;
+  width: auto;
+}
+
+.registro-header-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  text-align: center;
+}
+
+.registro-header-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-color);
+  margin: 0;
+  background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.registro-header-subtitle {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.registro-fecha {
+  color: var(--text-light);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  transition: var(--transition);
+  padding: 0.5rem 1rem;
+  border-radius: var(--btn-radius);
+  background: var(--input-bg);
+}
+
+.back-link:hover {
+  color: var(--primary-color);
+  background: var(--border-color);
+}
+
+.registroExperto-form {
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius);
+  padding: 2rem;
+  border: 0.0625rem solid var(--border-light);
+  box-shadow: var(--card-shadow);
+}
+
+.form-section {
+  margin-bottom: 2.5rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.form-section:last-of-type {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.form-section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: var(--text-color);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Select múltiple y adaptación para Choices.js */
+.form-control[multiple],
+.choices__inner {
+  background-color: var(--input-bg);
+  border: 0.0625rem solid var(--border-color);
+  color: var(--text-color);
+}
+
+.form-control[multiple] {
+  min-height: 3.5rem;
+  padding: 0.5rem 0.75rem;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* Tokens (selecciones) en Choices.js */
+.choices__list--multiple .choices__item {
+  background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+  color: #ffffff;
+  padding: 0.28rem 0.6rem;
+  margin: 0.18rem 0.25rem;
+  border-radius: 0.4rem;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.choices__inner.is-focused {
+  box-shadow: var(--focus-shadow);
+  border-color: var(--primary-color);
+}
+
+.choices__input,
+.choices__list--single .choices__item {
+  color: var(--text-color);
+}
+
+/* Forzar tema oscuro en el dropdown de Choices.js */
+.choices__list--dropdown {
+  background: var(--card-bg) !important;
+  border: 0.0625rem solid var(--border-color) !important;
+  box-shadow: var(--card-shadow) !important;
+  color: var(--text-color) !important;
+}
+
+.choices__list--dropdown .choices__item {
+  background: transparent !important;
+  color: var(--text-color) !important;
+}
+.choices__list--dropdown .choices__item .choices__item__text {
+  color: var(--text-color) !important;
+}
+.choices__item--highlighted {
+  background: rgba(58, 142, 255, 0.12);
+  color: var(--text-color);
+}
+
+/* placeholder/input dentro del control */
+.choices__inner .choices__placeholder,
+.choices__inner .choices__input {
+  color: var(--text-light) !important;
 @media (min-width: 900px) {
   .days-selector {
     gap: 1.2rem 2.2rem;
@@ -334,6 +700,147 @@ textarea.invalid {
   padding: 0 0.6em;
 }
 
+/* texto dentro del input de búsqueda de dropdown */
+.choices__input--cloned {
+  color: var(--text-color) !important;
+}
+
+/* Mejor separación entre tokens y el input */
+.choices__list--multiple {
+  padding: 0.35rem 0.5rem;
+}
+
+/* Si el navegador no soporta Choices, hacemos el select multiple más legible */
+select.form-control[size] {
+  padding: 0.5rem;
+  line-height: 1.6;
+}
+
+/* Forzar color visible en opciones nativas de select en tema oscuro */
+select.form-control option {
+  color: var(--text-color);
+  background: var(--input-bg);
+}
+
+/* Mejor contraste del borde cuando está enfocado */
+select.form-control:focus {
+  box-shadow: var(--focus-shadow);
+  border-color: var(--primary-color);
+}
+
+/* Sección: Datos bancarios - estilos consolidados y organizados */
+.bank-data-grid {
+  display: grid;
+  /* Two columns: enforce a comfortable minimum to avoid cramped inputs */
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 1rem 1.25rem;
+  align-items: start;
+  margin-top: 1rem;
+}
+
+/* Forzar que ciertos campos ocupen toda la fila */
+.bank-field--full {
+  grid-column: 1 / -1;
+}
+
+/* Ensure direct children of the bank-data-grid flow into the two-column layout */
+.bank-data-grid > .form-field,
+.bank-data-grid > .form-row,
+.bank-data-grid > .form-field-group {
+  /* occupy a single column by default */
+  grid-column: auto;
+}
+
+/* Nested rows inside a group should also be two columns */
+.bank-data-grid .form-field-group .form-row,
+.bank-data-grid .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+/* If a nested row contains a field that should be full width, force it */
+.bank-data-grid .form-row .bank-field--full,
+.bank-data-grid .form-field-group {
+  grid-column: 1 / -1;
+}
+
+/* Make sure common wrappers fill their grid cell */
+.bank-data-grid .select-wrapper,
+.bank-data-grid .password-wrapper,
+.bank-data-grid .file-input-wrapper,
+.bank-data-grid .bank-selector-wrapper {
+  width: 100%;
+}
+
+/* Tighter spacing for labels inside the grid */
+.bank-data-grid .form-label {
+  margin-bottom: 0.4rem;
+}
+
+.bank-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.bank-selector-wrapper {
+  position: relative;
+}
+
+.bank-selector {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.bank-selector-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  padding: 0.65rem 0.8rem;
+  border-radius: var(--input-radius);
+  color: var(--text-color);
+  transition: var(--transition);
+}
+
+.bank-selector-trigger:focus,
+.bank-selector[aria-expanded="true"] .bank-selector-trigger {
+  border-color: var(--primary-color);
+  box-shadow: var(--focus-shadow);
+}
+
+.selected-bank {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.selected-bank-name {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.bank-selector-icon {
+  color: var(--text-light);
+}
+
+.bank-options-container {
+  position: absolute;
+  top: calc(100% + 0.375rem);
+  left: 0;
+  right: 0;
+  z-index: 60;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--card-shadow);
+  border-radius: 0.5rem;
+  max-height: 16rem;
+  overflow: hidden;
+  display: none;
 /* hover / focus: ligera indicación - solo para no seleccionados (no sobreescribir .selected) */
 .day-option:not(.selected):focus,
 .day-option:not(.selected):hover {
@@ -351,6 +858,283 @@ textarea.invalid {
   box-shadow: 0 6px 18px #12d8fa33;
 }
 
+.bank-options-container[aria-hidden="false"] {
+  display: block;
+}
+
+.bank-search-container {
+  position: relative;
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--border-light);
+  background: transparent;
+}
+
+.bank-search {
+  width: 100%;
+  padding: 0.6rem 2.2rem 0.6rem 0.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--border-color);
+  background: var(--input-bg);
+  color: var(--text-color);
+  outline: none;
+}
+
+.bank-search-icon {
+  position: absolute;
+  right: 0.9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-light);
+  pointer-events: none;
+}
+
+.bank-options-list {
+  padding: 0.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-height: 12rem;
+  overflow: auto;
+}
+
+.bank-option {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.6rem 0.75rem;
+  cursor: pointer;
+  border-radius: 0.375rem;
+  color: var(--text-color);
+}
+
+.bank-option .bank-name {
+  color: var(--text-color);
+  font-weight: 600;
+}
+
+.bank-option:focus,
+.bank-option:hover,
+.bank-option[aria-selected="true"] {
+  background: rgba(58, 142, 255, 0.08);
+  outline: none;
+}
+
+.bank-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.5rem;
+  color: #fff;
+  font-weight: 700;
+  background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+  flex-shrink: 0;
+}
+
+.form-hint {
+  margin-top: 0.5rem;
+}
+
+/* Ensure password toggle/button stays aligned */
+.password-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.btn-icon {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  padding: 0.35rem 0.5rem;
+}
+
+/* Responsive tweaks */
+@media (max-width: 992px) {
+  .bank-data-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.password-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.password-wrapper .form-control {
+  flex: 1 1 auto;
+}
+
+.btn-icon {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  padding: 0.35rem 0.5rem;
+  margin-left: 0.5rem;
+}
+
+.btn-icon:hover {
+  color: var(--text-color);
+}
+
+.form-section-title i {
+  color: var(--primary-color);
+  background: rgba(58, 142, 255, 0.1);
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-row.double > * {
+  flex: 1 1 calc(50% - 1.5rem);
+  min-width: 250px;
+}
+
+.form-row.triple > * {
+  flex: 1 1 calc(33.333% - 1.5rem);
+  min-width: 200px;
+}
+
+.form-group {
+  flex: 1 1 100%;
+}
+
+.form-group.compact {
+  flex: 1 1 auto;
+}
+
+.form-group label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.form-hint {
+  font-size: 0.75rem;
+  color: var(--text-light);
+  margin-top: 0.25rem;
+}
+
+.email-field {
+  padding: 0.75rem 1rem;
+  background-color: var(--input-bg);
+  border: 0.0625rem solid var(--border-color);
+  border-radius: var(--input-radius);
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+.price-group {
+  position: relative;
+}
+
+.price-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.currency {
+  position: absolute;
+  left: 1rem;
+  color: var(--text-secondary);
+  z-index: 1;
+  font-weight: 500;
+}
+
+.price-input input {
+  padding-left: 2rem;
+}
+
+.price-tooltip {
+  cursor: help;
+  color: var(--text-light);
+}
+
+textarea.form-control {
+  resize: vertical;
+  min-height: 120px;
+}
+
+/* Select múltiple mejorado para categorías */
+select[multiple] {
+  height: auto;
+  min-height: 120px;
+  padding: 0.5rem;
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--input-radius);
+  color: var(--text-color);
+  font-size: 0.9rem;
+  transition: var(--transition);
+}
+
+select[multiple]:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: var(--focus-shadow);
+}
+
+select[multiple] option {
+  padding: 0.75rem 1rem;
+  margin: 0.25rem 0;
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+select[multiple] option:hover {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+select[multiple] option:checked {
+  background-color: var(--primary-color);
+  color: white;
+  font-weight: 600;
+}
+
+select[multiple] option:focus {
+  background-color: var(--primary-hover);
+}
+
+/* Select simple mejorado */
+select:not([multiple]) {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23a0a0a0'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1rem;
+  padding-right: 2.5rem;
+}
+
+select:not([multiple]):focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: var(--focus-shadow);
+}
+
+.days-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
 /* mobile: rectángulos ocupando ancho del contenido pero manteniendo el tamaño compacto */
 @media (max-width: 700px) {
   .days-selector {
@@ -413,6 +1197,136 @@ select#banco
   margin: 0 auto;
   box-shadow: var(--btn-shadow);
 }
+
+.day-option {
+  padding: 0.5rem 0.75rem;
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--input-radius);
+  color: var(--text-secondary);
+  transition: var(--transition);
+  flex: 1;
+  min-width: 60px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.day-option:hover {
+  background-color: var(--border-color);
+  color: var(--text-color);
+}
+
+.day-option.selected {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(58, 142, 255, 0.3);
+}
+
+.days-selected-display {
+  padding: 0.75rem;
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--input-radius);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  transition: var(--transition);
+}
+
+.days-selected-display.has-selection {
+  color: var(--text-color);
+  border-color: var(--primary-color);
+  background-color: rgba(58, 142, 255, 0.05);
+}
+
+.ep-preview {
+  display: none;
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--input-radius);
+  align-items: center;
+  gap: 1rem;
+}
+
+.ep-img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid var(--primary-color);
+}
+
+.ep-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.ep-remove {
+  display: none;
+  margin-top: 0.5rem;
+}
+
+.ep-error {
+  color: #ff6b6b;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+/* Error visuals for inline validation messages and invalid inputs */
+.input-error {
+  color: #ff6b6b;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+/* Apply a red border and subtle red glow to invalid inputs (including Choices.js inner container) */
+.invalid-input {
+  border-color: #ff6b6b !important;
+  box-shadow: 0 0 0 0.1875rem rgba(255, 107, 107, 0.12) !important;
+}
+
+/* When the custom bank selector is invalid, visually indicate it on the trigger */
+.bank-selector-trigger.invalid {
+  border-color: #ff6b6b;
+  box-shadow: 0 0 0 0.1875rem rgba(255, 107, 107, 0.12);
+}
+
+.selected-bank-name.invalid {
+  color: #ff6b6b;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.form-actions .btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 2rem;
+  font-size: 1.1rem;
+  border-radius: var(--border-radius);
+  background: linear-gradient(
+    135deg,
+    var(--primary-color),
+    var(--accent-color)
+  );
+  transition: var(--transition);
+}
+
+.form-actions .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(58, 142, 255, 0.4);
 .btn-primary:hover {
   background: var(--primary-hover);
 }
@@ -440,12 +1354,128 @@ select#banco
   z-index: 12;
 }
 
+/* Dentro de .bank-data-grid: forzar layout de dos columnas para campos */
+.bank-data-grid .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.bank-data-grid .form-field {
+  margin-bottom: 0.5rem;
+}
+
+.bank-data-grid .form-field-group {
+  grid-column: 1 / -1; /* grupo completo ocupa ambas columnas */
+}
+
+/* Disponer los campos del bloque 'Información del titular' en hasta 4 columnas */
+.bank-data-grid .form-field-group {
+  display: block; /* base: block, we'll target rows with utility classes */
+}
+
+/* .cols-4 ahora se renderiza como 2 columnas por fila (par izquierdo/derecho) */
+.form-row.cols-4 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem 1.25rem;
+}
+
+/* Si se necesita que un campo ocupe ambas columnas */
+.form-row.cols-4 .full-span {
+  grid-column: 1 / -1;
+}
+
+/* El subtítulo debe ocupar toda la fila */
+.bank-data-grid .form-field-group .form-subtitle {
+  grid-column: 1 / -1;
+  margin-bottom: 0.75rem;
+}
+
+/* Asegurar que cualquier .form-field descendiente actúe como celda del grid */
+.bank-data-grid .form-field-group .form-field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.5rem;
 /* --- Contador descripción --- */
 #descContador {
   color: var(--primary-color);
   font-weight: 700;
 }
 
+/* Si existen wrappers .form-row dentro del grupo, los hacemos una grid de 2 columnas */
+.bank-data-grid .form-field-group .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem 1.25rem;
+}
+
+/* Responsive: 2 columnas medianas, 1 columna móvil */
+@media (max-width: 992px) {
+  .bank-data-grid .form-field-group {
+    grid-template-columns: repeat(2, minmax(160px, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .bank-data-grid .form-field-group {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Asegurar que select-wrapper y otros elementos llenen su celda */
+.bank-data-grid .select-wrapper,
+.bank-data-grid .password-wrapper,
+.bank-data-grid .file-input-wrapper {
+  width: 100%;
+}
+
+/* Mantener compatibilidad con versiones anteriores que usaban .bank-grid */
+.bank-grid,
+.bank-data-grid {
+  border-top: 1px solid var(--border-light);
+  padding-top: 1rem;
+  margin-top: 1rem;
+}
+
+/* Estilos para el campo de archivo personalizado */
+.file-input-wrapper {
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+.file-input-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--input-radius);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition);
+  width: 100%;
+  justify-content: center;
+  font-weight: 500;
+}
+
+.file-input-button:hover {
+  background: var(--border-color);
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.file-input {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
 /* --- Alertas globales --- */
 .registro-alerta {
   margin-bottom: 1.1rem;
@@ -459,6 +1489,40 @@ select#banco
   color: #fff;
   background: #d32f2f;
 }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .registro-header {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .form-row.double > *,
+  .form-row.triple > * {
+    flex: 1 1 100%;
+  }
+
+  .bank-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .days-selector {
+    justify-content: center;
+  }
+
+  .day-option {
+    flex: 0 1 calc(33.333% - 0.5rem);
+  }
+
+  .registroExperto-form {
+    padding: 1.5rem;
+  }
+
+  .form-section {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+  }
 .alert-success {
   color: #fff;
   background: #388e3c;
