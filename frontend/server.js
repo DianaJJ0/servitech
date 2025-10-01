@@ -336,11 +336,25 @@ router.get("/contacto.html", (req, res) => {
 
 // --- Perfil usuario: consulta backend si hay token ---
 router.get("/perfil", async (req, res) => {
+  console.log(
+    "[frontend] GET /perfil - session present?",
+    !!req.session,
+    "session.user?",
+    !!(req.session && req.session.user)
+  );
   if (req.session && req.session.user && req.session.user.token) {
+    console.log(
+      "[frontend] /perfil - session.user.token present? ",
+      !!req.session.user.token
+    );
     try {
       const perfilRes = await fetch(`${BACKEND_URL}/api/usuarios/perfil`, {
         headers: { Authorization: `Bearer ${req.session.user.token}` },
       });
+      console.log(
+        "[frontend] /perfil - backend /api/usuarios/perfil status=",
+        perfilRes && perfilRes.status
+      );
       if (perfilRes.ok) {
         const user = await perfilRes.json();
         try {
@@ -535,19 +549,21 @@ router.get("/expertos/:id/calendario", async (req, res) => {
   try {
     const experto = await Usuario.findById(req.params.id);
     if (!experto || !experto.roles.includes("experto")) {
-      return res.status(404).render("404", { mensaje: "Experto no encontrado" });
+      return res
+        .status(404)
+        .render("404", { mensaje: "Experto no encontrado" });
     }
     // Sus asesorías agendadas (pendiente, confirmada, completada)
     const asesoriasExistentes = await Asesoria.find({
       "experto.email": experto.email,
-      estado: { $in: ["pendiente-pago", "confirmada"] }
+      estado: { $in: ["pendiente-pago", "confirmada"] },
     });
     // Usuario autenticado (puede ser null si no ha iniciado sesión)
     const usuario = req.session.user || null;
     return res.render("calendario", {
       experto,
       usuario,
-      asesoriasExistentes
+      asesoriasExistentes,
     });
   } catch (err) {
     res.status(500).render("error", { mensaje: "Error interno en calendario" });
