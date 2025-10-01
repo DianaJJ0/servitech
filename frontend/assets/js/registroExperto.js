@@ -552,24 +552,68 @@
       );
       const optionsList = document.getElementById("bank-options-list");
       const searchInput = document.getElementById("bank-search");
-      const options = Array.from(document.querySelectorAll(".bank-option"));
+      // scope the options to the list container so we don't pick unrelated elements
+      const options = optionsList
+        ? Array.from(optionsList.querySelectorAll(".bank-option"))
+        : [];
       const selectedName = document.getElementById("selected-bank-name");
       const hiddenInput = document.getElementById("banco");
 
-      if (!trigger || !optionsContainer || !optionsList) return;
+      if (!trigger || !optionsContainer || !optionsList) {
+        console.warn("bankSelector: elementos faltantes", {
+          trigger,
+          optionsContainer,
+          optionsList,
+        });
+        return;
+      }
+
+      // elemento padre .bank-selector (donde el CSS mira aria-expanded)
+      const bankSelectorEl = trigger.closest(".bank-selector");
+      if (!bankSelectorEl) {
+        console.warn(
+          "bankSelector: .bank-selector no encontrado como ancestro del trigger"
+        );
+        return;
+      }
+
+      // Asegurar estado inicial consistente (oculto)
+      try {
+        if (!optionsContainer.style.display)
+          optionsContainer.style.display = "none";
+        optionsContainer.setAttribute("aria-hidden", "true");
+        trigger.setAttribute("aria-expanded", "false");
+      } catch (e) {
+        console.warn("bankSelector: no se pudo inicializar visibilidad", e);
+      }
 
       let open = false;
       let focusedIndex = -1;
 
       function openList() {
+        // mostrar internamente y actualizar el atributo aria-expanded en el contenedor
         optionsContainer.style.display = "block";
+        bankSelectorEl.setAttribute("aria-expanded", "true");
         trigger.setAttribute("aria-expanded", "true");
         optionsContainer.setAttribute("aria-hidden", "false");
         open = true;
+        // recalcular opciones en caso de que el DOM haya cambiado dinámicamente
+        if (optionsList) {
+          const refreshed = Array.from(
+            optionsList.querySelectorAll(".bank-option")
+          );
+          // actualizar la lista 'options' si hay diferencias
+          if (refreshed.length !== options.length) {
+            // pequeño mutating pero seguro: vaciar y volver a poblar
+            options.length = 0;
+            refreshed.forEach((o) => options.push(o));
+          }
+        }
       }
 
       function closeList() {
         optionsContainer.style.display = "none";
+        bankSelectorEl.setAttribute("aria-expanded", "false");
         trigger.setAttribute("aria-expanded", "false");
         optionsContainer.setAttribute("aria-hidden", "true");
         open = false;
@@ -610,7 +654,8 @@
         if (open) closeList();
         else {
           openList();
-          searchInput?.focus();
+          // focus con pequeño delay para asegurar que el elemento es visible
+          if (searchInput) setTimeout(() => searchInput.focus(), 40);
         }
       });
 
@@ -650,7 +695,11 @@
       if (searchInput) {
         searchInput.addEventListener("input", function () {
           const query = this.value.toLowerCase().trim();
-          options.forEach((opt) => {
+          // solo iterar las opciones actualmente en el list container
+          const currentOptions = optionsList
+            ? Array.from(optionsList.querySelectorAll(".bank-option"))
+            : options;
+          currentOptions.forEach((opt) => {
             const name = (
               opt.querySelector(".bank-name")?.textContent || opt.textContent
             ).toLowerCase();
