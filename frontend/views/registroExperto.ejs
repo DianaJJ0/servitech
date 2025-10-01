@@ -6,6 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Registro de Experto | Servitech</title>
   <link rel="stylesheet" href="/assets/css/base.css" />
+  <title>Registro Experto | Servitech</title>
+  <link rel="stylesheet" href="/assets/css/auth.css" />
   <link rel="stylesheet" href="/assets/css/registroExperto.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -363,9 +365,136 @@
           </button>
         </div>
       </form>
+      <div id="registroAlerta" class="registro-alerta"></div>
+      <div class="registro-header">
+        <div class="registro-header-content">
+          <a href="/" class="logo-link">
+            <img src="/assets/img/logo.png" alt="Logo de ServiTech" class="logo-img">
+          </a>
+          <h1 class="registro-header-title">Registro de Experto</h1>
+          <p class="subtitle registro-header-subtitle">Completa tu perfil para solicitar ser Experto</p>
+        </div>
+        <span id="currentDate" class="registro-fecha"></span>
+        <div class="back-home-center">
+          <a href="/" class="back-link"><i class="fas fa-arrow-left"></i>Volver al inicio</a>
+        </div>
+      </div>
+      <form id="registroExpertoForm" class="registroExperto-form" novalidate>
+        <div class="form-row triple">
+          <div class="form-group compact price-group">
+            <label for="precio">Precio por hora (COP)
+              <span class="price-tooltip" title="Ejemplo recomendado: $30.000 - $120.000 COP"><i
+                  class="fas fa-info-circle"></i></span>
+            </label>
+            <div class="price-input">
+              <span class="currency">$</span>
+              <input type="number" id="precio" name="precio" min="10000" max="120000" step="100" required
+                placeholder="Ej: 50000" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
+            </div>
+            <div class="input-error" id="errorPrecio"></div>
+            <p class="form-hint">Define un precio proporcional a tu experiencia</p>
+          </div>
+          <div class="form-group compact">
+            <label for="telefonoContacto"><i class="fas fa-phone"></i> Teléfono de contacto</label>
+            <input type="tel" id="telefonoContacto" name="telefonoContacto" placeholder="Ej: 3001234567" required maxlength="10"
+              pattern="^[0-9]{7,10}$" autocomplete="off">
+            <div class="input-error" id="errorTelefonoContacto"></div>
+            <p class="form-hint">Para coordinar asesorías</p>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="descripcion">Descripción profesional</label>
+            <textarea id="descripcion" name="descripcion" rows="3" maxlength="400" required
+              placeholder="Cuentanos tu experiencia, herramientas y tipos de proyectos"></textarea>
+            <div class="input-error" id="errorDescripcion"></div>
+            <div class="form-hint"><span id="descContador">0</span>/400 caracteres</div>
+          </div>
+        </div>
+        <div class="form-row double">
+          <div class="form-group">
+            <label for="categorias">Categorías</label>
+            <!-- El select se llena dinámicamente por JS -->
+            <select id="categorias" name="categorias" multiple required></select>
+            <div class="input-error" id="errorCategorias"></div>
+          </div>
+          <div class="form-group">
+            <label>Días disponibles</label>
+            <div class="days-selector">
+              <button type="button" class="day-option" data-day="Lunes">Lunes</button>
+              <button type="button" class="day-option" data-day="Martes">Martes</button>
+              <button type="button" class="day-option" data-day="Miércoles">Miércoles</button>
+              <button type="button" class="day-option" data-day="Jueves">Jueves</button>
+              <button type="button" class="day-option" data-day="Viernes">Viernes</button>
+              <button type="button" class="day-option" data-day="Sábado">Sábado</button>
+              <button type="button" class="day-option" data-day="Domingo">Domingo</button>
+            </div>
+            <input type="hidden" id="diasDisponibles" name="diasDisponibles" value="">
+            <input type="hidden" id="diasDisponibles" name="diasDisponibles" value="">
+            <div class="days-selected-display" id="diasDisplay">Selecciona tus días disponibles</div>
+            <div class="input-error" id="errorDiasDisponibles"></div>
+          </div>
+        </div>
+        <div class="form-row double">
+          <div class="form-group">
+            <label>Datos bancarios</label>
+            <div class="bank-grid">
+              <div>
+                <label for="banco">Banco</label>
+                <select id="banco" name="banco" required>
+                  <option value="">Selecciona</option>
+                  <option value="Bancolombia">Bancolombia</option>
+                  <option value="Nequi">Nequi</option>
+                </select>
+                <div class="input-error" id="errorBanco"></div>
+              </div>
+              <div>
+                <label for="tipoCuenta">Tipo de cuenta</label>
+                <select id="tipoCuenta" name="tipoCuenta" required>
+                  <option value="">Selecciona</option>
+                  <option value="Ahorros">Ahorros</option>
+                  <option value="Corriente">Corriente</option>
+                </select>
+                <div class="input-error" id="errorTipoCuenta"></div>
+              </div>
+              <div>
+                <label for="numeroCuenta">Número de cuenta</label>
+                <input type="text" id="numeroCuenta" name="numeroCuenta" required maxlength="20" pattern="^[0-9]{6,20}$"
+                  autocomplete="off">
+                <div class="input-error" id="errorNumeroCuenta"></div>
+              </div>
+              <div>
+                <label for="titular">Titular</label>
+                <input type="text" id="titular" name="titular" required maxlength="80" autocomplete="off">
+                <div class="input-error" id="errorTitular"></div>
+              </div>
+              <div>
+                <label for="tipoDocumento">Tipo de documento</label>
+                <select id="tipoDocumento" name="tipoDocumento" required>
+                  <option value="">Selecciona</option>
+                  <option value="CC">Cédula</option>
+                  <option value="CE">Cédula de extranjería</option>
+                  <option value="PAS">Pasaporte</option>
+                </select>
+                <div class="input-error" id="errorTipoDocumento"></div>
+              </div>
+              <div>
+                <label for="numeroDocumento">Número de documento</label>
+                <input type="text" id="numeroDocumento" name="numeroDocumento" required maxlength="15"
+                  pattern="^[0-9a-zA-Z]{5,15}$" autocomplete="off">
+                <div class="input-error" id="errorNumeroDocumento"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i> Guardar y solicitar
+          </button>
+        </div>
+      </form>
     </section>
   </main>
-
   <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
   <script src="/assets/js/registroExperto.js"></script>
 </body>

@@ -66,6 +66,36 @@ button,
   cursor: pointer;
   border: none;
   outline: none;
+/* --- Fondo y layout principal --- */
+.registroExperto-main {
+  width: 100%;
+  max-width: 1100px;
+  min-width: 320px;
+  margin: 2.6rem auto 2.4rem auto;
+  padding: 0;
+  background: #222425; /* ligeramente más oscuro que antes */
+  border-radius: 1.3rem;
+  box-shadow: var(--card-shadow);
+  border: 1px solid #2a2a2a; /* tono acorde */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+@media (min-width: 900px) {
+  .registroExperto-main {
+    max-width: 1100px;
+    min-width: 800px;
+    margin: 3.5rem auto 3.5rem auto;
+    border-radius: 1.7rem;
+  }
+}
+@media (min-width: 1200px) {
+  .registroExperto-main {
+    max-width: 1200px;
+    min-width: 900px;
+    margin: 4rem auto 4rem auto;
+    border-radius: 2rem;
+  }
 }
 
 .btn {
@@ -74,22 +104,43 @@ button,
   border-radius: var(--btn-radius);
   font-weight: 600;
   transition: var(--transition);
+.registroExperto-section {
+  width: 100%;
+  padding: 0;
+}
+.registro-header-content {
   text-align: center;
 }
 
 .btn-sm {
   padding: 0.5rem 1rem;
   font-size: 0.875rem;
+  margin-bottom: 1.15rem;
+  padding-top: 2.2rem;
 }
 
 .btn-lg {
   padding: 0.85rem 1.8rem;
   font-size: 1.1rem;
+.logo-img {
+  max-width: 130px; /* mayor en escritorio/móvil por defecto */
+  margin: 1 auto 0.9rem;
+}
+@media (min-width: 900px) {
+  .logo-img {
+    max-width: 200px; /* más grande en pantallas amplias */
+  }
 }
 
 .btn-primary {
   background-color: var(--primary-color);
   color: #fff;
+.registro-header-title {
+  color: var(--primary-color);
+  font-size: 2.1rem;
+  font-weight: 800;
+  margin-bottom: 0.2rem;
+  letter-spacing: 0.01em;
 }
 
 .btn-primary:hover {
@@ -102,11 +153,25 @@ button,
   background-color: transparent;
   color: #fff;
   border: 1px solid #fff;
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 1.01rem;
+  margin-bottom: 1rem;
+  display: block;
+  padding: 0.4rem 0.8rem;
+  background: rgba(58, 142, 255, 0.05);
+  border-radius: 1.5rem;
+  border: 1px solid var(--border-light);
 }
 
 .btn-secondary:hover {
   background-color: #ffffff1a;
   transform: translateY(-0.125rem);
+.registro-fecha {
+  color: var(--text-light);
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+  display: inline-block;
 }
 
 .btn-outline {
@@ -130,6 +195,71 @@ button,
   background-color: #f0f0f0;
   transform: translateY(-0.125rem);
   box-shadow: 0 0.3125rem 0.9375rem #fff3;
+.back-link {
+  margin: 0.7rem 0 0 0;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.2rem 0.75rem; /* un poco más pequeño que el ejemplo */
+  border-radius: 0.6rem;
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  background: transparent;
+  color: #fff;
+  font-size: 0.95rem;
+  line-height: 1;
+  text-decoration: none;
+  transition: background 0.12s, transform 0.08s;
+  box-shadow: none;
+}
+.back-link i {
+  font-size: 0.98rem;
+  line-height: 1;
+}
+.back-link:hover {
+  background: rgba(255, 255, 255, 0.04);
+  transform: translateY(-1px);
+}
+.back-home-center {
+  text-align: center;
+  margin: 0.2rem 0 3rem 0;
+  margin-left: auto;
+  color: var(--primary-color);
+  font-size: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transform: translateY(-5px); /* subir ligeramente */
+}
+/* Ajuste más sutil en pantallas pequeñas */
+@media (max-width: 700px) {
+  .back-home-center {
+    transform: translateY(-6px);
+    margin: 0.4rem 0 0 0;
+  }
+}
+
+/* --- Formulario --- */
+.registroExperto-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+  padding: 0 1.2rem 2.2rem 1.2rem;
+  box-sizing: border-box;
+}
+@media (min-width: 700px) {
+  .registroExperto-form {
+    padding: 0 2.2rem 2.2rem 2.2rem;
+    gap: 1.7rem;
+  }
+}
+@media (min-width: 900px) {
+  .registroExperto-form {
+    padding: 0 3.2rem 2.8rem 3.2rem;
+    gap: 2.2rem;
+  }
 }
 
 .card {
@@ -148,6 +278,40 @@ button,
 
 .form-group {
   margin-bottom: 0.9375rem;
+/* --- Tarjetas internas --- */
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: transparent;
+  border-radius: 1.1rem;
+  padding: 0;
+  margin-bottom: 0.7rem;
+  border: none;
+}
+.form-row.triple,
+.form-row.double {
+  flex-direction: column;
+  gap: 1rem;
+}
+@media (min-width: 900px) {
+  .form-row.triple {
+    flex-direction: row;
+    gap: 3.2rem;
+  }
+  .form-row.double {
+    flex-direction: row;
+    gap: 3.2rem;
+  }
+}
+
+/* --- Inputs, selects, textarea --- */
+.form-group {
+  margin-bottom: 0.5rem;
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .form-label {
@@ -159,13 +323,31 @@ button,
 }
 
 .form-control {
+.form-group label {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  margin-bottom: 0.18rem;
+  font-weight: 700;
+  display: block;
+  letter-spacing: 0.01em;
+}
+input,
+select,
+textarea {
   width: 100%;
   padding: 0.75rem 1rem;
   background-color: var(--input-bg);
   border: 0.0625rem solid var(--border-color);
+  padding: 0.8rem 1rem;
+  background: var(--input-bg);
+  border: 1.5px solid var(--border-color);
   border-radius: var(--input-radius);
   color: var(--text-color);
   font-size: 1rem;
+  font-size: 1rem;
+  min-height: 44px;
+  font-family: inherit;
+  box-shadow: none;
   transition: var(--transition);
 }
 
@@ -190,10 +372,44 @@ button,
 .animate-fade {
   animation: fadeIn 0.5s ease-out forwards;
 }
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-light);
+  opacity: 1;
+}
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--primary-color);
+  box-shadow: var(--focus-shadow);
+  outline: none;
+}
+input.invalid,
+select.invalid,
+textarea.invalid {
+  border-color: var(--border-color) !important;
+  background: var(--input-bg) !important;
+}
+
+/* --- Errores e hints --- */
+.input-error {
+  color: #ff5252;
+  font-size: 0.97em;
+  margin-top: 2px;
+  min-height: 18px;
+  line-height: 1.15;
+  display: block;
+}
 
 /* Estilos específicos para el formulario */
 .registroExperto-main {
   flex: 1;
+/* --- Precio por hora --- */
+.price-group {
+  position: relative;
+}
+.price-input {
+  position: relative;
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -203,6 +419,78 @@ button,
 .registroExperto-section {
   width: 100%;
   max-width: var(--content-max-width);
+  align-items: center;
+}
+.price-input .currency {
+  position: absolute;
+  left: 1rem;
+  color: var(--primary-color);
+  font-weight: 700;
+  pointer-events: none;
+  font-size: 1.1em;
+}
+.price-input input {
+  padding-left: 2rem;
+}
+
+/* --- Categorías (Choices.js más llamativo) --- */
+.choices__inner,
+.choices__list--dropdown,
+.choices__list[role="listbox"],
+.choices__input,
+.choices__placeholder {
+  background: var(--input-bg) !important;
+  color: var(--text-color) !important;
+  border-color: var(--border-color) !important;
+  font-size: 1em !important;
+  border-radius: var(--input-radius) !important;
+  min-height: 44px !important;
+  box-shadow: none !important;
+}
+.choices__inner {
+  border-width: 1.5px !important;
+  border-style: solid !important;
+  padding: 0.7rem 1rem !important;
+  min-height: 44px !important;
+  border-radius: var(--input-radius) !important;
+  background: var(--input-bg) !important;
+  box-shadow: 0 2px 12px #3a8eff22 !important;
+}
+.choices__list--multiple .choices__item {
+  border-radius: 1.5em !important;
+  border: none !important;
+  background: var(--primary-color) !important;
+  color: #fff !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 8px #3a8eff33 !important;
+  padding: 0.35em 1.1em !important;
+  margin: 2px 7px 2px 0;
+  font-size: 1em !important;
+  transition: background 0.18s, color 0.18s;
+}
+.choices__list--multiple .choices__item.is-highlighted {
+  background: var(--primary-hover) !important;
+  color: #fff !important;
+}
+.choices[data-type*="select-multiple"] .choices__button {
+  color: #fff !important;
+  opacity: 0.7;
+}
+.choices__list--dropdown {
+  max-height: 200px !important;
+  overflow-y: auto !important;
+  box-shadow: 0 2px 12px #3a8eff22 !important;
+}
+
+/* --- Días disponibles --- */
+.days-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem 1.6rem;
+  margin-top: 0.3rem;
+  align-items: center;
+  justify-content: flex-start;
+  max-width: 100%;
 }
 
 .alert {
@@ -384,6 +672,32 @@ button,
 .choices__inner .choices__placeholder,
 .choices__inner .choices__input {
   color: var(--text-light) !important;
+@media (min-width: 900px) {
+  .days-selector {
+    gap: 1.2rem 2.2rem;
+  }
+}
+
+/* estado NO seleccionado: gris claro, más pequeño */
+.day-option {
+  border: 2px solid #b6b7b8; /* borde gris claro */
+  color: #e7e7e7; /* texto gris claro */
+  background: transparent;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  transition: background 0.12s, color 0.12s, border 0.12s;
+  outline: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  margin: 0;
+  box-shadow: none;
+  padding: 0 0.6em;
 }
 
 /* texto dentro del input de búsqueda de dropdown */
@@ -527,6 +841,21 @@ select.form-control:focus {
   max-height: 16rem;
   overflow: hidden;
   display: none;
+/* hover / focus: ligera indicación - solo para no seleccionados (no sobreescribir .selected) */
+.day-option:not(.selected):focus,
+.day-option:not(.selected):hover {
+  border-color: #2994ff;
+  background: #29a9ff;
+  color: #ffffff;
+}
+
+/* estado SELECCIONADO: azul claro con texto blanco y borde blanco alrededor */
+.day-option.selected,
+.day-option[aria-pressed="true"] {
+  background: #0da1e6; /* azul claro */
+  color: #ffffff;
+  border: 2px solid #ffffff;
+  box-shadow: 0 6px 18px #12d8fa33;
 }
 
 .bank-options-container[aria-hidden="false"] {
@@ -806,6 +1135,67 @@ select:not([multiple]):focus {
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-bottom: 0.5rem;
+/* mobile: rectángulos ocupando ancho del contenido pero manteniendo el tamaño compacto */
+@media (max-width: 700px) {
+  .days-selector {
+    flex-direction: column;
+    gap: 0.45rem;
+    align-items: stretch;
+  }
+  .day-option {
+    width: 100%;
+    height: 36px;
+    border-radius: 1.2rem;
+    justify-content: center;
+    padding: 0 1rem;
+    font-size: 1rem;
+    text-align: center;
+  }
+}
+
+/* texto de días seleccionados: gris normal */
+.days-selected-display {
+  color: #b0b8c9;
+  font-size: 0.96em;
+  margin-top: 0.15rem;
+  font-weight: 500;
+}
+
+/* --- Datos bancarios --- */
+.bank-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem 1rem;
+}
+@media (max-width: 900px) {
+  .bank-grid {
+    grid-template-columns: 1fr;
+    gap: 0.7rem;
+  }
+}
+select#banco
+  option:not([value="Bancolombia"]):not([value="Nequi"]):not([value=""]) {
+  display: none;
+}
+
+/* --- Botón submit --- */
+.form-actions {
+  margin-top: 1.2rem;
+  text-align: center;
+}
+.btn-primary {
+  background: var(--primary-color);
+  color: #fff;
+  border: none;
+  padding: 0.9em 1.8em;
+  border-radius: 0.7em;
+  font-weight: 700;
+  font-size: 1.13em;
+  transition: background 0.2s;
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  box-shadow: var(--btn-shadow);
 }
 
 .day-option {
@@ -937,6 +1327,31 @@ select:not([multiple]):focus {
 .form-actions .btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(58, 142, 255, 0.4);
+.btn-primary:hover {
+  background: var(--primary-hover);
+}
+
+/* --- Tooltip --- */
+.price-tooltip {
+  color: var(--primary-color);
+  cursor: pointer;
+  margin-left: 6px;
+  font-size: 1em;
+  position: relative;
+}
+.price-tooltip[title]:hover:after {
+  content: attr(title);
+  position: absolute;
+  left: 100%;
+  top: 0;
+  background: #fff;
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+  padding: 0.2em 0.7em;
+  font-size: 0.95em;
+  border-radius: 0.5em;
+  white-space: pre;
+  z-index: 12;
 }
 
 /* Dentro de .bank-data-grid: forzar layout de dos columnas para campos */
@@ -982,6 +1397,10 @@ select:not([multiple]):focus {
   display: flex;
   flex-direction: column;
   margin-bottom: 0.5rem;
+/* --- Contador descripción --- */
+#descContador {
+  color: var(--primary-color);
+  font-weight: 700;
 }
 
 /* Si existen wrappers .form-row dentro del grupo, los hacemos una grid de 2 columnas */
@@ -1057,6 +1476,18 @@ select:not([multiple]):focus {
   width: 100%;
   height: 100%;
   cursor: pointer;
+/* --- Alertas globales --- */
+.registro-alerta {
+  margin-bottom: 1.1rem;
+  border-radius: 0.6rem;
+  font-weight: 600;
+  padding: 0.85em 1em;
+  display: block;
+  text-align: center;
+}
+.alert-danger {
+  color: #fff;
+  background: #d32f2f;
 }
 
 /* Responsive */
@@ -1091,5 +1522,16 @@ select:not([multiple]):focus {
   .form-section {
     margin-bottom: 2rem;
     padding-bottom: 1.5rem;
+  }
+.alert-success {
+  color: #fff;
+  background: #388e3c;
+}
+
+/* --- Ajuste de paddings para desktop --- */
+@media (min-width: 900px) {
+  .registroExperto-form {
+    padding: 0 2.8rem 2.8rem 2.8rem;
+    gap: 1.7rem;
   }
 }

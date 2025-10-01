@@ -1,8 +1,7 @@
 /**
- * CONTROLADOR DE EXPERTOS - SERVITECH (rama develop)
- * - Listado público de expertos con filtros y paginación.
- * - Obtención y actualización del perfil del experto autenticado.
- * - Gestión y consulta del perfil de expertos usando categorías, precio, disponibilidad y datos bancarios.
+ * @file Controlador de expertos
+ * @module controllers/experto
+ * @description Listado, consulta y actualización de perfil de expertos en Servitech.
  */
 
 const mongoose = require("mongoose");
@@ -22,14 +21,6 @@ const generarLogs = require("../services/generarLogs");
  * @openapi
  * components:
  *   schemas:
- *     ErrorResponse:
- *       type: object
- *       properties:
- *         error:
- *           type: string
- *         message:
- *           type: string
- *       required: [error]
  *     PerfilExpertoInput:
  *       type: object
  *       properties:
@@ -51,7 +42,6 @@ const generarLogs = require("../services/generarLogs");
  *       required: []
  *     UsuarioPublico:
  *       type: object
- *       description: Datos públicos de un experto
  *       properties:
  *         _id: { type: string }
  *         nombre: { type: string }
@@ -73,9 +63,6 @@ const generarLogs = require("../services/generarLogs");
 
 /**
  * Lista expertos con paginación y filtros
- * - Filtros: nombre, categoria (ObjectId), estado
- * - Orden default: fecha creación descendente
- *
  * @openapi
  * /api/expertos:
  *   get:
@@ -114,10 +101,6 @@ const generarLogs = require("../services/generarLogs");
  *                     $ref: '#/components/schemas/UsuarioPublico'
  *       500:
  *         description: Error interno
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 const listarExpertos = async (req, res) => {
   try {
@@ -128,11 +111,6 @@ const listarExpertos = async (req, res) => {
     );
     const { nombre, categoria, estado } = req.query;
 
-    // Mostrar usuarios que sean oficialmente expertos (roles includes 'experto')
-    // o usuarios que hayan completado su perfil de experto (infoExperto no vacío).
-    // Esto permite que los usuarios que se "convierten" mediante el formulario
-    // de registro/actualización (que rellenan infoExperto) aparezcan en el listado
-    // sin necesidad de mutar automáticamente sus roles.
     const filtro = {
       $or: [
         { roles: "experto" },
@@ -158,17 +136,15 @@ const listarExpertos = async (req, res) => {
     const [total, data] = await Promise.all([
       Usuario.countDocuments(filtro),
       Usuario.find(filtro)
-        .populate("infoExperto.categorias", "nombre") // populate para obtener nombres de categorías
+        .populate("infoExperto.categorias", "nombre")
         .select("nombre apellido email infoExperto calificacionPromedio estado")
         .sort({ createdAt: -1 })
         .skip((page - 1) * limit)
         .limit(limit),
     ]);
 
-    // Transformar los datos para que las categorías muestren nombres en lugar de IDs
     const expertosTransformados = data.map((experto) => {
       if (experto.infoExperto && experto.infoExperto.categorias) {
-        // Convertir array de objetos {_id, nombre} a array de strings con nombres
         experto.infoExperto.categorias = experto.infoExperto.categorias.map(
           (cat) => (cat && cat.nombre ? cat.nombre : cat)
         );
@@ -184,8 +160,7 @@ const listarExpertos = async (req, res) => {
 };
 
 /**
- * Obtiene el perfil del experto autenticado
- *
+ * Obtiene el perfil del experto autenticado.
  * @openapi
  * /api/perfil-experto:
  *   get:
@@ -198,55 +173,56 @@ const listarExpertos = async (req, res) => {
  *       401:
  *         description: No autenticado
  */
-const getProfile = async (req, res) => {
+const obtenerPerfilExperto = async (req, res) => {
   try {
-    const userId = req.user && req.user.id;
-    if (!userId) return res.status(401).json({ error: "No autenticado" });
+    const usuarioId = req.usuario && req.usuario._id;
+    if (!usuarioId) return res.status(401).json({ error: "No autenticado" });
 
-    const user = await Usuario.findById(userId).select(
+    const usuario = await Usuario.findById(usuarioId).select(
       "_id nombre apellido email avatar roles infoExperto estado"
     );
-    if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
+    if (!usuario)
+      return res.status(404).json({ error: "Usuario no encontrado" });
 
-    res.status(200).json(user);
+    res.status(200).json(usuario);
   } catch (err) {
-    console.error("getProfile error:", err);
+    console.error("obtenerPerfilExperto error:", err);
     res.status(500).json({ error: "Error interno", message: err.message });
   }
 };
 
 /**
- * Actualiza el perfil del experto autenticado (PUT)
- *
+ * Actualiza el perfil de experto autenticado (solo campos de experto).
+ * No permite editar nombre ni apellido.
  * @openapi
- * /api/perfil-experto:
+ * /api/expertos/perfil:
  *   put:
- *     tags: [PerfilExperto]
- *     summary: Actualizar perfil del experto autenticado
- *     security: [{ bearerAuth: [] }]
+ *     tags: [Expertos]
+ *     summary: Actualizar perfil de experto autenticado
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
- *       required: false
+ *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/PerfilExpertoInput'
  *     responses:
  *       200:
- *         description: Perfil actualizado
+ *         description: Perfil de experto actualizado
  *       400:
- *         description: Datos inválidos
+ *         description: Datos obligatorios faltantes
  *       401:
  *         description: No autenticado
  */
-const updateProfile = async (req, res) => {
+const actualizarPerfilExperto = async (req, res) => {
   try {
-    const userId = req.user && req.user.id;
-    if (!userId) return res.status(401).json({ error: "No autenticado" });
+    const usuarioId = req.usuario && req.usuario._id;
+    if (!usuarioId) return res.status(401).json({ mensaje: "No autenticado" });
 
     const {
       descripcion,
       precioPorHora,
-      precio, // alias compatible
       categorias,
       banco,
       tipoCuenta,
@@ -258,87 +234,73 @@ const updateProfile = async (req, res) => {
       diasDisponibles,
     } = req.body;
 
-    const set = {};
-    if (!set["infoExperto"]) set["infoExperto"] = {};
+    // Validar campos obligatorios
+    let missing = [];
+    if (!descripcion) missing.push("descripcion");
+    if (!precioPorHora) missing.push("precio");
+    if (!categorias || !Array.isArray(categorias) || categorias.length === 0)
+      missing.push("categorias");
+    if (!banco) missing.push("banco");
+    if (!tipoCuenta) missing.push("tipoCuenta");
+    if (!numeroCuenta) missing.push("numeroCuenta");
+    if (!titular) missing.push("titular");
+    if (!tipoDocumento) missing.push("tipoDocumento");
+    if (!numeroDocumento) missing.push("numeroDocumento");
+    if (!telefonoContacto) missing.push("telefonoContacto");
+    if (
+      !diasDisponibles ||
+      !Array.isArray(diasDisponibles) ||
+      diasDisponibles.length === 0
+    )
+      missing.push("diasDisponibles");
 
-    if (typeof descripcion === "string")
-      set["infoExperto.descripcion"] = descripcion;
-    const precioNum =
-      typeof precioPorHora !== "undefined"
-        ? Number(precioPorHora)
-        : typeof precio !== "undefined"
-        ? Number(precio)
-        : undefined;
-    if (!Number.isNaN(precioNum) && typeof precioNum === "number")
-      set["infoExperto.precioPorHora"] = precioNum;
-
-    if (Array.isArray(categorias))
-      set["infoExperto.categorias"] = categorias.filter(Boolean);
-
-    if (Array.isArray(diasDisponibles))
-      set["infoExperto.diasDisponibles"] = diasDisponibles.filter(Boolean);
-
-    if (typeof banco === "string") set["infoExperto.banco"] = banco;
-    if (typeof tipoCuenta === "string")
-      set["infoExperto.tipoCuenta"] = tipoCuenta;
-    if (typeof numeroCuenta === "string")
-      set["infoExperto.numeroCuenta"] = numeroCuenta;
-    if (typeof titular === "string") set["infoExperto.titular"] = titular;
-    if (typeof tipoDocumento === "string")
-      set["infoExperto.tipoDocumento"] = tipoDocumento;
-    if (typeof numeroDocumento === "string")
-      set["infoExperto.numeroDocumento"] = numeroDocumento;
-    if (typeof telefonoContacto === "string")
-      set["infoExperto.telefonoContacto"] = telefonoContacto;
-
-    const updated = await Usuario.findByIdAndUpdate(
-      userId,
-      { $set: set },
-      { new: true, runValidators: true, lean: false }
-    ).select("_id nombre apellido email avatar roles infoExperto estado");
-
-    try {
-      await generarLogs("perfil_experto_update", { userId, set });
-    } catch (e) {
-      console.warn("generarLogs fallo:", e && e.message);
+    if (missing.length > 0) {
+      return res.status(400).json({
+        mensaje: "Faltan campos obligatorios para completar tu solicitud.",
+        camposFaltantes: missing,
+      });
     }
 
-    res.status(200).json(updated);
-  } catch (err) {
-    console.error("updateProfile error:", err);
-    res.status(500).json({ error: "Error interno", message: err.message });
-  }
-};
+    const usuario = await Usuario.findById(usuarioId);
+    if (!usuario)
+      return res.status(404).json({ mensaje: "Usuario no encontrado." });
 
-/**
- * Crea/actualiza perfil vía POST en /perfil (compat)
- *
- * @openapi
- * /api/perfil-experto/perfil:
- *   post:
- *     tags: [PerfilExperto]
- *     summary: Actualizar/crear perfil del experto (compatibilidad)
- *     security: [{ bearerAuth: [] }]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/PerfilExpertoInput'
- *     responses:
- *       200:
- *         description: Perfil actualizado
- *       401:
- *         description: No autenticado
- */
-const actualizarPerfilExperto = async (req, res) => {
-  // Reutiliza la lógica de updateProfile para mantener una sola fuente
-  return updateProfile(req, res);
+    usuario.infoExperto = {
+      descripcion,
+      precioPorHora,
+      categorias,
+      banco,
+      tipoCuenta,
+      numeroCuenta,
+      titular,
+      tipoDocumento,
+      numeroDocumento,
+      telefonoContacto,
+      diasDisponibles,
+    };
+
+    if (!usuario.roles.includes("experto")) usuario.roles.push("experto");
+    usuario.estado = "pendiente";
+
+    await usuario.save();
+
+    res
+      .status(200)
+      .json({
+        mensaje:
+          "Solicitud de perfil de experto enviada. Un administrador la revisará.",
+        usuario,
+      });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ mensaje: "Error interno del servidor.", error: err.message });
+  }
 };
 
 module.exports = {
   listarExpertos,
-  getProfile,
-  updateProfile,
+  obtenerPerfilExperto,
   actualizarPerfilExperto,
 };
+
