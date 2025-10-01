@@ -1,0 +1,22 @@
+* [33m251a3b2[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mregistroExperto[m[33m)[m Refactorización de registroExperto.ejs: Mejora de la estructura y el estilo del formulario para el registro de expertos. - Se actualizaron el título de la página y los enlaces a la hoja de estilo para mejorar la imagen de marca. - Se añadieron secciones de alerta para mensajes de error y éxito. - Se reestructuraron las secciones del formulario para una mejor organización: información básica, descripción profesional, categorías, foto de perfil y datos bancarios. - Se implementó una selección de bancos más intuitiva con función de búsqueda. - Se mejoraron los campos de entrada con sugerencias y validación para una mejor experiencia de usuario. - Se mejoró la accesibilidad con roles y etiquetas ARIA. - Se añadieron campos de confirmación para los números de cuenta y documento para garantizar la precisión.
+* [33mffa5996[m[33m ([m[1;31morigin/adminExperto[m[33m, [m[1;32madminExperto[m[33m)[m Añadir ruta principal para el panel de administración y renderizar la vista del dashboard
+* [33m1a2c688[m se soluciona conflictos
+* [33m98cc843[m Remove mobile menu toggle from header and admin navbar
+* [33m89675f4[m Elimina el interruptor del menú móvil y ajusta la lógica de apertura/cierre de la barra lateral en la plantilla de administración.
+* [33mab2fb04[m Refactorización de las vistas y estilos de administración para mejorar la capacidad de respuesta y la organización. - Se actualizó el archivo adminNotificaciones.ejs para mejorar la visualización y navegación de mensajes. - Se eliminó el CSS adaptable no utilizado de adminUsuarios.ejs y adminLayout.ejs. - Se simplificaron los componentes de encabezado y barra lateral para una mejor usabilidad móvil. - Se añadió el nuevo archivo admin-logs.css para estilos dedicados en la página de registros. - Se introdujo la estructura de ejemplo para la gestión de expertos en ejemplo.ejs. - Se mejoró la funcionalidad de JavaScript para la barra lateral y la navegación móvil.
+* [33me1896f9[m Refactorizar las vistas de administración y mejorar la accesibilidad
+* [33m99768ed[m Se crea configuracion para adminUsuarios" -m "Añade paginación robusta y manejo de modales: state (lastCount/isLoading), cache:no-store, Prev/Next mejorado, deshabilita botones durante carga. Archivo: frontend/assets/js/admin/admin-usuarios.js
+* [33m0d8698f[m Mejorar la gestión de categorías: agregar funciones para normalizar y generar slugs, actualizar la lógica de inserción de categorías, y ajustar el estilo de los selectores en el frontend para opciones dinámicas.
+* [33m026b10a[m Característica: Se agregó la exposición de la clave API para las sesiones de administración e implementó pruebas de normalización de categorías.
+* [33m6d4063e[m Corregir comentario en la sección de estilos de la navbar para mejorar la claridad
+* [33m6c5d65b[m WIP: ajustes modal admin-expertos (placeholder/autofill)
+* [33m4cc254b[m Refactorizar modales de expertos: mejorar la gestión de placeholders y estilos de autofill, y ajustar IDs y nombres de campos en formularios para evitar conflictos. Añadir scripts para mitigar problemas de autocompletado en los campos de email.
+* [33mec42267[m Ignorar logs en backend/logs y quitar usuarios.log del control de versiones
+*   [33m41e7094[m Merge branch 'develop' into adminExperto
+[32m|[m[33m\[m  
+[32m|[m * [33m05c0102[m Actualizar texto de marcador de posición y botón en el formulario de registro de expertos
+* [33m|[m [33m70467bc[m Refactorizar adminExpertos.ejs: mejorar el diseño y los estilos de filtros, estadísticas y tablas; mejorar la accesibilidad; migrar scripts en línea a un archivo JS externo
+* [33m|[m [33m5c400f3[m adminExpertos: incluir users con infoExperto en /api/expertos y usar endpoint público en admin JS
+* [33m|[m [33mbedfede[m Actualizar filtro de expertos para incluir usuarios con perfil completo y modificar endpoint a público
+* [33m|[m [33mb819804[m Merge pull request #19 from DianaJJ0/develop
+[34m|[m[33m\[m[33m|[m 

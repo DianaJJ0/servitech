@@ -1,296 +1,314 @@
+// JS para editar perfil de experto, igual lógica y validaciones que registro
 document.addEventListener("DOMContentLoaded", function () {
-  // Sincroniza el token entre la sesión y localStorage si está disponible en window.user
-  if (window.user && window.user.token) {
-    localStorage.setItem("token", window.user.token);
-  }
-  // Si no hay token, redirige al login
-  const token = localStorage.getItem("token");
-  if (!token || token === "null") {
-    window.location.href = "/login.html?next=/editarExperto";
-    return;
-  }
-  const dayOptions = document.querySelectorAll(".days-selector .day-option");
-  const diasInput = document.getElementById("diasDisponibles");
-  const daysDisplay = document.querySelector(".days-selected-display");
+  // Evita inicializar dos veces si el script se carga más de una vez
+  if (window.__editarExpertoInitialized) return;
+  window.__editarExpertoInitialized = true;
 
-  // Marcar días seleccionados según el valor inicial del input oculto
-  if (diasInput && diasInput.value) {
-    const diasSeleccionados = diasInput.value.split(",").map((d) => d.trim());
-    dayOptions.forEach((opt) => {
-      if (diasSeleccionados.includes(opt.getAttribute("data-day"))) {
-        opt.classList.add("selected");
-      } else {
-        opt.classList.remove("selected");
-      }
-    });
-  }
+  const form = document.getElementById("editarExpertoForm");
+  const alerta = document.getElementById("alertasExpertos");
 
-  function updateSelectedDays() {
-    const selectedDays = Array.from(dayOptions)
-      .filter((opt) => opt.classList.contains("selected"))
-      .map((opt) => opt.getAttribute("data-day"));
-    diasInput.value = selectedDays.join(",");
-    daysDisplay.textContent =
-      selectedDays.length > 0
-        ? `Días seleccionados: ${selectedDays.join(", ")}`
-        : "Ningún día seleccionado";
-  }
-
-  dayOptions.forEach((option) => {
-    option.addEventListener("click", function () {
-      this.classList.toggle("selected");
-      updateSelectedDays();
-    });
+  // Bloquear letras en teléfono (solo números)
+  const telefono = form.telefonoContacto;
+  telefono.addEventListener("keydown", function (e) {
+    if (
+      !(
+        (e.key >= "0" && e.key <= "9") ||
+        ["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"].includes(
+          e.key
+        )
+      )
+    ) {
+      e.preventDefault();
+    }
+  });
+  telefono.addEventListener("paste", function (e) {
+    e.preventDefault();
+    let paste = (e.clipboardData || window.clipboardData)
+      .getData("text")
+      .replace(/\D/g, "");
+    // Solo inserta números
+    const start = telefono.selectionStart;
+    const end = telefono.selectionEnd;
+    const current = telefono.value;
+    telefono.value = current.slice(0, start) + paste + current.slice(end);
+    telefono.setSelectionRange(start + paste.length, start + paste.length);
+    telefono.dispatchEvent(new Event("input"));
+  });
+  telefono.addEventListener("input", function () {
+    let cleaned = telefono.value.replace(/\D/g, "");
+    if (telefono.value !== cleaned) {
+      telefono.value = cleaned;
+    }
   });
 
-  updateSelectedDays();
+  // Validación inmediata teléfono
+  const errorTelefono = document.getElementById("errorTelefono");
+  telefono.addEventListener("input", function () {
+    const v = telefono.value;
+    if (!v) {
+      errorTelefono.textContent = "Teléfono requerido.";
+      telefono.classList.add("invalid");
+    } else if (!/^[0-9]{7,10}$/.test(v)) {
+      errorTelefono.textContent = "Solo números, 7 a 10 dígitos.";
+      telefono.classList.add("invalid");
+    } else {
+      errorTelefono.textContent = "";
+      telefono.classList.remove("invalid");
+    }
+  });
 
-  // Event listener para el botón cancelar
-  const cancelarBtn = document.getElementById("cancelarEdicion");
-  if (cancelarBtn) {
-    cancelarBtn.addEventListener("click", function () {
-      // Redirigir al perfil del usuario
-      window.location.href = "/perfil";
+  // Precio: validación inmediata
+  const precio = form.precio;
+  const errorPrecio = document.getElementById("errorPrecio");
+  precio.addEventListener("input", function () {
+    if (precio.value === "" || isNaN(precio.value)) {
+      errorPrecio.textContent = "Precio requerido.";
+      precio.classList.add("invalid");
+    } else if (precio.value < 10000) {
+      errorPrecio.textContent = "El mínimo es $10.000 COP.";
+      precio.classList.add("invalid");
+    } else if (precio.value > 120000) {
+      errorPrecio.textContent = "El máximo es $120.000 COP.";
+      precio.classList.add("invalid");
+    } else {
+      errorPrecio.textContent = "";
+      precio.classList.remove("invalid");
+    }
+  });
+
+  // Descripción: validación inmediata y contador
+  const descripcion = form.descripcion;
+  const errorDescripcion = document.getElementById("errorDescripcion");
+  const descContador = document.getElementById("descContador");
+  // Inicializa contador si el valor ya está lleno
+  descContador.textContent = descripcion.value.length;
+  descripcion.addEventListener("input", function () {
+    descContador.textContent = descripcion.value.length;
+    if (!descripcion.value.trim()) {
+      errorDescripcion.textContent = "Descripción requerida.";
+      descripcion.classList.add("invalid");
+    } else if (descripcion.value.length > 400) {
+      errorDescripcion.textContent = "Máximo 400 caracteres.";
+      descripcion.classList.add("invalid");
+    } else {
+      errorDescripcion.textContent = "";
+      descripcion.classList.remove("invalid");
+    }
+  });
+
+  // CATEGORÍAS Choices.js y validación
+  const categoriasSelect = document.getElementById("categorias");
+  const errorCategorias = document.getElementById("errorCategorias");
+  if (typeof Choices !== "undefined") {
+    // Destruir instancia previa si existe
+    if (categoriasSelect.choicesInstance) {
+      categoriasSelect.choicesInstance.destroy();
+    }
+    categoriasSelect.choicesInstance = new Choices(categoriasSelect, {
+      removeItemButton: true,
+      searchPlaceholderValue: "Buscar categoría...",
+      noResultsText: "Sin resultados",
     });
   }
-});
+  categoriasSelect.addEventListener("change", function () {
+    if (categoriasSelect.selectedOptions.length === 0) {
+      errorCategorias.textContent = "Selecciona al menos una categoría.";
+      categoriasSelect.classList.add("invalid");
+    } else {
+      errorCategorias.textContent = "";
+      categoriasSelect.classList.remove("invalid");
+    }
+  });
 
-// Ensure Choices.js is loaded and initialize on the categorias select (for editarExperto)
-(function ensureChoicesForEditar() {
-  const localJs = "/assets/vendor/choices/choices.min.js";
-  const cdnJs =
-    "https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js";
+  // DÍAS DISPONIBLES: validación y feedback
+  const diasDisponiblesInput = document.getElementById("diasDisponibles");
+  const diasSelector = document.querySelector(".days-selector");
+  const diasDisplay = document.getElementById("diasDisplay");
+  const errorDias = document.getElementById("errorDias");
 
-  function tryLoadScript(href) {
-    return new Promise((res, rej) => {
-      const s = document.createElement("script");
-      s.src = href;
-      s.onload = () => setTimeout(() => res(), 30);
-      s.onerror = (e) => rej(e || new Error("failed to load script"));
-      document.head.appendChild(s);
-    });
+  function updateDias() {
+    const seleccionados = Array.from(
+      document.querySelectorAll(".day-option.selected")
+    ).map((d) => d.getAttribute("data-day"));
+    diasDisponiblesInput.value = seleccionados.length
+      ? seleccionados.join(",")
+      : "";
+    if (seleccionados.length > 0) {
+      diasDisplay.textContent = seleccionados.join(", ");
+      diasDisplay.classList.add("days-selected-display");
+      diasDisplay.style.color = "";
+      errorDias.textContent = "";
+    } else {
+      diasDisplay.textContent = "Selecciona tus días disponibles";
+      diasDisplay.classList.remove("days-selected-display");
+      errorDias.textContent = "Selecciona al menos un día.";
+    }
   }
-
-  tryLoadScript(localJs)
-    .catch(() => tryLoadScript(cdnJs))
-    .then(() => {
-      const categoriasSelect = document.getElementById("categorias");
-      if (!categoriasSelect) return;
-      try {
-        new Choices(categoriasSelect, {
-          removeItemButton: true,
-          searchEnabled: true,
-          placeholder: true,
-          placeholderValue: "Selecciona categorías",
-          noResultsText: "No hay resultados",
-          noChoicesText: "No hay opciones",
-          itemSelectText: "Seleccionar",
-          appendTo: document.body,
-          position: "bottom",
-          shouldSort: false,
-        });
-      } catch (e) {
-        console.error("Choices init failed on editarExperto:", e);
-      }
-    })
-    .catch((err) =>
-      console.error("Failed loading Choices assets for editar:", err)
-    );
-})();
-
-document.addEventListener("DOMContentLoaded", function () {
-  const btnShowAccount = document.querySelector(".btn-show-account");
-  if (btnShowAccount) {
-    btnShowAccount.addEventListener("click", function () {
-      const accountElement = this.closest(".account-number");
-      const realNumber = accountElement.getAttribute("data-number");
-
-      if (accountElement.textContent.includes("••••")) {
-        accountElement.innerHTML =
-          realNumber +
-          ' <button class="btn-show-account"><i class="fas fa-eye-slash"></i></button>';
-      } else {
-        accountElement.innerHTML =
-          "••••••••••••••••" +
-          ' <button class="btn-show-account"><i class="fas fa-eye"></i></button>';
-      }
-    });
-  }
-});
-
-document.addEventListener("DOMContentLoaded", function () {
-  const btnEditarPerfil = document.getElementById("btnEditarPerfil");
-  if (btnEditarPerfil) {
-    btnEditarPerfil.addEventListener("click", async function (e) {
+  if (diasSelector) {
+    diasSelector.addEventListener("click", function (e) {
+      const btn = e.target.closest(".day-option");
+      if (!btn) return;
       e.preventDefault();
-      // Sincroniza sesión si hay token en localStorage pero no en window.user
-      const token = localStorage.getItem("token");
-      const usuario = localStorage.getItem("usuario");
-      if (token && usuario) {
-        try {
-          await fetch("/set-session", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              usuario: { ...JSON.parse(usuario), token },
-            }),
-          });
-        } catch (err) {
-          // Si falla, igual redirige
-        }
-      }
-      window.location.href = "/editarExperto";
+      const isSelected = btn.classList.toggle("selected");
+      btn.setAttribute("aria-pressed", isSelected ? "true" : "false");
+      updateDias();
+    });
+    Array.from(diasSelector.querySelectorAll(".day-option")).forEach((b) => {
+      b.setAttribute(
+        "aria-pressed",
+        b.classList.contains("selected") ? "true" : "false"
+      );
+      if (b.tagName.toLowerCase() === "button") b.type = "button";
     });
   }
-});
+  // inicializa visual
+  updateDias();
 
-// Submit handler: enviar formulario por fetch en lugar de dejar que el navegador haga GET
-document.addEventListener("DOMContentLoaded", function () {
-  const form = document.getElementById("registroExpertoForm");
-  if (!form) return;
+  // DATOS BANCARIOS: validación inmediata
+  const banco = form.banco;
+  banco.addEventListener("change", function () {
+    if (!banco.value) {
+      document.getElementById("errorBanco").textContent =
+        "Selecciona tu banco.";
+      banco.classList.add("invalid");
+    } else {
+      document.getElementById("errorBanco").textContent = "";
+      banco.classList.remove("invalid");
+    }
+  });
+  const tipoCuenta = form.tipoCuenta;
+  tipoCuenta.addEventListener("change", function () {
+    if (!tipoCuenta.value) {
+      document.getElementById("errorTipoCuenta").textContent =
+        "Selecciona tipo de cuenta.";
+      tipoCuenta.classList.add("invalid");
+    } else {
+      document.getElementById("errorTipoCuenta").textContent = "";
+      tipoCuenta.classList.remove("invalid");
+    }
+  });
+  const numeroCuenta = form.numeroCuenta;
+  numeroCuenta.addEventListener("input", function () {
+    if (!numeroCuenta.value || !/^[0-9]{6,20}$/.test(numeroCuenta.value)) {
+      document.getElementById("errorNumeroCuenta").textContent =
+        "Solo números, 6-20 dígitos.";
+      numeroCuenta.classList.add("invalid");
+    } else {
+      document.getElementById("errorNumeroCuenta").textContent = "";
+      numeroCuenta.classList.remove("invalid");
+    }
+  });
+  const titular = form.titular;
+  titular.addEventListener("input", function () {
+    if (!titular.value.trim()) {
+      document.getElementById("errorTitular").textContent =
+        "Titular obligatorio.";
+      titular.classList.add("invalid");
+    } else {
+      document.getElementById("errorTitular").textContent = "";
+      titular.classList.remove("invalid");
+    }
+  });
+  const tipoDocumento = form.tipoDocumento;
+  tipoDocumento.addEventListener("change", function () {
+    if (!tipoDocumento.value) {
+      document.getElementById("errorTipoDocumento").textContent =
+        "Selecciona tipo de documento.";
+      tipoDocumento.classList.add("invalid");
+    } else {
+      document.getElementById("errorTipoDocumento").textContent = "";
+      tipoDocumento.classList.remove("invalid");
+    }
+  });
+  const numeroDocumento = form.numeroDocumento;
+  numeroDocumento.addEventListener("input", function () {
+    if (!numeroDocumento.value.trim()) {
+      document.getElementById("errorNumeroDocumento").textContent =
+        "Número de documento obligatorio.";
+      numeroDocumento.classList.add("invalid");
+    } else {
+      document.getElementById("errorNumeroDocumento").textContent = "";
+      numeroDocumento.classList.remove("invalid");
+    }
+  });
 
+  // Submit handler
   form.addEventListener("submit", async function (e) {
     e.preventDefault();
-    const token = localStorage.getItem("token");
-    if (!token || token === "null") {
-      window.location.href = "/login.html?next=/editarExperto";
+    alerta.textContent = "";
+    // Dispara validación de todos los inputs (para mostrar errores si hay)
+    precio.dispatchEvent(new Event("input"));
+    telefono.dispatchEvent(new Event("input"));
+    descripcion.dispatchEvent(new Event("input"));
+    categoriasSelect.dispatchEvent(new Event("change"));
+    updateDias();
+    banco.dispatchEvent(new Event("change"));
+    tipoCuenta.dispatchEvent(new Event("change"));
+    numeroCuenta.dispatchEvent(new Event("input"));
+    titular.dispatchEvent(new Event("input"));
+    tipoDocumento.dispatchEvent(new Event("change"));
+    numeroDocumento.dispatchEvent(new Event("input"));
+
+    if (
+      errorPrecio.textContent ||
+      errorTelefono.textContent ||
+      errorDescripcion.textContent ||
+      errorCategorias.textContent ||
+      errorDias.textContent ||
+      document.getElementById("errorBanco").textContent ||
+      document.getElementById("errorTipoCuenta").textContent ||
+      document.getElementById("errorNumeroCuenta").textContent ||
+      document.getElementById("errorTitular").textContent ||
+      document.getElementById("errorTipoDocumento").textContent ||
+      document.getElementById("errorNumeroDocumento").textContent
+    ) {
+      alerta.textContent = "Corrige los campos marcados antes de continuar.";
+      alerta.className = "registro-alerta alert-danger";
       return;
     }
 
-    // Build JSON payload from form fields (avoid FormData multipart)
+    // Arma payload con infoExperto
+    const payload = {
+      descripcion: descripcion.value.trim(),
+      precioPorHora: Number(precio.value),
+      categorias: Array.from(categoriasSelect.selectedOptions).map(
+        (opt) => opt.value
+      ),
+      banco: banco.value,
+      tipoCuenta: tipoCuenta.value,
+      numeroCuenta: numeroCuenta.value,
+      titular: titular.value.trim(),
+      tipoDocumento: tipoDocumento.value,
+      numeroDocumento: numeroDocumento.value.trim(),
+      telefonoContacto: telefono.value.trim(),
+      diasDisponibles: diasDisponiblesInput.value
+        ? diasDisponiblesInput.value.split(",")
+        : [],
+    };
+
     try {
-      const payload = {};
-      // basic fields
-      const getVal = (name) => {
-        const el = form.querySelector(`[name="${name}"]`);
-        return el ? el.value : undefined;
-      };
-      payload.nombre = getVal("nombre");
-      payload.apellido = getVal("apellido");
-      payload.email = getVal("email");
-      payload.descripcion = getVal("descripcion");
-      // Support both 'precio' and 'precioPorHora'
-      payload.precioPorHora = getVal("precioPorHora") || getVal("precio") || 0;
-      payload.precio = payload.precioPorHora;
-      payload.banco = getVal("banco");
-      payload.tipoCuenta = getVal("tipoCuenta");
-      payload.numeroCuenta = getVal("numeroCuenta");
-      payload.titular = getVal("titular");
-      payload.tipoDocumento = getVal("tipoDocumento");
-      payload.numeroDocumento = getVal("numeroDocumento");
-      payload.telefonoContacto = getVal("telefonoContacto");
-      // categorias: collect selected values from select[name="categorias"]
-      const categoriasSel = form.querySelector('select[name="categorias"]');
-      if (categoriasSel) {
-        payload.categorias = Array.from(categoriasSel.selectedOptions).map(
-          (o) => o.value
-        );
-      }
-      // diasDisponibles: from hidden input
-      const diasInput = document.getElementById("diasDisponibles");
-      if (diasInput) payload.diasDisponibles = diasInput.value;
-
-      // If there is a file selected, upload it first to /api/usuarios/avatar
-      const fileInput = document.getElementById("fotoPerfil");
-      if (fileInput && fileInput.files && fileInput.files.length > 0) {
-        const file = fileInput.files[0];
-        const fd = new FormData();
-        fd.append("avatar", file);
-
-        const upResp = await fetch("/api/usuarios/avatar", {
-          method: "POST",
-          headers: Object.assign(
-            {
-              "X-Requested-With": "XMLHttpRequest",
-              Accept: "application/json",
-            },
-            token ? { Authorization: `Bearer ${token}` } : {}
-          ),
-          credentials: "same-origin",
-          body: fd,
-        });
-
-        if (!upResp.ok) {
-          const t = await upResp.text().catch(() => null);
-          console.error("Avatar upload failed:", upResp.status, t);
-          if (upResp.status === 401) {
-            window.location.href = "/login.html?next=/editarExperto";
-            return;
-          }
-          alert(
-            `Error al subir la imagen (status ${upResp.status}). Revisa la consola para más detalles.`
-          );
-          return;
-        }
-        const upJson = await upResp.json().catch(() => null);
-        if (upJson && upJson.avatarUrl) {
-          payload.avatarUrl = upJson.avatarUrl;
-        }
-      }
-
-      // Now send JSON payload to update profile
       const resp = await fetch("/api/usuarios/perfil", {
         method: "PUT",
-        headers: Object.assign(
-          {
-            "Content-Type": "application/json",
-            "X-Requested-With": "XMLHttpRequest",
-            Accept: "application/json",
-          },
-          token ? { Authorization: `Bearer ${token}` } : {}
-        ),
-        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + (localStorage.getItem("token") || ""),
+        },
         body: JSON.stringify(payload),
       });
-
-      if (resp.redirected) {
-        window.location.href = resp.url;
-        return;
-      }
-
-      const ctype = (resp.headers.get("content-type") || "").toLowerCase();
-      if (ctype.includes("application/json")) {
-        const data = await resp.json().catch(() => null);
-        if (resp.ok) {
-          alert(
-            data && data.mensaje
-              ? data.mensaje
-              : "Perfil actualizado correctamente."
-          );
-          window.location.reload();
-        } else {
-          if (resp.status === 401) {
-            window.location.href = "/login.html?next=/editarExperto";
-            return;
-          }
-          alert(
-            data && (data.mensaje || data.message)
-              ? data.mensaje || data.message
-              : `Error al guardar (status ${resp.status})`
-          );
-          console.error("Error updating profile:", data);
-        }
+      const data = await resp.json();
+      if (resp.ok) {
+        alerta.className = "registro-alerta alert-success";
+        alerta.textContent = "Perfil actualizado correctamente.";
+        setTimeout(() => {
+          window.location.href = "/perfil";
+        }, 1500);
       } else {
-        const txt = await resp.text().catch(() => null);
-        console.error(
-          "Non-JSON response when updating profile:",
-          resp.status,
-          txt
-        );
-        if (resp.status === 401) {
-          window.location.href = "/login.html?next=/editarExperto";
-          return;
-        }
-        alert(
-          "Error del servidor al guardar. Revisa la consola para detalles."
-        );
+        alerta.className = "registro-alerta alert-danger";
+        alerta.textContent = data.mensaje || "Error al actualizar perfil.";
       }
     } catch (err) {
-      console.error("Error en submit editarExperto:", err);
-      alert(
-        "Error al enviar datos: " +
-          (err && err.message ? err.message : "network error")
-      );
+      alerta.className = "registro-alerta alert-danger";
+      alerta.textContent = "Error de red. Intenta de nuevo.";
     }
   });
 });
