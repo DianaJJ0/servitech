@@ -280,17 +280,16 @@ const actualizarPerfilExperto = async (req, res) => {
     };
 
     if (!usuario.roles.includes("experto")) usuario.roles.push("experto");
-    usuario.estado = "pendiente";
+    // Use the enum value defined in the Usuario model
+    usuario.estado = "pendiente-verificacion";
 
     await usuario.save();
 
-    res
-      .status(200)
-      .json({
-        mensaje:
-          "Solicitud de perfil de experto enviada. Un administrador la revisará.",
-        usuario,
-      });
+    res.status(200).json({
+      mensaje:
+        "Solicitud de perfil de experto enviada. Un administrador la revisará.",
+      usuario,
+    });
   } catch (err) {
     res
       .status(500)
@@ -303,4 +302,3 @@ module.exports = {
   obtenerPerfilExperto,
   actualizarPerfilExperto,
 };
-
