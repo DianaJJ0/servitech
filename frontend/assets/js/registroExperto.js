@@ -918,8 +918,9 @@
 
         try {
           const csrfToken = await getCsrfToken();
-          const response = await fetch("/api/perfil-experto/perfil", {
-            method: "POST",
+          // Enviar al endpoint correcto del backend: PUT /api/expertos/perfil
+          const response = await fetch("/api/expertos/perfil", {
+            method: "PUT",
             headers: {
               "Content-Type": "application/json",
               "x-csrf-token": csrfToken,
@@ -930,11 +931,16 @@
 
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            throw new Error(
-              errorData.mensaje || `Error del servidor: ${response.status}`
-            );
+            const backendMsg = errorData.mensaje || errorData.message || null;
+            let detail = backendMsg || `Error del servidor: ${response.status}`;
+            // Si el backend envía campos faltantes, mostrarlos
+            if (errorData.camposFaltantes && Array.isArray(errorData.camposFaltantes)) {
+              detail += "\nCampos faltantes: " + errorData.camposFaltantes.join(", ");
+            }
+            throw new Error(detail);
           }
 
+          // Éxito: redirigir al perfil del usuario donde podrá ver su información
           alert("Perfil de experto guardado correctamente.");
           window.location.href = "/perfil";
         } catch (error) {
