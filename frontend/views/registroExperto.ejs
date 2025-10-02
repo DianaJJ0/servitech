@@ -45,6 +45,7 @@
           <h2 class="form-section-title"><i class="fas fa-user"></i> Información básica</h2>
 
           <div class="form-row triple">
+            <!-- Sección de email (solo lectura) -->
             <div class="form-group compact email-group">
               <label for="email"><i class="fas fa-envelope"></i> Email registrado</label>
               <div class="email-field">
@@ -53,6 +54,7 @@
               <p class="form-hint">Email asociado a tu cuenta</p>
             </div>
 
+            <!-- Sección de precio -->
             <div class="form-group compact price-group">
               <label for="precio">Precio por hora (COP)
                 <span class="price-tooltip" title="Ej: 30.000 - 200.000"><i class="fas fa-info-circle"></i></span>
@@ -65,6 +67,7 @@
               <p class="form-hint">Define un precio proporcional a tu experiencia</p>
             </div>
 
+            <!-- Sección de teléfono -->
             <div class="form-group compact">
               <label for="telefonoContacto"><i class="fas fa-phone"></i> Teléfono de contacto</label>
               <input type="tel" id="telefonoContacto" name="telefonoContacto" placeholder="Ej: 3001234567"
@@ -77,13 +80,13 @@
         <!-- Sección 2: Descripción profesional -->
         <div class="form-section">
           <h2 class="form-section-title"><i class="fas fa-file-alt"></i> Descripción profesional</h2>
-
           <div class="form-row">
             <div class="form-group">
               <label for="descripcion">Tu experiencia y especialidades</label>
               <textarea id="descripcion" name="descripcion" rows="4"
                 placeholder="Cuenta brevemente tu experiencia, herramientas y tipos de proyectos"
-                class="form-control"></textarea>
+                class="form-control">
+              </textarea>
               <p class="form-hint">Sé concreto y destaca resultados</p>
             </div>
           </div>
@@ -132,7 +135,7 @@
         <!-- Sección 4: Foto de perfil -->
         <div class="form-section">
           <h2 class="form-section-title"><i class="fas fa-camera"></i> Foto de perfil</h2>
-
+          <!-- Sección de foto de perfil -->
           <div class="form-row">
             <div class="form-group">
               <label for="fotoPerfil">Imagen profesional</label>
@@ -158,8 +161,10 @@
           </div>
         </div>
 
+
         <!-- Sección 5: Datos bancarios (estructura mejorada) -->
         <section class="form-section" aria-labelledby="bank-data-title">
+
           <header class="form-section-header">
             <h2 id="bank-data-title" class="form-section-title">
               <i class="fas fa-university" aria-hidden="true"></i>
@@ -178,10 +183,10 @@
                   <!-- Banco (selector con búsqueda) -->
                   <div class="form-field">
                     <label for="banco" class="form-label">Banco</label>
-
                     <div class="bank-selector-wrapper">
                       <div class="bank-selector" role="combobox" aria-expanded="false" aria-haspopup="listbox"
                         aria-controls="bank-options-list">
+
                         <button type="button" class="bank-selector-trigger" id="bank-trigger"
                           aria-labelledby="bank-trigger selected-bank-name" aria-expanded="false">
                           <span id="selected-bank" class="selected-bank">
@@ -354,6 +359,7 @@
             </div>
 
           </div>
+
         </section>
 
         <!-- Botón de envío -->
@@ -362,6 +368,7 @@
             <i class="fas fa-save"></i> Guardar y solicitar verificación
           </button>
         </div>
+
       </form>
     </section>
   </main>
