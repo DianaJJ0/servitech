@@ -37,6 +37,46 @@ const upload = multer({
  *     description: Operaciones relacionadas con usuarios
  */
 
+// IMPORTANTE: Buscar usuario por email - DEBE IR ANTES de las rutas con parámetros
+router.get("/buscar", async (req, res) => {
+  try {
+    console.log("GET /api/usuarios/buscar - Email:", req.query.email);
+
+    const { email } = req.query;
+
+    if (!email) {
+      console.log("Error: Email no proporcionado");
+      return res.status(400).json({ mensaje: "Email requerido" });
+    }
+
+    const Usuario = require("../models/usuario.model.js");
+    const usuario = await Usuario.findOne({
+      email: email.trim().toLowerCase(),
+      estado: "activo",
+    }).select("-passwordHash");
+
+    if (!usuario) {
+      console.log("Usuario no encontrado para email:", email);
+      return res.status(404).json({ mensaje: "Usuario no encontrado" });
+    }
+
+    console.log(
+      "Usuario encontrado:",
+      usuario.nombre,
+      usuario.apellido,
+      "Roles:",
+      usuario.roles
+    );
+    res.json(usuario);
+  } catch (error) {
+    console.error("Error en /api/usuarios/buscar:", error);
+    res.status(500).json({
+      mensaje: "Error al buscar usuario",
+      error: error.message,
+    });
+  }
+});
+
 /**
  * @swagger
  * /api/usuarios/registro:

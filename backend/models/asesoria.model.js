@@ -34,6 +34,9 @@ const infoParticipanteSchema = new Schema(
  * @property {Date} fechaHoraInicio
  * @property {number} duracionMinutos
  * @property {ObjectId} pagoId
+ * @property {Date} fechaFinalizacion
+ * @property {string} motivoCancelacion - Motivo de cancelación si aplica
+ * @property {Date} fechaCancelacion - Fecha de cancelación si aplica
  */
 const asesoriaSchema = new Schema(
   {
@@ -47,21 +50,22 @@ const asesoriaSchema = new Schema(
           .substring(2, 8)
           .toUpperCase()}`,
     },
-    titulo: { type: String, required: true, maxlength: 300 }, // Título descriptivo de la asesoría
-    cliente: { type: infoParticipanteSchema, required: true }, 
+    titulo: { type: String, required: true, maxlength: 300 },
+    cliente: { type: infoParticipanteSchema, required: true },
     experto: { type: infoParticipanteSchema, required: true },
     categoria: { type: String, required: true },
-    estado: { // estados de la asesoria
+    estado: {
       type: String,
       enum: [
         "pendiente-pago",
+        "pendiente-aceptacion",
         "confirmada",
         "completada",
-        "cancelada",
-        "reembolsada",
+        "cancelada-cliente",
+        "cancelada-experto",
         "rechazada",
       ],
-      default: "pendiente-pago", // Estado inicial al crear una asesoría
+      default: "pendiente-pago",
     },
     fechaHoraInicio: { type: Date, required: true },
     duracionMinutos: {
@@ -70,8 +74,10 @@ const asesoriaSchema = new Schema(
       enum: [60, 120, 180],
       default: 60,
     },
-    pagoId: { type: Schema.Types.ObjectId, ref: "Pago" }, // Relación con el pago
-    fechaFinalizacion: Date, // Fecha cuando fue marcada como completada
+    pagoId: { type: Schema.Types.ObjectId, ref: "Pago" },
+    fechaFinalizacion: Date,
+    motivoCancelacion: { type: String, maxlength: 500 },
+    fechaCancelacion: Date,
   },
   {
     timestamps: { createdAt: "fechaCreacion", updatedAt: "fechaActualizacion" },
@@ -98,6 +104,7 @@ const asesoriaSchema = new Schema(
  *           type: string
  *         estado:
  *           type: string
+ *           enum: [pendiente-pago, pendiente-aceptacion, confirmada, completada, cancelada-cliente, cancelada-experto, rechazada]
  *         fechaHoraInicio:
  *           type: string
  *           format: date-time
@@ -106,6 +113,11 @@ const asesoriaSchema = new Schema(
  *         pagoId:
  *           type: string
  *         fechaFinalizacion:
+ *           type: string
+ *           format: date-time
+ *         motivoCancelacion:
+ *           type: string
+ *         fechaCancelacion:
  *           type: string
  *           format: date-time
  */

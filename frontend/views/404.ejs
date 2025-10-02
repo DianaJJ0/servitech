@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Página no encontrada - ServiTech</title>
+  <link rel="stylesheet" href="/assets/css/base.css">
+  <link rel="stylesheet" href="/assets/css/componentes.css">
+  <link rel="stylesheet" href="/assets/css/error.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+  <!-- Header -->
+  <%- include('componentes/header') %>
+
+    <div class="container">
+      <div class="error-container">
+        <div class="error-content">
+          <div class="error-icon">
+            <i class="fas fa-search"></i>
+            <span class="error-code">404</span>
+          </div>
+
+          <h1 class="error-title">Página no encontrada</h1>
+
+          <p class="error-message">
+            <%= mensaje || "La página que buscas no existe o ha sido movida." %>
+          </p>
+
+          <div class="error-actions">
+            <a href="/" class="btn btn-primary">
+              <i class="fas fa-home"></i>
+              Ir al inicio
+            </a>
+            <a href="/expertos.html" class="btn btn-secondary">
+              <i class="fas fa-users"></i>
+              Ver expertos
+            </a>
+            <button onclick="history.back()" class="btn btn-outline">
+              <i class="fas fa-arrow-left"></i>
+              Volver atrás
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <%- include('componentes/footer') %>
+
+      <!-- Scripts -->
+      <script src="/assets/js/common.js"></script>
+</body>
+
+</html>
