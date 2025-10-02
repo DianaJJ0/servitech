@@ -1,172 +1,883 @@
+/* ===============================================
+   CALENDARIO DE ASESORIAS - DISEÑO MODERNO
+   =============================================== */
+
+/* Contenedor principal */
 .calendario-main {
-  max-width: 900px;
-  margin: 2rem auto;
+  min-height: calc(100vh - var(--header-height));
+  padding-top: 0;
+  background: var(--background);
+}
+
+.container {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* ===============================================
+   HERO SECTION - INFORMACION DEL EXPERTO
+   =============================================== */
+
+.experto-hero {
+  background: var(--card-bg);
+  padding: 2rem 0;
+  border-bottom: 1px solid var(--border-light);
+  margin-bottom: 0;
+}
+
+.experto-hero-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.experto-info-card {
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  padding: 2rem;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--card-shadow);
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+  max-width: 1000px;
+  width: 100%;
+}
+
+.experto-avatar-container {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.experto-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid var(--accent-color);
+  box-shadow: 0 8px 24px rgba(58, 142, 255, 0.2);
+}
+
+.experto-status {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: #28a745;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+}
+
+.experto-status i {
+  font-size: 0.5rem;
+}
+
+.experto-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.experto-nombre {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-color);
+  margin: 0 0 0.5rem 0;
+  line-height: 1.2;
+}
+
+.experto-especialidad {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  margin: 0 0 1.5rem 0;
+  line-height: 1.4;
+}
+
+.experto-pricing {
+  display: flex;
+  gap: 3rem;
+  margin-bottom: 1.5rem;
+}
+
+.precio-item {
   display: flex;
   flex-direction: column;
-  gap: 2.5rem;
+  gap: 0.25rem;
 }
 
-.expert-profile {
+.precio-label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.precio-valor {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--accent-color);
+}
+
+.experto-stats {
   display: flex;
-  justify-content: center;
+  gap: 3rem;
 }
 
-.profile-card {
-  display: flex;
-  align-items: center;
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 2px 10px rgba(58,142,255, 0.08);
-  padding: 2.2rem 2.8rem;
-  gap: 2.2rem;
-}
-
-.profile-avatar {
-  width: 110px;
-  height: 110px;
-  border-radius: 50%;
-  overflow: hidden;
-  background: #e3eaf3;
+.stat-item {
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 2.8rem;
-  font-weight: bold;
-  color: #3a8eff;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
 }
 
-.profile-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
+.stat-item i {
+  color: var(--accent-color);
+  width: 16px;
 }
 
-.profile-iniciales {
-  font-size: 2.2rem;
-  font-weight: bold;
-  color: #3a8eff;
+/* ===============================================
+   CONTENIDO PRINCIPAL DEL CALENDARIO
+   =============================================== */
+
+.calendario-content {
+  padding: 3rem 0;
+  background: var(--background);
 }
 
-.profile-info h2 {
-  margin-bottom: 0.35rem;
+/* Mensaje de autenticacion */
+.auth-message-section {
+  padding: 2rem 0;
 }
 
-.profile-especialidad {
-  color: #3a8eff;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-
-.profile-descripcion {
-  margin-bottom: 0.6rem;
-}
-
-.profile-contacto {
-  color: #888;
-  font-size: 0.99em;
-}
-
-.calendar-agenda {
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 2px 10px rgba(58,142,255, 0.08);
-  padding: 2.2rem 2.8rem;
-  max-width: 540px;
+.auth-message-card {
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  padding: 2rem;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--card-shadow);
+  max-width: 600px;
   margin: 0 auto;
 }
 
-.calendar-agenda h3 {
-  margin-bottom: 1.2rem;
-}
-
-.calendar-container {
-  margin-bottom: 1.4rem;
-}
-
-#calendar {
+.auth-message-content {
   display: flex;
-  flex-direction: column;
   align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
 }
 
-.calendar-table {
-  border-collapse: collapse;
-  width: 100%;
-  margin-bottom: 0.7rem;
+.auth-message-content .auth-icon {
+  font-size: 2.5rem;
+  color: var(--accent-color);
+  flex-shrink: 0;
+  margin-bottom: 0;
 }
 
-.calendar-table th,
-.calendar-table td {
-  text-align: center;
-  padding: 0.5rem;
-  font-size: 1rem;
+.auth-text {
+  flex: 1;
 }
 
-.calendar-table th {
-  color: #3a8eff;
-}
-
-.calendar-table td.inactive {
-  color: #c1c8d1;
-}
-
-.calendar-table td.selected {
-  background: #3a8eff;
-  color: #fff;
-  border-radius: 50%;
+.auth-text h2 {
+  color: var(--text-color);
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
   font-weight: 600;
 }
 
-.calendar-table td.available {
-  cursor: pointer;
-  transition: background 0.17s;
+.auth-text p {
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+  font-size: 0.95rem;
 }
 
-.calendar-table td.available:hover {
-  background: #e3eaf3;
+.auth-message-card .auth-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
-.hour-selector {
-  margin-bottom: 1.2rem;
+.auth-message-card .auth-actions .btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 160px;
+  justify-content: center;
 }
 
-.hour-selector label {
-  display: block;
-  margin-bottom: 0.45rem;
+/* Grid principal */
+.calendario-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  align-items: flex-start;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
-.hour-selector select {
+/* Headers de seccion */
+.section-header {
+  margin-bottom: 2rem;
+}
+
+.section-header h2 {
+  color: var(--text-color);
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-header h2 i {
+  color: var(--accent-color);
+  font-size: 1.2rem;
+}
+
+.section-header p {
+  color: var(--text-secondary);
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+/* ===============================================
+   SECCION DEL CALENDARIO
+   =============================================== */
+
+.calendario-section {
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  padding: 2rem;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--card-shadow);
+  height: fit-content;
+}
+
+.calendario-widget {
+  margin-bottom: 2rem;
+}
+
+/* Estilos del calendario */
+.calendar {
   width: 100%;
-  padding: 0.5rem 1.1rem;
-  border-radius: 6px;
-  border: 1px solid #d0dde7;
+}
+
+.calendar-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: var(--input-bg);
+  border-radius: var(--input-radius);
+}
+
+.calendar-title {
+  font-weight: 600;
+  color: var(--text-color);
   font-size: 1.1rem;
 }
 
-.input-error {
-  color: #e53935;
-  margin-bottom: 0.6rem;
-  font-size: 0.98em;
-  min-height: 24px;
+.calendar-btn {
+  background: var(--accent-color);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
 }
 
-.success-msg {
-  color: #2e7d32;
+.calendar-btn:hover {
+  background: var(--primary-color);
+  transform: scale(1.05);
+}
+
+.calendar-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: var(--input-radius);
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.calendar-table th {
+  background: var(--accent-color);
+  color: white;
+  padding: 1rem 0.5rem;
+  text-align: center;
   font-weight: 600;
-  margin-top: 1rem;
-  font-size: 1.12em;
+  font-size: 0.9rem;
 }
 
-@media (max-width: 900px) {
+.calendar-table td {
+  padding: 1rem 0.5rem;
+  text-align: center;
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  font-weight: 500;
+  transition: var(--transition);
+  cursor: not-allowed;
+}
+
+.calendar-table td.available {
+  color: var(--text-color);
+  background: var(--input-bg);
+  cursor: pointer;
+}
+
+.calendar-table td.available:hover {
+  background: var(--accent-color);
+  color: white;
+  transform: scale(1.05);
+}
+
+.calendar-table td.selected {
+  background: var(--primary-color) !important;
+  color: white;
+  font-weight: 600;
+}
+
+.calendar-table td.inactive {
+  color: var(--text-light);
+  background: var(--background);
+  cursor: not-allowed;
+}
+
+/* Horarios disponibles */
+.horarios-section {
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-light);
+}
+
+.horarios-section h3 {
+  color: var(--text-color);
+  font-size: 1.1rem;
+  margin: 0 0 1rem 0;
+}
+
+.horarios-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 0.75rem;
+}
+
+.horario-slot {
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--input-radius);
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.horario-slot:hover {
+  background: var(--accent-color);
+  color: white;
+  border-color: var(--accent-color);
+}
+
+.horario-slot.selected {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.horario-slot.ocupado {
+  background: var(--border-color);
+  color: var(--text-light);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* ===============================================
+   SECCION DEL FORMULARIO
+   =============================================== */
+
+.formulario-section {
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  padding: 2rem;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--card-shadow);
+}
+
+.asesoria-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Filas del formulario */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  color: var(--text-color);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.form-help {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+
+/* Inputs con iconos */
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-with-icon i {
+  position: absolute;
+  left: 1rem;
+  color: var(--accent-color);
+  z-index: 2;
+}
+
+.input-with-icon .form-control {
+  padding-left: 2.5rem;
+}
+
+/* Opciones de duracion */
+.duracion-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.option-card {
+  background: var(--input-bg);
+  border: 2px solid var(--border-color);
+  border-radius: var(--input-radius);
+  padding: 1rem;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.option-card:hover {
+  border-color: var(--accent-color);
+  background: rgba(58, 142, 255, 0.05);
+}
+
+.option-card input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent-color);
+}
+
+.option-card input[type="radio"]:checked + .option-content {
+  color: var(--accent-color);
+}
+
+.option-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.option-title {
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.option-price {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* Resumen de la solicitud */
+.resumen-card {
+  background: var(--input-bg);
+  border-radius: var(--input-radius);
+  padding: 1.5rem;
+  border-left: 4px solid var(--accent-color);
+  margin: 1rem 0;
+}
+
+.resumen-card h3 {
+  color: var(--accent-color);
+  font-size: 1.1rem;
+  margin: 0 0 1rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.resumen-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.resumen-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.resumen-item .label {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.resumen-item .value {
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+.resumen-item.total {
+  border-top: 1px solid var(--border-color);
+  padding-top: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.resumen-item.total .label,
+.resumen-item.total .value {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.resumen-item.total .value {
+  color: var(--accent-color);
+}
+
+/* Contenedor de mensajes */
+.messages-container {
+  min-height: 20px;
+}
+
+.message {
+  padding: 0.75rem 1rem;
+  border-radius: var(--input-radius);
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.message.error {
+  background: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+  border: 1px solid rgba(220, 53, 69, 0.2);
+}
+
+.message.success {
+  background: rgba(40, 167, 69, 0.1);
+  color: #28a745;
+  border: 1px solid rgba(40, 167, 69, 0.2);
+}
+
+.message.info {
+  background: rgba(58, 142, 255, 0.1);
+  color: var(--accent-color);
+  border: 1px solid rgba(58, 142, 255, 0.2);
+}
+
+/* Boton principal */
+.btn-large {
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: var(--input-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 60px;
+}
+
+.form-disclaimer {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  text-align: center;
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* ===============================================
+   SECCION DE INFORMACION ADICIONAL
+   =============================================== */
+
+.info-adicional {
+  background: var(--card-bg);
+  padding: 3rem 0;
+  border-top: 1px solid var(--border-light);
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+}
+
+.info-card {
+  background: var(--input-bg);
+  border-radius: var(--border-radius);
+  padding: 2rem;
+  text-align: center;
+  border: 1px solid var(--border-light);
+  transition: var(--transition);
+}
+
+.info-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--hover-shadow);
+}
+
+.info-icon {
+  font-size: 2.5rem;
+  color: var(--accent-color);
+  margin-bottom: 1rem;
+}
+
+.info-card h3 {
+  color: var(--text-color);
+  font-size: 1.2rem;
+  margin: 0 0 0.75rem 0;
+}
+
+.info-card p {
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+  font-size: 0.9rem;
+}
+
+/* Estilos para horarios reservados en preview */
+.horario-slot.reservado-preview {
+  background: rgba(58, 142, 255, 0.2);
+  border: 2px solid var(--accent-color);
+  color: var(--accent-color);
+  font-weight: 600;
+  position: relative;
+}
+
+.horario-slot.reservado-preview::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  font-weight: 600;
+  position: relative;
+}
+
+.horario-slot.reservado-preview::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 5px,
+    rgba(58, 142, 255, 0.1) 5px,
+    rgba(58, 142, 255, 0.1) 10px
+  );
+  pointer-events: none;
+}
+
+.horarios-help {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+  font-style: italic;
+}
+/* ===============================================
+   RESPONSIVE DESIGN
+   =============================================== */
+
+@media (max-width: 1200px) {
+  .calendario-grid {
+    gap: 2rem;
+  }
+
+  .experto-pricing,
+  .experto-stats {
+    gap: 2rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .calendario-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .calendario-section {
+    position: static;
+  }
+}
+
+@media (max-width: 768px) {
   .calendario-main {
-    max-width: 100vw;
+    padding-top: 0;
+  }
+
+  .experto-hero {
+    padding: 1.5rem 0;
+  }
+
+  .experto-info-card {
+    flex-direction: column;
+    text-align: center;
+    gap: 1.5rem;
+    padding: 1.5rem;
+  }
+
+  .experto-nome {
+    font-size: 1.5rem;
+  }
+
+  .experto-pricing,
+  .experto-stats {
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .calendario-content {
+    padding: 2rem 0;
+  }
+
+  .section-header h2 {
+    font-size: 1.3rem;
+  }
+
+  .calendario-section,
+  .formulario-section {
+    padding: 1.5rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .duracion-options {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-message-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+
+  .auth-message-card .auth-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .auth-message-card .auth-actions .btn {
+    width: 100%;
+    max-width: 250px;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .info-card {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 0.5rem;
+  }
+
+  .experto-hero {
+    padding: 1rem 0;
+  }
+
+  .experto-info-card {
     padding: 1rem;
   }
-  .profile-card, .calendar-agenda {
-    padding: 1.2rem 0.7rem;
+
+  .experto-avatar {
+    width: 80px;
+    height: 80px;
   }
-  .calendar-agenda {
-    max-width: 100vw;
+
+  .experto-nombre {
+    font-size: 1.3rem;
+  }
+
+  .calendario-section,
+  .formulario-section {
+    padding: 1rem;
+  }
+
+  .calendar-table th,
+  .calendar-table td {
+    padding: 0.5rem 0.25rem;
+    font-size: 0.85rem;
+  }
+
+  .horarios-grid {
+    grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+  }
+
+  .resumen-card {
+    padding: 1rem;
+  }
+
+  .btn-large {
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
+  }
+
+  .auth-message-section {
+    padding: 1rem 0;
+  }
+
+  .auth-message-card {
+    padding: 1.5rem;
+    margin: 0 0.5rem;
+  }
+
+  .auth-text h2 {
+    font-size: 1.3rem;
+  }
+
+  .auth-text p {
+    font-size: 0.9rem;
   }
 }

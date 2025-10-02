@@ -567,30 +567,112 @@ router.post("/editarExperto", async (req, res) => {
   }
 });
 
-// Ruta: calendario de un experto (por id)
-router.get("/expertos/:id/calendario", async (req, res) => {
+// Ruta: calendario de un experto (por email)
+router.get("/expertos/:email/calendario", async (req, res) => {
   try {
-    const experto = await Usuario.findById(req.params.id);
-    if (!experto || !experto.roles.includes("experto")) {
-      return res
-        .status(404)
-        .render("404", { mensaje: "Experto no encontrado" });
+    const expertoEmail = req.params.email;
+
+    // Buscar experto por email
+    const expertoRes = await fetch(`${BACKEND_URL}/api/usuarios/buscar?email=${encodeURIComponent(expertoEmail)}`);
+    if (!expertoRes.ok) {
+      return res.status(404).render("404", {
+        mensaje: "Experto no encontrado",
+        user: req.session.user || null
+      });
     }
-    // Sus asesorías agendadas (pendiente, confirmada, completada)
-    const asesoriasExistentes = await Asesoria.find({
-      "experto.email": experto.email,
-      estado: { $in: ["pendiente-pago", "confirmada"] },
-    });
+
+    const experto = await expertoRes.json();
+    if (!experto || !Array.isArray(experto.roles) || !experto.roles.includes("experto")) {
+      return res.status(404).render("404", {
+        mensaje: "Experto no encontrado",
+        user: req.session.user || null
+      });
+    }
+
+    // Obtener asesorías existentes del experto
+    let asesoriasExistentes = [];
+    try {
+      const asesoriaRes = await fetch(`${BACKEND_URL}/api/asesorias/experto/${encodeURIComponent(expertoEmail)}`);
+      if (asesoriaRes.ok) {
+        asesoriasExistentes = await asesoriaRes.json();
+        // Filtrar solo las asesorías relevantes para mostrar ocupación
+        asesoriasExistentes = asesoriasExistentes.filter(a =>
+          ["pendiente-aceptacion", "confirmada"].includes(a.estado)
+        );
+      }
+    } catch (e) {
+      console.error("Error obteniendo asesorías:", e);
+    }
+
     // Usuario autenticado (puede ser null si no ha iniciado sesión)
-    const usuario = req.session.user || null;
+    const user = req.session.user || null;
+
     return res.render("calendario", {
       experto,
-      usuario,
+      user,           // CAMBIO: usar 'user' en lugar de 'usuario'
+      usuario: user,  // Mantener compatibilidad con código JS
       asesoriasExistentes,
     });
   } catch (err) {
-    res.status(500).render("error", { mensaje: "Error interno en calendario" });
+    console.error("Error en calendario:", err);
+    res.status(500).render("404", {
+      mensaje: "Error interno al cargar el calendario",
+      user: req.session.user || null
+    });
   }
+});
+
+// Ruta: pasarela de pagos
+router.get("/pasarela-pagos", (req, res) => {
+  const expertoSeleccionado = req.query.experto
+    ? JSON.parse(req.query.experto)
+    : null;
+  res.render("pasarelaPagos", {
+    user: req.session.user || null,
+    expertoSeleccionado,
+  });
+});
+
+// Ruta: confirmación de asesoría
+router.get("/confirmacion-asesoria", (req, res) => {
+  const status = req.query.status || "pending";
+  res.render("confirmacionAsesoria", {
+    user: req.session.user || null,
+    usuario: req.session.user || null,
+    status,
+  });
+});
+
+// Ruta: mis asesorías (protegida)
+router.get("/misAsesorias.html", (req, res) => {
+  if (!req.session.user || !req.session.user.token) {
+    return res.redirect("/login.html?next=/misAsesorias.html");
+  }
+
+  const esExperto = req.session.user.roles && req.session.user.roles.includes("experto");
+
+  res.render("misAsesorias", {
+    user: req.session.user,
+    usuario: req.session.user,
+    usuarioId: req.session.user._id,
+    rolUsuario: esExperto ? "experto" : "cliente",
+  });
+});
+
+// Ruta: mis asesorías (protegida)
+router.get("/misAsesorias.html", (req, res) => {
+  if (!req.session.user || !req.session.user.token) {
+    return res.redirect("/login.html?next=/misAsesorias.html");
+  }
+
+  const esExperto = req.session.user.roles && req.session.user.roles.includes("experto");
+
+  res.render("misAsesorias", {
+    user: req.session.user,
+    usuario: req.session.user,
+    usuarioId: req.session.user._id,
+    rolUsuario: esExperto ? "experto" : "cliente",
+  });
 });
 
 // --- Panel de administración (rutas protegidas) ---
@@ -668,6 +750,14 @@ router.get("/admin/adminExpertos", requireAdmin, async (req, res) => {
     user: req.session.user || {},
     categorias: categorias,
     initialExpertos: initialExpertos,
+  });
+});
+
+// Manejo de errores 404
+router.use((req, res) => {
+  res.status(404).render("404", {
+    mensaje: "La página que buscas no existe o ha sido movida.",
+    user: req.session.user || null
   });
 });
 

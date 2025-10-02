@@ -6,216 +6,236 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mi Perfil | Servitech</title>
   <link rel="stylesheet" href="/assets/css/base.css" />
+  <link rel="stylesheet" href="/assets/css/componentes.css" />
   <link rel="stylesheet" href="/assets/css/perfil.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 </head>
 
 <body>
-  <main class="container">
-    <% if (typeof error !=='undefined' && error) { %>
-      <div class="alert alert-danger" style="margin-bottom: 1rem;">
-        <%= error %>
-      </div>
-      <% } %>
-        <section class="perfil-section">
-          <h1 class="perfil-title">Mi Perfil</h1>
-          <div class="perfil-card-wrapper">
-            <div class="perfil-card">
-              <!-- avatar: aquí inserta el JS la imagen o iniciales -->
-              <div class="perfil-avatar" id="perfilAvatarContainer"></div>
-              <!-- input oculto para subir avatar -->
-              <input type="file" id="avatarInput" accept="image/png,image/jpeg" style="display:none;">
-              <div id="avatarError" class="input-error"></div>
-              <!-- Información básica y acciones -->
-              <div class="perfil-info">
-                <h2 id="userName">
-                  <%= user ? (user.nombre || 'Sin nombre' ) : 'No autenticado' %>
-                </h2>
-                <p id="userEmail">
-                  <%= user ? (user.email || 'Sin email' ) : '' %>
-                </p>
-                <div class="perfil-actions-wrapper">
-                  <div class="perfil-actions">
-                    <% if (user && user.roles && user.roles.includes('experto')) { %>
-                      <a href="/editarExperto" id="btnEditarPerfil" class="btn btn-primary">
-                        <i class="fas fa-edit"></i> Editar datos de experto
-                      </a>
-                      <% } %>
-                        <a href="/misAsesorias.html" class="btn btn-outline">
-                          <i class="fas fa-calendar-alt"></i> Mis asesorías
+  <!-- Header -->
+  <%- include('componentes/header') %>
+
+    <main class="container">
+      <% if (typeof error !=='undefined' && error) { %>
+        <div class="alert alert-danger" style="margin-bottom: 1rem;">
+          <%= error %>
+        </div>
+        <% } %>
+
+          <section class="perfil-section">
+            <h1 class="perfil-title">Mi Perfil</h1>
+            <div class="perfil-card-wrapper">
+              <div class="perfil-card">
+                <!-- avatar: aqui inserta el JS la imagen o iniciales -->
+                <div class="perfil-avatar" id="perfilAvatarContainer"></div>
+                <!-- input oculto para subir avatar -->
+                <input type="file" id="avatarInput" accept="image/png,image/jpeg" style="display:none;">
+                <div id="avatarError" class="input-error"></div>
+                <!-- Informacion basica y acciones -->
+                <div class="perfil-info">
+                  <h2 id="userName">
+                    <% if (user) { const nombre=user.nombre && user.nombre !=="undefined" ? user.nombre : "" ; const
+                      apellido=user.apellido && user.apellido !=="undefined" ? user.apellido : "" ; const
+                      nombreCompleto=`${nombre} ${apellido}`.trim(); %>
+                      <%= nombreCompleto || user.email || 'Usuario' %>
+                        <% } else { %>
+                          No autenticado
+                          <% } %>
+                  </h2>
+                  <p id="userEmail">
+                    <%= user ? (user.email || 'Sin email' ) : '' %>
+                  </p>
+                  <div class="perfil-actions-wrapper">
+                    <div class="perfil-actions">
+                      <% if (user && user.roles && user.roles.includes('experto')) { %>
+                        <a href="/editarExperto" id="btnEditarPerfil" class="btn btn-primary">
+                          <i class="fas fa-edit"></i> Editar datos de experto
                         </a>
-                        <a href="/" class="btn btn-secondary">
-                          <i class="fas fa-arrow-left"></i> Volver al inicio
-                        </a>
+                        <% } %>
+                          <a href="/misAsesorias.html" class="btn btn-outline">
+                            <i class="fas fa-calendar-alt"></i> Mis asesorias
+                          </a>
+                          <a href="/" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Volver al inicio
+                          </a>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div class="profile-main">
-            <div class="profile-tab" id="personalInfo">
-              <div style="display:flex;align-items:center;justify-content:space-between;">
-                <h2>Información personal</h2>
-                <% if (user) { %>
-                  <a href="#" id="btnEditarNombreApellido" class="btn btn-secondary btn-sm">
-                    <i class="fas fa-edit"></i> Editar
-                  </a>
-                  <% } %>
-              </div>
-              <form class="profile-form">
-                <div class="form-row">
+            <div class="profile-main">
+              <div class="profile-tab" id="personalInfo">
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                  <h2>Informacion personal</h2>
+                  <% if (user) { %>
+                    <a href="#" id="btnEditarNombreApellido" class="btn btn-secondary btn-sm">
+                      <i class="fas fa-edit"></i> Editar
+                    </a>
+                    <% } %>
+                </div>
+                <form class="profile-form">
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label for="firstName">Nombre</label>
+                      <input type="text" id="firstName"
+                        value="<%= user ? (user.nombre && user.nombre !== 'undefined' ? user.nombre : '') : '' %>"
+                        placeholder="Tu nombre" disabled>
+                    </div>
+                    <div class="form-group">
+                      <label for="lastName">Apellido</label>
+                      <input type="text" id="lastName"
+                        value="<%= user ? (user.apellido && user.apellido !== 'undefined' ? user.apellido : '') : '' %>"
+                        placeholder="Tu apellido" disabled>
+                    </div>
+                  </div>
                   <div class="form-group">
-                    <label for="firstName">Nombre</label>
-                    <input type="text" id="firstName" value="<%= user ? user.nombre : '' %>" placeholder="Tu nombre"
-                      disabled>
+                    <label for="formEmail">Email</label>
+                    <input type="email" id="formEmail" value="<%= user ? user.email : '' %>"
+                      placeholder="tucorreo@ejemplo.com" disabled>
                   </div>
-                  <div class="form-group">
-                    <label for="lastName">Apellido</label>
-                    <input type="text" id="lastName" value="<%= user ? user.apellido : '' %>" placeholder="Tu apellido"
-                      disabled>
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label for="formEmail">Email</label>
-                  <input type="email" id="formEmail" value="<%= user ? user.email : '' %>"
-                    placeholder="tucorreo@ejemplo.com" disabled>
-                </div>
-              </form>
-            </div>
-            <% if (user && user.roles && user.roles.includes('experto') && user.infoExperto) { %>
-              <div class="profile-tab" id="expertInfo">
-                <h2>Información de Experto</h2>
-                <div class="expert-info-grid">
-                  <!-- Sección de Información Profesional -->
-                  <div class="expert-info-section">
-                    <h3><i class="fas fa-briefcase"></i> Profesional</h3>
-                    <div class="info-item">
-                      <strong>Precio por hora</strong>
-                      <p>$<%= (user.infoExperto.precioPorHora || 0).toLocaleString('es-CO') %> COP</p>
-                    </div>
-                    <div class="info-item">
-                      <strong>Descripción</strong>
-                      <p>
-                        <%= user.infoExperto.descripcion || 'No especificada' %>
-                      </p>
-                    </div>
-                    <div class="info-item">
-                      <strong>Categorías</strong>
-                      <div class="tags-container">
-                        <% if (Array.isArray(user.infoExperto.categorias) && user.infoExperto.categorias.length) { %>
-                          <% user.infoExperto.categorias.forEach(function(cat) { %>
-                            <span class="tag">
-                              <%= cat.name || cat %>
-                            </span>
-                            <% }); %>
-                              <% } else { %>
-                                <p>No hay categorías asignadas.</p>
-                                <% } %>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Sección de Disponibilidad y Contacto -->
-                  <div class="expert-info-section">
-                    <h3><i class="fas fa-calendar-alt"></i> Disponibilidad y Contacto</h3>
-                    <div class="info-item">
-                      <strong>Teléfono de Contacto</strong>
-                      <p>
-                        <%= user.infoExperto.telefonoContacto || 'No especificado' %>
-                      </p>
-                    </div>
-                    <div class="info-item">
-                      <strong>Días Disponibles</strong>
-                      <div class="days-display">
-                        <% const dias=['Lunes', 'Martes' , 'Miércoles' , 'Jueves' , 'Viernes' , 'Sábado' , 'Domingo' ];
-                          %>
-                          <% dias.forEach(function(dia) { %>
-                            <span
-                              class="day-pill <%= (user.infoExperto.diasDisponibles || []).includes(dia) ? 'active' : '' %>"
-                              title="<%= dia %>">
-                              <%= dia.charAt(0) %>
-                            </span>
-                            <% }); %>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Sección de Datos Bancarios -->
-                  <div class="expert-info-section">
-                    <h3><i class="fas fa-university"></i> Datos Bancarios</h3>
-                    <div class="info-item"><strong>Banco:</strong>
-                      <p>
-                        <%= user.infoExperto.banco || 'No especificado' %>
-                      </p>
-                    </div>
-                    <div class="info-item"><strong>Tipo de Cuenta:</strong>
-                      <p>
-                        <%= user.infoExperto.tipoCuenta || 'No especificado' %>
-                      </p>
-                    </div>
-                    <div class="info-item"><strong>Titular:</strong>
-                      <p>
-                        <%= user.infoExperto.titular || 'No especificado' %>
-                      </p>
-                    </div>
-                    <div class="info-item"><strong>Número de Cuenta:</strong>
-                      <p class="account-number" data-number="<%= user.infoExperto.numeroCuenta || '' %>">
-                        •••••••••••••••• <button class="btn-show-account"><i class="fas fa-eye"></i></button>
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                </form>
               </div>
-              <% } else if (user && user.roles && user.roles.includes('experto') && !user.infoExperto) { %>
+
+              <% if (user && user.roles && user.roles.includes('experto') && user.infoExperto) { %>
                 <div class="profile-tab" id="expertInfo">
-                  <div class="alert alert-warning">
-                    <strong>¡Atención!</strong> Tu perfil de experto está incompleto.
-                    <a href="/registroExperto">Completa tu información aquí</a>.
-                  </div>
-                </div>
-                <% } else if (user && user.roles && !user.roles.includes('experto')) { %>
-                  <div class="profile-tab" id="expertInfo">
-                    <div class="alert alert-info">
-                      ¿Quieres convertirte en experto?
-                      <a href="/registroExperto">Regístrate como experto aquí</a>.
+                  <h2>Informacion de Experto</h2>
+                  <div class="expert-info-grid">
+                    <!-- Seccion de Informacion Profesional -->
+                    <div class="expert-info-section">
+                      <h3><i class="fas fa-briefcase"></i> Profesional</h3>
+                      <div class="info-item">
+                        <strong>Precio por hora</strong>
+                        <p>$<%= (user.infoExperto.precioPorHora || 0).toLocaleString('es-CO') %> COP</p>
+                      </div>
+                      <div class="info-item">
+                        <strong>Descripcion</strong>
+                        <p>
+                          <%= user.infoExperto.descripcion || 'No especificada' %>
+                        </p>
+                      </div>
+                      <div class="info-item">
+                        <strong>Categorias</strong>
+                        <div class="tags-container">
+                          <% if (Array.isArray(user.infoExperto.categorias) && user.infoExperto.categorias.length) { %>
+                            <% user.infoExperto.categorias.forEach(function(cat) { %>
+                              <span class="tag">
+                                <%= cat.name || cat %>
+                              </span>
+                              <% }); %>
+                                <% } else { %>
+                                  <p>No hay categorias asignadas.</p>
+                                  <% } %>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Seccion de Disponibilidad y Contacto -->
+                    <div class="expert-info-section">
+                      <h3><i class="fas fa-calendar-alt"></i> Disponibilidad y Contacto</h3>
+                      <div class="info-item">
+                        <strong>Telefono de Contacto</strong>
+                        <p>
+                          <%= user.infoExperto.telefonoContacto || 'No especificado' %>
+                        </p>
+                      </div>
+                      <div class="info-item">
+                        <strong>Dias Disponibles</strong>
+                        <div class="days-display">
+                          <% const dias=['Lunes', 'Martes' , 'Miercoles' , 'Jueves' , 'Viernes' , 'Sabado' , 'Domingo'
+                            ]; %>
+                            <% dias.forEach(function(dia) { %>
+                              <span
+                                class="day-pill <%= (user.infoExperto.diasDisponibles || []).includes(dia) ? 'active' : '' %>"
+                                title="<%= dia %>">
+                                <%= dia.charAt(0) %>
+                              </span>
+                              <% }); %>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Seccion de Datos Bancarios -->
+                    <div class="expert-info-section">
+                      <h3><i class="fas fa-university"></i> Datos Bancarios</h3>
+                      <div class="info-item">
+                        <strong>Banco:</strong>
+                        <p>
+                          <%= user.infoExperto.banco || 'No especificado' %>
+                        </p>
+                      </div>
+                      <div class="info-item">
+                        <strong>Tipo de Cuenta:</strong>
+                        <p>
+                          <%= user.infoExperto.tipoCuenta || 'No especificado' %>
+                        </p>
+                      </div>
+                      <div class="info-item">
+                        <strong>Titular:</strong>
+                        <p>
+                          <%= user.infoExperto.titular || 'No especificado' %>
+                        </p>
+                      </div>
+                      <div class="info-item">
+                        <strong>Numero de Cuenta:</strong>
+                        <p class="account-number" data-number="<%= user.infoExperto.numeroCuenta || '' %>">
+                          <span class="account-value">••••••••••••••••</span>
+                          <button class="btn-show-account"><i class="fas fa-eye"></i></button>
+                        </p>
+                      </div>
                     </div>
                   </div>
-                  <% } %>
-          </div>
-        </section>
-  </main>
-  <!-- Modal edición nombre y apellido -->
-  <section class="modal-section *:hidden" id="modalSection">
-    <div id="modalEditarNombreApellido" class="modal-perfil" style="display:none;">
-      <div class="modal-content-perfil">
-        <h3>Editar datos básicos</h3>
-        <form id="formEditarNombreApellido" autocomplete="off">
-          <div class="form-row">
-            <div class="form-group">
-              <label for="modalFirstName">Nombre</label>
-              <input type="text" id="modalFirstName" maxlength="80" required>
-              <div class="input-error" id="errorNombre"></div>
+                </div>
+                <% } else if (user && user.roles && user.roles.includes('experto') && !user.infoExperto) { %>
+                  <div class="profile-tab" id="expertInfo">
+                    <div class="alert alert-warning">
+                      <strong>¡Atencion!</strong> Tu perfil de experto esta incompleto.
+                      <a href="/registroExperto">Completa tu informacion aqui</a>.
+                    </div>
+                  </div>
+                  <% } else if (user && user.roles && !user.roles.includes('experto')) { %>
+                    <div class="profile-tab" id="expertInfo">
+                      <div class="alert alert-info">
+                        ¿Quieres convertirte en experto?
+                        <a href="/registroExperto">Registrate como experto aqui</a>.
+                      </div>
+                    </div>
+                    <% } %>
             </div>
-            <div class="form-group">
-              <label for="modalLastName">Apellido</label>
-              <input type="text" id="modalLastName" maxlength="80" required>
-              <div class="input-error" id="errorApellido"></div>
+          </section>
+    </main>
+
+    <!-- Modal edicion nombre y apellido -->
+    <section class="modal-section" id="modalSection">
+      <div id="modalEditarNombreApellido" class="modal-perfil" style="display:none;">
+        <div class="modal-content-perfil">
+          <h3>Editar datos basicos</h3>
+          <form id="formEditarNombreApellido" autocomplete="off">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="modalFirstName">Nombre</label>
+                <input type="text" id="modalFirstName" maxlength="80" required>
+                <div class="input-error" id="errorNombre"></div>
+              </div>
+              <div class="form-group">
+                <label for="modalLastName">Apellido</label>
+                <input type="text" id="modalLastName" maxlength="80" required>
+                <div class="input-error" id="errorApellido"></div>
+              </div>
             </div>
-          </div>
-          <div class="modal-btns">
-            <button type="button" class="btn btn-secondary" id="btnCancelarModal">Cancelar</button>
-            <button type="submit" class="btn btn-primary">Guardar</button>
-          </div>
-          <div class="input-error" id="modalErrorGeneral"></div>
-        </form>
+            <div class="modal-btns">
+              <button type="button" class="btn btn-secondary" id="btnCancelarModal">Cancelar</button>
+              <button type="submit" class="btn btn-primary">Guardar</button>
+            </div>
+            <div class="input-error" id="modalErrorGeneral"></div>
+          </form>
+        </div>
       </div>
-    </div>
-  </section>
-  <script src="/assets/js/common.js"></script>
-  <script src="/assets/js/index.js"></script>
-  <script src="/assets/js/perfil.js"></script>
+    </section>
+
+    <script src="/assets/js/common.js"></script>
+    <script src="/assets/js/perfil.js"></script>
 </body>
 
 </html>

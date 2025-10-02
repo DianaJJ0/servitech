@@ -1,7 +1,7 @@
 /**
  * @file Modelo de Pago
  * @module models/pago
- * @description Define el esquema para registrar pagos asociados a asesorías
+ * @description Define el esquema para registrar pagos asociados a asesorías con Mercado Pago
  */
 
 const mongoose = require("mongoose");
@@ -17,7 +17,7 @@ const { Schema } = mongoose;
  * @property {number} comisionPlataforma - Comisión retenida por la plataforma (ej: 15%)
  * @property {string} moneda - Moneda del pago (default: COP)
  * @property {string} metodo - Método de pago utilizado
- * @property {string} estado - Estado del pago: pendiente, retenido, liberado, reembolsado, fallido
+ * @property {string} estado - Estado del pago
  * @property {Date} fechaPago - Fecha en que se realizó el pago
  * @property {Date} fechaLiberacion - Fecha en que se liberó el pago al experto
  * @property {string} transaccionId - ID de transacción externa
@@ -26,17 +26,29 @@ const { Schema } = mongoose;
 
 const pagoSchema = new Schema(
   {
-    asesoriaId: { type: Schema.Types.ObjectId, ref: "Asesoria", required: false },
-    clienteId: { type: String, required: true }, // Ahora almacena el email
-    expertoId: { type: String, required: true }, // Ahora almacena el email
-    monto: { type: Number, required: true }, // Valor total pagado
-    montoExperto: { type: Number, required: true }, // Monto final a experto (85%)
-    comisionPlataforma: { type: Number, required: true }, // Comisión (15%)
+    asesoriaId: {
+      type: Schema.Types.ObjectId,
+      ref: "Asesoria",
+      required: false,
+    },
+    clienteId: { type: String, required: true },
+    expertoId: { type: String, required: true },
+    monto: { type: Number, required: true },
+    montoExperto: { type: Number, required: true },
+    comisionPlataforma: { type: Number, required: true },
     moneda: { type: String, default: "COP" },
     metodo: { type: String, required: true },
     estado: {
       type: String,
-      enum: ["pendiente", "retenido", "liberado", "reembolsado", "fallido"],
+      enum: [
+        "pendiente",
+        "procesando",
+        "retenido",
+        "liberado",
+        "reembolsado-total",
+        "reembolsado-parcial",
+        "fallido",
+      ],
       default: "pendiente",
     },
     fechaPago: Date,
@@ -77,6 +89,7 @@ const pagoSchema = new Schema(
  *           type: string
  *         estado:
  *           type: string
+ *           enum: [pendiente, procesando, retenido, liberado, reembolsado-total, reembolsado-parcial, fallido]
  *         transaccionId:
  *           type: string
  *         fechaPago:
