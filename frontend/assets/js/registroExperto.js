@@ -212,42 +212,185 @@
         if (fileInputText) fileInputText.textContent = "Seleccionar archivo";
       }
 
-      fotoPerfilInput.addEventListener("change", function (e) {
+      fotoPerfilInput.addEventListener("change", async function (e) {
         const file = e.target.files && e.target.files[0];
         if (!file) {
           resetPreview();
           return;
         }
 
-        // Validaciones
-        if (!file.type.match("image.*")) {
+        // Reglas recomendadas
+        const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+        const MAX_SIZE = 2 * 1024 * 1024; // 2MB
+        const MIN_WIDTH = 300;
+        const MIN_HEIGHT = 300;
+        const MAX_WIDTH = 4000;
+        const MAX_HEIGHT = 4000;
+        const MAX_DIM_FOR_RESIZE = 2000; // si supera esto intentamos redimensionar
+        const MIN_ASPECT = 0.5; // ancho/alto
+        const MAX_ASPECT = 2.0;
+
+        // Tipo
+        if (!allowedTypes.includes(file.type)) {
+          showImageError("Tipo de archivo no soportado. Usa JPG, PNG o WebP.");
+          return;
+        }
+
+        // Tamaño inicial (si es evidente que sobrepasa límites)
+        if (file.size > MAX_SIZE * 4) {
+          // demasiado grande para intentar procesar en cliente
           showImageError(
-            "Solo se permiten archivos de imagen (JPG, PNG, etc.)"
+            "Archivo demasiado grande. Sube una imagen más pequeña."
           );
           return;
         }
 
-        if (file.size > 2 * 1024 * 1024) {
-          showImageError("La imagen no debe superar los 2MB");
+        // Leer en memoria y comprobar dimensiones
+        const dataUrl = await new Promise((res, rej) => {
+          const r = new FileReader();
+          r.onload = () => res(r.result);
+          r.onerror = rej;
+          r.readAsDataURL(file);
+        }).catch(() => null);
+
+        if (!dataUrl) {
+          showImageError("No se pudo leer el archivo. Intenta otro archivo.");
           return;
+        }
+
+        const img = new Image();
+        const imgLoad = new Promise((res, rej) => {
+          img.onload = () => res();
+          img.onerror = () => rej();
+        });
+        img.src = dataUrl;
+        try {
+          await imgLoad;
+        } catch (err) {
+          showImageError("Imagen inválida o corrupta.");
+          return;
+        }
+
+        const w = img.naturalWidth || img.width;
+        const h = img.naturalHeight || img.height;
+        if (w < MIN_WIDTH || h < MIN_HEIGHT) {
+          showImageError(
+            `Imagen demasiado pequeña. Mínimo ${MIN_WIDTH}x${MIN_HEIGHT}px.`
+          );
+          return;
+        }
+        if (w > MAX_WIDTH || h > MAX_HEIGHT) {
+          showImageError(
+            `Imagen demasiado grande en dimensiones. Máximo ${MAX_WIDTH}x${MAX_HEIGHT}px.`
+          );
+          return;
+        }
+        const aspect = w / h;
+        if (aspect < MIN_ASPECT || aspect > MAX_ASPECT) {
+          showImageError(
+            "Proporción de la imagen no válida. Usa un recorte aproximadamente cuadrado o 4:3/3:4."
+          );
+          return;
+        }
+
+        let fileToUse = file;
+
+        // Si es grande en tamaño o en dimensiones, intentar redimensionar/comprimir
+        if (
+          file.size > MAX_SIZE ||
+          w > MAX_DIM_FOR_RESIZE ||
+          h > MAX_DIM_FOR_RESIZE
+        ) {
+          try {
+            const targetMax = MAX_DIM_FOR_RESIZE;
+            const scale = Math.min(1, targetMax / Math.max(w, h));
+            const tw = Math.round(w * scale);
+            const th = Math.round(h * scale);
+            const canvas = document.createElement("canvas");
+            canvas.width = tw;
+            canvas.height = th;
+            const ctx = canvas.getContext("2d");
+            // Dibujar con alta calidad cuando esté disponible
+            if (ctx && typeof ctx.imageSmoothingEnabled !== "undefined") {
+              ctx.imageSmoothingEnabled = true;
+              ctx.imageSmoothingQuality = "high";
+            }
+            ctx.drawImage(img, 0, 0, tw, th);
+
+            // Intentar generar JPEG comprimido para reducir tamaño (mantener calidad razonable)
+            const blob = await new Promise((res) =>
+              canvas.toBlob(res, "image/jpeg", 0.85)
+            );
+            if (blob && blob.size > 0) {
+              // Si el blob es aceptable en tamaño, reemplazamos
+              if (blob.size <= MAX_SIZE) {
+                fileToUse = new File(
+                  [blob],
+                  file.name.replace(/\.[^.]+$/, ".jpg"),
+                  {
+                    type: blob.type,
+                  }
+                );
+              } else {
+                // Si aún es mayor, intentar otra compresión más agresiva
+                const blob2 = await new Promise((res) =>
+                  canvas.toBlob(res, "image/jpeg", 0.7)
+                );
+                if (blob2 && blob2.size <= MAX_SIZE) {
+                  fileToUse = new File(
+                    [blob2],
+                    file.name.replace(/\.[^.]+$/, ".jpg"),
+                    {
+                      type: blob2.type,
+                    }
+                  );
+                } else {
+                  // No pudimos reducir lo suficiente
+                  showImageError(
+                    "No fue posible optimizar la imagen lo suficiente. Intenta subir una versión más pequeña."
+                  );
+                  return;
+                }
+              }
+            }
+          } catch (err) {
+            // Si falla la compresión en cliente, avisar y permitir que el usuario suba otra
+            showImageError(
+              "Fallo al procesar la imagen en el navegador. Usa una imagen más pequeña o de otro formato."
+            );
+            return;
+          }
         }
 
         // Limpiar errores previos
         if (fotoError) fotoError.style.display = "none";
         clearError(fotoPerfilInput);
 
-        // Actualizar UI
-        if (fileInputText) fileInputText.textContent = file.name;
-        if (fotoNombre) fotoNombre.textContent = file.name;
-        if (fotoTamano) fotoTamano.textContent = formatFileSize(file.size);
+        // Reemplazar el FileList del input si usamos un blob diferente
+        if (fileToUse !== file) {
+          try {
+            const dt = new DataTransfer();
+            dt.items.add(fileToUse);
+            fotoPerfilInput.files = dt.files;
+          } catch (e) {
+            // Algunos navegadores antiguos pueden no soportarlo; no crítico
+          }
+        }
 
-        const reader = new FileReader();
-        reader.onload = function (ev) {
-          if (epImg) epImg.src = ev.target.result;
-          if (epPreview) epPreview.style.display = "flex";
-          if (epRemove) epRemove.style.display = "inline-block";
-        };
-        reader.readAsDataURL(file);
+        // Actualizar UI
+        if (fileInputText) fileInputText.textContent = fileToUse.name;
+        if (fotoNombre) fotoNombre.textContent = fileToUse.name;
+        if (fotoTamano) fotoTamano.textContent = formatFileSize(fileToUse.size);
+
+        // Mostrar preview desde blob/url
+        try {
+          const url = URL.createObjectURL(fileToUse);
+          if (epImg) epImg.src = url;
+        } catch (e) {
+          if (epImg) epImg.src = dataUrl;
+        }
+        if (epPreview) epPreview.style.display = "flex";
+        if (epRemove) epRemove.style.display = "inline-block";
       });
 
       if (epRemove) {
@@ -335,6 +478,42 @@
       confirm.addEventListener("input", validateMatch);
     })();
 
+    // --- Validación final en submit: obligar foto de perfil y revalidar antes de enviar ---
+    const registroForm = document.getElementById("registroExpertoForm");
+    if (registroForm) {
+      registroForm.addEventListener("submit", function (e) {
+        const fotoInput = document.getElementById("fotoPerfil");
+        if (!fotoInput) return;
+        const f = fotoInput.files && fotoInput.files[0];
+        if (!f) {
+          e.preventDefault();
+          showError(fotoInput, "Debes subir una imagen de perfil");
+          const el = fotoInput;
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          return false;
+        }
+        const allowed = ["image/jpeg", "image/png", "image/webp"];
+        if (!allowed.includes(f.type)) {
+          e.preventDefault();
+          showError(
+            fotoInput,
+            "Tipo de archivo no permitido. Usa JPG/PNG/WebP."
+          );
+          return false;
+        }
+        if (f.size > 2 * 1024 * 1024) {
+          e.preventDefault();
+          showError(
+            fotoInput,
+            "La imagen excede 2MB. Usa una versión más pequeña."
+          );
+          return false;
+        }
+        // si pasa, permitir submit
+        return true;
+      });
+    }
+
     // --- Sistema de manejo de errores ---
     function ensureErrorEl(input) {
       if (!input) return null;
@@ -386,39 +565,96 @@
 
     // --- Reglas de validación de campos ---
     (function inputRules() {
-      // Solo letras para titular (permitir espacios y acentos)
+      // Helpers para validar el nombre del titular (sanitizar y reglas)
+      const sanitizeName = (s) => {
+        if (!s) return "";
+        // permitir letras unicode, marcas, espacios y apóstrofe (no guiones ni puntos)
+        const allowed = String(s).replace(/[^\p{L}\p{M}\s']+/gu, "");
+        return allowed.replace(/\s+/g, " ").trim().slice(0, 100);
+      };
+
+      const isValidName = (s) => {
+        if (!s) return { ok: false, msg: "El nombre es obligatorio" };
+        if (s.length > 100) return { ok: false, msg: "Máximo 100 caracteres." };
+        if (!/^[\p{L}\p{M}\s']+$/u.test(s))
+          return { ok: false, msg: "Usa solo letras, espacios o apóstrofes." };
+        const parts = s.split(" ").filter(Boolean);
+        if (parts.length < 2)
+          return { ok: false, msg: "Incluye nombre y apellido." };
+        for (const p of parts) {
+          const letters = p.replace(/'/g, "");
+          if (letters.length < 2)
+            return {
+              ok: false,
+              msg: "Cada nombre/apellido debe tener al menos 2 letras.",
+            };
+        }
+        return { ok: true };
+      };
+
+      // Solo letras para titular (permitir espacios y acentos), NO permitir guiones ni puntos
       const titular = document.getElementById("titular");
       if (titular) {
+        // keydown: bloquear teclas no permitidas (evitar '-' y '.')
+        titular.addEventListener("keydown", function (e) {
+          const allowedCtrl = [
+            "Backspace",
+            "Delete",
+            "ArrowLeft",
+            "ArrowRight",
+            "Tab",
+            "Home",
+            "End",
+          ];
+          if (allowedCtrl.includes(e.key)) return;
+          // permitir espacio y apóstrofe (no guion ni punto)
+          if (e.key === " " || e.key === "'") return;
+          // Permitir letras latinas y acentuadas
+          if (e.key.length === 1) {
+            if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ]$/.test(e.key)) {
+              e.preventDefault();
+            }
+          }
+        });
+
         titular.addEventListener("input", function () {
-          const cleaned = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s'\-]/g, "");
+          const cleaned = sanitizeName(this.value);
           if (this.value !== cleaned) this.value = cleaned;
 
           if (/^\s+/.test(this.value)) {
             this.value = this.value.replace(/^\s+/, "");
           }
 
-          if (this.value.trim() === "") {
-            showError(this, "El nombre es obligatorio");
-          } else {
-            clearError(this);
-          }
+          const res = isValidName(this.value.trim());
+          if (!res.ok) showError(this, res.msg);
+          else clearError(this);
+        });
+
+        titular.addEventListener("paste", function (e) {
+          e.preventDefault();
+          let paste =
+            (e.clipboardData || window.clipboardData).getData("text") || "";
+          paste = paste.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s']/g, "");
+          const start = titular.selectionStart;
+          const end = titular.selectionEnd;
+          const cur = titular.value || "";
+          titular.value = cur.slice(0, start) + paste + cur.slice(end);
+          titular.setSelectionRange(start + paste.length, start + paste.length);
+          titular.dispatchEvent(new Event("input"));
         });
 
         titular.addEventListener("blur", function () {
-          this.value = this.value.trim();
-          if (this.value === "") {
-            showError(this, "El nombre es obligatorio");
-          }
+          this.value = sanitizeName(this.value);
+          const res = isValidName(this.value);
+          if (!res.ok) showError(this, res.msg);
         });
       }
 
-      // Solo números para campos numéricos
+      // Solo números para campos numéricos (excluir numeroCuenta, que tiene reglas propias)
       const numericIds = [
         "numero-documento",
         "numero-documento-confirm",
-        "numeroCuenta",
         "numeroCuentaConfirm",
-        "telefonoContacto",
       ];
 
       numericIds.forEach((id) => {
@@ -463,6 +699,426 @@
           e.preventDefault();
         });
       });
+
+      // Reglas dinámicas para número de cuenta según banco (colombiano vs internacional)
+      const bancoHiddenEl = document.getElementById("banco");
+      const numeroCuentaEl = document.getElementById("numeroCuenta");
+      const errorNumeroCuenta = document.getElementById("numero-cuenta-error");
+
+      function isColombianBank(val) {
+        if (!val) return true; // por defecto tratar como local
+        const colombianBanks = [
+          "Bancolombia",
+          "Davivienda",
+          "BBVA",
+          "Banco de Bogotá",
+          "Banco Popular",
+          "Scotiabank",
+          "Colpatria",
+          "Banco AV Villas",
+          "Bancoomeva",
+          "Nequi",
+          "Daviplata",
+        ];
+        return colombianBanks.includes(val);
+      }
+
+      function validateNumeroCuenta() {
+        if (!numeroCuentaEl) return true;
+        const bancoVal = bancoHiddenEl?.value || "";
+        const val = (numeroCuentaEl.value || "").trim();
+        if (!val) {
+          showError(numeroCuentaEl, "Número de cuenta obligatorio");
+          return false;
+        }
+        if (isColombianBank(bancoVal)) {
+          const cleaned = val.replace(/\D/g, "");
+          if (!/^[0-9]{6,14}$/.test(cleaned)) {
+            showError(
+              numeroCuentaEl,
+              "Número de cuenta inválido (6-14 dígitos)"
+            );
+            return false;
+          }
+          clearError(numeroCuentaEl);
+          return true;
+        } else {
+          // Internacional: permitir alfanumérico IBAN-like 15-34
+          const cleaned = val.replace(/[^0-9A-Za-z]/g, "");
+          if (!/^[0-9A-Za-z]{15,34}$/.test(cleaned)) {
+            showError(
+              numeroCuentaEl,
+              "Cuenta internacional inválida (15-34 caracteres alfanuméricos)"
+            );
+            return false;
+          }
+          clearError(numeroCuentaEl);
+          return true;
+        }
+      }
+
+      if (numeroCuentaEl) {
+        numeroCuentaEl.addEventListener("keydown", function (e) {
+          const allowed = [
+            "Backspace",
+            "Delete",
+            "ArrowLeft",
+            "ArrowRight",
+            "Tab",
+            "Home",
+            "End",
+          ];
+          if (allowed.includes(e.key)) return;
+          const bancoVal = bancoHiddenEl?.value || "";
+          if (isColombianBank(bancoVal)) {
+            if (!(e.key >= "0" && e.key <= "9")) e.preventDefault();
+          } else {
+            // permitir letras y números
+            if (!/^[0-9A-Za-z]$/.test(e.key)) e.preventDefault();
+          }
+        });
+
+        numeroCuentaEl.addEventListener("paste", function (e) {
+          e.preventDefault();
+          const bancoVal = bancoHidden?.value || "";
+          let paste =
+            (e.clipboardData || window.clipboardData).getData("text") || "";
+          if (isColombianBank(bancoVal))
+            paste = paste.replace(/\D/g, "").slice(0, 14);
+          else paste = paste.replace(/[^0-9A-Za-z]/g, "").slice(0, 34);
+          const start = numeroCuentaEl.selectionStart;
+          const end = numeroCuentaEl.selectionEnd;
+          const cur = numeroCuentaEl.value || "";
+          numeroCuentaEl.value = cur.slice(0, start) + paste + cur.slice(end);
+          numeroCuentaEl.setSelectionRange(
+            start + paste.length,
+            start + paste.length
+          );
+          numeroCuentaEl.dispatchEvent(new Event("input"));
+        });
+
+        numeroCuentaEl.addEventListener("input", function () {
+          const bancoVal = bancoHidden?.value || "";
+          if (isColombianBank(bancoVal)) {
+            const cleaned = (numeroCuentaEl.value || "")
+              .replace(/\D/g, "")
+              .slice(0, 14);
+            if (numeroCuentaEl.value !== cleaned)
+              numeroCuentaEl.value = cleaned;
+            if (!cleaned || cleaned.length < 6 || cleaned.length > 14) {
+              if (errorNumeroCuenta)
+                errorNumeroCuenta.textContent = "Solo números, 6-14 dígitos.";
+              numeroCuentaEl.classList.add("invalid");
+            } else {
+              if (errorNumeroCuenta) errorNumeroCuenta.textContent = "";
+              numeroCuentaEl.classList.remove("invalid");
+            }
+          } else {
+            const cleaned = (numeroCuentaEl.value || "")
+              .replace(/[^0-9A-Za-z]/g, "")
+              .slice(0, 34);
+            if (numeroCuentaEl.value !== cleaned)
+              numeroCuentaEl.value = cleaned;
+            if (!cleaned || cleaned.length < 15 || cleaned.length > 34) {
+              if (errorNumeroCuenta)
+                errorNumeroCuenta.textContent =
+                  "Cuenta internacional: 15-34 caracteres alfanuméricos.";
+              numeroCuentaEl.classList.add("invalid");
+            } else {
+              if (errorNumeroCuenta) errorNumeroCuenta.textContent = "";
+              numeroCuentaEl.classList.remove("invalid");
+            }
+          }
+        });
+
+        // Revalidar cuando se cambia el banco (por ejemplo en selecting 'Other')
+        bancoHiddenEl?.addEventListener("change", function () {
+          // ajustar maxlength visual según banco
+          try {
+            if (isColombianBank(bancoHiddenEl.value))
+              numeroCuentaEl.maxLength = 14;
+            else numeroCuentaEl.maxLength = 34;
+          } catch (e) {}
+          validateNumeroCuenta();
+        });
+      }
+
+      // --- Teléfono: reglas avanzadas (aceptar +57, 57-prefijo o local 10 dígitos)
+      const telefono = document.getElementById("telefonoContacto");
+      if (telefono) {
+        const normalizePhone = (v) => {
+          if (!v) return "";
+          let s = String(v)
+            .trim()
+            .replace(/[\s\-()\.]/g, "");
+          if (/^00?57/.test(s)) {
+            s = s.replace(/^00?/, "");
+          }
+          if (s.startsWith("+")) {
+            s = "+" + s.slice(1).replace(/\D/g, "");
+          } else {
+            s = s.replace(/\D/g, "");
+          }
+          return s;
+        };
+
+        telefono.addEventListener("keydown", function (e) {
+          const allowed = [
+            "Backspace",
+            "Delete",
+            "ArrowLeft",
+            "ArrowRight",
+            "Tab",
+            "Home",
+            "End",
+          ];
+          if (allowed.includes(e.key)) return;
+
+          if (e.key === "+") {
+            if (
+              telefono.selectionStart === 0 &&
+              !telefono.value.includes("+")
+            ) {
+              return;
+            }
+            e.preventDefault();
+            return;
+          }
+
+          if (!(e.key >= "0" && e.key <= "9")) {
+            e.preventDefault();
+            return;
+          }
+
+          try {
+            const selStart = telefono.selectionStart;
+            const selEnd = telefono.selectionEnd;
+            const current = telefono.value || "";
+            const next =
+              current.slice(0, selStart) + e.key + current.slice(selEnd);
+            const digitsNext = next.replace(/\D/g, "");
+            if (next.startsWith("+")) {
+              if (next.length > 13) {
+                e.preventDefault();
+                return;
+              }
+            } else if (digitsNext.startsWith("57")) {
+              if (digitsNext.length > 12) {
+                e.preventDefault();
+                return;
+              }
+            } else {
+              if (digitsNext.length > 10) {
+                e.preventDefault();
+                return;
+              }
+            }
+          } catch (err) {}
+        });
+
+        telefono.addEventListener("paste", function (e) {
+          e.preventDefault();
+          let raw =
+            (e.clipboardData || window.clipboardData).getData("text") || "";
+          let norm = normalizePhone(raw);
+          if (norm.startsWith("+")) {
+            norm = norm.slice(0, 13);
+          } else {
+            norm = norm.replace(/\D/g, "");
+            if (norm.startsWith("57")) norm = norm.slice(0, 12);
+            else norm = norm.slice(0, 10);
+          }
+          const paste = norm;
+          const start = telefono.selectionStart;
+          const end = telefono.selectionEnd;
+          const current = telefono.value || "";
+          telefono.value = current.slice(0, start) + paste + current.slice(end);
+          telefono.setSelectionRange(
+            start + paste.length,
+            start + paste.length
+          );
+          telefono.dispatchEvent(new Event("input"));
+        });
+
+        telefono.addEventListener("input", function () {
+          const before = telefono.value;
+          let cleaned = normalizePhone(before);
+          if (cleaned.startsWith("+57")) {
+            if (cleaned.length > 13) cleaned = cleaned.slice(0, 13);
+          } else if (cleaned.startsWith("+")) {
+            cleaned = cleaned.replace(/\D/g, "");
+          } else {
+            cleaned = cleaned.replace(/\D/g, "");
+            if (cleaned.startsWith("57")) cleaned = cleaned.slice(0, 12);
+            else cleaned = cleaned.slice(0, 10);
+          }
+          if (before !== cleaned) telefono.value = cleaned;
+        });
+
+        telefono.addEventListener("blur", function () {
+          const errorEl = document.getElementById("telefono-error") || null;
+          const norm = normalizePhone(telefono.value || "");
+          const validIntl = /^\+57[0-9]{10}$/.test(norm);
+          const validPrefixed = /^57[0-9]{10}$/.test(norm);
+          const validLocal = /^[0-9]{10}$/.test(norm);
+          if (!norm) showError(telefono, "Teléfono requerido");
+          else if (!validIntl && !validPrefixed && !validLocal)
+            showError(
+              telefono,
+              "Formato inválido. Ej: 3001234567 o +573001234567"
+            );
+          else clearError(telefono);
+        });
+      }
+
+      // --- Precio: validación (min 10.000, max 100.000, múltiplos de 100) ---
+      const precio = document.getElementById("precio");
+      if (precio) {
+        precio.addEventListener("keydown", function (e) {
+          const permitidos = [
+            "Backspace",
+            "Delete",
+            "ArrowLeft",
+            "ArrowRight",
+            "Tab",
+            "Home",
+            "End",
+          ];
+          if (permitidos.includes(e.key)) return;
+          if (e.key === "Enter") {
+            e.preventDefault();
+            precio.blur();
+            return;
+          }
+          if (!(e.key >= "0" && e.key <= "9")) {
+            e.preventDefault();
+            return;
+          }
+          try {
+            const selStart = precio.selectionStart;
+            const selEnd = precio.selectionEnd;
+            const current = precio.value || "";
+            const next =
+              current.slice(0, selStart) + e.key + current.slice(selEnd);
+            const numeric = parseInt(next, 10);
+            if (!isNaN(numeric) && numeric > 100000) {
+              e.preventDefault();
+              return;
+            }
+          } catch (err) {}
+        });
+
+        precio.addEventListener("paste", function (e) {
+          e.preventDefault();
+          let paste =
+            (e.clipboardData || window.clipboardData).getData("text") || "";
+          paste = paste.replace(/\D/g, "").slice(0, 6);
+          if (paste) {
+            let num = parseInt(paste, 10);
+            if (!isNaN(num) && num > 100000) num = 100000;
+            paste = String(num);
+          }
+          precio.value = paste;
+          precio.dispatchEvent(new Event("input"));
+        });
+
+        precio.addEventListener("input", function () {
+          let val = (precio.value || "").toString().replace(/\D/g, "");
+          if (precio.value !== val) precio.value = val;
+          if (val === "") {
+            showError(precio, "Precio requerido");
+            return;
+          }
+          const num = parseInt(val, 10);
+          if (isNaN(num)) {
+            showError(precio, "Valor inválido");
+            return;
+          }
+          if (num < 10000) {
+            showError(precio, "El mínimo es $10.000 COP");
+            return;
+          }
+          if (num > 100000) {
+            showError(precio, "El máximo es $100.000 COP");
+            return;
+          }
+          if (num % 100 !== 0) {
+            showError(precio, "Debe ser múltiplo de 100");
+            return;
+          }
+          clearError(precio);
+        });
+      }
+
+      // --- Descripción: autosize, sanitizar y contador ---
+      const descripcion = document.getElementById("descripcion");
+      if (descripcion) {
+        // Crear contador si no existe
+        let descContador = document.getElementById("descContador");
+        if (!descContador) {
+          descContador = document.createElement("div");
+          descContador.id = "descContador";
+          descContador.style.cssText =
+            "font-size:0.85rem;color:var(--muted);margin-top:0.25rem;";
+          descripcion.parentNode.appendChild(descContador);
+        }
+
+        const autoResize = (el) => {
+          el.style.height = "auto";
+          el.style.height = el.scrollHeight + "px";
+        };
+
+        const sanitizeDescription = (s) => {
+          if (!s) return "";
+          let t = String(s).replace(/<[^>]*>/g, "");
+          t = t.replace(/\s+/g, " ").trim();
+          return t;
+        };
+
+        const containsURL = (s) => /https?:\/\/|www\./i.test(s);
+        const hasLongRepeated = (s) => /(.)\1{6,}/.test(s);
+        const MIN_DESC = 30;
+        const MAX_DESC = 400;
+
+        autoResize(descripcion);
+        descContador.textContent = descripcion.value.length;
+
+        descripcion.addEventListener("input", function () {
+          descContador.textContent = descripcion.value.length;
+          autoResize(descripcion);
+          const raw = descripcion.value || "";
+          const clean = sanitizeDescription(raw);
+          let errorMsg = "";
+          if (!clean) errorMsg = "Descripción requerida.";
+          else if (clean.length < MIN_DESC)
+            errorMsg = `Describe tu experiencia en al menos ${MIN_DESC} caracteres.`;
+          else if (raw.length > MAX_DESC || clean.length > MAX_DESC)
+            errorMsg = `Máximo ${MAX_DESC} caracteres.`;
+          else if (containsURL(raw))
+            errorMsg =
+              "No incluyas enlaces o direcciones web en la descripción.";
+          else if (hasLongRepeated(raw))
+            errorMsg = "Evita secuencias repetidas de caracteres.";
+
+          if (errorMsg) showError(descripcion, errorMsg);
+          else clearError(descripcion);
+        });
+      }
+
+      // --- Inicializar Choices.js para categorías si está disponible ---
+      const categoriesEl = document.getElementById("categorias");
+      if (categoriesEl && typeof guardedInitChoices === "function") {
+        guardedInitChoices(categoriesEl, {
+          removeItemButton: true,
+          shouldSort: false,
+          placeholder: true,
+          placeholderValue: "Selecciona tus categorías",
+          searchPlaceholderValue: "Buscar categoría...",
+          noResultsText: "No se encontraron categorías",
+          noChoicesText: "No hay categorías disponibles",
+          itemSelectText: "Pulsa para seleccionar",
+        });
+      }
 
       // Validación de campos de texto
       const textIds = ["descripcion", "precio"];
@@ -885,6 +1541,17 @@
       if (nCuenta && nCuentaC && nCuenta.value !== nCuentaC.value) {
         showError(nCuentaC, "Los números de cuenta no coinciden");
         valid = false;
+      }
+
+      // Verificar formato de número de cuenta: solo dígitos y 6-20
+      if (nCuenta) {
+        const cleaned = (nCuenta.value || "").replace(/\D/g, "");
+        if (!/^[0-9]{6,20}$/.test(cleaned)) {
+          showError(nCuenta, "Número de cuenta inválido (6-20 dígitos)");
+          valid = false;
+        } else {
+          clearError(nCuenta);
+        }
       }
 
       // Validar teléfono

@@ -42,23 +42,72 @@ document.addEventListener("DOMContentLoaded", function () {
       "End",
     ];
     if (allowed.includes(e.key)) return;
-    if (
-      e.key === "+" &&
-      telefono.selectionStart === 0 &&
-      !telefono.value.includes("+")
-    )
+
+    // Permitir + únicamente al inicio y una sola vez
+    if (e.key === "+") {
+      if (telefono.selectionStart === 0 && !telefono.value.includes("+")) {
+        return;
+      }
+      e.preventDefault();
       return;
+    }
+
+    // Solo dígitos permitidos aparte de las teclas de control
     if (!(e.key >= "0" && e.key <= "9")) {
       e.preventDefault();
+      return;
+    }
+
+    // Previsualizar valor resultante y bloquear si excede longitud permitida
+    try {
+      const selStart = telefono.selectionStart;
+      const selEnd = telefono.selectionEnd;
+      const current = telefono.value || "";
+      const next = current.slice(0, selStart) + e.key + current.slice(selEnd);
+      // Normalizar solo dígitos para analizar longitudes y prefijos
+      const digitsNext = next.replace(/\D/g, "");
+      // Si comienza con + permitimos hasta 13 (ej: +57 + 10 dígitos).
+      if (next.startsWith("+")) {
+        if (next.length > 13) {
+          e.preventDefault();
+          return;
+        }
+      } else if (digitsNext.startsWith("57")) {
+        // Si el usuario escribe '57' sin +, tratamos como indicativo y permitimos 2+10 = 12 dígitos
+        if (digitsNext.length > 12) {
+          e.preventDefault();
+          return;
+        }
+      } else {
+        // local: máximo 10 dígitos
+        if (digitsNext.length > 10) {
+          e.preventDefault();
+          return;
+        }
+      }
+    } catch (err) {
+      // si no podemos determinar selección, permitir la tecla (no bloquear por fallo)
     }
   });
 
   telefono.addEventListener("paste", function (e) {
     e.preventDefault();
-    let paste = (e.clipboardData || window.clipboardData).getData("text") || "";
-    paste = normalizePhone(paste).replace(/^\+/, "");
-    const maxLen = parseInt(telefono.getAttribute("data-maxlength")) || 13;
-    paste = paste.slice(0, maxLen);
+    let raw = (e.clipboardData || window.clipboardData).getData("text") || "";
+    let norm = normalizePhone(raw);
+    // Si trae + (internacional) permitimos hasta 13 incluyendo '+'; si no, máxima cantidad de dígitos locales: 10
+    if (norm.startsWith("+")) {
+      norm = norm.slice(0, 13);
+    } else {
+      // eliminar no dígitos
+      norm = norm.replace(/\D/g, "");
+      // si comienza con 57 (sin +) permitimos hasta 12 (57 + 10 dígitos)
+      if (norm.startsWith("57")) {
+        norm = norm.slice(0, 12);
+      } else {
+        norm = norm.slice(0, 10);
+      }
+    }
+    const paste = norm;
     // Insertar en la posición actual
     const start = telefono.selectionStart;
     const end = telefono.selectionEnd;
@@ -71,16 +120,23 @@ document.addEventListener("DOMContentLoaded", function () {
   telefono.addEventListener("input", function () {
     const before = telefono.value;
     let cleaned = normalizePhone(before);
-    // Si empieza con +57 mantener +57, sino mantener solo dígitos
+    // Si empieza con +57 permitir +57 + 10 dígitos (13 caracteres). Si empieza con + pero no +57, quitar + y mantener solo dígitos
     if (cleaned.startsWith("+57")) {
-      // permitido
+      // mantener +57 y limitar a 13
+      if (cleaned.length > 13) cleaned = cleaned.slice(0, 13);
     } else if (cleaned.startsWith("+")) {
-      // otros códigos no permitidos -> quitar +
+      // quitar + de códigos no permitidos
       cleaned = cleaned.replace(/\D/g, "");
+    } else {
+      // local: sólo dígitos
+      cleaned = cleaned.replace(/\D/g, "");
+      // si comienza con 57 sin + permitimos hasta 12 (57 + 10 dígitos)
+      if (cleaned.startsWith("57")) {
+        cleaned = cleaned.slice(0, 12);
+      } else {
+        cleaned = cleaned.slice(0, 10);
+      }
     }
-    // Limitar a 13 caracteres por seguridad
-    const maxLen = parseInt(telefono.getAttribute("data-maxlength")) || 13;
-    if (cleaned.length > maxLen) cleaned = cleaned.slice(0, maxLen);
     if (before !== cleaned) telefono.value = cleaned;
   });
 
@@ -95,12 +151,13 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
       }
       const norm = normalizePhone(raw);
-      // Validar +57 con 10 dígitos o 7-10 dígitos locales
+      // Validar +57 con 10 dígitos, 57 (sin +) con 10 dígitos, o exactamente 10 dígitos locales
       const validIntl = /^\+57[0-9]{10}$/.test(norm);
-      const validLocal = /^[0-9]{7,10}$/.test(norm);
-      if (!validIntl && !validLocal) {
+      const validPrefixed = /^57[0-9]{10}$/.test(norm);
+      const validLocal = /^[0-9]{10}$/.test(norm);
+      if (!validIntl && !validPrefixed && !validLocal) {
         errorTelefono.textContent =
-          "Formato inválido. Ej: 3001234567 o +573001234567.";
+          "Formato inválido. Ej: 3001234567 o +573001234567. Todos los números deben tener 10 dígitos.";
         telefono.classList.add("invalid");
       } else {
         errorTelefono.textContent = "";
@@ -624,14 +681,111 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
   const numeroCuenta = form.numeroCuenta;
-  numeroCuenta.addEventListener("input", function () {
-    if (!numeroCuenta.value || !/^[0-9]{6,20}$/.test(numeroCuenta.value)) {
-      document.getElementById("errorNumeroCuenta").textContent =
-        "Solo números, 6-20 dígitos.";
-      numeroCuenta.classList.add("invalid");
+  // Validación y saneamiento para número de cuenta: dinámico según banco (colombiano 6-14 dígitos, internacional 15-34 alfanum.)
+  const bankHiddenEl = bancoHidden; // variable ya existente arriba in this file
+  numeroCuenta.addEventListener("keydown", function (e) {
+    const allowed = [
+      "Backspace",
+      "Delete",
+      "ArrowLeft",
+      "ArrowRight",
+      "Tab",
+      "Home",
+      "End",
+    ];
+    if (allowed.includes(e.key)) return;
+    const bancoVal = bankHiddenEl?.value || "";
+    const colombianBanks = [
+      "Bancolombia",
+      "Davivienda",
+      "BBVA",
+      "Banco de Bogotá",
+      "Banco Popular",
+      "Scotiabank",
+      "Colpatria",
+      "Banco AV Villas",
+      "Bancoomeva",
+      "Nequi",
+      "Daviplata",
+    ];
+    const isCol = colombianBanks.includes(bancoVal) || !bancoVal;
+    if (isCol) {
+      if (!(e.key >= "0" && e.key <= "9")) e.preventDefault();
     } else {
-      document.getElementById("errorNumeroCuenta").textContent = "";
-      numeroCuenta.classList.remove("invalid");
+      if (!/^[0-9A-Za-z]$/.test(e.key)) e.preventDefault();
+    }
+  });
+
+  numeroCuenta.addEventListener("paste", function (e) {
+    e.preventDefault();
+    const bancoVal = bankHiddenEl?.value || "";
+    const colombianBanks = [
+      "Bancolombia",
+      "Davivienda",
+      "BBVA",
+      "Banco de Bogotá",
+      "Banco Popular",
+      "Scotiabank",
+      "Colpatria",
+      "Banco AV Villas",
+      "Bancoomeva",
+      "Nequi",
+      "Daviplata",
+    ];
+    const isCol = colombianBanks.includes(bancoVal) || !bancoVal;
+    let paste = (e.clipboardData || window.clipboardData).getData("text") || "";
+    if (isCol) paste = paste.replace(/\D/g, "").slice(0, 14);
+    else paste = paste.replace(/[^0-9A-Za-z]/g, "").slice(0, 34);
+    const start = numeroCuenta.selectionStart;
+    const end = numeroCuenta.selectionEnd;
+    const cur = numeroCuenta.value || "";
+    numeroCuenta.value = cur.slice(0, start) + paste + cur.slice(end);
+    numeroCuenta.setSelectionRange(start + paste.length, start + paste.length);
+    numeroCuenta.dispatchEvent(new Event("input"));
+  });
+
+  numeroCuenta.addEventListener("input", function () {
+    const bancoVal = bankHiddenEl?.value || "";
+    const colombianBanks = [
+      "Bancolombia",
+      "Davivienda",
+      "BBVA",
+      "Banco de Bogotá",
+      "Banco Popular",
+      "Scotiabank",
+      "Colpatria",
+      "Banco AV Villas",
+      "Bancoomeva",
+      "Nequi",
+      "Daviplata",
+    ];
+    const isCol = colombianBanks.includes(bancoVal) || !bancoVal;
+    if (isCol) {
+      const cleaned = (numeroCuenta.value || "")
+        .replace(/\D/g, "")
+        .slice(0, 14);
+      if (numeroCuenta.value !== cleaned) numeroCuenta.value = cleaned;
+      if (!cleaned || cleaned.length < 6 || cleaned.length > 14) {
+        document.getElementById("errorNumeroCuenta").textContent =
+          "Solo números, 6-14 dígitos.";
+        numeroCuenta.classList.add("invalid");
+      } else {
+        document.getElementById("errorNumeroCuenta").textContent = "";
+        numeroCuenta.classList.remove("invalid");
+      }
+    } else {
+      const cleaned = (numeroCuenta.value || "")
+        .replace(/[^0-9A-Za-z]/g, "")
+        .slice(0, 34);
+      if (numeroCuenta.value !== cleaned) numeroCuenta.value = cleaned;
+      if (!cleaned || cleaned.length < 15 || cleaned.length > 34) {
+        document.getElementById("errorNumeroCuenta").textContent =
+          "Cuenta internacional: 15-34 caracteres alfanuméricos.";
+        numeroCuenta.classList.add("invalid");
+      } else {
+        document.getElementById("errorNumeroCuenta").textContent = "";
+        numeroCuenta.classList.remove("invalid");
+      }
     }
   });
 
@@ -659,10 +813,81 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
   const titular = form.titular;
+  // Reglas para Nombre completo (titular)
+  // - Permitir letras (unicode), espacios, guion y apóstrofe
+  // - Colapsar espacios, longitud máxima 100
+  // - Requerir al menos 2 palabras (nombre y apellido), cada una >= 2 letras (descontando '-' / ''')
+  const sanitizeName = (s) => {
+    if (!s) return "";
+    // permitir letras, marcas, espacios y apóstrofe (no puntos ni guiones)
+    const allowed = s.replace(/[^\p{L}\p{M}\s']+/gu, "");
+    return allowed.replace(/\s+/g, " ").trim().slice(0, 100);
+  };
+
+  const isValidName = (s) => {
+    if (!s) return { ok: false, msg: "Nombre obligatorio." };
+    if (s.length > 100) return { ok: false, msg: "Máximo 100 caracteres." };
+    // verificar caracteres permitidos (letras, espacios y - ' .)
+    if (!/^[\p{L}\p{M}\s']+$/u.test(s))
+      return {
+        ok: false,
+        msg: "Usa solo letras, espacios o apóstrofes.",
+      };
+    const parts = s.split(" ").filter(Boolean);
+    if (parts.length < 2)
+      return { ok: false, msg: "Incluye nombre y apellido." };
+    for (const p of parts) {
+      // quitar apóstrofes para contar letras reales (los guiones no están permitidos)
+      const letters = p.replace(/'/g, "");
+      if (letters.length < 2)
+        return {
+          ok: false,
+          msg: "Cada nombre/apellido debe tener al menos 2 letras.",
+        };
+    }
+    return { ok: true };
+  };
+
+  titular.addEventListener("keydown", function (e) {
+    const allowedCtrl = [
+      "Backspace",
+      "Delete",
+      "ArrowLeft",
+      "ArrowRight",
+      "Tab",
+      "Home",
+      "End",
+    ];
+    if (allowedCtrl.includes(e.key)) return;
+    // Permitir espacio y apóstrofe (no punto ni guion)
+    if (e.key === " " || e.key === "'") return;
+    // Para teclas imprimibles, permitir letras Unicode
+    if (e.key.length === 1) {
+      if (!/\p{L}/u.test(e.key)) {
+        e.preventDefault();
+      }
+    }
+  });
+
+  titular.addEventListener("paste", function (e) {
+    e.preventDefault();
+    let paste = (e.clipboardData || window.clipboardData).getData("text") || "";
+    paste = sanitizeName(paste);
+    const start = titular.selectionStart;
+    const end = titular.selectionEnd;
+    const cur = titular.value || "";
+    titular.value = cur.slice(0, start) + paste + cur.slice(end);
+    titular.setSelectionRange(start + paste.length, start + paste.length);
+    titular.dispatchEvent(new Event("input"));
+  });
+
   titular.addEventListener("input", function () {
-    if (!titular.value.trim()) {
-      document.getElementById("errorTitular").textContent =
-        "Titular obligatorio.";
+    const raw = titular.value || "";
+    const clean = sanitizeName(raw);
+    if (titular.value !== clean) titular.value = clean;
+    const res = isValidName(clean);
+    if (!res.ok) {
+      document.getElementById("errorTitular").textContent = res.msg;
       titular.classList.add("invalid");
     } else {
       document.getElementById("errorTitular").textContent = "";
@@ -681,15 +906,102 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
   const numeroDocumento = form.numeroDocumento;
+  // Reglas dependientes del tipo de documento
+  const docRules = {
+    CC: {
+      sanitize: (s) => (s || "").replace(/\D/g, "").slice(0, 12),
+      valid: (s) => /^[0-9]{6,12}$/.test(s),
+      message: "Cédula: solo números, 6-12 dígitos.",
+    },
+    CE: {
+      sanitize: (s) => (s || "").replace(/\D/g, "").slice(0, 12),
+      valid: (s) => /^[0-9]{6,12}$/.test(s),
+      message: "Cédula de extranjería: solo números, 6-12 dígitos.",
+    },
+    NIT: {
+      sanitize: (s) => (s || "").replace(/\D/g, "").slice(0, 15),
+      valid: (s) => /^[0-9]{6,15}$/.test(s),
+      message: "NIT: solo números, 6-15 dígitos.",
+    },
+    PAS: {
+      sanitize: (s) => (s || "").replace(/[^A-Za-z0-9]/g, "").slice(0, 15),
+      valid: (s) => /^[A-Za-z0-9]{5,15}$/.test(s),
+      message: "Pasaporte: letras y números, 5-15 caracteres.",
+    },
+    default: {
+      sanitize: (s) => (s || "").replace(/\s+/g, " ").trim().slice(0, 20),
+      valid: (s) => !!s && s.length >= 4,
+      message: "Número de documento inválido.",
+    },
+  };
+
+  const getRuleForTipo = () =>
+    docRules[tipoDocumento.value] || docRules.default;
+
+  // keydown: bloquear caracteres inválidos según tipo
+  numeroDocumento.addEventListener("keydown", function (e) {
+    const allowed = [
+      "Backspace",
+      "Delete",
+      "ArrowLeft",
+      "ArrowRight",
+      "Tab",
+      "Home",
+      "End",
+    ];
+    if (allowed.includes(e.key)) return;
+    const rule = getRuleForTipo();
+    // Si la regla de saneamiento elimina todo menos dígitos, permitimos solo dígitos
+    if (rule === docRules.PAS) {
+      // PAS permite letras y números
+      if (!/^[a-zA-Z0-9]$/.test(e.key)) e.preventDefault();
+    } else if (rule === docRules.default) {
+      // permitir letras y números básicos
+      if (!/^[a-zA-Z0-9]$/.test(e.key)) e.preventDefault();
+    } else {
+      // tipos numéricos: solo dígitos
+      if (!(e.key >= "0" && e.key <= "9")) e.preventDefault();
+    }
+  });
+
+  numeroDocumento.addEventListener("paste", function (e) {
+    e.preventDefault();
+    const rule = getRuleForTipo();
+    let paste = (e.clipboardData || window.clipboardData).getData("text") || "";
+    paste = rule.sanitize(paste);
+    // Insertar en la posición actual
+    const start = numeroDocumento.selectionStart;
+    const end = numeroDocumento.selectionEnd;
+    const current = numeroDocumento.value || "";
+    numeroDocumento.value =
+      current.slice(0, start) + paste + current.slice(end);
+    numeroDocumento.setSelectionRange(
+      start + paste.length,
+      start + paste.length
+    );
+    numeroDocumento.dispatchEvent(new Event("input"));
+  });
+
   numeroDocumento.addEventListener("input", function () {
-    if (!numeroDocumento.value.trim()) {
+    const rule = getRuleForTipo();
+    // Saneamiento en tiempo real
+    const cleaned = rule.sanitize(numeroDocumento.value || "");
+    if (numeroDocumento.value !== cleaned) numeroDocumento.value = cleaned;
+
+    if (!cleaned) {
       document.getElementById("errorNumeroDocumento").textContent =
         "Número de documento obligatorio.";
       numeroDocumento.classList.add("invalid");
-    } else {
-      document.getElementById("errorNumeroDocumento").textContent = "";
-      numeroDocumento.classList.remove("invalid");
+      return;
     }
+    if (!rule.valid(cleaned)) {
+      document.getElementById("errorNumeroDocumento").textContent =
+        rule.message;
+      numeroDocumento.classList.add("invalid");
+      return;
+    }
+    document.getElementById("errorNumeroDocumento").textContent = "";
+    numeroDocumento.classList.remove("invalid");
   });
 
   // Toggle mostrar/ocultar número de documento
