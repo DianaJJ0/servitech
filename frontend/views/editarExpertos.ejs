@@ -294,15 +294,16 @@
                     <label for="numeroCuenta" class="form-label">Número de cuenta</label>
                     <div class="password-wrapper">
                       <input type="password" id="numeroCuenta" name="numeroCuenta" placeholder="********"
-                        class="form-control" aria-describedby="numero-cuenta-hint"
+                        class="form-control" aria-describedby="numero-cuenta-hint" maxlength="34"
                         value="<%= experto && experto.infoExperto && experto.infoExperto.numeroCuenta ? experto.infoExperto.numeroCuenta : '' %>">
                       <button type="button" id="toggleAccountNumber" class="btn-icon"
                         aria-label="Mostrar/ocultar número de cuenta" aria-pressed="false">
                         <i class="fas fa-eye" aria-hidden="true"></i>
                       </button>
                     </div>
-                    <p id="numero-cuenta-hint" class="form-hint">Número de cuenta o identificación asociado a la cuenta
-                    </p>
+                    <p id="numero-cuenta-hint" class="form-hint">Número de cuenta o identificación asociado a la cuenta.
+                      Para bancos colombianos: 6–14 dígitos. Para cuentas internacionales: 15–34 caracteres
+                      alfanuméricos.</p>
                     <div class="mensaje-error" id="errorNumeroCuenta"></div>
                   </div>
 
