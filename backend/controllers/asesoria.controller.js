@@ -1,7 +1,8 @@
 /**
  * Controlador de Asesorías - ServiTech
  * @module controllers/asesoria
- * @description Lógica completa para gestión de asesorías con validaciones, notificaciones y manejo de estados
+ * @description Lógica para crear, aceptar, rechazar, finalizar, listar y eliminar asesorías tecnológicas.
+ * Incluye validación de conflictos de horarios continuos y notificaciones clave por email.
  */
 
 const Asesoria = require("../models/asesoria.model.js");
@@ -12,139 +13,571 @@ const generarLogs = require("../services/generarLogs");
 const { enviarCorreo } = require("../services/email.service.js");
 
 /**
- * Obtener asesorías del usuario autenticado
+ * Crea una nueva asesoría con validación de conflictos de horarios continuos.
+ * Notifica al experto por email para aceptar/rechazar.
  * @openapi
- * /api/asesorias/mias:
- *   get:
- *     summary: Obtener asesorías del usuario autenticado
+ * /api/asesorias:
+ *   post:
+ *     summary: Crear asesoría (cliente autenticado)
  *     tags: [Asesorías]
  *     security:
  *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - titulo
+ *               - descripcion
+ *               - experto
+ *               - fechaHoraInicio
+ *               - duracionMinutos
+ *             properties:
+ *               titulo:
+ *                 type: string
+ *                 maxLength: 300
+ *               descripcion:
+ *                 type: string
+ *                 maxLength: 2000
+ *               experto:
+ *                 type: object
+ *                 properties:
+ *                   email:
+ *                     type: string
+ *                   nombre:
+ *                     type: string
+ *                   apellido:
+ *                     type: string
+ *                   avatarUrl:
+ *                     type: string
+ *               fechaHoraInicio:
+ *                 type: string
+ *                 format: date-time
+ *               duracionMinutos:
+ *                 type: number
+ *                 enum: [60, 90, 120, 180]
+ *               categoria:
+ *                 type: string
+ *                 default: "Tecnologia"
  *     responses:
- *       200:
- *         description: Lista de asesorías del usuario
- *       401:
- *         description: No autenticado
+ *       201:
+ *         description: Asesoría creada y pendiente de aceptación
+ *       400:
+ *         description: Error de validación
+ *       409:
+ *         description: Conflicto de horarios
  */
-const obtenerMisAsesorias = async (req, res) => {
+const crearAsesoria = async (req, res) => {
   try {
-    const userEmail = req.usuario.email;
-    const esExperto = req.usuario.roles.includes("experto");
+    const {
+      titulo,
+      descripcion,
+      experto,
+      fechaHoraInicio,
+      duracionMinutos,
+      categoria = "Tecnologia",
+    } = req.body;
 
-    let asesorias;
-
-    if (esExperto) {
-      asesorias = await Asesoria.find({
-        "experto.email": userEmail,
-      }).sort({ fechaHoraInicio: 1 });
-    } else {
-      asesorias = await Asesoria.find({
-        "cliente.email": userEmail,
-      }).sort({ fechaHoraInicio: 1 });
+    // Validaciones básicas
+    if (
+      !titulo ||
+      !descripcion ||
+      !experto ||
+      !fechaHoraInicio ||
+      !duracionMinutos
+    ) {
+      return res.status(400).json({
+        mensaje: "Faltan datos obligatorios para la asesoría.",
+      });
     }
 
-    // Agrupar por estado para mejor organización
-    const asesoriasPorEstado = {
-      pendientesAceptacion: asesorias.filter(
-        (a) => a.estado === "pendiente-aceptacion"
-      ),
-      confirmadas: asesorias.filter((a) => a.estado === "confirmada"),
-      completadas: asesorias.filter((a) => a.estado === "completada"),
-      canceladas: asesorias.filter((a) => a.estado.includes("cancelada")),
-      rechazadas: asesorias.filter((a) => a.estado === "rechazada"),
-    };
+    // Verificar que el usuario autenticado es diferente del experto
+    if (req.usuario.email === experto.email) {
+      return res.status(400).json({
+        mensaje: "No puedes crear una asesoría contigo mismo.",
+      });
+    }
 
-    res.json({
-      success: true,
-      data: asesorias,
-      agrupadas: asesoriasPorEstado,
-      rol: esExperto ? "experto" : "cliente",
+    // Obtener datos completos del cliente autenticado
+    const clienteUsuario = await Usuario.findOne({ email: req.usuario.email });
+    if (!clienteUsuario) {
+      return res.status(404).json({
+        mensaje: "Usuario cliente no encontrado.",
+      });
+    }
+
+    // Verificar que el experto existe y está activo
+    const expertoUsuario = await Usuario.findOne({
+      email: experto.email,
+      roles: "experto",
+      estado: "activo",
+    });
+    if (!expertoUsuario) {
+      return res.status(404).json({
+        mensaje: "Experto no encontrado o no está activo.",
+      });
+    }
+
+    // Validar fecha y hora
+    const fechaInicio = new Date(fechaHoraInicio);
+    const fechaFin = new Date(fechaInicio.getTime() + duracionMinutos * 60000);
+    const ahora = new Date();
+
+    if (fechaInicio <= ahora) {
+      return res.status(400).json({
+        mensaje: "La fecha de la asesoría debe ser futura.",
+      });
+    }
+
+    // Validar horario de trabajo (8:00 - 18:00)
+    const horaInicio = fechaInicio.getHours() + fechaInicio.getMinutes() / 60;
+    const horaFin = fechaFin.getHours() + fechaFin.getMinutes() / 60;
+
+    if (horaInicio < 8 || horaFin > 18) {
+      return res.status(400).json({
+        mensaje:
+          "Las asesorías solo se pueden agendar entre 8:00 AM y 6:00 PM, y deben completarse antes de las 6:00 PM.",
+      });
+    }
+
+    // Validar que la duración es permitida
+    if (![60, 90, 120, 180].includes(duracionMinutos)) {
+      return res.status(400).json({
+        mensaje: "La duración debe ser 60, 90, 120 o 180 minutos.",
+      });
+    }
+
+    // Verificar conflictos de horario para el experto (asesorías confirmadas y pendientes)
+    const conflictos = await Asesoria.find({
+      "experto.email": experto.email,
+      estado: { $in: ["pendiente-aceptacion", "confirmada"] },
+      $or: [
+        // Nueva asesoría inicia durante una existente
+        {
+          fechaHoraInicio: { $lte: fechaInicio },
+          $expr: {
+            $gte: [
+              {
+                $add: [
+                  "$fechaHoraInicio",
+                  { $multiply: ["$duracionMinutos", 60000] },
+                ],
+              },
+              fechaInicio,
+            ],
+          },
+        },
+        // Nueva asesoría termina durante una existente
+        {
+          fechaHoraInicio: { $lte: fechaFin },
+          $expr: {
+            $gte: [
+              {
+                $add: [
+                  "$fechaHoraInicio",
+                  { $multiply: ["$duracionMinutos", 60000] },
+                ],
+              },
+              fechaFin,
+            ],
+          },
+        },
+        // Nueva asesoría contiene completamente una existente
+        {
+          fechaHoraInicio: { $gte: fechaInicio, $lte: fechaFin },
+        },
+        // Asesoría existente contiene completamente la nueva
+        {
+          fechaHoraInicio: { $lte: fechaInicio },
+          $expr: {
+            $gte: [
+              {
+                $add: [
+                  "$fechaHoraInicio",
+                  { $multiply: ["$duracionMinutos", 60000] },
+                ],
+              },
+              fechaFin,
+            ],
+          },
+        },
+      ],
+    });
+
+    if (conflictos.length > 0) {
+      const conflictosInfo = conflictos.map((c) => {
+        const inicioConflicto = new Date(c.fechaHoraInicio);
+        const finConflicto = new Date(
+          inicioConflicto.getTime() + c.duracionMinutos * 60000
+        );
+        return {
+          titulo: c.titulo,
+          inicio: inicioConflicto.toLocaleString("es-CO"),
+          fin: finConflicto.toLocaleString("es-CO"),
+          duracion: c.duracionMinutos,
+        };
+      });
+
+      return res.status(409).json({
+        mensaje: "El experto ya tiene una asesoría agendada en ese horario.",
+        conflictos: conflictosInfo,
+      });
+    }
+
+    // Verificar que el cliente no tenga una asesoría pendiente con el mismo experto
+    const asesoriaClientePendiente = await Asesoria.findOne({
+      "cliente.email": clienteUsuario.email,
+      "experto.email": experto.email,
+      estado: "pendiente-aceptacion",
+    });
+
+    if (asesoriaClientePendiente) {
+      return res.status(409).json({
+        mensaje:
+          "Ya tienes una asesoría pendiente con este experto. Espera a que sea aceptada o rechazada antes de crear otra.",
+      });
+    }
+
+    // Crear la asesoría
+    const nuevaAsesoria = new Asesoria({
+      titulo,
+      descripcion,
+      cliente: {
+        email: clienteUsuario.email,
+        nombre: clienteUsuario.nombre,
+        apellido: clienteUsuario.apellido,
+        avatarUrl: clienteUsuario.avatarUrl || null,
+      },
+      experto: {
+        email: expertoUsuario.email,
+        nombre: expertoUsuario.nombre,
+        apellido: expertoUsuario.apellido,
+        avatarUrl: expertoUsuario.avatarUrl || null,
+      },
+      categoria,
+      fechaHoraInicio: fechaInicio,
+      duracionMinutos,
+      estado: "pendiente-aceptacion",
+    });
+
+    await nuevaAsesoria.save();
+
+    // Notificación y correo al experto
+    try {
+      await Notificacion.create({
+        usuarioId: expertoUsuario._id,
+        email: expertoUsuario.email,
+        tipo: "email",
+        asunto: "Nueva asesoría pendiente",
+        mensaje: `Tienes una nueva solicitud de asesoría "${titulo}". Ingresa a ServiTech para aceptarla o rechazarla.`,
+        relacionadoCon: { tipo: "Asesoria", referenciaId: nuevaAsesoria._id },
+        estado: "enviado",
+        fechaEnvio: new Date(),
+      });
+
+      const fechaLocal = fechaInicio.toLocaleString("es-CO");
+      const horasTexto =
+        duracionMinutos === 60
+          ? "1 hora"
+          : duracionMinutos === 90
+          ? "1.5 horas"
+          : duracionMinutos === 120
+          ? "2 horas"
+          : "3 horas";
+
+      await enviarCorreo(
+        expertoUsuario.email,
+        "Nueva asesoría pendiente de aceptación",
+        `Tienes una nueva solicitud de asesoría titulada "${titulo}".\n\nCliente: ${clienteUsuario.nombre} ${clienteUsuario.apellido}\nFecha y hora: ${fechaLocal}\nDuración: ${horasTexto}\n\nIngresa a ServiTech para aceptarla o rechazarla.`,
+        {
+          nombreDestinatario: expertoUsuario.nombre,
+          apellidoDestinatario: expertoUsuario.apellido,
+        }
+      );
+    } catch (emailError) {
+      console.warn("Error enviando notificación:", emailError);
+    }
+
+    await generarLogs.registrarEvento({
+      usuarioEmail: clienteUsuario.email,
+      nombre: clienteUsuario.nombre,
+      apellido: clienteUsuario.apellido,
+      accion: "CREAR_ASESORIA",
+      detalle: `Asesoría registrada id:${nuevaAsesoria._id}, duración: ${duracionMinutos}min`,
+      resultado: "Exito",
+      tipo: "asesoria",
+      persistirEnDB: true,
+    });
+
+    res.status(201).json({
+      mensaje: "Asesoría creada y pendiente de aceptación del experto.",
+      asesoria: nuevaAsesoria,
     });
   } catch (error) {
+    console.error("Error creando asesoría:", error);
+
     await generarLogs.registrarEvento({
       usuarioEmail: req.usuario?.email || null,
-      accion: "ERROR_OBTENER_MIS_ASESORIAS",
+      accion: "ERROR_CREAR_ASESORIA",
       detalle: error.message,
       resultado: "Error",
       tipo: "asesoria",
       persistirEnDB: true,
     });
+
     res.status(500).json({
-      success: false,
-      mensaje: "Error al obtener asesorías.",
+      mensaje: "Error interno al registrar asesoría.",
       error: error.message,
     });
   }
 };
 
 /**
- * Validar disponibilidad de horario para experto
- * @param {string} expertoEmail - Email del experto
- * @param {Date} fechaInicio - Fecha y hora de inicio
- * @param {number} duracionMinutos - Duración en minutos
- * @returns {Promise<boolean>} True si está disponible
+ * Obtener asesorías del usuario autenticado (como cliente o experto)
+ * @openapi
+ * /api/asesorias/mias:
+ *   get:
+ *     summary: Obtener mis asesorías
+ *     tags: [Asesorías]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de asesorías del usuario
  */
-const validarDisponibilidadExperto = async (
-  expertoEmail,
-  fechaInicio,
-  duracionMinutos
-) => {
-  const fechaFin = new Date(fechaInicio.getTime() + duracionMinutos * 60000);
+const obtenerMisAsesorias = async (req, res) => {
+  try {
+    const userEmail = req.usuario.email;
 
-  const solapamiento = await Asesoria.findOne({
-    "experto.email": expertoEmail,
-    $or: [
-      {
-        fechaHoraInicio: { $lte: fechaInicio },
-        $expr: {
-          $gt: [
-            {
-              $add: [
-                "$fechaHoraInicio",
-                { $multiply: ["$duracionMinutos", 60000] },
-              ],
-            },
-            fechaInicio,
-          ],
-        },
-      },
-      {
-        fechaHoraInicio: { $lt: fechaFin },
-        $expr: {
-          $gte: [
-            {
-              $add: [
-                "$fechaHoraInicio",
-                { $multiply: ["$duracionMinutos", 60000] },
-              ],
-            },
-            fechaFin,
-          ],
-        },
-      },
-      {
-        fechaHoraInicio: { $gte: fechaInicio },
-        $expr: {
-          $lte: [
-            {
-              $add: [
-                "$fechaHoraInicio",
-                { $multiply: ["$duracionMinutos", 60000] },
-              ],
-            },
-            fechaFin,
-          ],
-        },
-      },
-    ],
-    estado: { $in: ["pendiente-aceptacion", "confirmada"] },
-  });
+    const asesorias = await Asesoria.find({
+      $or: [{ "cliente.email": userEmail }, { "experto.email": userEmail }],
+    }).sort({ fechaHoraInicio: -1 });
 
-  return !solapamiento;
+    // Para asesorías confirmadas donde el usuario es cliente, incluir teléfono del experto
+    const asesoriasConContacto = await Promise.all(
+      asesorias.map(async (asesoria) => {
+        const asesoriaObj = asesoria.toObject();
+
+        // Si el usuario es cliente y la asesoría está confirmada, agregar teléfono del experto
+        if (
+          asesoria.cliente.email === userEmail &&
+          asesoria.estado === "confirmada"
+        ) {
+          const expertoCompleto = await Usuario.findOne({
+            email: asesoria.experto.email,
+          });
+          if (
+            expertoCompleto &&
+            expertoCompleto.infoExperto &&
+            expertoCompleto.infoExperto.telefonoContacto
+          ) {
+            asesoriaObj.experto.telefonoContacto =
+              expertoCompleto.infoExperto.telefonoContacto;
+          }
+        }
+
+        return asesoriaObj;
+      })
+    );
+
+    res.json(asesoriasConContacto);
+  } catch (error) {
+    console.error("Error obteniendo asesorías:", error);
+    res.status(500).json({ mensaje: "Error al obtener asesorías." });
+  }
 };
 
 /**
- * Aceptar asesoría (solo experto)
+ * Cancelar asesoría por el cliente
+ * @openapi
+ * /api/asesorias/{id}/cancelar-cliente:
+ *   put:
+ *     summary: Cancelar asesoría por el cliente
+ *     tags: [Asesorías]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Asesoría cancelada
+ */
+const cancelarAsesoriaPorCliente = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const asesoria = await Asesoria.findById(id);
+
+    if (!asesoria) {
+      return res.status(404).json({ mensaje: "Asesoría no encontrada." });
+    }
+
+    if (req.usuario.email !== asesoria.cliente.email) {
+      return res.status(403).json({
+        mensaje: "Solo el cliente puede cancelar su asesoría.",
+      });
+    }
+
+    if (!["pendiente-aceptacion", "confirmada"].includes(asesoria.estado)) {
+      return res.status(400).json({
+        mensaje: "Solo se pueden cancelar asesorías pendientes o confirmadas.",
+      });
+    }
+
+    asesoria.estado = "cancelada-cliente";
+    asesoria.fechaCancelacion = new Date();
+    asesoria.motivoCancelacion = "Cancelada por el cliente";
+    await asesoria.save();
+
+    // Notificar al experto
+    try {
+      const experto = await Usuario.findOne({ email: asesoria.experto.email });
+      if (experto) {
+        await Notificacion.create({
+          usuarioId: experto._id,
+          email: experto.email,
+          tipo: "email",
+          asunto: "Asesoría cancelada",
+          mensaje: `La asesoría "${asesoria.titulo}" fue cancelada por el cliente.`,
+          relacionadoCon: { tipo: "Asesoria", referenciaId: asesoria._id },
+          estado: "enviado",
+          fechaEnvio: new Date(),
+        });
+
+        await enviarCorreo(
+          experto.email,
+          "Asesoría cancelada",
+          `La asesoría titulada "${asesoria.titulo}" fue cancelada por el cliente.`,
+          {
+            nombreDestinatario: experto.nombre,
+            apellidoDestinatario: experto.apellido,
+          }
+        );
+      }
+    } catch (emailError) {
+      console.warn("Error enviando notificación:", emailError);
+    }
+
+    await generarLogs.registrarEvento({
+      usuarioEmail: req.usuario.email,
+      nombre: req.usuario.nombre,
+      apellido: req.usuario.apellido,
+      accion: "CANCELAR_ASESORIA_CLIENTE",
+      detalle: `Asesoría cancelada por cliente id:${asesoria._id}`,
+      resultado: "Exito",
+      tipo: "asesoria",
+      persistirEnDB: true,
+    });
+
+    res.json({ mensaje: "Asesoría cancelada.", asesoria });
+  } catch (error) {
+    console.error("Error cancelando asesoría:", error);
+    res.status(500).json({ mensaje: "Error al cancelar asesoría." });
+  }
+};
+
+/**
+ * Cancelar asesoría por el experto
+ * @openapi
+ * /api/asesorias/{id}/cancelar-experto:
+ *   put:
+ *     summary: Cancelar asesoría por el experto
+ *     tags: [Asesorías]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Asesoría cancelada
+ */
+const cancelarAsesoriaPorExperto = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const asesoria = await Asesoria.findById(id);
+
+    if (!asesoria) {
+      return res.status(404).json({ mensaje: "Asesoría no encontrada." });
+    }
+
+    if (
+      !req.usuario.roles.includes("experto") ||
+      req.usuario.email !== asesoria.experto.email
+    ) {
+      return res.status(403).json({
+        mensaje: "Solo el experto asignado puede cancelar la asesoría.",
+      });
+    }
+
+    if (asesoria.estado !== "confirmada") {
+      return res.status(400).json({
+        mensaje: "Solo se pueden cancelar asesorías confirmadas.",
+      });
+    }
+
+    asesoria.estado = "cancelada-experto";
+    asesoria.fechaCancelacion = new Date();
+    asesoria.motivoCancelacion = "Cancelada por el experto";
+    await asesoria.save();
+
+    // Notificar al cliente
+    try {
+      const cliente = await Usuario.findOne({ email: asesoria.cliente.email });
+      if (cliente) {
+        await Notificacion.create({
+          usuarioId: cliente._id,
+          email: cliente.email,
+          tipo: "email",
+          asunto: "Asesoría cancelada",
+          mensaje: `La asesoría "${asesoria.titulo}" fue cancelada por el experto.`,
+          relacionadoCon: { tipo: "Asesoria", referenciaId: asesoria._id },
+          estado: "enviado",
+          fechaEnvio: new Date(),
+        });
+
+        await enviarCorreo(
+          cliente.email,
+          "Asesoría cancelada",
+          `La asesoría titulada "${asesoria.titulo}" fue cancelada por el experto.`,
+          {
+            nombreDestinatario: cliente.nombre,
+            apellidoDestinatario: cliente.apellido,
+          }
+        );
+      }
+    } catch (emailError) {
+      console.warn("Error enviando notificación:", emailError);
+    }
+
+    await generarLogs.registrarEvento({
+      usuarioEmail: req.usuario.email,
+      nombre: req.usuario.nombre,
+      apellido: req.usuario.apellido,
+      accion: "CANCELAR_ASESORIA_EXPERTO",
+      detalle: `Asesoría cancelada por experto id:${asesoria._id}`,
+      resultado: "Exito",
+      tipo: "asesoria",
+      persistirEnDB: true,
+    });
+
+    res.json({ mensaje: "Asesoría cancelada.", asesoria });
+  } catch (error) {
+    console.error("Error cancelando asesoría:", error);
+    res.status(500).json({ mensaje: "Error al cancelar asesoría." });
+  }
+};
+
+/**
+ * Aceptar asesoría. Notifica al cliente por correo con datos de la asesoría y número de contacto del experto.
  * @openapi
  * /api/asesorias/{id}/aceptar:
  *   put:
@@ -160,82 +593,42 @@ const validarDisponibilidadExperto = async (
  *           type: string
  *     responses:
  *       200:
- *         description: Asesoría aceptada exitosamente
- *       400:
- *         description: Estado inválido o validaciones fallidas
- *       403:
- *         description: No autorizado
- *       404:
- *         description: Asesoría no encontrada
+ *         description: Asesoría aceptada
  */
 const aceptarAsesoria = async (req, res) => {
   try {
     const id = req.params.id;
-
-    // Validar que el ID sea válido
-    if (!id) {
-      return res.status(400).json({
-        success: false,
-        mensaje: "ID de asesoría requerido.",
-      });
-    }
-
     const asesoria = await Asesoria.findById(id);
-
-    if (!asesoria) {
-      return res.status(404).json({
-        success: false,
-        mensaje: "Asesoría no encontrada.",
-      });
-    }
-
-    // Validar autorización
-    if (req.usuario.email !== asesoria.experto.email) {
+    if (!asesoria)
+      return res.status(404).json({ mensaje: "Asesoría no encontrada." });
+    if (
+      !req.usuario ||
+      !req.usuario.roles.includes("experto") ||
+      req.usuario.email !== asesoria.experto.email
+    ) {
       return res.status(403).json({
-        success: false,
-        mensaje: "Solo el experto asignado puede aceptar esta asesoría.",
+        mensaje: "Solo el experto asignado puede aceptar la asesoría.",
       });
     }
-
-    // Validar estado
     if (asesoria.estado !== "pendiente-aceptacion") {
-      return res.status(400).json({
-        success: false,
-        mensaje:
-          "Solo asesorías pendientes de aceptación pueden ser aceptadas.",
-      });
+      return res
+        .status(400)
+        .json({ mensaje: "Solo asesorías pendientes pueden aceptarse." });
     }
-
-    // Validar que no haya conflictos de horario
-    const disponible = await validarDisponibilidadExperto(
-      asesoria.experto.email,
-      new Date(asesoria.fechaHoraInicio),
-      asesoria.duracionMinutos
-    );
-
-    if (!disponible) {
-      return res.status(409).json({
-        success: false,
-        mensaje: "Ya tienes otra asesoría programada en ese horario.",
-      });
-    }
-
-    // Actualizar estado
     asesoria.estado = "confirmada";
     await asesoria.save();
 
-    // Notificar al cliente
+    // Notificación y correo al cliente con datos del experto incluyendo teléfono
     try {
       const cliente = await Usuario.findOne({ email: asesoria.cliente.email });
       const experto = await Usuario.findOne({ email: asesoria.experto.email });
-
-      if (cliente) {
+      if (cliente && experto) {
         await Notificacion.create({
           usuarioId: cliente._id,
           email: cliente.email,
           tipo: "email",
-          asunto: "Tu asesoría fue aceptada",
-          mensaje: `El experto ${asesoria.experto.nombre} aceptó tu solicitud de asesoría "${asesoria.titulo}".`,
+          asunto: "Asesoría confirmada",
+          mensaje: `Tu asesoría "${asesoria.titulo}" fue aceptada por el experto.`,
           relacionadoCon: { tipo: "Asesoria", referenciaId: asesoria._id },
           estado: "enviado",
           fechaEnvio: new Date(),
@@ -244,29 +637,30 @@ const aceptarAsesoria = async (req, res) => {
         const fechaLocal = new Date(asesoria.fechaHoraInicio).toLocaleString(
           "es-CO"
         );
+        const horasTexto =
+          asesoria.duracionMinutos === 60
+            ? "1 hora"
+            : asesoria.duracionMinutos === 90
+            ? "1.5 horas"
+            : asesoria.duracionMinutos === 120
+            ? "2 horas"
+            : "3 horas";
+
+        const telefonoContacto =
+          experto.infoExperto?.telefonoContacto || "No especificado";
 
         await enviarCorreo(
           cliente.email,
           "Tu asesoría fue aceptada",
-          `¡Excelente noticia! El experto ${asesoria.experto.nombre} ${
-            asesoria.experto.apellido
-          } ha aceptado tu solicitud de asesoría.\n\nDetalles de tu asesoría:\n- Título: ${
-            asesoria.titulo
-          }\n- Fecha y hora: ${fechaLocal}\n- Duración: ${
-            asesoria.duracionMinutos
-          } minutos\n\nDatos de contacto del experto:\n- Email: ${
-            asesoria.experto.email
-          }\n- Teléfono: ${
-            experto?.infoExperto?.telefonoContacto || "No disponible"
-          }\n\nTu pago permanecerá retenido de forma segura hasta que la asesoría termine.`,
+          `Tu asesoría titulada "${asesoria.titulo}" fue aceptada por el experto.\n\nFecha y hora: ${fechaLocal}\nDuración: ${horasTexto}\n\nEl número de contacto del experto es: ${telefonoContacto}\n\nLa asesoría será por videollamada virtual.`,
           {
             nombreDestinatario: cliente.nombre,
             apellidoDestinatario: cliente.apellido,
           }
         );
       }
-    } catch (e) {
-      console.error("Error enviando notificación al cliente:", e);
+    } catch (emailError) {
+      console.warn("Error enviando notificación:", emailError);
     }
 
     await generarLogs.registrarEvento({
@@ -274,17 +668,13 @@ const aceptarAsesoria = async (req, res) => {
       nombre: asesoria.experto.nombre,
       apellido: asesoria.experto.apellido,
       accion: "ACEPTAR_ASESORIA",
-      detalle: `Asesoría aceptada: ${asesoria._id}`,
+      detalle: `Asesoría aceptada id:${asesoria._id}`,
       resultado: "Exito",
       tipo: "asesoria",
       persistirEnDB: true,
     });
 
-    res.json({
-      success: true,
-      mensaje: "Asesoría aceptada exitosamente.",
-      data: asesoria,
-    });
+    res.json({ mensaje: "Asesoría aceptada.", asesoria });
   } catch (error) {
     await generarLogs.registrarEvento({
       usuarioEmail: req.usuario?.email || null,
@@ -294,16 +684,12 @@ const aceptarAsesoria = async (req, res) => {
       tipo: "asesoria",
       persistirEnDB: true,
     });
-    res.status(500).json({
-      success: false,
-      mensaje: "Error interno al aceptar asesoría.",
-      error: error.message,
-    });
+    res.status(500).json({ mensaje: "Error al aceptar asesoría." });
   }
 };
 
 /**
- * Rechazar asesoría (solo experto) con reembolso total
+ * Rechazar asesoría. Notifica solo al cliente.
  * @openapi
  * /api/asesorias/{id}/rechazar:
  *   put:
@@ -317,91 +703,34 @@ const aceptarAsesoria = async (req, res) => {
  *         required: true
  *         schema:
  *           type: string
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               motivo:
- *                 type: string
- *                 maxLength: 500
  *     responses:
  *       200:
- *         description: Asesoría rechazada y reembolso procesado
- *       400:
- *         description: Estado inválido o validaciones fallidas
- *       403:
- *         description: No autorizado
- *       404:
- *         description: Asesoría no encontrada
+ *         description: Asesoría rechazada
  */
 const rechazarAsesoria = async (req, res) => {
   try {
     const id = req.params.id;
-    const { motivo } = req.body;
-
-    // Validaciones básicas
-    if (!id) {
-      return res.status(400).json({
-        success: false,
-        mensaje: "ID de asesoría requerido.",
-      });
-    }
-
-    if (motivo && motivo.length > 500) {
-      return res.status(400).json({
-        success: false,
-        mensaje: "El motivo no puede exceder 500 caracteres.",
-      });
-    }
-
     const asesoria = await Asesoria.findById(id);
-
-    if (!asesoria) {
-      return res.status(404).json({
-        success: false,
-        mensaje: "Asesoría no encontrada.",
-      });
-    }
-
-    // Validar autorización
-    if (req.usuario.email !== asesoria.experto.email) {
+    if (!asesoria)
+      return res.status(404).json({ mensaje: "Asesoría no encontrada." });
+    if (
+      !req.usuario ||
+      !req.usuario.roles.includes("experto") ||
+      req.usuario.email !== asesoria.experto.email
+    ) {
       return res.status(403).json({
-        success: false,
-        mensaje: "Solo el experto asignado puede rechazar esta asesoría.",
+        mensaje: "Solo el experto asignado puede rechazar la asesoría.",
       });
     }
-
-    // Validar estado
     if (asesoria.estado !== "pendiente-aceptacion") {
-      return res.status(400).json({
-        success: false,
-        mensaje:
-          "Solo asesorías pendientes de aceptación pueden ser rechazadas.",
-      });
+      return res
+        .status(400)
+        .json({ mensaje: "Solo asesorías pendientes pueden rechazarse." });
     }
-
-    // Actualizar asesoría
     asesoria.estado = "rechazada";
-    asesoria.motivoCancelacion =
-      motivo || "El experto no puede atender la asesoría";
-    asesoria.fechaCancelacion = new Date();
     await asesoria.save();
 
-    // Procesar reembolso total si hay pago asociado
-    if (asesoria.pagoId) {
-      try {
-        await Pago.findByIdAndUpdate(asesoria.pagoId, {
-          estado: "reembolsado-total",
-          fechaLiberacion: new Date(),
-        });
-      } catch (reembolsoError) {
-        console.error("Error procesando reembolso:", reembolsoError);
-      }
-    }
-
-    // Notificar al cliente
+    // Notificación y correo solo al cliente
     try {
       const cliente = await Usuario.findOne({ email: asesoria.cliente.email });
       if (cliente) {
@@ -409,8 +738,8 @@ const rechazarAsesoria = async (req, res) => {
           usuarioId: cliente._id,
           email: cliente.email,
           tipo: "email",
-          asunto: "Asesoría rechazada - Reembolso procesado",
-          mensaje: `Tu asesoría "${asesoria.titulo}" fue rechazada. Se ha procesado el reembolso completo.`,
+          asunto: "Asesoría rechazada",
+          mensaje: `Tu asesoría "${asesoria.titulo}" fue rechazada por el experto.`,
           relacionadoCon: { tipo: "Asesoria", referenciaId: asesoria._id },
           estado: "enviado",
           fechaEnvio: new Date(),
@@ -418,16 +747,16 @@ const rechazarAsesoria = async (req, res) => {
 
         await enviarCorreo(
           cliente.email,
-          "Asesoría rechazada - Reembolso procesado",
-          `Lamentamos informarte que el experto ${asesoria.experto.nombre} ${asesoria.experto.apellido} no puede atender tu solicitud de asesoría "${asesoria.titulo}".\n\nMotivo: ${asesoria.motivoCancelacion}\n\nHemos procesado el reembolso completo del pago. El dinero será devuelto a tu método de pago original en los próximos 5-10 días hábiles.\n\nTe invitamos a agendar una nueva asesoría con otro experto disponible.`,
+          "Tu asesoría fue rechazada",
+          `Tu asesoría titulada "${asesoria.titulo}" fue rechazada por el experto. Por favor agenda una nueva asesoría en una fecha diferente.`,
           {
             nombreDestinatario: cliente.nombre,
             apellidoDestinatario: cliente.apellido,
           }
         );
       }
-    } catch (e) {
-      console.error("Error enviando notificación al cliente:", e);
+    } catch (emailError) {
+      console.warn("Error enviando notificación:", emailError);
     }
 
     await generarLogs.registrarEvento({
@@ -435,17 +764,13 @@ const rechazarAsesoria = async (req, res) => {
       nombre: asesoria.experto.nombre,
       apellido: asesoria.experto.apellido,
       accion: "RECHAZAR_ASESORIA",
-      detalle: `Asesoría rechazada: ${asesoria._id}`,
+      detalle: `Asesoría rechazada id:${asesoria._id}`,
       resultado: "Exito",
       tipo: "asesoria",
       persistirEnDB: true,
     });
 
-    res.json({
-      success: true,
-      mensaje: "Asesoría rechazada y reembolso procesado.",
-      data: asesoria,
-    });
+    res.json({ mensaje: "Asesoría rechazada.", asesoria });
   } catch (error) {
     await generarLogs.registrarEvento({
       usuarioEmail: req.usuario?.email || null,
@@ -455,339 +780,12 @@ const rechazarAsesoria = async (req, res) => {
       tipo: "asesoria",
       persistirEnDB: true,
     });
-    res.status(500).json({
-      success: false,
-      mensaje: "Error interno al rechazar asesoría.",
-      error: error.message,
-    });
+    res.status(500).json({ mensaje: "Error al rechazar asesoría." });
   }
 };
 
 /**
- * Cancelar asesoría por cliente (80% reembolso cliente, 20% compensación experto)
- * @openapi
- * /api/asesorias/{id}/cancelar-cliente:
- *   put:
- *     summary: Cancelar asesoría por el cliente
- *     tags: [Asesorías]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               motivo:
- *                 type: string
- *                 maxLength: 500
- *     responses:
- *       200:
- *         description: Asesoría cancelada y reembolso parcial procesado
- *       400:
- *         description: Estado inválido o validaciones fallidas
- *       403:
- *         description: No autorizado
- *       404:
- *         description: Asesoría no encontrada
- */
-const cancelarAsesoriaPorCliente = async (req, res) => {
-  try {
-    const id = req.params.id;
-    const { motivo } = req.body;
-
-    // Validaciones básicas
-    if (!id) {
-      return res.status(400).json({
-        success: false,
-        mensaje: "ID de asesoría requerido.",
-      });
-    }
-
-    if (motivo && motivo.length > 500) {
-      return res.status(400).json({
-        success: false,
-        mensaje: "El motivo no puede exceder 500 caracteres.",
-      });
-    }
-
-    const asesoria = await Asesoria.findById(id);
-
-    if (!asesoria) {
-      return res.status(404).json({
-        success: false,
-        mensaje: "Asesoría no encontrada.",
-      });
-    }
-
-    // Validar autorización
-    if (req.usuario.email !== asesoria.cliente.email) {
-      return res.status(403).json({
-        success: false,
-        mensaje: "Solo el cliente puede cancelar su propia asesoría.",
-      });
-    }
-
-    // Validar estado
-    if (asesoria.estado !== "confirmada") {
-      return res.status(400).json({
-        success: false,
-        mensaje:
-          "Solo asesorías confirmadas pueden ser canceladas por el cliente.",
-      });
-    }
-
-    // Actualizar asesoría
-    asesoria.estado = "cancelada-cliente";
-    asesoria.motivoCancelacion =
-      motivo || "Cancelación solicitada por el cliente";
-    asesoria.fechaCancelacion = new Date();
-    await asesoria.save();
-
-    // Procesar reembolso parcial (80% al cliente)
-    if (asesoria.pagoId) {
-      try {
-        await Pago.findByIdAndUpdate(asesoria.pagoId, {
-          estado: "reembolsado-parcial",
-          fechaLiberacion: new Date(),
-        });
-      } catch (reembolsoError) {
-        console.error("Error procesando reembolso:", reembolsoError);
-      }
-    }
-
-    // Notificar al experto
-    try {
-      const experto = await Usuario.findOne({ email: asesoria.experto.email });
-      if (experto) {
-        await Notificacion.create({
-          usuarioId: experto._id,
-          email: experto.email,
-          tipo: "email",
-          asunto: "Asesoría cancelada por el cliente",
-          mensaje: `La asesoría "${asesoria.titulo}" fue cancelada por el cliente. Has recibido una compensación del 20% del pago.`,
-          relacionadoCon: { tipo: "Asesoria", referenciaId: asesoria._id },
-          estado: "enviado",
-          fechaEnvio: new Date(),
-        });
-
-        await enviarCorreo(
-          experto.email,
-          "Asesoría cancelada por el cliente",
-          `Te informamos que la asesoría "${asesoria.titulo}" programada con ${asesoria.cliente.nombre} ${asesoria.cliente.apellido} ha sido cancelada por el cliente.\n\nMotivo: ${asesoria.motivoCancelacion}\n\nComo compensación por el tiempo apartado, has recibido el 20% del valor de la asesoría. Este monto será transferido a tu cuenta en los próximos días hábiles.`,
-          {
-            nombreDestinatario: experto.nombre,
-            apellidoDestinatario: experto.apellido,
-          }
-        );
-      }
-    } catch (e) {
-      console.error("Error enviando notificación al experto:", e);
-    }
-
-    await generarLogs.registrarEvento({
-      usuarioEmail: asesoria.cliente.email,
-      nombre: asesoria.cliente.nombre,
-      apellido: asesoria.cliente.apellido,
-      accion: "CANCELAR_ASESORIA_CLIENTE",
-      detalle: `Asesoría cancelada por cliente: ${asesoria._id}`,
-      resultado: "Exito",
-      tipo: "asesoria",
-      persistirEnDB: true,
-    });
-
-    res.json({
-      success: true,
-      mensaje:
-        "Asesoría cancelada. Se procesó el reembolso del 80% y compensación del 20% al experto.",
-      data: asesoria,
-    });
-  } catch (error) {
-    await generarLogs.registrarEvento({
-      usuarioEmail: req.usuario?.email || null,
-      accion: "ERROR_CANCELAR_ASESORIA_CLIENTE",
-      detalle: error.message,
-      resultado: "Error",
-      tipo: "asesoria",
-      persistirEnDB: true,
-    });
-    res.status(500).json({
-      success: false,
-      mensaje: "Error interno al cancelar asesoría.",
-      error: error.message,
-    });
-  }
-};
-
-/**
- * Cancelar asesoría por experto (100% reembolso al cliente)
- * @openapi
- * /api/asesorias/{id}/cancelar-experto:
- *   put:
- *     summary: Cancelar asesoría por el experto
- *     tags: [Asesorías]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               motivo:
- *                 type: string
- *                 maxLength: 500
- *     responses:
- *       200:
- *         description: Asesoría cancelada y reembolso total procesado
- *       400:
- *         description: Estado inválido o validaciones fallidas
- *       403:
- *         description: No autorizado
- *       404:
- *         description: Asesoría no encontrada
- */
-const cancelarAsesoriaPorExperto = async (req, res) => {
-  try {
-    const id = req.params.id;
-    const { motivo } = req.body;
-
-    // Validaciones básicas
-    if (!id) {
-      return res.status(400).json({
-        success: false,
-        mensaje: "ID de asesoría requerido.",
-      });
-    }
-
-    if (motivo && motivo.length > 500) {
-      return res.status(400).json({
-        success: false,
-        mensaje: "El motivo no puede exceder 500 caracteres.",
-      });
-    }
-
-    const asesoria = await Asesoria.findById(id);
-
-    if (!asesoria) {
-      return res.status(404).json({
-        success: false,
-        mensaje: "Asesoría no encontrada.",
-      });
-    }
-
-    // Validar autorización
-    if (req.usuario.email !== asesoria.experto.email) {
-      return res.status(403).json({
-        success: false,
-        mensaje: "Solo el experto puede cancelar esta asesoría.",
-      });
-    }
-
-    // Validar estado
-    if (asesoria.estado !== "confirmada") {
-      return res.status(400).json({
-        success: false,
-        mensaje:
-          "Solo asesorías confirmadas pueden ser canceladas por el experto.",
-      });
-    }
-
-    // Actualizar asesoría
-    asesoria.estado = "cancelada-experto";
-    asesoria.motivoCancelacion = motivo || "Cancelación por parte del experto";
-    asesoria.fechaCancelacion = new Date();
-    await asesoria.save();
-
-    // Procesar reembolso total (100% al cliente)
-    if (asesoria.pagoId) {
-      try {
-        await Pago.findByIdAndUpdate(asesoria.pagoId, {
-          estado: "reembolsado-total",
-          fechaLiberacion: new Date(),
-        });
-      } catch (reembolsoError) {
-        console.error("Error procesando reembolso:", reembolsoError);
-      }
-    }
-
-    // Notificar al cliente
-    try {
-      const cliente = await Usuario.findOne({ email: asesoria.cliente.email });
-      if (cliente) {
-        await Notificacion.create({
-          usuarioId: cliente._id,
-          email: cliente.email,
-          tipo: "email",
-          asunto: "Asesoría cancelada por el experto",
-          mensaje: `La asesoría "${asesoria.titulo}" fue cancelada por el experto. Se ha procesado el reembolso completo.`,
-          relacionadoCon: { tipo: "Asesoria", referenciaId: asesoria._id },
-          estado: "enviado",
-          fechaEnvio: new Date(),
-        });
-
-        await enviarCorreo(
-          cliente.email,
-          "Asesoría cancelada - Reembolso completo",
-          `Lamentamos informarte que el experto ${asesoria.experto.nombre} ${asesoria.experto.apellido} tuvo que cancelar tu asesoría "${asesoria.titulo}".\n\nMotivo: ${asesoria.motivoCancelacion}\n\nHemos procesado el reembolso completo del pago. El dinero será devuelto a tu método de pago original en los próximos 5-10 días hábiles.\n\nTe invitamos a agendar una nueva asesoría con otro experto disponible.`,
-          {
-            nombreDestinatario: cliente.nombre,
-            apellidoDestinatario: cliente.apellido,
-          }
-        );
-      }
-    } catch (e) {
-      console.error("Error enviando notificación al cliente:", e);
-    }
-
-    await generarLogs.registrarEvento({
-      usuarioEmail: asesoria.experto.email,
-      nombre: asesoria.experto.nombre,
-      apellido: asesoria.experto.apellido,
-      accion: "CANCELAR_ASESORIA_EXPERTO",
-      detalle: `Asesoría cancelada por experto: ${asesoria._id}`,
-      resultado: "Exito",
-      tipo: "asesoria",
-      persistirEnDB: true,
-    });
-
-    res.json({
-      success: true,
-      mensaje:
-        "Asesoría cancelada. Se procesó el reembolso completo al cliente.",
-      data: asesoria,
-    });
-  } catch (error) {
-    await generarLogs.registrarEvento({
-      usuarioEmail: req.usuario?.email || null,
-      accion: "ERROR_CANCELAR_ASESORIA_EXPERTO",
-      detalle: error.message,
-      resultado: "Error",
-      tipo: "asesoria",
-      persistirEnDB: true,
-    });
-    res.status(500).json({
-      success: false,
-      mensaje: "Error interno al cancelar asesoría.",
-      error: error.message,
-    });
-  }
-};
-
-/**
- * Finalizar asesoría y liberar pago al experto
+ * Finalizar asesoría y liberar pago
  * @openapi
  * /api/asesorias/{id}/finalizar:
  *   put:
@@ -803,91 +801,55 @@ const cancelarAsesoriaPorExperto = async (req, res) => {
  *           type: string
  *     responses:
  *       200:
- *         description: Asesoría finalizada y pago liberado
- *       400:
- *         description: Estado inválido o validaciones fallidas
- *       403:
- *         description: No autorizado
- *       404:
- *         description: Asesoría no encontrada
+ *         description: Asesoría finalizada
  */
 const finalizarAsesoria = async (req, res) => {
   try {
     const id = req.params.id;
-
-    // Validaciones básicas
-    if (!id) {
-      return res.status(400).json({
-        success: false,
-        mensaje: "ID de asesoría requerido.",
-      });
-    }
-
     const asesoria = await Asesoria.findById(id);
-
-    if (!asesoria) {
-      return res.status(404).json({
-        success: false,
-        mensaje: "Asesoría no encontrada.",
-      });
-    }
-
-    // Validar autorización (cliente o admin)
-    const puedeFinalizarCliente = req.usuario.email === asesoria.cliente.email;
-    const esAdmin = req.usuario.roles.includes("admin");
-
-    if (!puedeFinalizarCliente && !esAdmin) {
-      return res.status(403).json({
-        success: false,
-        mensaje:
-          "Solo el cliente o un administrador pueden finalizar la asesoría.",
-      });
-    }
-
-    // Validar estado
+    if (!asesoria)
+      return res.status(404).json({ mensaje: "Asesoría no encontrada." });
     if (asesoria.estado !== "confirmada") {
-      return res.status(400).json({
-        success: false,
-        mensaje: "Solo asesorías confirmadas pueden ser finalizadas.",
-      });
+      return res
+        .status(400)
+        .json({ mensaje: "Solo asesorías confirmadas pueden finalizarse." });
     }
-
-    // Actualizar asesoría
     asesoria.estado = "completada";
     asesoria.fechaFinalizacion = new Date();
     await asesoria.save();
 
-    // Liberar pago al experto
+    // Liberar pago al experto (si existe pagoId)
     if (asesoria.pagoId) {
-      await Pago.findByIdAndUpdate(asesoria.pagoId, {
-        estado: "liberado",
-        fechaLiberacion: new Date(),
-      });
+      const pago = await Pago.findById(asesoria.pagoId);
+      if (pago && pago.estado === "retenido") {
+        await Pago.findByIdAndUpdate(asesoria.pagoId, {
+          estado: "liberado",
+          fechaLiberacion: new Date(),
+        });
+      }
     }
 
-    // Notificar a ambos participantes
+    // Notificación y correo a cliente y experto
     try {
-      const [cliente, experto] = await Promise.all([
-        Usuario.findOne({ email: asesoria.cliente.email }),
-        Usuario.findOne({ email: asesoria.experto.email }),
-      ]);
+      const cliente = await Usuario.findOne({ email: asesoria.cliente.email });
+      const experto = await Usuario.findOne({ email: asesoria.experto.email });
 
       if (experto) {
         await Notificacion.create({
           usuarioId: experto._id,
           email: experto.email,
           tipo: "email",
-          asunto: "Pago liberado - Asesoría completada",
-          mensaje: `El pago de tu asesoría "${asesoria.titulo}" ha sido liberado.`,
-          relacionadoCon: { tipo: "Pago", referenciaId: asesoria.pagoId },
+          asunto: "Asesoría completada",
+          mensaje: `La asesoría "${asesoria.titulo}" ha sido finalizada.`,
+          relacionadoCon: { tipo: "Asesoria", referenciaId: asesoria._id },
           estado: "enviado",
           fechaEnvio: new Date(),
         });
 
         await enviarCorreo(
           experto.email,
-          "Pago liberado - Asesoría completada",
-          `¡Excelente trabajo! La asesoría "${asesoria.titulo}" ha sido completada exitosamente.\n\nEl pago correspondiente ha sido liberado y será transferido a tu cuenta en los próximos días hábiles.\n\nGracias por brindar un excelente servicio en ServiTech.`,
+          "Asesoría completada",
+          `La asesoría titulada "${asesoria.titulo}" ha sido finalizada.`,
           {
             nombreDestinatario: experto.nombre,
             apellidoDestinatario: experto.apellido,
@@ -900,8 +862,8 @@ const finalizarAsesoria = async (req, res) => {
           usuarioId: cliente._id,
           email: cliente.email,
           tipo: "email",
-          asunto: "Asesoría completada",
-          mensaje: `Tu asesoría "${asesoria.titulo}" ha sido marcada como completada.`,
+          asunto: "Asesoría finalizada",
+          mensaje: `Tu asesoría "${asesoria.titulo}" ha sido finalizada.`,
           relacionadoCon: { tipo: "Asesoria", referenciaId: asesoria._id },
           estado: "enviado",
           fechaEnvio: new Date(),
@@ -909,34 +871,28 @@ const finalizarAsesoria = async (req, res) => {
 
         await enviarCorreo(
           cliente.email,
-          "Asesoría completada",
-          `Tu asesoría "${asesoria.titulo}" con ${asesoria.experto.nombre} ${asesoria.experto.apellido} ha sido completada exitosamente.\n\nEl pago ha sido liberado al experto. ¡Esperamos que hayas tenido una excelente experiencia!\n\nTe invitamos a dejar una reseña y agendar nuevas asesorías cuando lo necesites.`,
+          "Asesoría finalizada",
+          `Tu asesoría titulada "${asesoria.titulo}" ha sido finalizada.`,
           {
             nombreDestinatario: cliente.nombre,
             apellidoDestinatario: cliente.apellido,
           }
         );
       }
-    } catch (e) {
-      console.error("Error enviando notificaciones:", e);
+    } catch (emailError) {
+      console.warn("Error enviando notificación:", emailError);
     }
 
     await generarLogs.registrarEvento({
-      usuarioEmail: req.usuario.email,
-      nombre: req.usuario.nombre,
-      apellido: req.usuario.apellido,
+      usuarioEmail: asesoria.cliente?.email || null,
       accion: "FINALIZAR_ASESORIA",
-      detalle: `Asesoría finalizada: ${asesoria._id}`,
+      detalle: `Asesoría finalizada id:${asesoria._id}`,
       resultado: "Exito",
       tipo: "asesoria",
       persistirEnDB: true,
     });
 
-    res.json({
-      success: true,
-      mensaje: "Asesoría finalizada y pago liberado al experto.",
-      data: asesoria,
-    });
+    res.json({ mensaje: "Asesoría finalizada.", asesoria });
   } catch (error) {
     await generarLogs.registrarEvento({
       usuarioEmail: req.usuario?.email || null,
@@ -946,163 +902,14 @@ const finalizarAsesoria = async (req, res) => {
       tipo: "asesoria",
       persistirEnDB: true,
     });
-    res.status(500).json({
-      success: false,
-      mensaje: "Error interno al finalizar asesoría.",
-      error: error.message,
-    });
+    res.status(500).json({ mensaje: "Error al finalizar asesoría." });
   }
 };
 
-// Funciones existentes que se mantienen sin cambios
-const crearAsesoria = async (req, res) => {
-  try {
-    const datos = req.body;
-    if (!req.usuario || req.usuario.email !== datos.cliente.email) {
-      return res.status(403).json({
-        mensaje:
-          "No autorizado. El email del cliente no coincide con el usuario autenticado.",
-      });
-    }
-    if (
-      !datos.titulo ||
-      !datos.categoria ||
-      !datos.fechaHoraInicio ||
-      !datos.duracionMinutos ||
-      !datos.cliente ||
-      !datos.experto ||
-      !datos.cliente.email ||
-      !datos.experto.email ||
-      !datos.pagoId
-    ) {
-      return res.status(400).json({
-        mensaje: "Faltan datos obligatorios para la asesoría.",
-      });
-    }
-    if (datos.cliente.email === datos.experto.email) {
-      return res.status(400).json({
-        mensaje: "El cliente y el experto no pueden ser la misma persona.",
-      });
-    }
-
-    const fechaInicio = new Date(datos.fechaHoraInicio);
-    const fechaFin = new Date(
-      fechaInicio.getTime() + datos.duracionMinutos * 60000
-    );
-    const solapamiento = await Asesoria.findOne({
-      "experto.email": datos.experto.email,
-      $or: [
-        {
-          fechaHoraInicio: { $lte: fechaInicio },
-          fechaFinalizacion: { $gt: fechaInicio },
-        },
-        {
-          fechaHoraInicio: { $lt: fechaFin },
-          fechaFinalizacion: { $gte: fechaFin },
-        },
-        {
-          fechaHoraInicio: { $gte: fechaInicio },
-          fechaFinalizacion: { $lte: fechaFin },
-        },
-      ],
-      estado: { $in: ["confirmada", "completada"] },
-    });
-    if (solapamiento) {
-      return res.status(409).json({
-        mensaje: "El experto ya tiene una asesoría en ese horario.",
-      });
-    }
-
-    const pago = await Pago.findById(datos.pagoId);
-    if (
-      !pago ||
-      pago.clienteId !== datos.cliente.email ||
-      pago.expertoId !== datos.experto.email ||
-      !["pendiente", "retenido"].includes(pago.estado)
-    ) {
-      return res.status(400).json({
-        mensaje:
-          "El pago no existe, no corresponde a los emails dados, o no está pendiente/retenido.",
-      });
-    }
-
-    const asesoriaExistente = await Asesoria.findOne({ pagoId: datos.pagoId });
-    if (asesoriaExistente) {
-      return res.status(400).json({
-        mensaje: "El pagoId ya está asociado a otra asesoría.",
-      });
-    }
-
-    const nuevaAsesoria = new Asesoria({
-      ...datos,
-      fechaFinalizacion: fechaFin,
-      estado: "pendiente-pago",
-    });
-    await nuevaAsesoria.save();
-
-    try {
-      const experto = await Usuario.findOne({ email: datos.experto.email });
-      if (experto) {
-        await Notificacion.create({
-          usuarioId: experto._id,
-          email: experto.email,
-          tipo: "email",
-          asunto: "Nueva asesoría pendiente",
-          mensaje: `Tienes una nueva solicitud de asesoría "${datos.titulo}". Ingresa a ServiTech para aceptarla o rechazarla.`,
-          relacionadoCon: { tipo: "Asesoria", referenciaId: nuevaAsesoria._id },
-          estado: "enviado",
-          fechaEnvio: new Date(),
-        });
-
-        const fechaLocal = new Date(datos.fechaHoraInicio).toLocaleString(
-          "es-CO"
-        );
-        await enviarCorreo(
-          experto.email,
-          "Nueva asesoría pendiente de aceptación",
-          `Tienes una nueva solicitud de asesoría titulada "${datos.titulo}".\n\nCliente: ${datos.cliente.nombre} ${datos.cliente.apellido}\nFecha y hora: ${fechaLocal}\n\nIngresa a ServiTech para aceptarla o rechazarla.`,
-          {
-            nombreDestinatario: experto.nombre,
-            apellidoDestinatario: experto.apellido,
-          }
-        );
-      }
-    } catch (e) {}
-
-    await generarLogs.registrarEvento({
-      usuarioEmail: datos.cliente.email,
-      nombre: datos.cliente.nombre,
-      apellido: datos.cliente.apellido,
-      accion: "CREAR_ASESORIA",
-      detalle: `Asesoría registrada id:${nuevaAsesoria._id}`,
-      resultado: "Exito",
-      tipo: "asesoria",
-      persistirEnDB: true,
-    });
-
-    res.status(201).json({
-      mensaje: "Asesoría creada y pendiente de aceptación del experto.",
-      asesoria: nuevaAsesoria,
-    });
-  } catch (error) {
-    await generarLogs.registrarEvento({
-      usuarioEmail: req.body?.cliente?.email || null,
-      accion: "ERROR_CREAR_ASESORIA",
-      detalle: error.message,
-      resultado: "Error",
-      tipo: "asesoria",
-      persistirEnDB: true,
-    });
-    res.status(500).json({
-      mensaje: "Error interno al registrar asesoría.",
-      error: error.message,
-    });
-  }
-};
-
+// Funciones administrativas (sin cambios)
 const listarAsesorias = async (req, res) => {
   try {
-    const asesorias = await Asesoria.find().sort({ fechaCreacion: -1 });
+    const asesorias = await Asesoria.find();
     res.status(200).json(asesorias);
   } catch (error) {
     res.status(500).json({ mensaje: "Error al listar asesorías." });
@@ -1112,9 +919,7 @@ const listarAsesorias = async (req, res) => {
 const listarPorCliente = async (req, res) => {
   try {
     const email = req.params.email;
-    const asesorias = await Asesoria.find({ "cliente.email": email }).sort({
-      fechaCreacion: -1,
-    });
+    const asesorias = await Asesoria.find({ "cliente.email": email });
     res.status(200).json(asesorias);
   } catch (error) {
     res.status(500).json({ mensaje: "Error al listar asesorías por cliente." });
@@ -1124,9 +929,7 @@ const listarPorCliente = async (req, res) => {
 const listarPorExperto = async (req, res) => {
   try {
     const email = req.params.email;
-    const asesorias = await Asesoria.find({ "experto.email": email }).sort({
-      fechaCreacion: -1,
-    });
+    const asesorias = await Asesoria.find({ "experto.email": email });
     res.status(200).json(asesorias);
   } catch (error) {
     res.status(500).json({ mensaje: "Error al listar asesorías por experto." });
@@ -1137,9 +940,8 @@ const obtenerAsesoriaPorId = async (req, res) => {
   try {
     const id = req.params.id;
     const asesoria = await Asesoria.findById(id);
-    if (!asesoria) {
+    if (!asesoria)
       return res.status(404).json({ mensaje: "Asesoría no encontrada." });
-    }
     res.status(200).json(asesoria);
   } catch (error) {
     res.status(500).json({ mensaje: "Error al obtener asesoría." });
@@ -1150,9 +952,8 @@ const eliminarAsesoria = async (req, res) => {
   try {
     const id = req.params.id;
     const asesoria = await Asesoria.findByIdAndDelete(id);
-    if (!asesoria) {
+    if (!asesoria)
       return res.status(404).json({ mensaje: "Asesoría no encontrada." });
-    }
     res.status(200).json({ mensaje: "Asesoría eliminada." });
   } catch (error) {
     res.status(500).json({ mensaje: "Error al eliminar asesoría." });
@@ -1162,10 +963,10 @@ const eliminarAsesoria = async (req, res) => {
 module.exports = {
   crearAsesoria,
   obtenerMisAsesorias,
-  aceptarAsesoria,
-  rechazarAsesoria,
   cancelarAsesoriaPorCliente,
   cancelarAsesoriaPorExperto,
+  aceptarAsesoria,
+  rechazarAsesoria,
   finalizarAsesoria,
   listarAsesorias,
   listarPorCliente,
