@@ -1,21 +1,21 @@
 /**
- * Lógica del frontend para la página de perfil:
+ * Logica del frontend para la pagina de perfil:
  * - Carga datos del usuario autenticado y renderiza el avatar (iniciales si no hay imagen)
  * - Permite editar nombre/apellido y subir imagen de avatar (PNG/JPG)
  */
 
 document.addEventListener("DOMContentLoaded", async () => {
-  // Verifica si la info de experto ya se renderizó en el SSR
+  // Verifica si la info de experto ya se renderizo en el SSR
   const expertInfoSection = document.querySelector(".profile-info-card h3");
   if (
     expertInfoSection &&
-    expertInfoSection.textContent.includes("Información de Experto")
+    expertInfoSection.textContent.includes("Informacion de Experto")
   ) {
     document.body.style.display = "block";
     return;
   }
 
-  // Sincroniza la sesión si hay token y usuario en localStorage
+  // Sincroniza la sesion si hay token y usuario en localStorage
   const token = localStorage.getItem("token");
   const usuarioLS = localStorage.getItem("usuario");
   if (token && usuarioLS) {
@@ -26,16 +26,20 @@ document.addEventListener("DOMContentLoaded", async () => {
         body: JSON.stringify({ usuario: { ...JSON.parse(usuarioLS), token } }),
         credentials: "include",
       });
-    } catch (err) {}
+    } catch (err) {
+      console.warn("Error sincronizando sesion:", err);
+    }
   }
+
   const mensajeError = document.getElementById("perfilError");
   if (!token) {
     if (mensajeError) {
-      mensajeError.textContent = "Debes iniciar sesión para ver tu perfil.";
+      mensajeError.textContent = "Debes iniciar sesion para ver tu perfil.";
       mensajeError.style.display = "block";
     }
     return;
   }
+
   try {
     console.log("perfil.js: fetching /api/usuarios/perfil with token present");
     const response = await fetch("/api/usuarios/perfil", {
@@ -47,51 +51,87 @@ document.addEventListener("DOMContentLoaded", async () => {
       },
       cache: "no-store",
     });
+
     if (!response.ok) {
       localStorage.removeItem("token");
+      localStorage.removeItem("usuario");
       if (mensajeError) {
         mensajeError.textContent =
-          "Tu sesión ha expirado o el token es inválido. Por favor, inicia sesión nuevamente.";
+          "Tu sesion ha expirado o el token es invalido. Por favor, inicia sesion nuevamente.";
         mensajeError.style.display = "block";
       }
       return;
     }
+
     const usuario = await response.json();
+
+    // Actualizar localStorage con datos frescos del servidor
+    localStorage.setItem("usuario", JSON.stringify(usuario));
+
     document.body.style.display = "block";
 
     // Renderiza avatar (imagen o iniciales)
     renderAvatar(usuario);
 
     // Actualiza campos
-    const userName = document.getElementById("userName");
-    const userEmail = document.getElementById("userEmail");
-    if (userName)
-      userName.textContent = `${usuario.nombre} ${usuario.apellido}`;
-    if (userEmail) userEmail.textContent = usuario.email;
-
-    const firstNameInput = document.getElementById("firstName");
-    const lastNameInput = document.getElementById("lastName");
-    const formEmailInput = document.getElementById("formEmail");
-    if (firstNameInput) firstNameInput.value = usuario.nombre;
-    if (lastNameInput) lastNameInput.value = usuario.apellido;
-    if (formEmailInput) formEmailInput.value = usuario.email;
+    actualizarCamposPerfil(usuario);
   } catch (error) {
+    console.error("Error cargando perfil:", error);
     localStorage.removeItem("token");
+    localStorage.removeItem("usuario");
     if (mensajeError) {
       mensajeError.textContent =
-        "Error al cargar el perfil. Intenta iniciar sesión nuevamente.";
+        "Error al cargar el perfil. Intenta iniciar sesion nuevamente.";
       mensajeError.style.display = "block";
     }
   }
 });
 
-// Renderiza el avatar: imagen si existe, si no círculo con iniciales
+// Actualiza todos los campos del perfil con datos del usuario
+function actualizarCamposPerfil(usuario) {
+  const userName = document.getElementById("userName");
+  const userEmail = document.getElementById("userEmail");
+  const firstNameInput = document.getElementById("firstName");
+  const lastNameInput = document.getElementById("lastName");
+  const formEmailInput = document.getElementById("formEmail");
+
+  // Manejar valores undefined/null
+  const nombre =
+    usuario.nombre && usuario.nombre !== "undefined" ? usuario.nombre : "";
+  const apellido =
+    usuario.apellido && usuario.apellido !== "undefined"
+      ? usuario.apellido
+      : "";
+  const email = usuario.email || "";
+
+  // Actualizar campos en la pagina
+  if (userName) {
+    const nombreCompleto = `${nombre} ${apellido}`.trim();
+    userName.textContent = nombreCompleto || email || "Usuario";
+  }
+
+  if (userEmail) userEmail.textContent = email;
+  if (firstNameInput) firstNameInput.value = nombre;
+  if (lastNameInput) lastNameInput.value = apellido;
+  if (formEmailInput) formEmailInput.value = email;
+
+  // Actualizar header si las funciones estan disponibles (desde common.js)
+  if (typeof window.actualizarDatosUsuario === "function") {
+    window.actualizarDatosUsuario(usuario);
+  }
+
+  if (typeof window.mostrarInfoUsuario === "function") {
+    window.mostrarInfoUsuario(usuario);
+  }
+}
+
+// Renderiza el avatar: imagen si existe, si no circulo con iniciales
 function renderAvatar(usuario) {
   const container = document.getElementById("perfilAvatarContainer");
   if (!container) return;
   container.innerHTML = "";
 
-  // Si hay avatarUrl y NO es la default ni vacío, muestra imagen
+  // Si hay avatarUrl y NO es la default ni vacio, muestra imagen
   if (
     usuario.avatarUrl &&
     usuario.avatarUrl.trim() !== "" &&
@@ -103,17 +143,35 @@ function renderAvatar(usuario) {
     img.className = "avatar-img";
     container.appendChild(img);
   } else {
-    // Si no hay imagen, círculo con iniciales
-    const nombre = (usuario.nombre || "").trim();
-    const apellido = (usuario.apellido || "").trim();
-    const iniciales = (nombre.charAt(0) || "") + (apellido.charAt(0) || "");
+    // Si no hay imagen, circulo con iniciales
+    const nombre = (
+      usuario.nombre && usuario.nombre !== "undefined" ? usuario.nombre : ""
+    ).trim();
+    const apellido = (
+      usuario.apellido && usuario.apellido !== "undefined"
+        ? usuario.apellido
+        : ""
+    ).trim();
+    const email = usuario.email || "";
+
+    let iniciales = "";
+    if (nombre && apellido) {
+      iniciales = (nombre.charAt(0) + apellido.charAt(0)).toUpperCase();
+    } else if (nombre) {
+      iniciales = nombre.charAt(0).toUpperCase();
+    } else if (email) {
+      iniciales = email.charAt(0).toUpperCase();
+    } else {
+      iniciales = "U";
+    }
+
     const circle = document.createElement("div");
     circle.className = "avatar-iniciales";
-    circle.textContent = iniciales.toUpperCase();
+    circle.textContent = iniciales;
     container.appendChild(circle);
   }
 
-  // Botón de cambiar avatar
+  // Boton de cambiar avatar
   const btn = document.createElement("button");
   btn.className = "change-avatar-btn";
   btn.type = "button";
@@ -129,22 +187,25 @@ function renderAvatar(usuario) {
     if (avatarInput) avatarInput.click();
   };
 
-  // Subida de imagen y validación
+  // Subida de imagen y validacion
   if (avatarInput) {
     avatarInput.onchange = async function () {
       avatarError.textContent = "";
       const file = avatarInput.files && avatarInput.files[0];
       if (!file) return;
+
       if (!file.type.match(/^image\/(png|jpeg)$/)) {
-        avatarError.textContent = "Solo se permiten imágenes PNG o JPG.";
+        avatarError.textContent = "Solo se permiten imagenes PNG o JPG.";
         avatarInput.value = "";
         return;
       }
+
       if (file.size > 2 * 1024 * 1024) {
         avatarError.textContent = "La imagen no debe superar 2MB.";
         avatarInput.value = "";
         return;
       }
+
       const fd = new FormData();
       fd.append("avatar", file);
 
@@ -156,18 +217,27 @@ function renderAvatar(usuario) {
           body: fd,
           cache: "no-store",
         });
+
         const data = await res.json();
         if (!res.ok) {
           throw new Error(data.mensaje || "Error al subir el avatar.");
         }
+
         // Actualiza localStorage y recarga avatar
         if (data.usuario) {
           localStorage.setItem("usuario", JSON.stringify(data.usuario));
           renderAvatar(data.usuario);
+
+          // Actualizar header tambien
+          if (typeof window.actualizarDatosUsuario === "function") {
+            window.actualizarDatosUsuario(data.usuario);
+          }
         }
+
         avatarInput.value = "";
         avatarError.textContent = "";
       } catch (err) {
+        console.error("Error subiendo avatar:", err);
         avatarError.textContent =
           err.message || "Error al subir la imagen. Intenta de nuevo.";
       }
@@ -175,15 +245,18 @@ function renderAvatar(usuario) {
   }
 }
 
-// Mostrar/ocultar número de cuenta
+// Mostrar/ocultar numero de cuenta
 document.addEventListener("click", function (e) {
   const btn = e.target.closest(".btn-show-account");
   if (!btn) return;
+
   const accountEl = btn.closest(".account-number");
   if (!accountEl) return;
+
   const span = accountEl.querySelector(".account-value");
   const real = accountEl.getAttribute("data-number") || "";
   if (!span) return;
+
   const isMasked = span.textContent.includes("•");
   if (isMasked) {
     span.textContent = real;
@@ -205,10 +278,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const errorNombre = document.getElementById("errorNombre");
   const errorApellido = document.getElementById("errorApellido");
   const modalErrorGeneral = document.getElementById("modalErrorGeneral");
-  const campoNombre = document.getElementById("firstName");
-  const campoApellido = document.getElementById("lastName");
-  const userName = document.getElementById("userName");
-  const userDisplayName = document.getElementById("userDisplayName");
   let usuario = null;
 
   if (!modal || !btnAbrir || !btnCancelar || !form) return;
@@ -216,9 +285,24 @@ document.addEventListener("DOMContentLoaded", function () {
   // Abre la modal con los datos actuales
   btnAbrir.addEventListener("click", function (e) {
     e.preventDefault();
-    usuario = JSON.parse(localStorage.getItem("usuario") || "{}");
-    inputNombre.value = usuario && usuario.nombre ? usuario.nombre : "";
-    inputApellido.value = usuario && usuario.apellido ? usuario.apellido : "";
+
+    try {
+      usuario = JSON.parse(localStorage.getItem("usuario") || "{}");
+    } catch (error) {
+      console.error("Error parsing user data:", error);
+      usuario = {};
+    }
+
+    // Manejar valores undefined
+    const nombre =
+      usuario.nombre && usuario.nombre !== "undefined" ? usuario.nombre : "";
+    const apellido =
+      usuario.apellido && usuario.apellido !== "undefined"
+        ? usuario.apellido
+        : "";
+
+    inputNombre.value = nombre;
+    inputApellido.value = apellido;
     errorNombre.textContent = "";
     errorApellido.textContent = "";
     modalErrorGeneral.textContent = "";
@@ -230,6 +314,7 @@ document.addEventListener("DOMContentLoaded", function () {
   btnCancelar.addEventListener("click", function () {
     modal.style.display = "none";
   });
+
   window.addEventListener("click", function (e) {
     if (e.target === modal) modal.style.display = "none";
   });
@@ -237,28 +322,32 @@ document.addEventListener("DOMContentLoaded", function () {
   function validarNombre(valor) {
     if (!valor.trim()) return "El nombre es obligatorio.";
     if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s'-]{1,80}$/.test(valor.trim()))
-      return "Nombre solo puede tener letras y máximo 80 caracteres.";
+      return "Nombre solo puede tener letras y maximo 80 caracteres.";
     return "";
   }
+
   function validarApellido(valor) {
     if (!valor.trim()) return "El apellido es obligatorio.";
     if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s'-]{1,80}$/.test(valor.trim()))
-      return "Apellido solo puede tener letras y máximo 80 caracteres.";
+      return "Apellido solo puede tener letras y maximo 80 caracteres.";
     return "";
   }
 
   // Guardar datos editados
   form.addEventListener("submit", async function (e) {
     e.preventDefault();
+
     errorNombre.textContent = "";
     errorApellido.textContent = "";
     modalErrorGeneral.textContent = "";
+
     const nombre = inputNombre.value.trim();
     const apellido = inputApellido.value.trim();
     let valido = true;
 
     const errN = validarNombre(nombre);
     const errA = validarApellido(apellido);
+
     if (errN) {
       errorNombre.textContent = errN;
       valido = false;
@@ -279,26 +368,34 @@ document.addEventListener("DOMContentLoaded", function () {
         },
         body: JSON.stringify({ nombre, apellido }),
       });
+
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.mensaje || "Error al actualizar");
       }
+
       // Backend debe retornar el usuario actualizado
       const updatedUser = await res.json();
+
       // Actualiza localStorage
       localStorage.setItem("usuario", JSON.stringify(updatedUser));
+
       // Actualiza los campos en pantalla
-      if (campoNombre) campoNombre.value = updatedUser.nombre;
-      if (campoApellido) campoApellido.value = updatedUser.apellido;
-      if (userName)
-        userName.textContent = updatedUser.nombre + " " + updatedUser.apellido;
-      if (userDisplayName)
-        userDisplayName.textContent =
-          updatedUser.nombre + " " + updatedUser.apellido;
+      actualizarCamposPerfil(updatedUser);
+
       // Actualiza avatar si cambian iniciales
       renderAvatar(updatedUser);
+
+      // Refrescar interfaz del header
+      if (typeof window.refrescarInterfazUsuario === "function") {
+        window.refrescarInterfazUsuario();
+      }
+
       modal.style.display = "none";
+
+      console.log("Perfil actualizado exitosamente:", updatedUser);
     } catch (err) {
+      console.error("Error actualizando perfil:", err);
       modalErrorGeneral.textContent = err.message;
     }
   });

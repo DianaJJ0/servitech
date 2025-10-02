@@ -3,65 +3,105 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>Mis Asesorías | Servitech</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mis Asesorías - ServiTech</title>
   <link rel="stylesheet" href="/assets/css/base.css">
-  <link rel="stylesheet" href="/assets/css/componentes.css">
   <link rel="stylesheet" href="/assets/css/mis-asesorias.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
 <body>
+  <!-- Header -->
   <%- include('componentes/header') %>
-    <main class="container">
-      <h1 class="mb-4" style="margin-bottom:2.5rem;">Mis Asesorías</h1>
+
+    <div class="container">
+      <div class="page-header">
+        <h1>Mis Asesorías</h1>
+        <p class="subtitle">
+          <% if (rolUsuario==='experto' ) { %>
+            Gestiona las solicitudes de asesoría que recibes
+            <% } else { %>
+              Consulta y gestiona tus asesorías agendadas
+              <% } %>
+        </p>
+      </div>
+
+      <!-- Loading state inicial -->
       <div class="asesorias-list">
-        <!-- Las tarjetas de asesoría se llenan dinámicamente por JS -->
-      </div>
-
-      <!-- Modal de mensajes -->
-      <div id="mensajeModal" class="modal" style="display:none;">
-        <div class="modal-content">
-          <span class="close-modal" onclick="cerrarMensajes()">&times;</span>
-          <h3>Enviar mensaje a <span id="expertoNombre"></span></h3>
-          <div id="mensajesHistorial" class="mensajes-historial">
-            <div class="mensaje mensaje-experto">
-              <div class="mensaje-avatar"><img
-                  src="https://ui-avatars.com/api/?name=Experto&background=3a8eff&color=fff" alt="Experto"></div>
-              <div class="mensaje-texto">Hola, ¿en qué puedo ayudarte?</div>
-            </div>
-            <div class="mensaje mensaje-usuario">
-              <div class="mensaje-avatar"><img
-                  src="https://ui-avatars.com/api/?name=Usuario&background=ffd700&color=222" alt="Usuario"></div>
-              <div class="mensaje-texto">Tengo una duda sobre la asesoría.</div>
-            </div>
-          </div>
-          <form id="formMensaje" class="mensaje-form">
-            <div class="form-group">
-              <textarea class="form-control" id="mensajeTexto" rows="3" placeholder="Escribe tu mensaje..."></textarea>
-            </div>
-            <button type="submit" class="btn btn-primary">Enviar</button>
-          </form>
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Cargando asesorías...</p>
         </div>
       </div>
 
-      <!-- Modal de detalles -->
-      <div id="detalleModal" class="modal" style="display:none;">
-        <div class="modal-content">
-          <span class="close-modal" onclick="cerrarDetalles()">&times;</span>
-          <h3>Detalle de la Asesoría</h3>
-          <div id="detalleContenido">
-            <!-- Se llena dinámicamente -->
-          </div>
+      <!-- Información de ayuda -->
+      <div class="help-section">
+        <h3><i class="fas fa-question-circle"></i> ¿Necesitas ayuda?</h3>
+        <div class="help-grid">
+          <% if (rolUsuario==='experto' ) { %>
+            <div class="help-item">
+              <h4>Solicitudes pendientes</h4>
+              <p>Revisa y responde a las nuevas solicitudes de asesoría. Tienes 24 horas para aceptar o rechazar.</p>
+            </div>
+            <div class="help-item">
+              <h4>Asesorías confirmadas</h4>
+              <p>Contacta directamente con tus clientes para coordinar los detalles de la asesoría.</p>
+            </div>
+            <div class="help-item">
+              <h4>Pagos</h4>
+              <p>Los pagos se liberan automáticamente cuando el cliente confirma que la asesoría fue exitosa.</p>
+            </div>
+            <% } else { %>
+              <div class="help-item">
+                <h4>Estados de asesoría</h4>
+                <p>Pendiente: El experto debe aceptar. Confirmada: Lista para realizarse. Completada: Finalizada
+                  exitosamente.</p>
+              </div>
+              <div class="help-item">
+                <h4>Cancelaciones</h4>
+                <p>Puedes cancelar asesorías confirmadas con 80% de reembolso. El 20% va como compensación al experto.
+                </p>
+              </div>
+              <div class="help-item">
+                <h4>Contacto</h4>
+                <p>Una vez confirmada la asesoría, recibirás los datos de contacto del experto por email.</p>
+              </div>
+              <% } %>
         </div>
       </div>
-    </main>
-    <%- include('componentes/footer') %>
-      <script src="/assets/js/common.js"></script>
-      <script type="application/json" id="initial-misAsesorias">
-    {
-      "usuarioId": <%= JSON.stringify(usuarioId || null) %>,
-      "rolUsuario": <%= JSON.stringify(rolUsuario || 'cliente') %>
-    }
-  </script>
+    </div>
+
+    <!-- Modal de detalles -->
+    <div id="detalleModal" class="modal" style="display: none;">
+      <div class="modal-content">
+        <span class="close-modal" onclick="cerrarDetalles()">&times;</span>
+        <div id="detalleContenido"></div>
+      </div>
+    </div>
+
+    <!-- Modal de mensajes (compatibilidad) -->
+    <div id="mensajeModal" class="modal" style="display: none;">
+      <div class="modal-content">
+        <span class="close-modal" onclick="cerrarMensajes()">&times;</span>
+        <h3>Contactar experto: <span id="expertoNombre"></span></h3>
+        <div class="mensajes-historial">
+          <p>Sistema de mensajes en desarrollo. Por ahora, contacta directamente por email.</p>
+        </div>
+        <div class="mensaje-form">
+          <textarea class="form-control" placeholder="Escribe tu mensaje aquí..." disabled></textarea>
+          <button class="btn btn-primary" disabled>Enviar mensaje (próximamente)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <%- include('components/footer') %>
+
+      <!-- Hidden data for JavaScript -->
+      <script type="application/json"
+        id="userData"><%- JSON.stringify({usuarioId: usuarioId, rolUsuario: rolUsuario}) %></script>
+
+      <!-- Script file -->
       <script src="/assets/js/misAsesorias.js"></script>
 </body>
 

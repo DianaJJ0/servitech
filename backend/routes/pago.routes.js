@@ -1,6 +1,6 @@
 /**
  * RUTAS DE PAGO
- * Endpoints para registrar y consultar pagos.
+ * Endpoints para registrar y consultar pagos con MercadoPago integrado.
  */
 const express = require("express");
 const router = express.Router();
@@ -15,12 +15,91 @@ const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
  *     description: Gestión de pagos y transacciones
  */
 
+// Rutas públicas (webhooks)
 /**
- * @openapi
- * tags:
- *   - name: Pagos
- *     description: Gestión de pagos
+ * @swagger
+ * /api/pagos/webhook:
+ *   post:
+ *     summary: Webhook de Mercado Pago
+ *     tags: [Pagos]
+ *     responses:
+ *       200:
+ *         description: Webhook procesado
  */
+router.post("/webhook", pagoController.webhookMercadoPago);
+
+// Rutas protegidas
+/**
+ * @swagger
+ * /api/pagos/crear-preferencia:
+ *   post:
+ *     summary: Crear preferencia de pago para asesoría
+ *     tags: [Pagos]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - titulo
+ *               - expertoEmail
+ *               - fechaHoraInicio
+ *               - duracionMinutos
+ *             properties:
+ *               titulo:
+ *                 type: string
+ *               expertoEmail:
+ *                 type: string
+ *               fechaHoraInicio:
+ *                 type: string
+ *               duracionMinutos:
+ *                 type: number
+ *     responses:
+ *       201:
+ *         description: Preferencia creada
+ */
+router.post(
+  "/crear-preferencia",
+  authMiddleware.autenticar,
+  pagoController.crearPreferenciaPago
+);
+
+/**
+ * @swagger
+ * /api/pagos/{id}/reembolsar:
+ *   post:
+ *     summary: Procesar reembolso
+ *     tags: [Pagos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               porcentaje:
+ *                 type: number
+ *               motivo:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Reembolso procesado
+ */
+router.post(
+  "/:id/reembolsar",
+  authMiddleware.autenticar,
+  pagoController.procesarReembolso
+);
 
 /**
  * @swagger
@@ -58,32 +137,8 @@ const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
  *     responses:
  *       201:
  *         description: Pago registrado
- *       400:
- *         description: Datos inválidos
- *       409:
- *         description: Transacción duplicada
  */
 router.post("/", authMiddleware.autenticar, pagoController.crearPago);
-
-/**
- * @openapi
- * /api/pagos:
- *   post:
- *     tags: [Pagos]
- *     summary: Procesar pago (requiere auth)
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/Pago'
- *     responses:
- *       200:
- *         description: Pago procesado
- *       401:
- *         description: No autenticado
- */
 
 /**
  * @swagger
@@ -122,8 +177,6 @@ router.get(
  *     responses:
  *       200:
  *         description: Datos del pago
- *       404:
- *         description: Pago no encontrado
  */
 router.get(
   "/:id",
@@ -158,14 +211,10 @@ router.get(
  *             properties:
  *               estado:
  *                 type: string
- *                 enum: [pendiente, retenido, liberado, reembolsado, fallido]
+ *                 enum: [pendiente, procesando, retenido, liberado, reembolsado-total, reembolsado-parcial, fallido]
  *     responses:
  *       200:
  *         description: Estado actualizado
- *       400:
- *         description: Estado inválido
- *       404:
- *         description: Pago no encontrado
  */
 router.put(
   "/:id/estado",
