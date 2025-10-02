@@ -39,6 +39,24 @@ router.post("/", authMiddleware.autenticar, asesoriaController.crearAsesoria);
 
 /**
  * @openapi
+ * /api/asesorias/mias:
+ *   get:
+ *     summary: Obtener asesorías del usuario autenticado
+ *     tags: [Asesorías]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de asesorías del usuario
+ */
+router.get(
+  "/mias",
+  authMiddleware.autenticar,
+  asesoriaController.obtenerMisAsesorias
+);
+
+/**
+ * @openapi
  * /api/asesorias/{id}/aceptar:
  *   put:
  *     summary: Aceptar asesoría (experto autenticado)
@@ -85,6 +103,55 @@ router.put(
   authMiddleware.autenticar,
   authMiddleware.asegurarRol("experto"),
   asesoriaController.rechazarAsesoria
+);
+
+/**
+ * @openapi
+ * /api/asesorias/{id}/cancelar-cliente:
+ *   put:
+ *     summary: Cancelar asesoría por el cliente
+ *     tags: [Asesorías]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Asesoría cancelada
+ */
+router.put(
+  "/:id/cancelar-cliente",
+  authMiddleware.autenticar,
+  asesoriaController.cancelarAsesoriaPorCliente
+);
+
+/**
+ * @openapi
+ * /api/asesorias/{id}/cancelar-experto:
+ *   put:
+ *     summary: Cancelar asesoría por el experto
+ *     tags: [Asesorías]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Asesoría cancelada
+ */
+router.put(
+  "/:id/cancelar-experto",
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("experto"),
+  asesoriaController.cancelarAsesoriaPorExperto
 );
 
 /**
@@ -175,14 +242,25 @@ router.get(
  *       200:
  *         description: Lista de asesorías del experto
  */
-router.get(
-  "/experto/:email",
-  apiKeyMiddleware,
-  authMiddleware.autenticar,
-  authMiddleware.asegurarRol("admin"),
-  asesoriaController.listarPorExperto
-);
+// Obtener asesorías de un experto por email
+router.get("/experto/:email", async (req, res) => {
+  try {
+    const expertoEmail = req.params.email;
 
+    const asesorias = await Asesoria.find({
+      "experto.email": expertoEmail,
+      estado: { $in: ["pendiente-aceptacion", "confirmada"] }
+    }).sort({ fechaHoraInicio: 1 });
+
+    res.json(asesorias);
+  } catch (error) {
+    console.error("Error obteniendo asesorías del experto:", error);
+    res.status(500).json({
+      mensaje: "Error al obtener asesorías",
+      error: error.message
+    });
+  }
+});
 /**
  * @openapi
  * /api/asesorias/{id}:

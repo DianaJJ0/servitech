@@ -15,237 +15,201 @@
 <body>
   <%- include('componentes/header') %>
 
-    <% // Helper local para formatear precio sin depender de locales del sistema %>
-      <% function formatPrice(n) {
-        if (n === undefined || n === null) return null;
-        var num = Number(n);
-        if (Number.isNaN(num)) return null;
-        try {
-          return Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-        } catch (e) {
-          return String(n);
-        }
-      } %>
+    <% function formatPrice(n) { if (n===undefined || n===null) return null; var num=Number(n); if (Number.isNaN(num))
+      return null; try { return Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.' ); } catch (e) { return
+      String(n); } } %>
 
-        <main class="container">
+      <main class="container">
 
-          <!-- Sección principal con título y subtítulo -->
-          <section class="hero-section">
-            <h1 class="hero-title">Encuentra tu Experto</h1>
-            <p class="hero-subtitle">Filtra entre nuestros profesionales certificados para encontrar el que mejor se
-              adapte
-              a tus necesidades</p>
-          </section>
+        <section class="hero-section">
+          <h1 class="hero-title">Encuentra tu Experto</h1>
+          <p class="hero-subtitle">Filtra entre nuestros profesionales certificados para encontrar el que mejor se
+            adapte a tus necesidades</p>
+        </section>
 
-          <div class="expert-layout">
-            <aside class="filter-sidebar">
-              <!-- Formulario de filtros y ordenamiento -->
-              <div class="filter-card">
-                <h3 class="filter-title">Filtrar Expertos</h3>
-                <form class="filter-form" id="filterForm">
+        <div class="expert-layout">
+          <aside class="filter-sidebar">
+            <div class="filter-card">
+              <h3 class="filter-title">Filtrar Expertos</h3>
+              <form class="filter-form" id="filterForm">
 
-                  <div class="filter-group">
-                    <label for="categoria-filter" class="filter-label">Categoría</label>
-                    <!-- El atributo 'name' es 'categoria' -->
-                    <select id="categoria-filter" name="categoria" class="filter-input">
-                      <option value="">Todas las categorías</option>
-                      <% if (categorias && categorias.length> 0) { %>
-                        <% categorias.forEach(function(cat) { %>
-                          <option value="<%= cat.nombre %>">
-                            <%= cat.nombre %>
-                          </option>
-                          <% }); %>
+                <div class="filter-group">
+                  <label for="categoria-filter" class="filter-label">Categoria</label>
+                  <select id="categoria-filter" name="categoria" class="filter-input">
+                    <option value="">Todas las categorias</option>
+                    <% if (categorias && categorias.length> 0) { %>
+                      <% categorias.forEach(function(cat) { %>
+                        <option value="<%= cat.nombre %>">
+                          <%= cat.nombre %>
+                        </option>
+                        <% }); %>
+                          <% } %>
+                  </select>
+                </div>
+
+                <div class="filter-actions">
+                  <button type="submit" class="btn btn-primary btn-apply">
+                    <i class="fas fa-filter"></i> Aplicar filtros
+                  </button>
+                  <a href="/expertos" class="btn btn-secondary btn-reset">
+                    <i class="fas fa-undo"></i> Limpiar
+                  </a>
+                </div>
+              </form>
+            </div>
+          </aside>
+
+          <section class="expert-list-section">
+
+            <div class="expert-list-header">
+              <h2 class="expert-list-title">Expertos disponibles <span class="expert-count">(<%= total %>
+                    resultados)</span></h2>
+            </div>
+
+            <div class="expert-grid">
+              <% if (expertos && expertos.length> 0) { %>
+                <% (expertos.slice ? expertos.slice(0, limit) : expertos).forEach(function(experto) { %>
+                  <article class="expert-card">
+
+                    <div class="expert-card-header">
+                      <img
+                        src="https://ui-avatars.com/api/?name=<%= experto.nombre %>+<%= experto.apellido %>&background=3a8eff&color=fff&size=96"
+                        alt="Foto de <%= experto.nombre %>" class="expert-photo">
+
+                      <div class="expert-info">
+                        <h3 class="expert-name">
+                          <%= experto.nombre %>
+                            <%= experto.apellido %>
+                        </h3>
+                      </div>
+                    </div>
+
+                    <div class="expert-card-body">
+
+                      <div class="expert-bio-block">
+                        <div class="tag-group-title">Biografia profesional</div>
+                        <% if (experto.infoExperto && experto.infoExperto.descripcion) { %>
+                          <p class="expert-description">
+                            <%= experto.infoExperto.descripcion.length> 300 ?
+                              (experto.infoExperto.descripcion.substring(0, 300) + '...') :
+                              experto.infoExperto.descripcion %>
+                          </p>
+                          <% } else { %>
+                            <p class="expert-description placeholder">No hay biografia publica</p>
                             <% } %>
-                    </select>
-                  </div>
-
-                  <div class="filter-actions">
-                    <button type="submit" class="btn btn-primary btn-apply">
-                      <i class="fas fa-filter"></i> Aplicar filtros
-                    </button>
-                    <a href="/expertos" class="btn btn-secondary btn-reset">
-                      <i class="fas fa-undo"></i> Limpiar
-                    </a>
-                  </div>
-                </form>
-              </div>
-            </aside>
-
-            <!-- Sección principal con listado de expertos -->
-            <section class="expert-list-section">
-
-              <!--Expertos disponibles-->
-              <div class="expert-list-header">
-                <h2 class="expert-list-title">Expertos disponibles <span class="expert-count">(<%= total %>
-                      resultados)</span></h2>
-              </div>
-
-              <!-- Listado de expertos en formato grid -->
-              <div class="expert-grid">
-                <% if (expertos && expertos.length> 0) { %>
-                  <% (expertos.slice ? expertos.slice(0, limit) : expertos).forEach(function(experto) { %>
-                    <article class="expert-card">
-
-                      <!-- Encabezado de la tarjeta con foto y nombre -->
-                      <div class="expert-card-header">
-                        <img
-                          src="https://ui-avatars.com/api/?name=<%= experto.nombre %>+<%= experto.apellido %>&background=3a8eff&color=fff&size=96"
-                          alt="Foto de <%= experto.nombre %>" class="expert-photo">
-
-                        <!-- Información básica: nombre -->
-                        <div class="expert-info">
-                          <h3 class="expert-name">
-                            <%= experto.nombre %>
-                              <%= experto.apellido %>
-                          </h3>
-                        </div>
                       </div>
 
-                      <!-- Cuerpo de la tarjeta con biografía y etiquetas -->
-                      <div class="expert-card-body">
-
-                        <!-- Biografía profesional -->
-                        <div class="expert-bio-block">
-                          <div class="tag-group-title">Biografía profesional</div>
-                          <% if (experto.infoExperto && experto.infoExperto.descripcion) { %>
-                            <p class="expert-description">
-                              <%= experto.infoExperto.descripcion.length> 300 ?
-                                (experto.infoExperto.descripcion.substring(0, 300) + '...') :
-                                experto.infoExperto.descripcion %>
-                            </p>
-                            <% } else { %>
-                              <p class="expert-description placeholder">No hay biografía pública</p>
-                              <% } %>
-                        </div>
-
-                        <!-- Etiquetas de categorías -->
-                        <div class="expert-tags">
-                          <% if (experto.infoExperto && experto.infoExperto.categorias &&
-                            experto.infoExperto.categorias.length>0) { %>
-                            <div class="tag-group tag-group-categories">
-                              <div class="tag-group-title">Categorías</div>
-                              <div class="tag-list">
-                                <% experto.infoExperto.categorias.slice(0,6).forEach(function(cat){ %>
-                                  <span class="category-tag">
-                                    <%= (cat && cat.nombre) ? cat.nombre : cat %>
-                                  </span>
-                                  <% }); %>
-                              </div>
+                      <div class="expert-tags">
+                        <% if (experto.infoExperto && experto.infoExperto.categorias &&
+                          experto.infoExperto.categorias.length> 0) { %>
+                          <div class="tag-group tag-group-categories">
+                            <div class="tag-group-title">Categorias</div>
+                            <div class="tag-list">
+                              <% experto.infoExperto.categorias.slice(0,6).forEach(function(cat){ %>
+                                <span class="category-tag">
+                                  <%= (cat && cat.nombre) ? cat.nombre : cat %>
+                                </span>
+                                <% }); %>
                             </div>
-                            <% } %>
-                        </div>
-
-                        <!-- Información de contacto y disponibilidad -->
-                        <% if (experto.infoExperto && (experto.infoExperto.telefonoContacto ||
-                          (Array.isArray(experto.infoExperto.diasDisponibles) &&
-                          experto.infoExperto.diasDisponibles.length>0))) { %>
-                          <div class="expert-contact" style="margin-top:0.5rem;color:var(--text-secondary);">
-                            <% if (experto.infoExperto.telefonoContacto) { %>
-                              <small>📞 <%= experto.infoExperto.telefonoContacto %></small>
-                              <% } %>
-                                <% if (Array.isArray(experto.infoExperto.diasDisponibles) &&
-                                  experto.infoExperto.diasDisponibles.length>0) { %>
-                                  <small style="margin-left:0.5rem;">🗓 <%= experto.infoExperto.diasDisponibles.join(', ') %></small>
-                <% } %>
-              </div>
-            <% } %>
+                          </div>
+                          <% } %>
                       </div>
 
-                       <!-- Pie de la tarjeta con precio y botón -->
-                      <div class="expert-card-footer">
-                        <% if (experto.infoExperto || experto) { %>
-                          <% // Buscar precio por hora en varios lugares posibles (implementación segura) %>
-                          <%
-                            var rawPrecio = null;
-                            try {
-                              if (experto && experto.infoExperto && typeof experto.infoExperto.precioPorHora !== 'undefined') {
-                                rawPrecio = experto.infoExperto.precioPorHora;
-                              } else if (typeof experto.precioPorHora !== 'undefined') {
-                                rawPrecio = experto.precioPorHora;
-                              } else if (typeof experto.precio !== 'undefined') {
-                                rawPrecio = experto.precio;
-                              }
-                            } catch (e) {
-                              rawPrecio = null;
-                            }
-                            var _fp = formatPrice(rawPrecio);
-                          %>
-                          <% if (_fp) { %>
-                            <div class="expert-price">$<%= _fp %>/h</div>
-                            <% } else { %>
-                              <div class="expert-price">Consultar precio</div>
-                              <% } %>
-                                <% } else { %>
-                                  <div class="expert-price">Consultar precio</div>
-                                  <% } %>
-                                    <a href="/expertos/<%= experto._id %>/calendario"
-                                      class="btn btn-primary btn-profile"><i
-                                        class="fas fa-calendar-alt"></i> Ver disponibilidad</a>
-                          </div>
+                      <% if (experto.infoExperto && (experto.infoExperto.telefonoContacto ||
+                        (Array.isArray(experto.infoExperto.diasDisponibles) &&
+                        experto.infoExperto.diasDisponibles.length> 0))) { %>
+                        <div class="expert-contact" style="margin-top:0.5rem;color:var(--text-secondary);">
+                          <% if (experto.infoExperto.telefonoContacto) { %>
+                            <small>Telefono: <%= experto.infoExperto.telefonoContacto %></small>
+                            <% } %>
+                              <% if (Array.isArray(experto.infoExperto.diasDisponibles) &&
+                                experto.infoExperto.diasDisponibles.length> 0) { %>
+                                <small style="margin-left:0.5rem;">Disponible: <%=
+                                    experto.infoExperto.diasDisponibles.join(', ') %></small>
+                      <% } %>
+                    </div>
+                  <% } %>
+                </div>
 
-                    </article>
-                    <% }); %>
-                      <% } else { %>
-                        <div class="no-experts-found">
-                          <h3>No se encontraron expertos</h3>
-                          <p>No hay expertos que coincidan con tus criterios de búsqueda. Intenta con otros filtros.</p>
+                <div class="expert-card-footer">
+                  <%
+                  var rawPrecio = null;
+                  try {
+                    if (experto && experto.infoExperto && typeof experto.infoExperto.precioPorHora !== ' undefined') {
+                                    rawPrecio=experto.infoExperto.precioPorHora; } else if (typeof experto.precioPorHora
+                                    !=='undefined' ) { rawPrecio=experto.precioPorHora; } else if (typeof experto.precio
+                                    !=='undefined' ) { rawPrecio=experto.precio; } } catch (e) { rawPrecio=null; } var
+                                    _fp=formatPrice(rawPrecio); %>
+
+                                    <% if (_fp) { %>
+                                      <div class="expert-price">$<%= _fp %>/h</div>
+                                      <% } else { %>
+                                        <div class="expert-price">Consultar precio</div>
+                                        <% } %>
+
+                                          <a href="/expertos/<%= encodeURIComponent(experto.email) %>/calendario"
+                                            class="btn btn-primary btn-profile">
+                                            <i class="fas fa-calendar-alt"></i> Ver disponibilidad
+                                          </a>
                         </div>
-                        <% } %>
-              </div>
 
-              <!-- PAGINACIÓN dinámica: debe ir justo después del listado (expert-grid) y dentro de la sección .expert-list-section -->
-              <div class="pagination" role="navigation" aria-label="Paginación de expertos">
-                <% /* Información: mostrando X-Y de total */ %>
-                  <% var showingStart=(page - 1) * limit + 1; %>
-                    <% var showingEnd=Math.min(total, page * limit); %>
-                      <span class="pag-info">Mostrando <%= showingStart %>-<%= showingEnd %> de <%= total %>
-                              expertos</span>
-                      <div class="pag-controls" aria-hidden="false">
-                        <% // Botón anterior (prev) - sólo habilitado si page>1 %>
-                          <button class="pag-btn prev <%= page<=1 ? 'disabled' : '' %>" aria-disabled="<%= page<=1 %>">
-                            <i class="fas fa-chevron-left" aria-hidden="true"></i>
-                          </button>
+                  </article>
+                  <% }); %>
+                    <% } else { %>
+                      <div class="no-experts-found">
+                        <h3>No se encontraron expertos</h3>
+                        <p>No hay expertos que coincidan con tus criterios de busqueda. Intenta con otros filtros.</p>
+                      </div>
+                      <% } %>
+            </div>
 
-                          <% // Generar rango de páginas compacto: mostrar 1, previo, +/-2, último %>
-                            <% var startPage=Math.max(1, page - 2); %>
-                              <% var endPage=Math.min(totalPages, page + 2); %>
-                                <% if (startPage> 1) { %>
-                                  <button class="pag-btn page">1</button>
-                                  <% if (startPage> 2) { %>
-                                    <span class="pag-ellipsis">…</span>
-                                    <% } %>
-                                      <% } %>
+            <div class="pagination" role="navigation" aria-label="Paginacion de expertos">
+              <% var showingStart=(page - 1) * limit + 1; %>
+                <% var showingEnd=Math.min(total, page * limit); %>
+                  <span class="pag-info">Mostrando <%= showingStart %>-<%= showingEnd %> de <%= total %>
+                          expertos</span>
+                  <div class="pag-controls" aria-hidden="false">
+                    <button class="pag-btn prev <%= page <= 1 ? 'disabled' : '' %>" aria-disabled="<%= page <= 1 %>">
+                      <i class="fas fa-chevron-left" aria-hidden="true"></i>
+                    </button>
 
-                                        <% for (var p=startPage; p <=endPage; p++) { %>
-                                          <button class="pag-btn page <%= p===page ? 'active' : '' %>" <%=p===page
-                                            ? 'aria-current="page"' : '' %>><%= p %></button>
+                    <% var startPage=Math.max(1, page - 2); %>
+                      <% var endPage=Math.min(totalPages, page + 2); %>
+                        <% if (startPage> 1) { %>
+                          <button class="pag-btn page">1</button>
+                          <% if (startPage> 2) { %>
+                            <span class="pag-ellipsis">...</span>
+                            <% } %>
+                              <% } %>
+
+                                <% for (var p=startPage; p <=endPage; p++) { %>
+                                  <button class="pag-btn page <%= p === page ? 'active' : '' %>" <%=p===page
+                                    ? 'aria-current="page"' : '' %>><%= p %></button>
+                                  <% } %>
+
+                                    <% if (endPage < totalPages) { %>
+                                      <% if (endPage < totalPages - 1) { %>
+                                        <span class="pag-ellipsis">...</span>
+                                        <% } %>
+                                          <button class="pag-btn page">
+                                            <%= totalPages %>
+                                          </button>
                                           <% } %>
 
-                                            <% if (endPage < totalPages) { %>
-                                              <% if (endPage < totalPages - 1) { %>
-                                                <span class="pag-ellipsis">…</span>
-                                                <% } %>
-                                                  <button class="pag-btn page">
-                                                    <%= totalPages %>
-                                                  </button>
-                                                  <% } %>
+                                            <button class="pag-btn next <%= page >= totalPages ? 'disabled' : '' %>"
+                                              aria-disabled="<%= page >= totalPages %>">
+                                              <i class="fas fa-chevron-right" aria-hidden="true"></i>
+                                            </button>
+                  </div>
+            </div>
 
-                                                    <% // Botón siguiente (next) - sólo habilitado si page<totalPages %>
-                                                      <button
-                                                        class="pag-btn next <%= page>=totalPages ? 'disabled' : '' %>"
-                                                        aria-disabled="<%= page>=totalPages %>">
-                                                        <i class="fas fa-chevron-right" aria-hidden="true"></i>
-                                                      </button>
-                      </div>
-              </div>
+          </section>
+        </div>
 
-            </section>
-          </div>
-
-        </main>
-        <%- include('componentes/footer') %>
-          <script src="/assets/js/common.js"></script>
-          <script src="/assets/js/expertos.js"></script>
+      </main>
+      <%- include('componentes/footer') %>
+        <script src="/assets/js/common.js"></script>
+        <script src="/assets/js/expertos.js"></script>
 
 </body>
 

@@ -1,207 +1,161 @@
 <!DOCTYPE html>
-<!-- Declaración del tipo de documento HTML5 -->
-
 <html lang="es">
-<!-- Inicio del documento HTML en español -->
 
 <head>
-  <!-- Metadatos y enlaces a recursos externos -->
-  <meta charset="UTF-8" />
-  <!-- Define la codificación de caracteres como UTF-8 -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Permite diseño responsivo en dispositivos móviles -->
-  <title>Confirmación de Asesoría | ServiTech</title>
-  <!-- Título de la pestaña del navegador -->
-  <link rel="stylesheet" href="/assets/css/base.css" />
-  <!-- Hoja de estilos base para la aplicación -->
-  <link rel="stylesheet" href="/assets/css/confirmacion-asesoria.css" />
-  <!-- Estilos específicos para la página de confirmación de asesoría -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <!-- Iconos de Font Awesome para botones y elementos visuales -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <!-- Fuente Inter para mejorar la tipografía -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirmación de Asesoría - ServiTech</title>
+  <link rel="stylesheet" href="/assets/css/base.css">
+  <link rel="stylesheet" href="/assets/css/confirmacion.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
 <body>
-  <!-- Cuerpo principal de la página -->
-  <div class="container">
-    <!-- Contenedor principal de la página -->
-    <div class="confirmation-container">
-      <!-- Enlace para volver al inicio o al dashboard -->
-      <a href="/" class="back-link"><i class="fas fa-home"></i> Ir al inicio</a>
+  <!-- Header -->
+  <%- include('componentes/header') %>
 
-      <div class="confirmation-card">
-        <!-- Tarjeta principal de confirmación -->
-        <div class="confirmation-header">
-          <!-- Encabezado con logo y mensaje de éxito -->
-          <img src="/assets/img/logo.png" alt="ServiTech Logo" class="logo-img" />
-          <!-- Logo de la empresa -->
-          <div class="success-icon">
-            <i class="fas fa-check-circle"></i>
-          </div>
-          <!-- Icono de confirmación exitosa -->
-          <h1>¡Pago Confirmado!</h1>
-          <!-- Mensaje principal de confirmación -->
-          <p class="confirmation-message">
-            Tu asesoría técnica ha sido agendada exitosamente
-          </p>
-          <!-- Mensaje secundario de confirmación -->
-        </div>
+    <div class="container">
+      <div class="confirmacion-container">
+        <% if (status==='success' ) { %>
+          <!-- Éxito -->
+          <div class="confirmacion-card success">
+            <div class="icon-container">
+              <i class="fas fa-check-circle"></i>
+            </div>
+            <h1>¡Asesoría agendada exitosamente!</h1>
+            <p class="mensaje-principal">
+              Tu asesoría ha sido programada y el experto ha sido notificado.
+            </p>
 
-        <div class="confirmation-body">
-          <!-- Cuerpo con detalles de la asesoría y experto -->
-
-          <!-- Detalles de la asesoría -->
-          <div class="confirmation-section">
-            <h3>
-              <i class="fas fa-info-circle"></i> Detalles de la asesoría
-            </h3>
-            <!-- Título de la sección de detalles -->
-            <div class="detail-item">
-              <span class="label">Servicio:</span>
-              <span class="value">Asesoría técnica personalizada</span>
-              <!-- Tipo de servicio contratado -->
-            </div>
-            <div class="detail-item">
-              <span class="label">Duración:</span>
-              <span class="value">1 hora</span>
-              <!-- Duración de la asesoría -->
-            </div>
-            <div class="detail-item">
-              <span class="label">Fecha:</span>
-              <span class="value" id="sessionDate">15 de mayo, 2025</span>
-              <!-- Fecha agendada para la asesoría -->
-            </div>
-            <div class="detail-item">
-              <span class="label">Hora:</span>
-              <span class="value" id="sessionTime">3:00 PM - 4:00 PM</span>
-              <!-- Hora agendada para la asesoría -->
-            </div>
-            <div class="detail-item">
-              <span class="label">ID de transacción:</span>
-              <span class="value" id="transactionId">ST-2025517-9384</span>
-              <!-- Identificador único de la transacción -->
-            </div>
-            <div class="detail-item payment-method-info-container" style="display: none">
-              <span class="label">Método de pago:</span>
-              <span class="value payment-method-info">Tarjeta de Crédito</span>
-              <!-- Método de pago utilizado -->
-            </div>
-          </div>
-
-          <!-- Información del experto asignado -->
-          <div class="confirmation-section">
-            <h3><i class="fas fa-user-tie"></i> Tu experto</h3>
-            <!-- Título de la sección de experto -->
-            <div class="expert-info">
-              <div class="expert-avatar">
-                <img src="https://ui-avatars.com/api/?name=Carlos+Rodriguez&background=3a8eff&color=fff&size=80"
-                  alt="Foto del experto" />
-                <!-- Foto/avatar del experto asignado -->
+            <div class="pasos-siguientes">
+              <h3>¿Qué sigue ahora?</h3>
+              <div class="paso">
+                <div class="paso-numero">1</div>
+                <div class="paso-contenido">
+                  <h4>Espera la confirmación</h4>
+                  <p>El experto tiene hasta 24 horas para aceptar o rechazar tu solicitud.</p>
+                </div>
               </div>
-              <div class="expert-details">
-                <h4>Carlos Rodriguez</h4>
-                <!-- Nombre del experto -->
-                <p>Especialista en Soporte Técnico</p>
-                <!-- Especialidad del experto -->
-                <div class="rating">
-                  <i class="fas fa-star"></i>
-                  <i class="fas fa-star"></i>
-                  <i class="fas fa-star"></i>
-                  <i class="fas fa-star"></i>
-                  <i class="fas fa-star-half-alt"></i>
-                  <span>4.8 (120 reseñas)</span>
-                  <!-- Calificación y número de reseñas del experto -->
+              <div class="paso">
+                <div class="paso-numero">2</div>
+                <div class="paso-contenido">
+                  <h4>Recibe notificación</h4>
+                  <p>Te enviaremos un correo cuando el experto responda a tu solicitud.</p>
+                </div>
+              </div>
+              <div class="paso">
+                <div class="paso-numero">3</div>
+                <div class="paso-contenido">
+                  <h4>Realiza la asesoría</h4>
+                  <p>Si es aceptada, podrás contactar al experto para coordinar los detalles.</p>
                 </div>
               </div>
             </div>
+
+            <div class="acciones">
+              <a href="/misAsesorias.html" class="btn btn-primary">
+                <i class="fas fa-calendar-alt"></i>
+                Ver mis asesorías
+              </a>
+              <a href="/expertos.html" class="btn btn-secondary">
+                <i class="fas fa-search"></i>
+                Buscar más expertos
+              </a>
+            </div>
           </div>
 
-          <!-- Instrucciones para la asesoría -->
-          <div class="confirmation-section">
-            <h3>
-              <i class="fas fa-clipboard-list"></i> Instrucciones para tu
-              asesoría
-            </h3>
-            <!-- Título de la sección de instrucciones -->
-            <div class="instruction-card">
-              <div class="instruction-icon">
-                <i class="fas fa-calendar-check"></i>
+          <% } else if (status==='pending' ) { %>
+            <!-- Pendiente -->
+            <div class="confirmacion-card pending">
+              <div class="icon-container">
+                <i class="fas fa-clock"></i>
               </div>
-              <div class="instruction-text">
-                <h4>Marca tu calendario</h4>
-                <p>
-                  Recibirás una invitación en tu correo electrónico con el
-                  enlace para unirte a la sesión.
-                </p>
-                <!-- Instrucción para agendar la asesoría -->
-              </div>
-            </div>
-            <div class="instruction-card">
-              <div class="instruction-icon">
-                <i class="fas fa-list-check"></i>
-              </div>
-              <div class="instruction-text">
-                <h4>Prepara tus dudas</h4>
-                <p>
-                  Haz una lista de preguntas o problemas específicos que
-                  quieras resolver durante la asesoría.
-                </p>
-                <!-- Instrucción para preparar preguntas para la sesión -->
-              </div>
-            </div>
-            <div class="instruction-card">
-              <div class="instruction-icon">
-                <i class="fas fa-laptop-code"></i>
-              </div>
-              <div class="instruction-text">
-                <h4>Prepara tu equipo</h4>
-                <p>
-                  Asegúrate de tener listo tu computador y una conexión a
-                  internet estable para la videollamada.
-                </p>
-                <!-- Instrucción para preparar el equipo técnico -->
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- Acciones disponibles para el usuario -->
-        <div class="confirmation-actions">
-          <a href="mensajes.html" class="btn btn-primary">
-            <i class="fas fa-comment-dots"></i> Contactar al experto
-            <!-- Botón para contactar al experto asignado -->
-          </a>
-          <a href="calendario.html" class="btn btn-outline">
-            <i class="fas fa-calendar-alt"></i> Ver mi calendario
-            <!-- Botón para ver el calendario personal -->
-          </a>
-        </div>
+              <h1>Pago en proceso</h1>
+              <p class="mensaje-principal">
+                Tu pago está siendo procesado. En unos minutos recibirás la confirmación.
+              </p>
 
-        <div class="confirmation-footer">
-          <!-- Pie de página con información de soporte -->
-          <p>
-            ¿Necesitas ayuda?
-            <a href="contacto.html" class="accent-link">Contáctanos</a>
-            <!-- Enlace para contactar soporte -->
-          </p>
-          <div class="support-contact">
-            <div class="contact-item">
-              <i class="fas fa-envelope"></i> soporte@servitech.co
-              <!-- Correo de soporte -->
+              <div class="loading-indicator">
+                <div class="spinner"></div>
+                <p>Procesando pago...</p>
+              </div>
+
+              <div class="acciones">
+                <button onclick="window.location.reload()" class="btn btn-primary">
+                  <i class="fas fa-sync-alt"></i>
+                  Actualizar estado
+                </button>
+                <a href="/misAsesorias.html" class="btn btn-secondary">
+                  <i class="fas fa-calendar-alt"></i>
+                  Ver mis asesorías
+                </a>
+              </div>
             </div>
-            <div class="contact-item">
-              <i class="fas fa-phone"></i> +57 601 123 4567
-              <!-- Teléfono de soporte -->
-            </div>
+
+            <% } else { %>
+              <!-- Error o fallo -->
+              <div class="confirmacion-card error">
+                <div class="icon-container">
+                  <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h1>Ocurrió un problema</h1>
+                <p class="mensaje-principal">
+                  No se pudo procesar tu solicitud de asesoría. No te preocupes, no se realizó ningún cargo.
+                </p>
+
+                <div class="error-detalles">
+                  <h4>Posibles causas:</h4>
+                  <ul>
+                    <li>Problema temporal con el sistema de pagos</li>
+                    <li>El horario seleccionado ya no está disponible</li>
+                    <li>Error de conexión</li>
+                  </ul>
+                </div>
+
+                <div class="acciones">
+                  <a href="/expertos.html" class="btn btn-primary">
+                    <i class="fas fa-redo"></i>
+                    Intentar nuevamente
+                  </a>
+                  <a href="/contacto.html" class="btn btn-secondary">
+                    <i class="fas fa-envelope"></i>
+                    Contactar soporte
+                  </a>
+                </div>
+              </div>
+              <% } %>
+      </div>
+
+      <!-- Información adicional -->
+      <div class="info-adicional">
+        <div class="info-grid">
+          <div class="info-item">
+            <i class="fas fa-shield-alt"></i>
+            <h4>Pago seguro</h4>
+            <p>Tu dinero está protegido hasta que la asesoría se complete exitosamente.</p>
+          </div>
+          <div class="info-item">
+            <i class="fas fa-undo-alt"></i>
+            <h4>Reembolso garantizado</h4>
+            <p>Si el experto rechaza tu solicitud, recibirás el reembolso completo.</p>
+          </div>
+          <div class="info-item">
+            <i class="fas fa-headset"></i>
+            <h4>Soporte 24/7</h4>
+            <p>Nuestro equipo está disponible para ayudarte en cualquier momento.</p>
           </div>
         </div>
       </div>
     </div>
-  </div>
-  <script src="/assets/js/common.js"></script>
-  <!-- Script común para funcionalidades generales -->
-  <script src="/assets/js/confirmacionAsesoria.js"></script>
-  <!-- Script específico para la página de confirmación de asesoría -->
+
+    <!-- Footer -->
+    <%- include('components/footer') %>
+
+      <!-- Hidden data for JavaScript -->
+      <script type="application/json" id="pageStatus"><%- JSON.stringify(status) %></script>
+
+      <!-- Script file -->
+      <script src="/assets/js/confirmacionAsesoria.js"></script>
 </body>
 
 </html>
