@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mis Asesorías - ServiTech</title>
   <link rel="stylesheet" href="/assets/css/base.css">
+  <link rel="stylesheet" href="/assets/css/componentes.css">
   <link rel="stylesheet" href="/assets/css/mis-asesorias.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
@@ -14,94 +15,119 @@
   <!-- Header -->
   <%- include('componentes/header') %>
 
-    <div class="container">
-      <div class="page-header">
-        <h1>Mis Asesorías</h1>
-        <p class="subtitle">
-          <% if (rolUsuario==='experto' ) { %>
-            Gestiona las solicitudes de asesoría que recibes
-            <% } else { %>
-              Consulta y gestiona tus asesorías agendadas
-              <% } %>
-        </p>
-      </div>
+    <main class="mis-asesorias-main">
+      <div class="container">
+        <!-- Encabezado -->
+        <div class="page-header">
+          <h1>
+            <i class="fas fa-calendar-check"></i>
+            Mis Asesorías
+          </h1>
+          <p>Gestiona tus asesorías como <%= rolUsuario==='experto' ? 'experto' : 'cliente' %>
+          </p>
+        </div>
 
-      <!-- Loading state inicial -->
-      <div class="asesorias-list">
-        <div class="loading-state">
-          <div class="spinner"></div>
+        <!-- Filtros -->
+        <div class="filtros-container">
+          <div class="filtros-tabs">
+            <button class="filtro-tab active" data-filtro="todas">
+              <i class="fas fa-list"></i>
+              Todas
+            </button>
+            <% if (rolUsuario==='experto' ) { %>
+              <button class="filtro-tab" data-filtro="pendientes">
+                <i class="fas fa-clock"></i>
+                Pendientes de Aceptar
+              </button>
+              <% } %>
+                <button class="filtro-tab" data-filtro="confirmadas">
+                  <i class="fas fa-check-circle"></i>
+                  Confirmadas
+                </button>
+                <button class="filtro-tab" data-filtro="completadas">
+                  <i class="fas fa-star"></i>
+                  Completadas
+                </button>
+                <button class="filtro-tab" data-filtro="canceladas">
+                  <i class="fas fa-times-circle"></i>
+                  Canceladas
+                </button>
+          </div>
+        </div>
+
+        <!-- Loading state -->
+        <div id="loadingState" class="loading-container">
+          <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+          </div>
           <p>Cargando asesorías...</p>
         </div>
-      </div>
 
-      <!-- Información de ayuda -->
-      <div class="help-section">
-        <h3><i class="fas fa-question-circle"></i> ¿Necesitas ayuda?</h3>
-        <div class="help-grid">
-          <% if (rolUsuario==='experto' ) { %>
-            <div class="help-item">
-              <h4>Solicitudes pendientes</h4>
-              <p>Revisa y responde a las nuevas solicitudes de asesoría. Tienes 24 horas para aceptar o rechazar.</p>
-            </div>
-            <div class="help-item">
-              <h4>Asesorías confirmadas</h4>
-              <p>Contacta directamente con tus clientes para coordinar los detalles de la asesoría.</p>
-            </div>
-            <div class="help-item">
-              <h4>Pagos</h4>
-              <p>Los pagos se liberan automáticamente cuando el cliente confirma que la asesoría fue exitosa.</p>
-            </div>
-            <% } else { %>
-              <div class="help-item">
-                <h4>Estados de asesoría</h4>
-                <p>Pendiente: El experto debe aceptar. Confirmada: Lista para realizarse. Completada: Finalizada
-                  exitosamente.</p>
-              </div>
-              <div class="help-item">
-                <h4>Cancelaciones</h4>
-                <p>Puedes cancelar asesorías confirmadas con 80% de reembolso. El 20% va como compensación al experto.
-                </p>
-              </div>
-              <div class="help-item">
-                <h4>Contacto</h4>
-                <p>Una vez confirmada la asesoría, recibirás los datos de contacto del experto por email.</p>
-              </div>
-              <% } %>
+        <!-- Error state -->
+        <div id="errorState" class="error-container" style="display: none;">
+          <div class="error-content">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>Error al cargar asesorías</h3>
+            <p id="errorMessage">Ocurrió un problema al cargar tus asesorías.</p>
+            <button onclick="cargarAsesorias()" class="btn btn-primary">
+              <i class="fas fa-sync-alt"></i>
+              Intentar nuevamente
+            </button>
+          </div>
+        </div>
+
+        <!-- Contenedor de asesorías -->
+        <div id="asesoriasContainer" class="asesorias-container" style="display: none;">
+          <!-- Las asesorías se cargarán dinámicamente aquí -->
+        </div>
+
+        <!-- Estado vacío -->
+        <div id="emptyState" class="empty-state" style="display: none;">
+          <div class="empty-content">
+            <i class="fas fa-calendar-times"></i>
+            <h3>No tienes asesorías</h3>
+            <p id="emptyMessage">No tienes asesorías registradas aún.</p>
+            <a href="/expertos.html" class="btn btn-primary">
+              <i class="fas fa-search"></i>
+              Buscar Expertos
+            </a>
+          </div>
         </div>
       </div>
-    </div>
+    </main>
 
-    <!-- Modal de detalles -->
-    <div id="detalleModal" class="modal" style="display: none;">
+    <!-- Modal de confirmación -->
+    <div id="confirmModal" class="modal" style="display: none;">
       <div class="modal-content">
-        <span class="close-modal" onclick="cerrarDetalles()">&times;</span>
-        <div id="detalleContenido"></div>
-      </div>
-    </div>
-
-    <!-- Modal de mensajes (compatibilidad) -->
-    <div id="mensajeModal" class="modal" style="display: none;">
-      <div class="modal-content">
-        <span class="close-modal" onclick="cerrarMensajes()">&times;</span>
-        <h3>Contactar experto: <span id="expertoNombre"></span></h3>
-        <div class="mensajes-historial">
-          <p>Sistema de mensajes en desarrollo. Por ahora, contacta directamente por email.</p>
+        <div class="modal-header">
+          <h3 id="modalTitle">Confirmar acción</h3>
+          <button class="modal-close" onclick="cerrarModal()">
+            <i class="fas fa-times"></i>
+          </button>
         </div>
-        <div class="mensaje-form">
-          <textarea class="form-control" placeholder="Escribe tu mensaje aquí..." disabled></textarea>
-          <button class="btn btn-primary" disabled>Enviar mensaje (próximamente)</button>
+        <div class="modal-body">
+          <p id="modalMessage">¿Estás seguro de realizar esta acción?</p>
+        </div>
+        <div class="modal-footer">
+          <button onclick="cerrarModal()" class="btn btn-secondary">Cancelar</button>
+          <button id="modalConfirmBtn" class="btn btn-primary">Confirmar</button>
         </div>
       </div>
     </div>
 
     <!-- Footer -->
-    <%- include('components/footer') %>
+    <%- include('componentes/footer') %>
 
-      <!-- Hidden data for JavaScript -->
-      <script type="application/json"
-        id="userData"><%- JSON.stringify({usuarioId: usuarioId, rolUsuario: rolUsuario}) %></script>
+      <!-- Datos del usuario para JavaScript -->
+      <script type="application/json" id="userData"><%- JSON.stringify({
+        email: user.email,
+        nombre: user.nombre,
+        apellido: user.apellido,
+        roles: user.roles,
+        rolUsuario: rolUsuario
+    }) %></script>
 
-      <!-- Script file -->
+      <script src="/assets/js/common.js"></script>
       <script src="/assets/js/misAsesorias.js"></script>
 </body>
 
