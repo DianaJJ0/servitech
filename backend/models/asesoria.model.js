@@ -27,6 +27,7 @@ const infoParticipanteSchema = new Schema(
  * @typedef {Object} Asesoria
  * @property {string} codigoAsesoria
  * @property {string} titulo
+ * @property {string} descripcion
  * @property {InfoParticipante} cliente
  * @property {InfoParticipante} experto
  * @property {string} categoria
@@ -42,7 +43,6 @@ const asesoriaSchema = new Schema(
   {
     codigoAsesoria: {
       type: String,
-      unique: true,
       required: true,
       default: () =>
         `ASE-${Date.now()}-${Math.random()
@@ -51,13 +51,13 @@ const asesoriaSchema = new Schema(
           .toUpperCase()}`,
     },
     titulo: { type: String, required: true, maxlength: 300 },
+    descripcion: { type: String, required: true, maxlength: 2000 },
     cliente: { type: infoParticipanteSchema, required: true },
     experto: { type: infoParticipanteSchema, required: true },
-    categoria: { type: String, required: true },
+    categoria: { type: String, required: true, default: "Tecnologia" },
     estado: {
       type: String,
       enum: [
-        "pendiente-pago",
         "pendiente-aceptacion",
         "confirmada",
         "completada",
@@ -65,16 +65,16 @@ const asesoriaSchema = new Schema(
         "cancelada-experto",
         "rechazada",
       ],
-      default: "pendiente-pago",
+      default: "pendiente-aceptacion",
     },
     fechaHoraInicio: { type: Date, required: true },
     duracionMinutos: {
       type: Number,
       required: true,
-      enum: [60, 120, 180],
+      enum: [60, 90, 120, 180],
       default: 60,
     },
-    pagoId: { type: Schema.Types.ObjectId, ref: "Pago" },
+    pagoId: { type: Schema.Types.ObjectId, ref: "Pago", required: true },
     fechaFinalizacion: Date,
     motivoCancelacion: { type: String, maxlength: 500 },
     fechaCancelacion: Date,
@@ -85,41 +85,11 @@ const asesoriaSchema = new Schema(
   }
 );
 
-/**
- * @openapi
- * components:
- *   schemas:
- *     Asesoria:
- *       type: object
- *       properties:
- *         id:
- *           type: string
- *         titulo:
- *           type: string
- *         cliente:
- *           $ref: '#/components/schemas/Usuario'
- *         experto:
- *           $ref: '#/components/schemas/Usuario'
- *         categoria:
- *           type: string
- *         estado:
- *           type: string
- *           enum: [pendiente-pago, pendiente-aceptacion, confirmada, completada, cancelada-cliente, cancelada-experto, rechazada]
- *         fechaHoraInicio:
- *           type: string
- *           format: date-time
- *         duracionMinutos:
- *           type: number
- *         pagoId:
- *           type: string
- *         fechaFinalizacion:
- *           type: string
- *           format: date-time
- *         motivoCancelacion:
- *           type: string
- *         fechaCancelacion:
- *           type: string
- *           format: date-time
- */
+// Indices únicos para optimizar consultas (removemos duplicados)
+asesoriaSchema.index({ codigoAsesoria: 1 }, { unique: true });
+asesoriaSchema.index({ "cliente.email": 1, fechaCreacion: -1 });
+asesoriaSchema.index({ "experto.email": 1, fechaCreacion: -1 });
+asesoriaSchema.index({ estado: 1, fechaHoraInicio: 1 });
+asesoriaSchema.index({ pagoId: 1 });
 
 module.exports = mongoose.model("Asesoria", asesoriaSchema);

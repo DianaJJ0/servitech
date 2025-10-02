@@ -1,657 +1,663 @@
-// Gestión de asesorías del usuario con validaciones y acciones completas
+/**
+ * MIS ASESORIAS - GESTION COMPLETA
+ * Maneja la visualización y gestión de asesorías para clientes y expertos
+ */
 
 document.addEventListener("DOMContentLoaded", function () {
-  ensureAuthenticatedOrRedirect();
-  initializeMisAsesorias();
+  inicializarMisAsesorias();
 });
 
 // Variables globales
-let userData = {};
+let usuarioData = null;
 let asesorias = [];
+let filtroActual = "todas";
+let accionPendiente = null;
 
-// Verificación de autenticación desde sessionStorage/localStorage
-function ensureAuthenticatedOrRedirect() {
+/**
+ * Inicializa la página de mis asesorías
+ */
+function inicializarMisAsesorias() {
   try {
-    const user = JSON.parse(
-      sessionStorage.getItem("user") || localStorage.getItem("user") || "null"
-    );
-    if (!user || !user.email) {
-      window.location.replace("/login.html");
-      return false;
+    // Obtener datos del usuario
+    const userDataScript = document.getElementById("userData");
+    if (userDataScript) {
+      usuarioData = JSON.parse(userDataScript.textContent);
     }
-    return true;
-  } catch (e) {
-    window.location.replace("/login.html");
-    return false;
+
+    if (!usuarioData) {
+      mostrarError("No se pudieron cargar los datos del usuario");
+      return;
+    }
+
+    console.log("Usuario data:", usuarioData);
+
+    // Configurar filtros
+    configurarFiltros();
+
+    // Cargar asesorías
+    cargarAsesorias();
+  } catch (error) {
+    console.error("Error inicializando mis asesorías:", error);
+    mostrarError("Error al inicializar la página");
   }
 }
 
-// Configuración inicial
-function readInitialData() {
-  try {
-    const el = document.getElementById("userData");
-    if (el) {
-      userData = JSON.parse(el.textContent);
-    }
-  } catch (e) {
-    console.warn("Error leyendo datos iniciales:", e);
-  }
+/**
+ * Configura los filtros de asesorías
+ */
+function configurarFiltros() {
+  const filtroTabs = document.querySelectorAll(".filtro-tab");
+
+  filtroTabs.forEach((tab) => {
+    tab.addEventListener("click", function () {
+      // Remover active de todos
+      filtroTabs.forEach((t) => t.classList.remove("active"));
+
+      // Agregar active al seleccionado
+      this.classList.add("active");
+
+      // Cambiar filtro
+      filtroActual = this.dataset.filtro;
+
+      // Filtrar asesorías
+      filtrarAsesorias();
+    });
+  });
 }
 
-// Inicialización principal
-async function initializeMisAsesorias() {
-  readInitialData();
-  await cargarAsesorias();
-  setupModalEventListeners();
-}
-
-// Cargar asesorías del usuario
+/**
+ * Carga las asesorías del usuario
+ */
 async function cargarAsesorias() {
-  const asesoriasList = document.querySelector(".asesorias-list");
-
   try {
-    showLoading(asesoriasList);
+    mostrarEstado("loading");
 
-    const response = await fetchProtegido("/api/asesorias/mias");
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("No hay sesión activa");
+    }
+
+    console.log("Cargando asesorías...");
+
+    const response = await fetch("/api/asesorias/mias", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
 
     if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
+      const errorData = await response.json();
+      throw new Error(errorData.mensaje || `Error ${response.status}`);
     }
 
-    const data = await response.json();
+    asesorias = await response.json();
+    console.log("Asesorías cargadas:", asesorias);
 
-    if (data.success && Array.isArray(data.data)) {
-      asesorias = data.data;
-      renderAsesorias(asesorias, data.rol || userData.rolUsuario);
+    if (asesorias.length === 0) {
+      mostrarEstado("empty");
     } else {
-      throw new Error("Formato de respuesta inválido");
+      mostrarEstado("content");
+      renderizarAsesorias();
     }
   } catch (error) {
     console.error("Error cargando asesorías:", error);
-    showError(
-      asesoriasList,
-      "No se pudieron cargar las asesorías. Intenta recargar la página."
-    );
+    mostrarError("Error al cargar las asesorías: " + error.message);
   }
 }
 
-// Renderizar asesorías
-function renderAsesorias(asesoriasList, userRole) {
-  const container = document.querySelector(".asesorias-list");
+/**
+ * Filtra las asesorías según el filtro seleccionado
+ */
+function filtrarAsesorias() {
+  const asesoriasFiltradas = asesorias.filter((asesoria) => {
+    switch (filtroActual) {
+      case "pendientes":
+        return (
+          asesoria.estado === "pendiente-aceptacion" &&
+          usuarioData.rolUsuario === "experto"
+        );
+      case "confirmadas":
+        return asesoria.estado === "confirmada";
+      case "completadas":
+        return asesoria.estado === "completada";
+      case "canceladas":
+        return ["cancelada-cliente", "cancelada-experto", "rechazada"].includes(
+          asesoria.estado
+        );
+      case "todas":
+      default:
+        return true;
+    }
+  });
 
-  if (!asesoriasList || asesoriasList.length === 0) {
-    container.innerHTML = `
-      <div class="empty-state">
-        <h3>No tienes asesorías</h3>
-        <p>Cuando ${
-          userRole === "experto"
-            ? "recibas solicitudes de asesoría"
-            : "agendes una asesoría"
-        }, aparecerán aquí.</p>
-        ${
-          userRole === "cliente"
-            ? '<a href="/expertos.html" class="btn btn-primary">Buscar expertos</a>'
-            : ""
-        }
-      </div>
-    `;
+  renderizarAsesorias(asesoriasFiltradas);
+}
+
+/**
+ * Renderiza las asesorías en el contenedor
+ */
+function renderizarAsesorias(asesoriasList = null) {
+  const container = document.getElementById("asesoriasContainer");
+  const asesorias = asesoriasList || window.asesorias;
+
+  if (!asesorias || asesorias.length === 0) {
+    container.innerHTML =
+      '<div class="empty-state"><p>No hay asesorías para mostrar</p></div>';
     return;
   }
 
-  // Agrupar asesorías por estado
-  const agrupadas = agruparAsesoriasPorEstado(asesoriasList);
-
-  let html = "";
-
-  if (userRole === "experto") {
-    html += renderSeccionAsesorias(
-      "Pendientes de respuesta",
-      agrupadas.pendientesAceptacion,
-      "experto"
-    );
-    html += renderSeccionAsesorias(
-      "Confirmadas",
-      agrupadas.confirmadas,
-      "experto"
-    );
-    html += renderSeccionAsesorias(
-      "Completadas",
-      agrupadas.completadas,
-      "experto"
-    );
-    html += renderSeccionAsesorias(
-      "Rechazadas/Canceladas",
-      [...agrupadas.rechazadas, ...agrupadas.canceladas],
-      "experto"
-    );
-  } else {
-    html += renderSeccionAsesorias(
-      "Pendientes de aceptación",
-      agrupadas.pendientesAceptacion,
-      "cliente"
-    );
-    html += renderSeccionAsesorias(
-      "Confirmadas",
-      agrupadas.confirmadas,
-      "cliente"
-    );
-    html += renderSeccionAsesorias(
-      "Completadas",
-      agrupadas.completadas,
-      "cliente"
-    );
-    html += renderSeccionAsesorias(
-      "Rechazadas/Canceladas",
-      [...agrupadas.rechazadas, ...agrupadas.canceladas],
-      "cliente"
-    );
-  }
-
-  container.innerHTML = html;
+  container.innerHTML = asesorias
+    .map((asesoria) => generarTarjetaAsesoria(asesoria))
+    .join("");
 }
 
-// Agrupar asesorías por estado
-function agruparAsesoriasPorEstado(asesoriasList) {
-  return {
-    pendientesAceptacion: asesoriasList.filter(
-      (a) => a.estado === "pendiente-aceptacion"
-    ),
-    confirmadas: asesoriasList.filter((a) => a.estado === "confirmada"),
-    completadas: asesoriasList.filter((a) => a.estado === "completada"),
-    canceladas: asesoriasList.filter((a) => a.estado.includes("cancelada")),
-    rechazadas: asesoriasList.filter((a) => a.estado === "rechazada"),
-  };
-}
+/**
+ * Genera HTML para una tarjeta de asesoría
+ */
+function generarTarjetaAsesoria(asesoria) {
+  const esExperto = usuarioData.rolUsuario === "experto";
+  const participante = esExperto ? asesoria.cliente : asesoria.experto;
+  const rolParticipante = esExperto ? "Cliente" : "Experto";
 
-// Renderizar sección de asesorías
-function renderSeccionAsesorias(titulo, asesoriasList, userRole) {
-  if (!asesoriasList || asesoriasList.length === 0) {
-    return "";
-  }
-
-  return `
-    <div class="asesorias-section">
-      <h2 class="section-title">
-        <i class="fas fa-calendar-alt"></i>
-        ${titulo} (${asesoriasList.length})
-      </h2>
-      ${asesoriasList
-        .map((asesoria) => renderAsesoriaCard(asesoria, userRole))
-        .join("")}
-    </div>
-  `;
-}
-
-// Renderizar tarjeta de asesoría
-function renderAsesoriaCard(asesoria, userRole) {
-  const fechaObj = new Date(asesoria.fechaHoraInicio);
-  const fecha = fechaObj.toLocaleDateString("es-CO", {
+  const fecha = new Date(asesoria.fechaHoraInicio);
+  const fechaFormateada = fecha.toLocaleDateString("es-CO", {
+    weekday: "long",
     year: "numeric",
     month: "long",
     day: "numeric",
   });
-  const hora = fechaObj.toLocaleTimeString("es-CO", {
+  const horaFormateada = fecha.toLocaleTimeString("es-CO", {
     hour: "2-digit",
     minute: "2-digit",
   });
 
-  const participante =
-    userRole === "experto" ? asesoria.cliente : asesoria.experto;
-  const estadoClass = getEstadoClass(asesoria.estado);
-  const estadoTexto = getEstadoTexto(asesoria.estado);
+  const duracionTexto =
+    asesoria.duracionMinutos === 60
+      ? "1 hora"
+      : asesoria.duracionMinutos === 90
+      ? "1.5 horas"
+      : asesoria.duracionMinutos === 120
+      ? "2 horas"
+      : "3 horas";
 
-  return `
-    <div class="asesoria-card" data-id="${asesoria._id}">
-      <div class="asesoria-header">
-        <h3 class="asesoria-titulo">${escapeHtml(asesoria.titulo)}</h3>
-        <span class="asesoria-estado ${estadoClass}">${estadoTexto}</span>
-      </div>
-
-      <div class="asesoria-info">
-        <div class="asesoria-fecha">
-          <i class="fas fa-calendar-alt"></i>
-          <span>${fecha}</span>
-        </div>
-        <div class="asesoria-hora">
-          <i class="fas fa-clock"></i>
-          <span>${hora} (${asesoria.duracionMinutos} min)</span>
-        </div>
-        <div class="asesoria-participante">
-          <img src="${getAvatarUrl(
-            participante
-          )}" alt="Avatar" class="participante-avatar">
-          <div class="participante-info">
-            <div class="participante-nombre">${escapeHtml(
-              participante.nombre
-            )} ${escapeHtml(participante.apellido)}</div>
-            <div class="participante-email">${escapeHtml(
-              participante.email
-            )}</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="asesoria-acciones">
-        ${renderAcciones(asesoria, userRole)}
-      </div>
-
-      ${
-        asesoria.motivoCancelacion
-          ? `
-        <div class="motivo-cancelacion">
-          <strong>Motivo:</strong> ${escapeHtml(asesoria.motivoCancelacion)}
-        </div>
-      `
-          : ""
-      }
-    </div>
-  `;
-}
-
-// Renderizar acciones según estado y rol
-function renderAcciones(asesoria, userRole) {
-  let acciones = [];
-
-  // Acción común: ver detalles
-  acciones.push(
-    `<button class="btn btn-secondary btn-sm" onclick="verDetalles('${asesoria._id}')"><i class="fas fa-eye"></i> Ver detalles</button>`
+  // Obtener iniciales del participante
+  const iniciales = obtenerIniciales(
+    participante.nombre,
+    participante.apellido
   );
 
-  if (userRole === "experto") {
-    if (asesoria.estado === "pendiente-aceptacion") {
-      acciones.push(
-        `<button class="btn btn-primary btn-sm" onclick="aceptarAsesoria('${asesoria._id}')"><i class="fas fa-check"></i> Aceptar</button>`
-      );
-      acciones.push(
-        `<button class="btn btn-danger btn-sm" onclick="rechazarAsesoria('${asesoria._id}')"><i class="fas fa-times"></i> Rechazar</button>`
-      );
-    } else if (asesoria.estado === "confirmada") {
-      acciones.push(
-        `<button class="btn btn-warning btn-sm" onclick="cancelarAsesoriaPorExperto('${asesoria._id}')"><i class="fas fa-ban"></i> Cancelar</button>`
-      );
-    }
-  } else {
-    // Cliente
-    if (asesoria.estado === "confirmada") {
-      acciones.push(
-        `<button class="btn btn-primary btn-sm" onclick="finalizarAsesoria('${asesoria._id}')"><i class="fas fa-check-circle"></i> Finalizar</button>`
-      );
-      acciones.push(
-        `<button class="btn btn-warning btn-sm" onclick="cancelarAsesoriaPorCliente('${asesoria._id}')"><i class="fas fa-ban"></i> Cancelar</button>`
-      );
-    }
+  // Información de contacto para asesorías confirmadas
+  let contactoInfo = "";
+  if (
+    asesoria.estado === "confirmada" &&
+    !esExperto &&
+    asesoria.experto.telefonoContacto
+  ) {
+    contactoInfo = `
+            <div class="contacto-info">
+                <h5><i class="fas fa-phone"></i> Contacto del experto:</h5>
+                <div class="contacto-telefono">${asesoria.experto.telefonoContacto}</div>
+            </div>
+        `;
   }
 
-  return acciones.join(" ");
+  return `
+        <div class="asesoria-card">
+            <div class="asesoria-header">
+                <div class="asesoria-titulo">${asesoria.titulo}</div>
+                <div class="asesoria-estado estado-${asesoria.estado}">
+                    ${obtenerTextoEstado(asesoria.estado)}
+                </div>
+            </div>
+
+            <div class="asesoria-participante">
+                <div class="participante-avatar">
+                    ${
+                      participante.avatarUrl
+                        ? `<img src="${participante.avatarUrl}" alt="${participante.nombre}" style="width: 100%; height: 100%; border-radius: 50%;">`
+                        : iniciales
+                    }
+                </div>
+                <div class="participante-info">
+                    <h4>${participante.nombre} ${participante.apellido}</h4>
+                    <span>${rolParticipante}</span>
+                </div>
+            </div>
+
+            ${contactoInfo}
+
+            <div class="asesoria-detalles">
+                <div class="detalle-item">
+                    <i class="fas fa-calendar"></i>
+                    <span>${fechaFormateada}</span>
+                </div>
+                <div class="detalle-item">
+                    <i class="fas fa-clock"></i>
+                    <span>${horaFormateada} - ${duracionTexto}</span>
+                </div>
+                <div class="detalle-item">
+                    <i class="fas fa-tag"></i>
+                    <span>${asesoria.categoria}</span>
+                </div>
+                <div class="detalle-item">
+                    <i class="fas fa-code"></i>
+                    <span>${asesoria.codigoAsesoria}</span>
+                </div>
+            </div>
+
+            <div class="asesoria-descripcion">
+                ${asesoria.descripcion}
+            </div>
+
+            <div class="asesoria-acciones">
+                ${generarBotonesAccion(asesoria, esExperto)}
+            </div>
+        </div>
+    `;
 }
 
-// Funciones de acción para asesorías
-window.aceptarAsesoria = async function (asesoriaId) {
-  if (!confirm("¿Estás seguro de que quieres aceptar esta asesoría?")) return;
+/**
+ * Genera los botones de acción según el estado y rol
+ */
+function generarBotonesAccion(asesoria, esExperto) {
+  const botones = [];
 
-  try {
-    showLoadingButton(`button[onclick="aceptarAsesoria('${asesoriaId}')"]`);
-
-    const response = await fetchProtegido(
-      `/api/asesorias/${asesoriaId}/aceptar`,
-      {
-        method: "PUT",
+  switch (asesoria.estado) {
+    case "pendiente-aceptacion":
+      if (esExperto) {
+        botones.push(`
+                    <button class="btn-accion btn-aceptar" onclick="aceptarAsesoria('${asesoria._id}')">
+                        <i class="fas fa-check"></i>
+                        Aceptar
+                    </button>
+                `);
+        botones.push(`
+                    <button class="btn-accion btn-rechazar" onclick="rechazarAsesoria('${asesoria._id}')">
+                        <i class="fas fa-times"></i>
+                        Rechazar
+                    </button>
+                `);
+      } else {
+        botones.push(`
+                    <button class="btn-accion btn-cancelar" onclick="cancelarAsesoria('${asesoria._id}', 'cliente')">
+                        <i class="fas fa-times"></i>
+                        Cancelar Solicitud
+                    </button>
+                `);
       }
-    );
+      break;
 
-    const data = await response.json();
+    case "confirmada":
+      if (!esExperto) {
+        botones.push(`
+                    <button class="btn-accion btn-finalizar" onclick="finalizarAsesoria('${asesoria._id}')">
+                        <i class="fas fa-flag-checkered"></i>
+                        Finalizar
+                    </button>
+                `);
+      }
+      botones.push(`
+                <button class="btn-accion btn-cancelar" onclick="cancelarAsesoria('${
+                  asesoria._id
+                }', '${esExperto ? "experto" : "cliente"}')">
+                    <i class="fas fa-times"></i>
+                    Cancelar
+                </button>
+            `);
+      if (asesoria.experto.telefonoContacto && !esExperto) {
+        botones.push(`
+                    <button class="btn-accion btn-contactar" onclick="contactarExperto('${asesoria.experto.telefonoContacto}')">
+                        <i class="fas fa-phone"></i>
+                        Contactar
+                    </button>
+                `);
+      }
+      break;
 
-    if (response.ok && data.success) {
-      showToast("Asesoría aceptada exitosamente", "success");
-      await cargarAsesorias();
-    } else {
-      throw new Error(data.mensaje || "Error al aceptar asesoría");
-    }
-  } catch (error) {
-    console.error("Error:", error);
-    showToast(error.message, "error");
+    case "completada":
+      // Solo mostrar información, sin acciones
+      break;
   }
-};
 
-window.rechazarAsesoria = async function (asesoriaId) {
-  const motivo = prompt("Ingresa el motivo del rechazo (opcional):");
-  if (motivo === null) return; // Usuario canceló
+  return botones.join("");
+}
 
+/**
+ * Acepta una asesoría (solo expertos)
+ */
+async function aceptarAsesoria(asesoriaId) {
   try {
-    showLoadingButton(`button[onclick="rechazarAsesoria('${asesoriaId}')"]`);
+    await confirmarAccion(
+      "Aceptar Asesoría",
+      "¿Estás seguro de aceptar esta asesoría? El pago será retenido hasta que se complete.",
+      async () => {
+        const token = localStorage.getItem("token");
+        const response = await fetch(`/api/asesorias/${asesoriaId}/aceptar`, {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
 
-    const response = await fetchProtegido(
-      `/api/asesorias/${asesoriaId}/rechazar`,
-      {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ motivo: motivo.trim() }),
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.mensaje || "Error al aceptar asesoría");
+        }
+
+        mostrarNotificacion("Asesoría aceptada exitosamente", "success");
+        cargarAsesorias();
       }
     );
-
-    const data = await response.json();
-
-    if (response.ok && data.success) {
-      showToast(
-        "Asesoría rechazada. Se procesó el reembolso al cliente.",
-        "success"
-      );
-      await cargarAsesorias();
-    } else {
-      throw new Error(data.mensaje || "Error al rechazar asesoría");
-    }
   } catch (error) {
-    console.error("Error:", error);
-    showToast(error.message, "error");
+    console.error("Error aceptando asesoría:", error);
+    mostrarNotificacion("Error al aceptar asesoría: " + error.message, "error");
   }
-};
+}
 
-window.cancelarAsesoriaPorCliente = async function (asesoriaId) {
-  if (
-    !confirm(
-      "Al cancelar recibirás el 80% del pago de vuelta y el experto recibirá el 20% como compensación. ¿Continuar?"
-    )
-  )
-    return;
-
-  const motivo = prompt("Ingresa el motivo de la cancelación (opcional):");
-  if (motivo === null) return;
-
+/**
+ * Rechaza una asesoría (solo expertos)
+ */
+async function rechazarAsesoria(asesoriaId) {
   try {
-    showLoadingButton(
-      `button[onclick="cancelarAsesoriaPorCliente('${asesoriaId}')"]`
-    );
+    await confirmarAccion(
+      "Rechazar Asesoría",
+      "¿Estás seguro de rechazar esta asesoría? El pago será reembolsado al cliente.",
+      async () => {
+        const token = localStorage.getItem("token");
+        const response = await fetch(`/api/asesorias/${asesoriaId}/rechazar`, {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
 
-    const response = await fetchProtegido(
-      `/api/asesorias/${asesoriaId}/cancelar-cliente`,
-      {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ motivo: motivo.trim() }),
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.mensaje || "Error al rechazar asesoría");
+        }
+
+        mostrarNotificacion(
+          "Asesoría rechazada. El pago será reembolsado.",
+          "success"
+        );
+        cargarAsesorias();
       }
     );
-
-    const data = await response.json();
-
-    if (response.ok && data.success) {
-      showToast(
-        "Asesoría cancelada. Se procesó el reembolso parcial.",
-        "success"
-      );
-      await cargarAsesorias();
-    } else {
-      throw new Error(data.mensaje || "Error al cancelar asesoría");
-    }
   } catch (error) {
-    console.error("Error:", error);
-    showToast(error.message, "error");
+    console.error("Error rechazando asesoría:", error);
+    mostrarNotificacion(
+      "Error al rechazar asesoría: " + error.message,
+      "error"
+    );
   }
-};
+}
 
-window.cancelarAsesoriaPorExperto = async function (asesoriaId) {
-  if (
-    !confirm(
-      "Al cancelar, el cliente recibirá el reembolso completo. ¿Continuar?"
-    )
-  )
-    return;
-
-  const motivo = prompt("Ingresa el motivo de la cancelación (opcional):");
-  if (motivo === null) return;
-
+/**
+ * Finaliza una asesoría (solo clientes)
+ */
+async function finalizarAsesoria(asesoriaId) {
   try {
-    showLoadingButton(
-      `button[onclick="cancelarAsesoriaPorExperto('${asesoriaId}')"]`
-    );
+    await confirmarAccion(
+      "Finalizar Asesoría",
+      "¿Estás seguro de finalizar esta asesoría? El pago será liberado al experto.",
+      async () => {
+        const token = localStorage.getItem("token");
+        const response = await fetch(`/api/asesorias/${asesoriaId}/finalizar`, {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
 
-    const response = await fetchProtegido(
-      `/api/asesorias/${asesoriaId}/cancelar-experto`,
-      {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ motivo: motivo.trim() }),
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.mensaje || "Error al finalizar asesoría");
+        }
+
+        mostrarNotificacion(
+          "Asesoría finalizada. El pago fue liberado al experto.",
+          "success"
+        );
+        cargarAsesorias();
       }
     );
-
-    const data = await response.json();
-
-    if (response.ok && data.success) {
-      showToast(
-        "Asesoría cancelada. Se procesó el reembolso completo al cliente.",
-        "success"
-      );
-      await cargarAsesorias();
-    } else {
-      throw new Error(data.mensaje || "Error al cancelar asesoría");
-    }
   } catch (error) {
-    console.error("Error:", error);
-    showToast(error.message, "error");
+    console.error("Error finalizando asesoría:", error);
+    mostrarNotificacion(
+      "Error al finalizar asesoría: " + error.message,
+      "error"
+    );
   }
-};
+}
 
-window.finalizarAsesoria = async function (asesoriaId) {
-  if (
-    !confirm(
-      "¿Confirmas que la asesoría se completó exitosamente? El pago será liberado al experto."
-    )
-  )
-    return;
-
+/**
+ * Cancela una asesoría
+ */
+async function cancelarAsesoria(asesoriaId, tipo) {
   try {
-    showLoadingButton(`button[onclick="finalizarAsesoria('${asesoriaId}')"]`);
+    const endpoint = `/api/asesorias/${asesoriaId}/cancelar-${tipo}`;
+    const mensaje =
+      tipo === "cliente"
+        ? "¿Estás seguro de cancelar esta asesoría?"
+        : "¿Estás seguro de cancelar esta asesoría? Esto puede afectar tu calificación.";
 
-    const response = await fetchProtegido(
-      `/api/asesorias/${asesoriaId}/finalizar`,
-      {
+    await confirmarAccion("Cancelar Asesoría", mensaje, async () => {
+      const token = localStorage.getItem("token");
+      const response = await fetch(endpoint, {
         method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.mensaje || "Error al cancelar asesoría");
       }
-    );
 
-    const data = await response.json();
-
-    if (response.ok && data.success) {
-      showToast(
-        "Asesoría finalizada. El pago fue liberado al experto.",
-        "success"
-      );
-      await cargarAsesorias();
-    } else {
-      throw new Error(data.mensaje || "Error al finalizar asesoría");
-    }
+      mostrarNotificacion("Asesoría cancelada exitosamente", "success");
+      cargarAsesorias();
+    });
   } catch (error) {
-    console.error("Error:", error);
-    showToast(error.message, "error");
+    console.error("Error cancelando asesoría:", error);
+    mostrarNotificacion(
+      "Error al cancelar asesoría: " + error.message,
+      "error"
+    );
   }
-};
+}
 
-window.verDetalles = function (asesoriaId) {
-  const asesoria = asesorias.find((a) => a._id === asesoriaId);
-  if (!asesoria) return;
+/**
+ * Contacta al experto por teléfono
+ */
+function contactarExperto(telefono) {
+  if (telefono && telefono !== "No especificado") {
+    window.open(`tel:${telefono}`, "_self");
+  } else {
+    mostrarNotificacion("Número de teléfono no disponible", "error");
+  }
+}
 
-  const fechaObj = new Date(asesoria.fechaHoraInicio);
-  const fechaCompleta = fechaObj.toLocaleString("es-CO");
+/**
+ * Muestra modal de confirmación
+ */
+function confirmarAccion(titulo, mensaje, callback) {
+  return new Promise((resolve, reject) => {
+    const modal = document.getElementById("confirmModal");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalMessage = document.getElementById("modalMessage");
+    const confirmBtn = document.getElementById("modalConfirmBtn");
 
-  const contenido = `
-    <div class="detalle-asesoria">
-      <h4>${escapeHtml(asesoria.titulo)}</h4>
-      <div class="detalle-item">
-        <strong>Estado:</strong>
-        <span>${getEstadoTexto(asesoria.estado)}</span>
-      </div>
-      <div class="detalle-item">
-        <strong>Fecha y hora:</strong>
-        <span>${fechaCompleta}</span>
-      </div>
-      <div class="detalle-item">
-        <strong>Duración:</strong>
-        <span>${asesoria.duracionMinutos} minutos</span>
-      </div>
-      <div class="detalle-item">
-        <strong>Cliente:</strong>
-        <span>${escapeHtml(asesoria.cliente.nombre)} ${escapeHtml(
-    asesoria.cliente.apellido
-  )}<br>${escapeHtml(asesoria.cliente.email)}</span>
-      </div>
-      <div class="detalle-item">
-        <strong>Experto:</strong>
-        <span>${escapeHtml(asesoria.experto.nombre)} ${escapeHtml(
-    asesoria.experto.apellido
-  )}<br>${escapeHtml(asesoria.experto.email)}</span>
-      </div>
-      ${
-        asesoria.motivoCancelacion
-          ? `
-        <div class="detalle-item">
-          <strong>Motivo de cancelación:</strong>
-          <span>${escapeHtml(asesoria.motivoCancelacion)}</span>
-        </div>
-      `
-          : ""
+    modalTitle.textContent = titulo;
+    modalMessage.textContent = mensaje;
+
+    // Limpiar event listeners anteriores
+    const newConfirmBtn = confirmBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+
+    newConfirmBtn.addEventListener("click", async () => {
+      try {
+        cerrarModal();
+        await callback();
+        resolve();
+      } catch (error) {
+        reject(error);
       }
-      <div class="detalle-item">
-        <strong>Código:</strong>
-        <span>${escapeHtml(asesoria.codigoAsesoria)}</span>
-      </div>
-    </div>
-  `;
+    });
 
-  document.getElementById("detalleContenido").innerHTML = contenido;
-  document.getElementById("detalleModal").style.display = "flex";
-};
-
-// Configurar event listeners para modales
-function setupModalEventListeners() {
-  // Cerrar modales al hacer clic fuera
-  window.addEventListener("click", function (e) {
-    if (e.target.classList.contains("modal")) {
-      e.target.style.display = "none";
-    }
+    modal.style.display = "flex";
   });
 }
 
-// Funciones auxiliares
-function getAvatarUrl(participante) {
-  return (
-    participante.avatarUrl ||
-    `https://ui-avatars.com/api/?name=${encodeURIComponent(
-      participante.nombre || "Usuario"
-    )}&background=3a8eff&color=fff`
-  );
+/**
+ * Cierra el modal
+ */
+function cerrarModal() {
+  const modal = document.getElementById("confirmModal");
+  modal.style.display = "none";
 }
 
-function getEstadoClass(estado) {
-  const clases = {
-    "pendiente-aceptacion": "pendiente",
-    confirmada: "confirmada",
-    completada: "completada",
-    "cancelada-cliente": "cancelada",
-    "cancelada-experto": "cancelada",
-    rechazada: "rechazada",
-  };
-  return clases[estado] || "pendiente";
+/**
+ * Muestra diferentes estados de la página
+ */
+function mostrarEstado(estado) {
+  const loading = document.getElementById("loadingState");
+  const error = document.getElementById("errorState");
+  const content = document.getElementById("asesoriasContainer");
+  const empty = document.getElementById("emptyState");
+
+  // Ocultar todos
+  loading.style.display = "none";
+  error.style.display = "none";
+  content.style.display = "none";
+  empty.style.display = "none";
+
+  // Mostrar el correspondiente
+  switch (estado) {
+    case "loading":
+      loading.style.display = "block";
+      break;
+    case "error":
+      error.style.display = "block";
+      break;
+    case "content":
+      content.style.display = "block";
+      break;
+    case "empty":
+      empty.style.display = "block";
+      break;
+  }
 }
 
-function getEstadoTexto(estado) {
-  const textos = {
-    "pendiente-aceptacion": "Pendiente de aceptación",
+/**
+ * Muestra mensaje de error
+ */
+function mostrarError(mensaje) {
+  mostrarEstado("error");
+  const errorMessage = document.getElementById("errorMessage");
+  if (errorMessage) {
+    errorMessage.textContent = mensaje;
+  }
+}
+
+/**
+ * Muestra notificaciones
+ */
+function mostrarNotificacion(mensaje, tipo = "info") {
+  // Crear contenedor si no existe
+  let container = document.querySelector(".notification-container");
+  if (!container) {
+    container = document.createElement("div");
+    container.className = "notification-container";
+    container.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+        `;
+    document.body.appendChild(container);
+  }
+
+  const notification = document.createElement("div");
+  notification.className = `notification notification-${tipo}`;
+  notification.style.cssText = `
+        background: ${
+          tipo === "success"
+            ? "#28a745"
+            : tipo === "error"
+            ? "#dc3545"
+            : "#007bff"
+        };
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        max-width: 350px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transform: translateX(400px);
+        transition: transform 0.3s ease;
+        font-size: 14px;
+        line-height: 1.4;
+    `;
+
+  const icono = tipo === "success" ? "✓" : tipo === "error" ? "✗" : "i";
+  notification.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-weight: bold; font-size: 16px;">${icono}</span>
+            <span>${mensaje}</span>
+        </div>
+    `;
+
+  container.appendChild(notification);
+
+  // Animar entrada
+  setTimeout(() => {
+    notification.style.transform = "translateX(0)";
+  }, 100);
+
+  // Auto-remover
+  setTimeout(() => {
+    notification.style.transform = "translateX(400px)";
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.remove();
+      }
+    }, 300);
+  }, 5000);
+}
+
+/**
+ * Funciones auxiliares
+ */
+function obtenerTextoEstado(estado) {
+  const estados = {
+    "pendiente-aceptacion": "Pendiente",
     confirmada: "Confirmada",
     completada: "Completada",
-    "cancelada-cliente": "Cancelada por cliente",
-    "cancelada-experto": "Cancelada por experto",
+    "cancelada-cliente": "Cancelada",
+    "cancelada-experto": "Cancelada",
     rechazada: "Rechazada",
   };
-  return textos[estado] || estado;
+  return estados[estado] || estado;
 }
 
-function escapeHtml(text) {
-  if (!text) return "";
-  const div = document.createElement("div");
-  div.textContent = text;
-  return div.innerHTML;
+function obtenerIniciales(nombre, apellido) {
+  const n = nombre ? nombre.charAt(0).toUpperCase() : "";
+  const a = apellido ? apellido.charAt(0).toUpperCase() : "";
+  return n + a || "?";
 }
 
-function showLoading(container) {
-  container.innerHTML = `
-    <div class="loading-state">
-      <div class="spinner"></div>
-      <p>Cargando asesorías...</p>
-    </div>
-  `;
-}
-
-function showError(container, mensaje) {
-  container.innerHTML = `
-    <div class="error-state">
-      <i class="fas fa-exclamation-triangle"></i>
-      <h3>Error</h3>
-      <p>${mensaje}</p>
-      <button class="btn btn-primary" onclick="window.location.reload()">Reintentar</button>
-    </div>
-  `;
-}
-
-function showLoadingButton(selector) {
-  const btn = document.querySelector(selector);
-  if (btn) {
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
-  }
-}
-
-function showToast(mensaje, tipo = "info") {
-  // Crear toast notification
-  const toast = document.createElement("div");
-  toast.className = `toast toast-${tipo}`;
-  toast.innerHTML = `
-    <div class="toast-content">
-      <span>${mensaje}</span>
-      <button class="toast-close">&times;</button>
-    </div>
-  `;
-
-  document.body.appendChild(toast);
-
-  // Mostrar toast
-  setTimeout(() => toast.classList.add("show"), 100);
-
-  // Auto-remover después de 5 segundos
-  setTimeout(() => {
-    toast.classList.remove("show");
-    setTimeout(() => toast.remove(), 300);
-  }, 5000);
-
-  // Botón para cerrar manualmente
-  toast.querySelector(".toast-close").onclick = () => {
-    toast.classList.remove("show");
-    setTimeout(() => toast.remove(), 300);
-  };
-}
-
-// Fetch protegido reutilizable
-async function fetchProtegido(url, options = {}) {
-  const user = JSON.parse(
-    sessionStorage.getItem("user") || localStorage.getItem("user") || "null"
-  );
-  const headers = options.headers || {};
-
-  if (user && user.token) {
-    headers["Authorization"] = "Bearer " + user.token;
-  }
-
-  return fetch(url, { ...options, headers });
-}
-
-// Funciones para modales (compatibilidad con EJS existente)
-window.cerrarMensajes = function () {
-  document.getElementById("mensajeModal").style.display = "none";
-};
-
-window.cerrarDetalles = function () {
-  document.getElementById("detalleModal").style.display = "none";
-};
-
-window.abrirMensajes = function (asesoriaId, expertoNombre) {
-  document.getElementById("expertoNombre").textContent = expertoNombre || "";
-  document.getElementById("mensajeModal").style.display = "flex";
-};
+// Hacer funciones disponibles globalmente
+window.cargarAsesorias = cargarAsesorias;
+window.aceptarAsesoria = aceptarAsesoria;
+window.rechazarAsesoria = rechazarAsesoria;
+window.finalizarAsesoria = finalizarAsesoria;
+window.cancelarAsesoria = cancelarAsesoria;
+window.contactarExperto = contactarExperto;
+window.cerrarModal = cerrarModal;
