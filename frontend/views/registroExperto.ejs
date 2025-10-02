@@ -84,8 +84,7 @@
             <div class="form-group">
               <label for="descripcion">Tu experiencia y especialidades</label>
               <textarea id="descripcion" name="descripcion" rows="4"
-                placeholder="Cuenta brevemente tu experiencia, herramientas y tipos de proyectos"
-                class="form-control">
+                placeholder="Cuenta brevemente tu experiencia, herramientas y tipos de proyectos" class="form-control">
               </textarea>
               <p class="form-hint">Sé concreto y destaca resultados</p>
             </div>
@@ -144,7 +143,10 @@
                   <i class="fas fa-cloud-upload-alt"></i>
                   <span id="file-input-text">Seleccionar archivo</span>
                 </div>
-                <input type="file" id="fotoPerfil" accept="image/*" class="file-input">
+                <input type="file" id="fotoPerfil" name="fotoPerfil" accept="image/jpeg,image/png,image/webp"
+                  class="file-input" aria-required="true" required>
+                <p id="foto-hint" class="form-hint">JPG/PNG/WebP, mínimo 300x300, máximo 2MB (se intentará optimizar
+                  automáticamente). Imagen obligatoria.</p>
               </div>
 
               <!-- Vista previa de imagen -->
@@ -287,7 +289,7 @@
                     <label for="numeroCuenta" class="form-label">Número de cuenta</label>
                     <div class="password-wrapper">
                       <input type="password" id="numeroCuenta" name="numeroCuenta" placeholder="********"
-                        class="form-control" aria-describedby="numero-cuenta-hint">
+                        class="form-control" aria-describedby="numero-cuenta-hint" maxlength="34">
                       <button type="button" id="toggleAccountNumber" class="btn-icon"
                         aria-label="Mostrar/ocultar número de cuenta" aria-pressed="false">
                         <i class="fas fa-eye" aria-hidden="true"></i>
