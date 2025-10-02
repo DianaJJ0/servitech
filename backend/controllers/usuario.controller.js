@@ -10,7 +10,10 @@ const Asesoria = require("../models/asesoria.model.js");
 const Pago = require("../models/pago.model.js");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-const {enviarCorreo,generarCuerpoRecuperacion,} = require("../services/email.service.js");
+const {
+  enviarCorreo,
+  generarCuerpoRecuperacion,
+} = require("../services/email.service.js");
 const mongoose = require("mongoose");
 const { generateLog } = require("../services/logService.js");
 const generarLogs = require("../services/generarLogs");
@@ -79,42 +82,68 @@ const registrarUsuario = async (req, res) => {
   const { nombre, apellido, email, password, roles, infoExperto } = req.body;
   try {
     if (!nombre || !apellido || !email || !password) {
-      return res.status(400).json({ mensaje: "Por favor, complete todos los campos obligatorios." });
+      return res
+        .status(400)
+        .json({
+          mensaje: "Por favor, complete todos los campos obligatorios.",
+        });
     }
     const usuarioExistente = await Usuario.findOne({ email });
     if (usuarioExistente) {
-      return res.status(409).json({ mensaje: "El correo electrónico ya está registrado." });
+      return res
+        .status(409)
+        .json({ mensaje: "El correo electrónico ya está registrado." });
     }
     // Siempre es cliente y puede ser experto
     let nuevosRoles = ["cliente"];
-    if (Array.isArray(roles) && roles.includes("experto")) nuevosRoles.push("experto");
+    if (Array.isArray(roles) && roles.includes("experto"))
+      nuevosRoles.push("experto");
     // Si infoExperto viene en la solicitud, es una solicitud de experto (queda pendiente)
     let infoExpToSave = undefined;
     let estadoUsuario = "activo";
     if (infoExperto && typeof infoExperto === "object") {
       // Validar campos requeridos de experto
       const requiredFields = [
-        "descripcion", "precioPorHora", "banco", "tipoCuenta", "numeroCuenta",
-        "titular", "tipoDocumento", "numeroDocumento", "categorias", "diasDisponibles", "telefonoContacto"
+        "descripcion",
+        "precioPorHora",
+        "banco",
+        "tipoCuenta",
+        "numeroCuenta",
+        "titular",
+        "tipoDocumento",
+        "numeroDocumento",
+        "categorias",
+        "diasDisponibles",
+        "telefonoContacto",
       ];
-      const missing = requiredFields.filter((f) => !infoExperto[f] || String(infoExperto[f]).trim() === "");
-        if (missing.length > 0) {
-          return res.status(400).json({
-            mensaje:
-              "Faltan campos obligatorios para crear el perfil de experto en el registro.",
-            camposFaltantes: missing,
-          });
-        }
+      const missing = requiredFields.filter(
+        (f) => !infoExperto[f] || String(infoExperto[f]).trim() === ""
+      );
+      if (missing.length > 0) {
+        return res.status(400).json({
+          mensaje:
+            "Faltan campos obligatorios para crear el perfil de experto en el registro.",
+          camposFaltantes: missing,
+        });
+      }
       // Procesar categorías y díasDisponibles
       let categoriasArray = [];
       if (infoExperto.categorias) {
-        if (Array.isArray(infoExperto.categorias)) categoriasArray = infoExperto.categorias.map(String);
-        else if (typeof infoExperto.categorias === "string") categoriasArray = infoExperto.categorias.split(",").map((id) => id.trim());
+        if (Array.isArray(infoExperto.categorias))
+          categoriasArray = infoExperto.categorias.map(String);
+        else if (typeof infoExperto.categorias === "string")
+          categoriasArray = infoExperto.categorias
+            .split(",")
+            .map((id) => id.trim());
       }
       let diasArray = [];
       if (infoExperto.diasDisponibles) {
-        if (Array.isArray(infoExperto.diasDisponibles)) diasArray = infoExperto.diasDisponibles.map(String);
-        else if (typeof infoExperto.diasDisponibles === "string") diasArray = infoExperto.diasDisponibles.split(",").map((d) => d.trim());
+        if (Array.isArray(infoExperto.diasDisponibles))
+          diasArray = infoExperto.diasDisponibles.map(String);
+        else if (typeof infoExperto.diasDisponibles === "string")
+          diasArray = infoExperto.diasDisponibles
+            .split(",")
+            .map((d) => d.trim());
       }
       infoExpToSave = {
         descripcion: String(infoExperto.descripcion),
@@ -127,9 +156,16 @@ const registrarUsuario = async (req, res) => {
         numeroDocumento: String(infoExperto.numeroDocumento),
         categorias: categoriasArray,
         diasDisponibles: diasArray,
-        telefonoContacto: infoExperto.telefonoContacto ? String(infoExperto.telefonoContacto) : undefined
+        telefonoContacto: infoExperto.telefonoContacto
+          ? String(infoExperto.telefonoContacto)
+          : undefined,
       };
-      estadoUsuario = "pendiente"; // Experto queda pendiente hasta aprobación admin
+      // Use the enum defined in the Usuario model
+      estadoUsuario = "pendiente-verificacion"; // Experto queda pendiente hasta aprobación admin
+      // Si el usuario solicitó ser experto, asegúrate de incluir el rol 'experto'
+      if (!nuevosRoles.includes("experto")) {
+        nuevosRoles.push("experto");
+      }
     }
     const nuevoUsuario = new Usuario({
       nombre,
@@ -138,7 +174,7 @@ const registrarUsuario = async (req, res) => {
       password,
       roles: nuevosRoles,
       infoExperto: infoExpToSave,
-      estado: estadoUsuario
+      estado: estadoUsuario,
     });
     await nuevoUsuario.save();
     generarLogs.registrarEvento({
@@ -153,13 +189,14 @@ const registrarUsuario = async (req, res) => {
     });
     let mensaje = "Usuario registrado exitosamente.";
     if (infoExpToSave) {
-      mensaje = "Solicitud de perfil de experto enviada. Revisaremos tu perfil y activaremos tu cuenta de experto.";
+      mensaje =
+        "Solicitud de perfil de experto enviada. Revisaremos tu perfil y activaremos tu cuenta de experto.";
     }
     res.status(201).json({
       mensaje,
       token: generarToken(nuevoUsuario._id),
       estado: estadoUsuario,
-      roles: nuevosRoles
+      roles: nuevosRoles,
     });
   } catch (error) {
     console.error("Error en el proceso de registro:", error);
@@ -176,7 +213,9 @@ const registrarUsuario = async (req, res) => {
     if (error.name === "ValidationError") {
       return res.status(400).json({ mensaje: error.message });
     }
-    res.status(500).json({ mensaje: "Error interno del servidor al registrar el usuario." });
+    res
+      .status(500)
+      .json({ mensaje: "Error interno del servidor al registrar el usuario." });
   }
 };
 
@@ -205,7 +244,9 @@ const iniciarSesion = async (req, res) => {
   const { email, password } = req.body;
   try {
     if (!email || !password) {
-      return res.status(400).json({ mensaje: "Correo y contraseña son requeridos." });
+      return res
+        .status(400)
+        .json({ mensaje: "Correo y contraseña son requeridos." });
     }
     const usuario = await Usuario.findOne({ email });
     if (!usuario) {
@@ -276,7 +317,9 @@ const iniciarSesion = async (req, res) => {
       tipo: "usuarios",
       persistirEnDB: true,
     });
-    res.status(500).json({ mensaje: "Error interno del servidor al iniciar sesión." });
+    res
+      .status(500)
+      .json({ mensaje: "Error interno del servidor al iniciar sesión." });
   }
 };
 
@@ -421,7 +464,11 @@ const solicitarRecuperacionPassword = async (req, res) => {
       usuario.email,
       "Recupera tu contraseña - ServiTech",
       mensaje,
-      { nombreDestinatario: usuario.nombre, apellidoDestinatario: usuario.apellido, html }
+      {
+        nombreDestinatario: usuario.nombre,
+        apellidoDestinatario: usuario.apellido,
+        html,
+      }
     );
 
     generarLogs.registrarEvento({
@@ -505,7 +552,6 @@ const resetearPassword = async (req, res) => {
   }
 };
 
-
 /**
  * Actualiza perfil de usuario autenticado (cliente o experto).
  * @swagger
@@ -538,11 +584,18 @@ const actualizarPerfilUsuario = async (req, res) => {
     const datos = req.body;
     // Validar nombre y apellido siempre
     if (!datos.nombre || !datos.apellido) {
-      return res.status(400).json({ mensaje: "Nombre y apellido son obligatorios." });
+      return res
+        .status(400)
+        .json({ mensaje: "Nombre y apellido son obligatorios." });
     }
     const regNombre = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s'-]{1,80}$/;
     if (!regNombre.test(datos.nombre) || !regNombre.test(datos.apellido)) {
-      return res.status(400).json({ mensaje: "Nombre y apellido solo pueden tener letras y hasta 80 caracteres." });
+      return res
+        .status(400)
+        .json({
+          mensaje:
+            "Nombre y apellido solo pueden tener letras y hasta 80 caracteres.",
+        });
     }
     usuario.nombre = datos.nombre.trim();
     usuario.apellido = datos.apellido.trim();
@@ -560,25 +613,40 @@ const actualizarPerfilUsuario = async (req, res) => {
         tipo: "usuarios",
         persistirEnDB: true,
       });
-      return res.status(200).json({ mensaje: "Perfil actualizado correctamente.", usuario });
+      return res
+        .status(200)
+        .json({ mensaje: "Perfil actualizado correctamente.", usuario });
     }
 
     // Si es experto Y el payload trae campos de experto, validar y actualizar infoExperto
     const camposExperto = [
-      "descripcion", "precioPorHora", "categorias", "banco", "tipoCuenta",
-      "numeroCuenta", "titular", "tipoDocumento", "numeroDocumento"
+      "descripcion",
+      "precioPorHora",
+      "categorias",
+      "banco",
+      "tipoCuenta",
+      "numeroCuenta",
+      "titular",
+      "tipoDocumento",
+      "numeroDocumento",
     ];
-    const tieneCamposExperto = camposExperto.some((campo) => typeof datos[campo] !== "undefined");
+    const tieneCamposExperto = camposExperto.some(
+      (campo) => typeof datos[campo] !== "undefined"
+    );
     if (usuario.roles.includes("experto") && tieneCamposExperto) {
       let categoriasArray = [];
       if (datos.categorias) {
-        if (Array.isArray(datos.categorias)) categoriasArray = datos.categorias.map(String);
-        else if (typeof datos.categorias === "string") categoriasArray = datos.categorias.split(",").map((id) => id.trim());
+        if (Array.isArray(datos.categorias))
+          categoriasArray = datos.categorias.map(String);
+        else if (typeof datos.categorias === "string")
+          categoriasArray = datos.categorias.split(",").map((id) => id.trim());
       }
       let diasArray = [];
       if (datos.diasDisponibles) {
-        if (Array.isArray(datos.diasDisponibles)) diasArray = datos.diasDisponibles.map(String);
-        else if (typeof datos.diasDisponibles === "string") diasArray = datos.diasDisponibles.split(",").map((dia) => dia.trim());
+        if (Array.isArray(datos.diasDisponibles))
+          diasArray = datos.diasDisponibles.map(String);
+        else if (typeof datos.diasDisponibles === "string")
+          diasArray = datos.diasDisponibles.split(",").map((dia) => dia.trim());
       }
       if (
         !datos.descripcion ||
@@ -592,7 +660,8 @@ const actualizarPerfilUsuario = async (req, res) => {
         !datos.numeroDocumento
       ) {
         return res.status(400).json({
-          mensaje: "Faltan campos obligatorios para actualizar el perfil de experto. Revisa todos los campos y selecciona al menos una categoría.",
+          mensaje:
+            "Faltan campos obligatorios para actualizar el perfil de experto. Revisa todos los campos y selecciona al menos una categoría.",
         });
       }
       usuario.infoExperto = {
@@ -620,11 +689,14 @@ const actualizarPerfilUsuario = async (req, res) => {
       tipo: "usuarios",
       persistirEnDB: true,
     });
-    return res.status(200).json({ mensaje: "Perfil actualizado correctamente.", usuario });
+    return res
+      .status(200)
+      .json({ mensaje: "Perfil actualizado correctamente.", usuario });
   } catch (error) {
     console.error("Error al actualizar perfil:", error);
     generarLogs.registrarEvento({
-      usuarioEmail: (req.usuario && req.usuario.email) || req.body.email || null,
+      usuarioEmail:
+        (req.usuario && req.usuario.email) || req.body.email || null,
       nombre: req.body.nombre || null,
       apellido: req.body.apellido || null,
       accion: "EDITAR_PERFIL",
