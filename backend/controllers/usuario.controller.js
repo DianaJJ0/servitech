@@ -10,6 +10,7 @@ const Asesoria = require("../models/asesoria.model.js");
 const Pago = require("../models/pago.model.js");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
+const fs = require("fs");
 const {
   enviarCorreo,
   generarCuerpoRecuperacion,
@@ -50,6 +51,11 @@ const generarToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "2d" });
 };
 
+const {
+  validateNumeroCuentaByBank,
+  validateTitularName,
+} = require("../validators/expertValidators.js");
+
 /**
  * @swagger
  * /api/usuarios/registro:
@@ -82,11 +88,9 @@ const registrarUsuario = async (req, res) => {
   const { nombre, apellido, email, password, roles, infoExperto } = req.body;
   try {
     if (!nombre || !apellido || !email || !password) {
-      return res
-        .status(400)
-        .json({
-          mensaje: "Por favor, complete todos los campos obligatorios.",
-        });
+      return res.status(400).json({
+        mensaje: "Por favor, complete todos los campos obligatorios.",
+      });
     }
     const usuarioExistente = await Usuario.findOne({ email });
     if (usuarioExistente) {
@@ -160,6 +164,18 @@ const registrarUsuario = async (req, res) => {
           ? String(infoExperto.telefonoContacto)
           : undefined,
       };
+      // VALIDACION SERVER-SIDE: número de cuenta y titular
+      const cuentaCheck = validateNumeroCuentaByBank(
+        infoExpToSave.banco,
+        infoExpToSave.numeroCuenta
+      );
+      if (!cuentaCheck.valid) {
+        return res.status(400).json({ mensaje: cuentaCheck.message });
+      }
+      const titularCheck = validateTitularName(infoExpToSave.titular);
+      if (!titularCheck.valid) {
+        return res.status(400).json({ mensaje: titularCheck.message });
+      }
       // Use the enum defined in the Usuario model
       estadoUsuario = "pendiente-verificacion"; // Experto queda pendiente hasta aprobación admin
       // Si el usuario solicitó ser experto, asegúrate de incluir el rol 'experto'
@@ -590,12 +606,10 @@ const actualizarPerfilUsuario = async (req, res) => {
     }
     const regNombre = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s'-]{1,80}$/;
     if (!regNombre.test(datos.nombre) || !regNombre.test(datos.apellido)) {
-      return res
-        .status(400)
-        .json({
-          mensaje:
-            "Nombre y apellido solo pueden tener letras y hasta 80 caracteres.",
-        });
+      return res.status(400).json({
+        mensaje:
+          "Nombre y apellido solo pueden tener letras y hasta 80 caracteres.",
+      });
     }
     usuario.nombre = datos.nombre.trim();
     usuario.apellido = datos.apellido.trim();
@@ -664,6 +678,16 @@ const actualizarPerfilUsuario = async (req, res) => {
             "Faltan campos obligatorios para actualizar el perfil de experto. Revisa todos los campos y selecciona al menos una categoría.",
         });
       }
+      // Server-side validate numeroCuenta + titular
+      const cuentaCheckUp = validateNumeroCuentaByBank(
+        datos.banco,
+        datos.numeroCuenta
+      );
+      if (!cuentaCheckUp.valid)
+        return res.status(400).json({ mensaje: cuentaCheckUp.message });
+      const titularCheckUp = validateTitularName(datos.titular);
+      if (!titularCheckUp.valid)
+        return res.status(400).json({ mensaje: titularCheckUp.message });
       usuario.infoExperto = {
         descripcion: datos.descripcion,
         precioPorHora: datos.precioPorHora,
@@ -724,12 +748,31 @@ const subirAvatar = async (req, res) => {
       return res.status(400).json({ mensaje: "Archivo no recibido." });
     }
 
+    // Validar tipo y tamaño mínimo/permitido en el servidor (extra a validación cliente)
+    const allowed = ["image/jpeg", "image/png", "image/webp"];
+    const file = req.file;
+    if (!allowed.includes(file.mimetype)) {
+      // eliminar archivo
+      try {
+        fs.unlinkSync(file.path);
+      } catch (e) {}
+      return res.status(400).json({ mensaje: "Tipo de archivo no permitido." });
+    }
+    const maxBytes = Number(process.env.MAX_FILE_SIZE || 2 * 1024 * 1024);
+    if (file.size > maxBytes) {
+      try {
+        fs.unlinkSync(file.path);
+      } catch (e) {}
+      return res.status(400).json({ mensaje: "Archivo demasiado grande." });
+    }
+
+    // Construir URL y guardar
     const filename = req.file.filename;
     const uploadsPath = process.env.UPLOAD_PATH || "uploads";
     const configured = (process.env.BACKEND_URL || "").trim();
     const base = configured || "http://localhost:5020";
     const avatarUrl = `${base.replace(/\/$/, "")}/${uploadsPath.replace(
-      /^\//,
+      /\//,
       ""
     )}/${filename}`;
     usuario.avatarUrl = avatarUrl;
