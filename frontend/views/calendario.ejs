@@ -3,74 +3,149 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Agendar Asesoría | Servitech</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendario de <%= experto.nombre %> - ServiTech</title>
     <link rel="stylesheet" href="/assets/css/base.css">
     <link rel="stylesheet" href="/assets/css/componentes.css">
     <link rel="stylesheet" href="/assets/css/calendario.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
 <body>
+    <!-- Header -->
     <%- include('componentes/header') %>
-        <main class="container calendario-main">
-            <section class="expert-profile">
-                <div class="profile-card">
-                    <div class="profile-avatar">
-                        <% if (experto.avatarUrl) { %>
-                            <img src="<%= experto.avatarUrl %>" alt="Foto de <%= experto.nombre %>">
-                            <% } else { %>
-                                <span class="avatar-iniciales">
-                                    <%= (experto.nombre && experto.apellido) ? (experto.nombre[0] +
-                                        experto.apellido[0]).toUpperCase() : (experto.nombre ?
-                                        experto.nombre[0].toUpperCase() : 'E' ) %>
-                                </span>
-                                <% } %>
-                    </div>
-                    <div class="profile-info">
-                        <h2>
-                            <%= experto.nombre %>
-                                <%= experto.apellido %>
-                        </h2>
-                        <p class="profile-especialidad"><i class="fas fa-award"></i>
-                            <%= experto.infoExperto?.descripcion || 'Especialista Técnico' %>
-                        </p>
-                        <p class="profile-descripcion">
-                            <%= experto.infoExperto?.descripcion || 'Experto en tecnología y asesorías personalizadas.'
-                                %>
-                        </p>
-                        <div class="profile-contacto">
-                            <i class="fas fa-envelope"></i>
-                            <%= experto.email %>
+
+        <div class="container">
+            <% if (!user) { %>
+                <!-- Mensaje para usuarios no autenticados -->
+                <div class="auth-required">
+                    <div class="auth-message">
+                        <h2>Inicia sesión para agendar</h2>
+                        <p>Para agendar una asesoría con <%= experto.nombre %>, necesitas tener una cuenta.</p>
+                        <div class="auth-actions">
+                            <a href="/login.html?next=/expertos/<%= encodeURIComponent(experto.email) %>/calendario"
+                                class="btn btn-primary">
+                                Iniciar Sesión
+                            </a>
+                            <a href="/registro.html" class="btn btn-secondary">
+                                Registrarse
+                            </a>
                         </div>
                     </div>
                 </div>
-            </section>
+                <% } %>
 
-            <section class="calendar-agenda">
-                <h3>Agenda una asesoría</h3>
-                <form id="formAgendarAsesoria" autocomplete="off">
-                    <div class="calendar-container">
-                        <div id="calendar"></div>
+                    <!-- Información del experto -->
+                    <div class="experto-info">
+                        <div class="experto-header">
+                            <img src="<%= experto.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(experto.nombre)}&background=3a8eff&color=fff` %>"
+                                alt="Avatar de <%= experto.nombre %>" class="experto-avatar">
+                            <div class="experto-datos">
+                                <h1>
+                                    <%= experto.nombre %>
+                                        <%= experto.apellido %>
+                                </h1>
+                                <p class="experto-especialidad">
+                                    <%= experto.infoExperto?.descripcion || 'Experto en tecnología' %>
+                                </p>
+                                <div class="experto-precio">
+                                    <i class="fas fa-dollar-sign"></i>
+                                    <span>$25,000 COP / hora</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="hour-selector">
-                        <label for="hora">Hora disponible:</label>
-                        <select id="hora" name="hora" required>
-                            <option value="">Selecciona una hora</option>
-                        </select>
-                    </div>
-                    <div id="errorCalendar" class="input-error"></div>
-                    <button type="submit" class="btn btn-primary">Solicitar asesoría</button>
-                </form>
-                <div id="successMsg" class="success-msg"></div>
-            </section>
-        </main>
+
+                    <% if (user) { %>
+                        <!-- Calendario y formulario solo para usuarios autenticados -->
+                        <div class="calendario-container">
+                            <div class="calendario-section">
+                                <h2>Selecciona fecha y hora</h2>
+                                <div id="calendar" class="calendar"></div>
+                            </div>
+
+                            <div class="formulario-section">
+                                <form id="formAgendarAsesoria" class="agendar-form">
+                                    <h3>Confirmar asesoría</h3>
+
+                                    <div class="form-group">
+                                        <label for="hora">Hora disponible:</label>
+                                        <select id="hora" name="hora" class="form-control" required disabled>
+                                            <option value="">Primero selecciona una fecha</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Duración:</label>
+                                        <div class="duracion-options">
+                                            <label class="radio-option">
+                                                <input type="radio" name="duracion" value="60" checked>
+                                                <span>1 hora</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div class="resumen-asesoria">
+                                        <h4>Resumen:</h4>
+                                        <div class="resumen-item">
+                                            <span>Experto:</span>
+                                            <span>
+                                                <%= experto.nombre %>
+                                                    <%= experto.apellido %>
+                                            </span>
+                                        </div>
+                                        <div class="resumen-item">
+                                            <span>Precio:</span>
+                                            <span>$25,000 COP</span>
+                                        </div>
+                                        <div class="resumen-item">
+                                            <span>Duración:</span>
+                                            <span>60 minutos</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Mensajes -->
+                                    <div id="errorCalendar" class="error-message" style="display: none;"></div>
+                                    <div id="successMsg" class="success-message" style="display: none;"></div>
+
+                                    <button type="submit" class="btn btn-primary btn-block">
+                                        <i class="fas fa-calendar-check"></i>
+                                        Agendar asesoría
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Información adicional -->
+                        <div class="info-adicional">
+                            <div class="info-card">
+                                <h3><i class="fas fa-info-circle"></i> Información importante</h3>
+                                <ul>
+                                    <li>El pago se procesará al confirmar la asesoría</li>
+                                    <li>El experto tiene 24 horas para aceptar o rechazar</li>
+                                    <li>Si es rechazada, recibirás el reembolso completo</li>
+                                    <li>Si cancelas después de aceptada, recibirás el 80% de reembolso</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <% } %>
+        </div>
+
+        <!-- Footer -->
         <%- include('componentes/footer') %>
-            <script>
-                window.experto = <%= JSON.stringify(experto) %>;
-                window.usuario = <%= JSON.stringify(usuario) %>;
-                window.asesoriasExistentes = <%= JSON.stringify(asesoriasExistentes) %>;
-            </script>
-            <script src="/assets/js/calendario.js"></script>
+
+            <% if (user) { %>
+                <!-- Hidden data for JavaScript -->
+                <script type="application/json" id="expertoData"><%- JSON.stringify(experto) %></script>
+                <script type="application/json" id="usuarioData"><%- JSON.stringify(user) %></script>
+                <script type="application/json" id="asesoriasData"><%- JSON.stringify(asesoriasExistentes) %></script>
+                <% } %>
+
+                    <!-- Scripts -->
+                    <script src="/assets/js/common.js"></script>
+                    <% if (user) { %>
+                        <script src="/assets/js/calendario.js"></script>
+                        <% } %>
 </body>
 
 </html>
