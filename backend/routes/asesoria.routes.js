@@ -1,7 +1,7 @@
 /**
- * @file Rutas de Asesoría
+ * @file Rutas de Asesoria
  * @module routes/asesoria
- * @description Endpoints para la gestión de asesorías y su flujo de aceptación, rechazo y finalización.
+ * @description Endpoints para la gestion de asesorias y su flujo de aceptacion, rechazo y finalizacion.
  */
 
 const express = require("express");
@@ -10,19 +10,22 @@ const asesoriaController = require("../controllers/asesoria.controller.js");
 const authMiddleware = require("../middleware/auth.middleware");
 const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
 
+// IMPORTAR EL MODELO DE ASESORIA - ESTO ES LO QUE FALTABA
+const Asesoria = require("../models/asesoria.model.js");
+
 /**
  * @openapi
  * tags:
- *   - name: Asesorías
- *     description: Gestión de asesorías y flujo de pagos
+ *   - name: Asesorias
+ *     description: Gestion de asesorias y flujo de pagos
  */
 
 /**
  * @openapi
  * /api/asesorias:
  *   post:
- *     summary: Crear nueva asesoría (cliente autenticado)
- *     tags: [Asesorías]
+ *     summary: Crear nueva asesoria (cliente autenticado)
+ *     tags: [Asesorias]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -33,7 +36,7 @@ const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
  *             $ref: '#/components/schemas/Asesoria'
  *     responses:
  *       201:
- *         description: Asesoría creada y pendiente de aceptación del experto
+ *         description: Asesoria creada y pendiente de aceptacion del experto
  */
 router.post("/", authMiddleware.autenticar, asesoriaController.crearAsesoria);
 
@@ -41,13 +44,13 @@ router.post("/", authMiddleware.autenticar, asesoriaController.crearAsesoria);
  * @openapi
  * /api/asesorias/mias:
  *   get:
- *     summary: Obtener asesorías del usuario autenticado
- *     tags: [Asesorías]
+ *     summary: Obtener asesorias del usuario autenticado
+ *     tags: [Asesorias]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Lista de asesorías del usuario
+ *         description: Lista de asesorias del usuario
  */
 router.get(
   "/mias",
@@ -59,8 +62,8 @@ router.get(
  * @openapi
  * /api/asesorias/{id}/aceptar:
  *   put:
- *     summary: Aceptar asesoría (experto autenticado)
- *     tags: [Asesorías]
+ *     summary: Aceptar asesoria (experto autenticado)
+ *     tags: [Asesorias]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -71,7 +74,7 @@ router.get(
  *           type: string
  *     responses:
  *       200:
- *         description: Asesoría aceptada y pago retenido
+ *         description: Asesoria aceptada y pago retenido
  */
 router.put(
   "/:id/aceptar",
@@ -84,8 +87,8 @@ router.put(
  * @openapi
  * /api/asesorias/{id}/rechazar:
  *   put:
- *     summary: Rechazar asesoría (experto autenticado)
- *     tags: [Asesorías]
+ *     summary: Rechazar asesoria (experto autenticado)
+ *     tags: [Asesorias]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -96,7 +99,7 @@ router.put(
  *           type: string
  *     responses:
  *       200:
- *         description: Asesoría rechazada y pago reembolsado
+ *         description: Asesoria rechazada y pago reembolsado
  */
 router.put(
   "/:id/rechazar",
@@ -109,8 +112,8 @@ router.put(
  * @openapi
  * /api/asesorias/{id}/cancelar-cliente:
  *   put:
- *     summary: Cancelar asesoría por el cliente
- *     tags: [Asesorías]
+ *     summary: Cancelar asesoria por el cliente
+ *     tags: [Asesorias]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -121,7 +124,7 @@ router.put(
  *           type: string
  *     responses:
  *       200:
- *         description: Asesoría cancelada
+ *         description: Asesoria cancelada
  */
 router.put(
   "/:id/cancelar-cliente",
@@ -133,8 +136,8 @@ router.put(
  * @openapi
  * /api/asesorias/{id}/cancelar-experto:
  *   put:
- *     summary: Cancelar asesoría por el experto
- *     tags: [Asesorías]
+ *     summary: Cancelar asesoria por el experto
+ *     tags: [Asesorias]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -145,7 +148,7 @@ router.put(
  *           type: string
  *     responses:
  *       200:
- *         description: Asesoría cancelada
+ *         description: Asesoria cancelada
  */
 router.put(
   "/:id/cancelar-experto",
@@ -158,8 +161,8 @@ router.put(
  * @openapi
  * /api/asesorias/{id}/finalizar:
  *   put:
- *     summary: Finalizar asesoría y liberar pago (cliente o admin)
- *     tags: [Asesorías]
+ *     summary: Finalizar asesoria y liberar pago (cliente o admin)
+ *     tags: [Asesorias]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -170,7 +173,7 @@ router.put(
  *           type: string
  *     responses:
  *       200:
- *         description: Asesoría finalizada y pago liberado
+ *         description: Asesoria finalizada y pago liberado
  */
 router.put(
   "/:id/finalizar",
@@ -182,13 +185,13 @@ router.put(
  * @openapi
  * /api/asesorias:
  *   get:
- *     summary: Listar todas las asesorías (solo admin)
- *     tags: [Asesorías]
+ *     summary: Listar todas las asesorias (solo admin)
+ *     tags: [Asesorias]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Lista de asesorías
+ *         description: Lista de asesorias
  */
 router.get(
   "/",
@@ -202,8 +205,8 @@ router.get(
  * @openapi
  * /api/asesorias/cliente/{email}:
  *   get:
- *     summary: Listar asesorías por cliente (solo admin)
- *     tags: [Asesorías]
+ *     summary: Listar asesorias por cliente (solo admin)
+ *     tags: [Asesorias]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -214,7 +217,7 @@ router.get(
  *           type: string
  *     responses:
  *       200:
- *         description: Lista de asesorías del cliente
+ *         description: Lista de asesorias del cliente
  */
 router.get(
   "/cliente/:email",
@@ -228,10 +231,8 @@ router.get(
  * @openapi
  * /api/asesorias/experto/{email}:
  *   get:
- *     summary: Listar asesorías por experto (solo admin)
- *     tags: [Asesorías]
- *     security:
- *       - bearerAuth: []
+ *     summary: Listar asesorias por experto (publico para calendario)
+ *     tags: [Asesorias]
  *     parameters:
  *       - name: email
  *         in: path
@@ -240,33 +241,38 @@ router.get(
  *           type: string
  *     responses:
  *       200:
- *         description: Lista de asesorías del experto
+ *         description: Lista de asesorias del experto
  */
-// Obtener asesorías de un experto por email
+// Obtener asesorias de un experto por email - CORREGIDO CON IMPORT
 router.get("/experto/:email", async (req, res) => {
   try {
     const expertoEmail = req.params.email;
+    console.log("Obteniendo asesorias para experto:", expertoEmail);
 
     const asesorias = await Asesoria.find({
       "experto.email": expertoEmail,
-      estado: { $in: ["pendiente-aceptacion", "confirmada"] }
+      estado: { $in: ["pendiente-aceptacion", "confirmada"] },
     }).sort({ fechaHoraInicio: 1 });
 
+    console.log(
+      `Encontradas ${asesorias.length} asesorias para ${expertoEmail}`
+    );
     res.json(asesorias);
   } catch (error) {
-    console.error("Error obteniendo asesorías del experto:", error);
+    console.error("Error obteniendo asesorias del experto:", error);
     res.status(500).json({
-      mensaje: "Error al obtener asesorías",
-      error: error.message
+      mensaje: "Error al obtener asesorias",
+      error: error.message,
     });
   }
 });
+
 /**
  * @openapi
  * /api/asesorias/{id}:
  *   get:
- *     summary: Obtener asesoría por ID (solo admin)
- *     tags: [Asesorías]
+ *     summary: Obtener asesoria por ID (solo admin)
+ *     tags: [Asesorias]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -277,7 +283,7 @@ router.get("/experto/:email", async (req, res) => {
  *           type: string
  *     responses:
  *       200:
- *         description: Asesoría encontrada
+ *         description: Asesoria encontrada
  */
 router.get(
   "/:id",
@@ -291,8 +297,8 @@ router.get(
  * @openapi
  * /api/asesorias/{id}:
  *   put:
- *     summary: Actualizar asesoría por ID (admin)
- *     tags: [Asesorías]
+ *     summary: Actualizar asesoria por ID (admin)
+ *     tags: [Asesorias]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -309,7 +315,7 @@ router.get(
  *             $ref: '#/components/schemas/Asesoria'
  *     responses:
  *       200:
- *         description: Asesoría actualizada
+ *         description: Asesoria actualizada
  */
 router.put(
   "/:id",
@@ -323,8 +329,8 @@ router.put(
  * @openapi
  * /api/asesorias/{id}:
  *   delete:
- *     summary: Eliminar asesoría por ID (admin)
- *     tags: [Asesorías]
+ *     summary: Eliminar asesoria por ID (admin)
+ *     tags: [Asesorias]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -335,7 +341,7 @@ router.put(
  *           type: string
  *     responses:
  *       200:
- *         description: Asesoría eliminada
+ *         description: Asesoria eliminada
  */
 router.delete(
   "/:id",

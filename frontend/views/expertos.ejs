@@ -115,18 +115,14 @@
                           <% } %>
                       </div>
 
-                      <% if (experto.infoExperto && (experto.infoExperto.telefonoContacto ||
-                        (Array.isArray(experto.infoExperto.diasDisponibles) &&
-                        experto.infoExperto.diasDisponibles.length> 0))) { %>
+                      <!-- ELIMINADO: Ya no mostrar telefono ni dias disponibles en la tarjeta publica -->
+                      <% if (experto.infoExperto && Array.isArray(experto.infoExperto.diasDisponibles) &&
+                        experto.infoExperto.diasDisponibles.length> 0) { %>
                         <div class="expert-contact" style="margin-top:0.5rem;color:var(--text-secondary);">
-                          <% if (experto.infoExperto.telefonoContacto) { %>
-                            <small>Telefono: <%= experto.infoExperto.telefonoContacto %></small>
-                            <% } %>
-                              <% if (Array.isArray(experto.infoExperto.diasDisponibles) &&
-                                experto.infoExperto.diasDisponibles.length> 0) { %>
-                                <small style="margin-left:0.5rem;">Disponible: <%=
-                                    experto.infoExperto.diasDisponibles.join(', ') %></small>
-                      <% } %>
+                          <small style="display:flex;align-items:center;gap:0.5rem;">
+                            <i class="fas fa-calendar-alt"></i>
+                            Disponible: <%= experto.infoExperto.diasDisponibles.join(', ') %>
+                      </small>
                     </div>
                   <% } %>
                 </div>
@@ -136,21 +132,21 @@
                   var rawPrecio = null;
                   try {
                     if (experto && experto.infoExperto && typeof experto.infoExperto.precioPorHora !== ' undefined') {
-                                    rawPrecio=experto.infoExperto.precioPorHora; } else if (typeof experto.precioPorHora
-                                    !=='undefined' ) { rawPrecio=experto.precioPorHora; } else if (typeof experto.precio
-                                    !=='undefined' ) { rawPrecio=experto.precio; } } catch (e) { rawPrecio=null; } var
-                                    _fp=formatPrice(rawPrecio); %>
+                              rawPrecio=experto.infoExperto.precioPorHora; } else if (typeof experto.precioPorHora
+                              !=='undefined' ) { rawPrecio=experto.precioPorHora; } else if (typeof experto.precio
+                              !=='undefined' ) { rawPrecio=experto.precio; } } catch (e) { rawPrecio=null; } var
+                              _fp=formatPrice(rawPrecio); %>
 
-                                    <% if (_fp) { %>
-                                      <div class="expert-price">$<%= _fp %>/h</div>
-                                      <% } else { %>
-                                        <div class="expert-price">Consultar precio</div>
-                                        <% } %>
+                              <% if (_fp) { %>
+                                <div class="expert-price">$<%= _fp %>/h</div>
+                                <% } else { %>
+                                  <div class="expert-price">Consultar precio</div>
+                                  <% } %>
 
-                                          <a href="/expertos/<%= encodeURIComponent(experto.email) %>/calendario"
-                                            class="btn btn-primary btn-profile">
-                                            <i class="fas fa-calendar-alt"></i> Ver disponibilidad
-                                          </a>
+                                    <a href="/expertos/<%= encodeURIComponent(experto.email) %>/calendario"
+                                      class="btn btn-primary btn-profile">
+                                      <i class="fas fa-calendar-alt"></i> Ver disponibilidad
+                                    </a>
                         </div>
 
                   </article>

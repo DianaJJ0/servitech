@@ -1,424 +1,694 @@
-// Calendario y agendamiento de asesoría con pago simulado
+/**
+ * CALENDARIO DE ASESORIAS - FUNCIONALIDAD COMPLETA
+ * Maneja la seleccion de fechas, horarios continuos y envio de solicitudes
+ */
 
 document.addEventListener("DOMContentLoaded", function () {
-  // Obtener datos del DOM de forma segura
-  let experto = null;
-  let usuario = null;
-  let asesoriasExistentes = [];
+  inicializarCalendario();
+  configurarFormulario();
+  configurarEventListeners();
+});
 
+// Variables globales
+let expertoData = null;
+let usuarioData = null;
+let asesoriasExistentes = [];
+let fechaSeleccionada = null;
+let horaSeleccionada = null;
+let precioPorHora = 20000;
+
+/**
+ * Inicializa el calendario con datos del experto
+ */
+function inicializarCalendario() {
   try {
+    // Obtener datos del DOM
     const expertoScript = document.getElementById("expertoData");
     const usuarioScript = document.getElementById("usuarioData");
     const asesoriasScript = document.getElementById("asesoriasData");
 
     if (expertoScript) {
-      experto = JSON.parse(expertoScript.textContent);
+      expertoData = JSON.parse(expertoScript.textContent);
+      precioPorHora = expertoData.infoExperto?.precioPorHora || 20000;
     }
 
-    if (usuarioScript && usuarioScript.textContent !== "null") {
-      usuario = JSON.parse(usuarioScript.textContent);
+    if (usuarioScript) {
+      usuarioData = JSON.parse(usuarioScript.textContent);
     }
 
     if (asesoriasScript) {
       asesoriasExistentes = JSON.parse(asesoriasScript.textContent);
     }
-  } catch (error) {
-    console.error("Error leyendo datos del servidor:", error);
-    setError("Error cargando información del calendario.");
-    return;
-  }
 
-  const calendarioEl = document.getElementById("calendar");
-  const form = document.getElementById("formAgendarAsesoria");
-  const horaSelect = document.getElementById("hora");
-  const errorCalendar = document.getElementById("errorCalendar");
-  const successMsg = document.getElementById("successMsg");
-
-  // Validar que el usuario esté autenticado
-  if (!usuario || !usuario.email) {
-    setError("Debes iniciar sesión para agendar una asesoría.");
-    if (form) form.style.display = "none";
-    return;
-  }
-
-  // Validar que el experto esté disponible
-  if (!experto || !experto.email) {
-    setError("Información del experto no disponible.");
-    if (form) form.style.display = "none";
-    return;
-  }
-
-  // Horas disponibles (8:00 AM - 6:00 PM)
-  const horasDisponibles = [
-    "08:00",
-    "09:00",
-    "10:00",
-    "11:00",
-    "12:00",
-    "14:00",
-    "15:00",
-    "16:00",
-    "17:00",
-    "18:00",
-  ];
-
-  // Días disponibles del experto
-  const diasDisponibles = (experto.infoExperto &&
-    experto.infoExperto.diasDisponibles) || [
-    "Lunes",
-    "Martes",
-    "Miércoles",
-    "Jueves",
-    "Viernes",
-  ];
-
-  let fechaSeleccionada = null;
-
-  /**
-   * Renderiza el calendario
-   */
-  function renderCalendar(year, month) {
-    if (!calendarioEl) return;
-
-    calendarioEl.innerHTML = "";
-
-    // Crear tabla del calendario
-    const table = document.createElement("table");
-    table.className = "calendar-table";
-
-    // Header con días de la semana
-    const thead = document.createElement("thead");
-    const tbody = document.createElement("tbody");
-    const diasSemana = ["Lu", "Ma", "Mi", "Ju", "Vi", "Sa", "Do"];
-
-    const rowHead = document.createElement("tr");
-    diasSemana.forEach((dia) => {
-      const th = document.createElement("th");
-      th.textContent = dia;
-      rowHead.appendChild(th);
+    console.log("Datos cargados:", {
+      expertoData,
+      usuarioData,
+      asesoriasExistentes,
     });
-    thead.appendChild(rowHead);
 
-    // Calcular días del mes
-    const primerDia = new Date(year, month, 1);
-    let primerSemana = (primerDia.getDay() + 6) % 7; // Lunes = 0
-    const diasMes = new Date(year, month + 1, 0).getDate();
+    // Generar calendario
+    generarCalendario();
+  } catch (error) {
+    console.error("Error inicializando calendario:", error);
+    mostrarMensaje("Error al cargar el calendario", "error");
+  }
+}
 
-    let dia = 1 - primerSemana;
+/**
+ * Genera el calendario visual
+ */
+function generarCalendario() {
+  const calendarContainer = document.getElementById("calendar");
+  if (!calendarContainer) return;
 
-    // Generar 6 semanas máximo
-    for (let sem = 0; sem < 6; sem++) {
-      const row = document.createElement("tr");
+  const ahora = new Date();
+  const mesActual = ahora.getMonth();
+  const anoActual = ahora.getFullYear();
 
-      for (let d = 0; d < 7; d++) {
-        const td = document.createElement("td");
+  // Estructura del calendario
+  calendarContainer.innerHTML = `
+        <div class="calendar-nav">
+            <button class="calendar-btn" id="prevMonth" type="button">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <span class="calendar-title" id="monthTitle">
+                ${obtenerNombreMes(mesActual)} ${anoActual}
+            </span>
+            <button class="calendar-btn" id="nextMonth" type="button">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+        <table class="calendar-table">
+            <thead>
+                <tr>
+                    <th>Dom</th>
+                    <th>Lun</th>
+                    <th>Mar</th>
+                    <th>Mie</th>
+                    <th>Jue</th>
+                    <th>Vie</th>
+                    <th>Sab</th>
+                </tr>
+            </thead>
+            <tbody id="calendarBody">
+            </tbody>
+        </table>
+    `;
 
-        if (dia > 0 && dia <= diasMes) {
-          const fecha = new Date(year, month, dia);
-          const hoy = new Date();
-          hoy.setHours(0, 0, 0, 0);
-          fecha.setHours(0, 0, 0, 0);
+  // Generar dias del mes
+  generarDiasDelMes(anoActual, mesActual);
 
-          // Validar si el día está disponible
-          const diaEnSemana = [
-            "Lunes",
-            "Martes",
-            "Miércoles",
-            "Jueves",
-            "Viernes",
-            "Sábado",
-            "Domingo",
-          ][d];
-          const diaValido = diasDisponibles.includes(diaEnSemana);
+  // Event listeners para navegacion
+  document.getElementById("prevMonth").addEventListener("click", () => {
+    const nuevaFecha = new Date(anoActual, mesActual - 1, 1);
+    generarCalendario();
+  });
 
-          // Solo permitir días futuros y válidos
-          if (fecha >= hoy && diaValido) {
-            td.className = "available";
-            td.tabIndex = 0;
-            td.style.cursor = "pointer";
+  document.getElementById("nextMonth").addEventListener("click", () => {
+    const nuevaFecha = new Date(anoActual, mesActual + 1, 1);
+    generarCalendario();
+  });
+}
 
-            // Verificar si ya hay asesoría en ese día
-            const fechaISO = fecha.toISOString().slice(0, 10);
-            const ocupado = asesoriasExistentes.some((a) => {
-              const fechaAsesoria = new Date(a.fechaHoraInicio)
-                .toISOString()
-                .slice(0, 10);
-              return (
-                fechaAsesoria === fechaISO &&
-                ["pendiente-aceptacion", "confirmada"].includes(a.estado)
-              );
-            });
+/**
+ * Genera los dias del mes en el calendario
+ */
+function generarDiasDelMes(ano, mes) {
+  const calendarBody = document.getElementById("calendarBody");
+  const primerDia = new Date(ano, mes, 1);
+  const ultimoDia = new Date(ano, mes + 1, 0);
+  const diasEnMes = ultimoDia.getDate();
+  const diaSemanaInicio = primerDia.getDay();
 
-            if (ocupado) {
-              td.classList.remove("available");
-              td.className = "inactive";
-              td.title = "No disponible (experto ocupado)";
-            } else {
-              td.addEventListener("click", function () {
-                seleccionarFecha(fecha);
-              });
-            }
-          } else {
-            td.className = "inactive";
-          }
+  let html = "";
+  let fecha = 1;
 
-          td.textContent = dia;
+  // Generar semanas
+  for (let semana = 0; semana < 6; semana++) {
+    html += "<tr>";
 
-          // Marcar día seleccionado
-          if (
-            fechaSeleccionada &&
-            fecha.toISOString().slice(0, 10) === fechaSeleccionada
-          ) {
-            td.classList.add("selected");
-          }
-        } else {
-          td.className = "inactive";
-          td.textContent = "";
-        }
+    // Generar dias de la semana
+    for (let dia = 0; dia < 7; dia++) {
+      if (semana === 0 && dia < diaSemanaInicio) {
+        // Dias vacios al inicio
+        html += '<td class="inactive"></td>';
+      } else if (fecha > diasEnMes) {
+        // Dias vacios al final
+        html += '<td class="inactive"></td>';
+      } else {
+        // Dias del mes actual
+        const fechaActual = new Date(ano, mes, fecha);
+        const hoy = new Date();
+        const esHoy = fechaActual.toDateString() === hoy.toDateString();
+        const esPasado = fechaActual < hoy && !esHoy;
+        const esDisponible = !esPasado && esDiaDisponible(fechaActual);
 
-        row.appendChild(td);
-        dia++;
+        let clases = [];
+        if (esPasado) clases.push("inactive");
+        else if (esDisponible) clases.push("available");
+
+        html += `<td class="${clases.join(" ")}" data-fecha="${ano}-${(mes + 1)
+          .toString()
+          .padStart(2, "0")}-${fecha
+          .toString()
+          .padStart(2, "0")}">${fecha}</td>`;
+        fecha++;
       }
-      tbody.appendChild(row);
     }
 
-    table.appendChild(thead);
-    table.appendChild(tbody);
-    calendarioEl.appendChild(table);
+    html += "</tr>";
 
-    // Agregar navegación del mes
-    const navDiv = document.createElement("div");
-    navDiv.className = "calendar-nav";
+    // Si ya terminamos el mes, salir del bucle
+    if (fecha > diasEnMes) break;
+  }
 
-    const prevBtn = document.createElement("button");
-    prevBtn.type = "button";
-    prevBtn.textContent = "‹";
-    prevBtn.className = "calendar-btn";
-    prevBtn.title = "Mes anterior";
+  calendarBody.innerHTML = html;
 
-    const nextBtn = document.createElement("button");
-    nextBtn.type = "button";
-    nextBtn.textContent = "›";
-    nextBtn.className = "calendar-btn";
-    nextBtn.title = "Mes siguiente";
+  // Agregar event listeners a los dias disponibles
+  calendarBody.querySelectorAll("td.available").forEach((td) => {
+    td.addEventListener("click", function () {
+      seleccionarFecha(this.dataset.fecha);
+    });
+  });
+}
 
-    const titleSpan = document.createElement("span");
-    titleSpan.className = "calendar-title";
-    titleSpan.textContent = `${obtenerNombreMes(month)} ${year}`;
+/**
+ * Verifica si un dia esta disponible para asesorias
+ */
+function esDiaDisponible(fecha) {
+  // Por simplicidad, todos los dias futuros estan disponibles
+  return true;
+}
 
-    prevBtn.addEventListener("click", function () {
-      renderCalendar(
-        month === 0 ? year - 1 : year,
-        month === 0 ? 11 : month - 1
-      );
+/**
+ * Selecciona una fecha en el calendario
+ */
+function seleccionarFecha(fechaStr) {
+  // Remover seleccion anterior
+  document.querySelectorAll(".calendar-table td.selected").forEach((td) => {
+    td.classList.remove("selected");
+  });
+
+  // Agregar seleccion nueva
+  const tdSeleccionado = document.querySelector(`[data-fecha="${fechaStr}"]`);
+  if (tdSeleccionado) {
+    tdSeleccionado.classList.add("selected");
+  }
+
+  fechaSeleccionada = fechaStr;
+  horaSeleccionada = null; // Reset hora al cambiar fecha
+
+  // Actualizar input de fecha
+  const fechaInput = document.getElementById("fechaSeleccionada");
+  if (fechaInput) {
+    const fecha = new Date(fechaStr + "T12:00:00");
+    fechaInput.value = fecha.toLocaleDateString("es-ES", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  }
+
+  // Limpiar hora seleccionada
+  const horaInput = document.getElementById("horaSeleccionada");
+  if (horaInput) {
+    horaInput.value = "";
+  }
+
+  // Generar horarios disponibles
+  generarHorariosDisponibles(fechaStr);
+
+  // Actualizar resumen
+  actualizarResumen();
+
+  // Mostrar seccion de horarios
+  const horariosSection = document.getElementById("horariosSection");
+  if (horariosSection) {
+    horariosSection.style.display = "block";
+  }
+}
+
+/**
+ * Genera los horarios disponibles para una fecha
+ */
+function generarHorariosDisponibles(fecha) {
+  const horariosGrid = document.getElementById("horariosGrid");
+  if (!horariosGrid) return;
+
+  // Horarios disponibles de 8:00 a 17:30 (para permitir asesorias que terminen a las 18:00)
+  const horarios = [];
+  for (let hora = 8; hora <= 17; hora++) {
+    horarios.push(`${hora.toString().padStart(2, "0")}:00`);
+    if (hora < 17) {
+      // No agregar :30 para las 17:00
+      horarios.push(`${hora.toString().padStart(2, "0")}:30`);
+    }
+  }
+
+  let html = "";
+  horarios.forEach((horario) => {
+    const disponible = verificarDisponibilidadHorario(fecha, horario);
+    const clases = disponible ? "horario-slot" : "horario-slot ocupado";
+    const titulo = disponible
+      ? "Disponible"
+      : "No disponible para la duración seleccionada";
+
+    html += `
+            <div class="${clases}" data-horario="${horario}" title="${titulo}" ${
+      disponible ? "onclick=\"seleccionarHorario('" + horario + "')\"" : ""
+    }>
+                ${horario}
+            </div>
+        `;
+  });
+
+  horariosGrid.innerHTML = html;
+}
+
+/**
+ * Verifica si un horario esta disponible considerando la duracion seleccionada
+ */
+function verificarDisponibilidadHorario(fecha, horario) {
+  const duracionSeleccionada = document.querySelector(
+    'input[name="duracion"]:checked'
+  );
+  const duracionMinutos = duracionSeleccionada
+    ? parseInt(duracionSeleccionada.value)
+    : 60;
+
+  // Convertir horario a Date
+  const [horas, minutos] = horario.split(":").map(Number);
+  const fechaHoraInicio = new Date(fecha + "T" + horario + ":00");
+  const fechaHoraFin = new Date(
+    fechaHoraInicio.getTime() + duracionMinutos * 60000
+  );
+
+  // Verificar que no exceda las 18:00
+  const limiteHora = new Date(fecha + "T18:00:00");
+  if (fechaHoraFin > limiteHora) {
+    return false;
+  }
+
+  // Verificar conflictos con asesorias existentes
+  for (const asesoria of asesoriasExistentes) {
+    if (
+      asesoria.estado !== "pendiente-aceptacion" &&
+      asesoria.estado !== "confirmada"
+    ) {
+      continue; // Ignorar asesorias canceladas, rechazadas, etc.
+    }
+
+    const asesoriaInicio = new Date(asesoria.fechaHoraInicio);
+    const asesoriaFin = new Date(
+      asesoriaInicio.getTime() + asesoria.duracionMinutos * 60000
+    );
+
+    // Verificar si hay solapamiento
+    if (fechaHoraInicio < asesoriaFin && fechaHoraFin > asesoriaInicio) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
+ * Selecciona un horario
+ */
+function seleccionarHorario(horario) {
+  // Verificar disponibilidad antes de seleccionar
+  if (!verificarDisponibilidadHorario(fechaSeleccionada, horario)) {
+    mostrarMensaje(
+      "Este horario no esta disponible para la duracion seleccionada",
+      "error"
+    );
+    return;
+  }
+
+  // Remover seleccion anterior
+  document.querySelectorAll(".horario-slot.selected").forEach((slot) => {
+    slot.classList.remove("selected");
+  });
+
+  // Agregar nueva seleccion
+  const slotSeleccionado = document.querySelector(
+    `[data-horario="${horario}"]`
+  );
+  if (slotSeleccionado && !slotSeleccionado.classList.contains("ocupado")) {
+    slotSeleccionado.classList.add("selected");
+    horaSeleccionada = horario;
+
+    // Actualizar input de hora
+    const horaInput = document.getElementById("horaSeleccionada");
+    if (horaInput) {
+      horaInput.value = horario;
+    }
+
+    // Actualizar resumen
+    actualizarResumen();
+
+    // Mostrar visualmente el bloque de tiempo reservado
+    mostrarBloqueReservado();
+  }
+}
+
+/**
+ * Muestra visualmente el bloque de tiempo que sera reservado
+ */
+function mostrarBloqueReservado() {
+  // Remover indicaciones anteriores
+  document
+    .querySelectorAll(".horario-slot.reservado-preview")
+    .forEach((slot) => {
+      slot.classList.remove("reservado-preview");
     });
 
-    nextBtn.addEventListener("click", function () {
-      renderCalendar(
-        month === 11 ? year + 1 : year,
-        month === 11 ? 0 : month + 1
+  if (!horaSeleccionada) return;
+
+  const duracionSeleccionada = document.querySelector(
+    'input[name="duracion"]:checked'
+  );
+  const duracionMinutos = duracionSeleccionada
+    ? parseInt(duracionSeleccionada.value)
+    : 60;
+
+  // Calcular cuantos slots de 30 minutos ocupa
+  const slotsNecesarios = Math.ceil(duracionMinutos / 30);
+
+  // Encontrar el slot inicial
+  const slotInicial = document.querySelector(
+    `[data-horario="${horaSeleccionada}"]`
+  );
+  if (!slotInicial) return;
+
+  // Marcar todos los slots que seran ocupados
+  let slotActual = slotInicial;
+  for (let i = 0; i < slotsNecesarios && slotActual; i++) {
+    slotActual.classList.add("reservado-preview");
+    slotActual = slotActual.nextElementSibling;
+  }
+}
+
+/**
+ * Configura el formulario de asesoria
+ */
+function configurarFormulario() {
+  const form = document.getElementById("formAgendarAsesoria");
+  if (!form) return;
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    enviarSolicitudAsesoria();
+  });
+}
+
+/**
+ * Configura event listeners adicionales
+ */
+function configurarEventListeners() {
+  // Cambio en duracion
+  const duracionOptions = document.querySelectorAll('input[name="duracion"]');
+  duracionOptions.forEach((option) => {
+    option.addEventListener("change", function () {
+      // Regenerar horarios disponibles cuando cambie la duracion
+      if (fechaSeleccionada) {
+        horaSeleccionada = null;
+        const horaInput = document.getElementById("horaSeleccionada");
+        if (horaInput) horaInput.value = "";
+
+        // Remover seleccion de horario
+        document.querySelectorAll(".horario-slot.selected").forEach((slot) => {
+          slot.classList.remove("selected");
+        });
+        document
+          .querySelectorAll(".horario-slot.reservado-preview")
+          .forEach((slot) => {
+            slot.classList.remove("reservado-preview");
+          });
+
+        generarHorariosDisponibles(fechaSeleccionada);
+      }
+      actualizarResumen();
+    });
+  });
+
+  // Cambios en campos del formulario
+  const campos = ["tituloAsesoria", "descripcionAsesoria"];
+  campos.forEach((campoId) => {
+    const campo = document.getElementById(campoId);
+    if (campo) {
+      campo.addEventListener("input", validarFormulario);
+    }
+  });
+}
+
+/**
+ * Actualiza el resumen de la solicitud
+ */
+function actualizarResumen() {
+  const resumenFecha = document.getElementById("resumenFecha");
+  const resumenHora = document.getElementById("resumenHora");
+  const resumenHoraFin = document.getElementById("resumenHoraFin");
+  const resumenDuracion = document.getElementById("resumenDuracion");
+  const resumenTotal = document.getElementById("resumenTotal");
+
+  // Actualizar fecha
+  if (resumenFecha && fechaSeleccionada) {
+    const fecha = new Date(fechaSeleccionada + "T12:00:00");
+    resumenFecha.textContent = fecha.toLocaleDateString("es-ES", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    });
+  }
+
+  // Actualizar hora
+  if (resumenHora && horaSeleccionada) {
+    resumenHora.textContent = horaSeleccionada;
+  }
+
+  // Actualizar duracion, hora fin y precio
+  const duracionSeleccionada = document.querySelector(
+    'input[name="duracion"]:checked'
+  );
+  if (duracionSeleccionada && resumenDuracion && resumenTotal) {
+    const minutos = parseInt(duracionSeleccionada.value);
+    const horas = minutos / 60;
+
+    // Actualizar duracion
+    if (horas === 1) {
+      resumenDuracion.textContent = "1 hora";
+    } else if (horas === 1.5) {
+      resumenDuracion.textContent = "1.5 horas";
+    } else {
+      resumenDuracion.textContent = `${horas} horas`;
+    }
+
+    // Calcular y mostrar hora fin
+    if (resumenHoraFin && horaSeleccionada) {
+      const [horaInicio, minutosInicio] = horaSeleccionada
+        .split(":")
+        .map(Number);
+      const fechaHoraInicio = new Date();
+      fechaHoraInicio.setHours(horaInicio, minutosInicio, 0, 0);
+      const fechaHoraFin = new Date(
+        fechaHoraInicio.getTime() + minutos * 60000
       );
+
+      const horaFin = fechaHoraFin.getHours().toString().padStart(2, "0");
+      const minutosFin = fechaHoraFin.getMinutes().toString().padStart(2, "0");
+      resumenHoraFin.textContent = `${horaFin}:${minutosFin}`;
+    }
+
+    // Calcular precio
+    const precio = precioPorHora * horas;
+    resumenTotal.textContent = `$${precio.toLocaleString("es-CO")} COP`;
+  }
+}
+
+/**
+ * Valida el formulario
+ */
+function validarFormulario() {
+  const titulo = document.getElementById("tituloAsesoria").value.trim();
+  const descripcion = document
+    .getElementById("descripcionAsesoria")
+    .value.trim();
+  const btnEnviar = document.getElementById("btnEnviarSolicitud");
+
+  const esValido =
+    titulo.length >= 5 &&
+    descripcion.length >= 10 &&
+    fechaSeleccionada &&
+    horaSeleccionada;
+
+  if (btnEnviar) {
+    btnEnviar.disabled = !esValido;
+    btnEnviar.style.opacity = esValido ? "1" : "0.6";
+  }
+
+  return esValido;
+}
+
+/**
+ * Envia la solicitud de asesoria
+ */
+async function enviarSolicitudAsesoria() {
+  if (!validarFormulario()) {
+    mostrarMensaje("Por favor completa todos los campos requeridos", "error");
+    return;
+  }
+
+  const btnEnviar = document.getElementById("btnEnviarSolicitud");
+  if (btnEnviar) {
+    btnEnviar.disabled = true;
+    btnEnviar.innerHTML =
+      '<i class="fas fa-spinner fa-spin"></i> Enviando solicitud...';
+  }
+
+  try {
+    const duracionSeleccionada = document.querySelector(
+      'input[name="duracion"]:checked'
+    );
+    const duracionMinutos = parseInt(duracionSeleccionada.value);
+
+    // Construir fecha y hora de inicio
+    const fechaHoraInicio = new Date(
+      fechaSeleccionada + "T" + horaSeleccionada + ":00"
+    );
+
+    // Recopilar datos del formulario segun el modelo
+    const formData = {
+      titulo: document.getElementById("tituloAsesoria").value.trim(),
+      descripcion: document.getElementById("descripcionAsesoria").value.trim(),
+      experto: {
+        email: expertoData.email,
+        nombre: expertoData.nombre,
+        apellido: expertoData.apellido,
+        avatarUrl: expertoData.avatarUrl || null,
+      },
+      fechaHoraInicio: fechaHoraInicio.toISOString(),
+      duracionMinutos: duracionMinutos,
+      categoria: "Tecnologia",
+    };
+
+    console.log("Enviando solicitud:", formData);
+
+    // Enviar al backend
+    const token = localStorage.getItem("token");
+    const response = await fetch("/api/asesorias", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(formData),
     });
 
-    navDiv.appendChild(prevBtn);
-    navDiv.appendChild(titleSpan);
-    navDiv.appendChild(nextBtn);
-    calendarioEl.insertBefore(navDiv, calendarioEl.firstChild);
-  }
+    const result = await response.json();
 
-  /**
-   * Obtiene el nombre del mes
-   */
-  function obtenerNombreMes(month) {
-    const meses = [
-      "Enero",
-      "Febrero",
-      "Marzo",
-      "Abril",
-      "Mayo",
-      "Junio",
-      "Julio",
-      "Agosto",
-      "Septiembre",
-      "Octubre",
-      "Noviembre",
-      "Diciembre",
-    ];
-    return meses[month];
-  }
+    if (!response.ok) {
+      throw new Error(result.mensaje || "Error al crear la asesoria");
+    }
 
-  /**
-   * Selecciona una fecha y actualiza las horas disponibles
-   */
-  function seleccionarFecha(fecha) {
-    fechaSeleccionada = fecha.toISOString().slice(0, 10);
-    renderCalendar(fecha.getFullYear(), fecha.getMonth());
-    renderHorasDisponibles(fechaSeleccionada);
-    limpiarMensajes();
-  }
+    // Exito
+    mostrarMensaje(
+      "Solicitud enviada exitosamente. El experto sera notificado.",
+      "success"
+    );
 
-  /**
-   * Renderiza las horas disponibles para la fecha seleccionada
-   */
-  function renderHorasDisponibles(fechaISO) {
-    if (!horaSelect) return;
+    // Limpiar formulario
+    document.getElementById("formAgendarAsesoria").reset();
+    fechaSeleccionada = null;
+    horaSeleccionada = null;
 
-    horaSelect.innerHTML = '<option value="">Selecciona una hora</option>';
+    // Ocultar seccion de horarios
+    const horariosSection = document.getElementById("horariosSection");
+    if (horariosSection) {
+      horariosSection.style.display = "none";
+    }
 
-    // Obtener horas ocupadas en esa fecha
-    const ocupadas = asesoriasExistentes
-      .filter((a) => {
-        const fechaAsesoria = new Date(a.fechaHoraInicio)
-          .toISOString()
-          .slice(0, 10);
-        return (
-          fechaAsesoria === fechaISO &&
-          ["pendiente-aceptacion", "confirmada"].includes(a.estado)
-        );
-      })
-      .map((a) => {
-        const hora = new Date(a.fechaHoraInicio).toTimeString().slice(0, 5);
-        return hora;
+    // Remover selecciones
+    document.querySelectorAll(".calendar-table td.selected").forEach((td) => {
+      td.classList.remove("selected");
+    });
+    document
+      .querySelectorAll(
+        ".horario-slot.selected, .horario-slot.reservado-preview"
+      )
+      .forEach((slot) => {
+        slot.classList.remove("selected", "reservado-preview");
       });
 
-    // Agregar horas disponibles
-    horasDisponibles.forEach((hora) => {
-      if (!ocupadas.includes(hora)) {
-        const opt = document.createElement("option");
-        opt.value = hora;
-        opt.textContent = hora;
-        horaSelect.appendChild(opt);
-      }
-    });
-
-    // Si no hay horas disponibles
-    if (horaSelect.children.length === 1) {
-      setError("No hay horas disponibles en esta fecha.");
-      horaSelect.disabled = true;
-    } else {
-      horaSelect.disabled = false;
+    // Actualizar resumen
+    actualizarResumen();
+  } catch (error) {
+    console.error("Error enviando solicitud:", error);
+    mostrarMensaje("Error al enviar la solicitud: " + error.message, "error");
+  } finally {
+    if (btnEnviar) {
+      btnEnviar.disabled = false;
+      btnEnviar.innerHTML =
+        '<i class="fas fa-paper-plane"></i> Enviar solicitud de asesoria';
     }
   }
+}
 
-  /**
-   * Maneja el envío del formulario
-   */
-  if (form) {
-    form.addEventListener("submit", async function (e) {
-      e.preventDefault();
-      limpiarMensajes();
+/**
+ * Muestra un mensaje al usuario
+ */
+function mostrarMensaje(texto, tipo = "info") {
+  const container = document.getElementById("mensajesFormulario");
+  if (!container) return;
 
-      // Validaciones del formulario
-      if (!fechaSeleccionada) {
-        setError("Debes seleccionar una fecha disponible.");
-        return;
-      }
+  // Limpiar mensajes anteriores
+  container.innerHTML = "";
 
-      if (!horaSelect.value) {
-        setError("Debes seleccionar una hora disponible.");
-        return;
-      }
+  const mensaje = document.createElement("div");
+  mensaje.className = `message ${tipo}`;
+  mensaje.innerHTML = `
+        <i class="fas fa-${
+          tipo === "success"
+            ? "check-circle"
+            : tipo === "error"
+            ? "exclamation-circle"
+            : "info-circle"
+        }"></i>
+        ${texto}
+    `;
 
-      // Validar que la fecha sea futura
-      const fechaHora = new Date(`${fechaSeleccionada}T${horaSelect.value}:00`);
-      const ahora = new Date();
+  container.appendChild(mensaje);
 
-      if (fechaHora <= ahora) {
-        setError("La fecha y hora seleccionadas deben ser futuras.");
-        return;
-      }
-
-      // Deshabilitar el formulario durante el envío
-      const submitBtn = form.querySelector('button[type="submit"]');
-      const originalText = submitBtn ? submitBtn.textContent : "";
-      if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.textContent = "Procesando...";
-      }
-
-      try {
-        // Crear preferencia de pago (simulada)
-        const response = await fetch("/api/pagos/crear-preferencia", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            titulo: `Asesoría con ${experto.nombre} ${experto.apellido}`,
-            expertoEmail: experto.email,
-            fechaHoraInicio: fechaHora.toISOString(),
-            duracionMinutos: 60,
-          }),
-        });
-
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-          setSuccess(
-            "¡Asesoría agendada exitosamente! El experto ha sido notificado y debe aceptar o rechazar tu solicitud."
-          );
-
-          // Redirigir a la página de confirmación después de 2 segundos
-          setTimeout(() => {
-            window.location.href = data.data.linkPago;
-          }, 2000);
-        } else {
-          setError(data.mensaje || "Error al agendar la asesoría.");
-        }
-      } catch (error) {
-        console.error("Error:", error);
-        setError("Error de conexión. Intenta nuevamente.");
-      } finally {
-        // Rehabilitar el formulario
-        if (submitBtn) {
-          submitBtn.disabled = false;
-          submitBtn.textContent = originalText;
-        }
-      }
-    });
+  // Auto-ocultar despues de 5 segundos para mensajes de exito
+  if (tipo === "success") {
+    setTimeout(() => {
+      mensaje.style.opacity = "0";
+      setTimeout(() => mensaje.remove(), 300);
+    }, 5000);
   }
+}
 
-  /**
-   * Muestra un mensaje de error
-   */
-  function setError(mensaje) {
-    if (errorCalendar) {
-      errorCalendar.textContent = mensaje;
-      errorCalendar.style.display = "block";
-    }
-    if (successMsg) {
-      successMsg.style.display = "none";
-    }
-  }
+/**
+ * Obtiene el nombre del mes
+ */
+function obtenerNombreMes(mes) {
+  const meses = [
+    "Enero",
+    "Febrero",
+    "Marzo",
+    "Abril",
+    "Mayo",
+    "Junio",
+    "Julio",
+    "Agosto",
+    "Septiembre",
+    "Octubre",
+    "Noviembre",
+    "Diciembre",
+  ];
+  return meses[mes];
+}
 
-  /**
-   * Muestra un mensaje de éxito
-   */
-  function setSuccess(mensaje) {
-    if (successMsg) {
-      successMsg.textContent = mensaje;
-      successMsg.style.display = "block";
-    }
-    if (errorCalendar) {
-      errorCalendar.style.display = "none";
-    }
-  }
-
-  /**
-   * Limpia todos los mensajes
-   */
-  function limpiarMensajes() {
-    if (errorCalendar) {
-      errorCalendar.textContent = "";
-      errorCalendar.style.display = "none";
-    }
-    if (successMsg) {
-      successMsg.textContent = "";
-      successMsg.style.display = "none";
-    }
-  }
-
-  // Inicializar calendario en el mes actual
-  const today = new Date();
-  renderCalendar(today.getFullYear(), today.getMonth());
-});
+// Hacer funciones disponibles globalmente para onclick
+window.seleccionarHorario = seleccionarHorario;

@@ -15,133 +15,309 @@
     <!-- Header -->
     <%- include('componentes/header') %>
 
-        <div class="container">
-            <% if (!user) { %>
-                <!-- Mensaje para usuarios no autenticados -->
-                <div class="auth-required">
-                    <div class="auth-message">
-                        <h2>Inicia sesión para agendar</h2>
-                        <p>Para agendar una asesoría con <%= experto.nombre %>, necesitas tener una cuenta.</p>
-                        <div class="auth-actions">
-                            <a href="/login.html?next=/expertos/<%= encodeURIComponent(experto.email) %>/calendario"
-                                class="btn btn-primary">
-                                Iniciar Sesión
-                            </a>
-                            <a href="/registro.html" class="btn btn-secondary">
-                                Registrarse
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                <% } %>
+        <main class="calendario-main">
+            <!-- Informacion del experto - Siempre visible -->
+            <section class="experto-hero">
+                <div class="container">
+                    <div class="experto-hero-content">
+                        <div class="experto-info-card">
+                            <div class="experto-avatar-container">
+                                <img src="<%= experto.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(experto.nombre + ' ' + experto.apellido)}&background=3a8eff&color=fff&size=120` %>"
+                                    alt="Avatar de <%= experto.nombre %>" class="experto-avatar">
+                                <div class="experto-status">
+                                    <i class="fas fa-circle"></i>
+                                    <span>Disponible</span>
+                                </div>
+                            </div>
 
-                    <!-- Información del experto -->
-                    <div class="experto-info">
-                        <div class="experto-header">
-                            <img src="<%= experto.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(experto.nombre)}&background=3a8eff&color=fff` %>"
-                                alt="Avatar de <%= experto.nombre %>" class="experto-avatar">
-                            <div class="experto-datos">
-                                <h1>
+                            <div class="experto-details">
+                                <h1 class="experto-nombre">
                                     <%= experto.nombre %>
                                         <%= experto.apellido %>
                                 </h1>
                                 <p class="experto-especialidad">
-                                    <%= experto.infoExperto?.descripcion || 'Experto en tecnología' %>
+                                    <%= experto.infoExperto?.descripcion || 'Experto en tecnologia' %>
                                 </p>
-                                <div class="experto-precio">
-                                    <i class="fas fa-dollar-sign"></i>
-                                    <span>$25,000 COP / hora</span>
+
+                                <div class="experto-pricing">
+                                    <div class="precio-item">
+                                        <span class="precio-label">Precio por hora</span>
+                                        <span class="precio-valor">$<%= (experto.infoExperto?.precioPorHora ||
+                                                20000).toLocaleString('es-CO') %> COP</span>
+                                    </div>
+                                    <div class="precio-item">
+                                        <span class="precio-label">Duracion minima</span>
+                                        <span class="precio-valor">60 minutos</span>
+                                    </div>
+                                </div>
+
+                                <div class="experto-stats">
+                                    <div class="stat-item">
+                                        <i class="fas fa-star"></i>
+                                        <span>4.9 (127 reseñas)</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <i class="fas fa-calendar-check"></i>
+                                        <span>250+ asesorias completadas</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                </div>
+            </section>
 
-                    <% if (user) { %>
-                        <!-- Calendario y formulario solo para usuarios autenticados -->
-                        <div class="calendario-container">
-                            <div class="calendario-section">
-                                <h2>Selecciona fecha y hora</h2>
-                                <div id="calendar" class="calendar"></div>
-                            </div>
-
-                            <div class="formulario-section">
-                                <form id="formAgendarAsesoria" class="agendar-form">
-                                    <h3>Confirmar asesoría</h3>
-
-                                    <div class="form-group">
-                                        <label for="hora">Hora disponible:</label>
-                                        <select id="hora" name="hora" class="form-control" required disabled>
-                                            <option value="">Primero selecciona una fecha</option>
-                                        </select>
+            <!-- Contenido principal del calendario -->
+            <section class="calendario-content">
+                <div class="container">
+                    <% if (!user) { %>
+                        <!-- Mensaje compacto para usuarios no autenticados -->
+                        <div class="auth-message-section">
+                            <div class="auth-message-card">
+                                <div class="auth-message-content">
+                                    <div class="auth-icon">
+                                        <i class="fas fa-user-lock"></i>
                                     </div>
-
-                                    <div class="form-group">
-                                        <label>Duración:</label>
-                                        <div class="duracion-options">
-                                            <label class="radio-option">
-                                                <input type="radio" name="duracion" value="60" checked>
-                                                <span>1 hora</span>
-                                            </label>
-                                        </div>
+                                    <div class="auth-text">
+                                        <h2>Inicia sesion para agendar</h2>
+                                        <p>Para agendar una asesoria con <%= experto.nombre %>, necesitas tener una
+                                                cuenta en ServiTech.</p>
                                     </div>
-
-                                    <div class="resumen-asesoria">
-                                        <h4>Resumen:</h4>
-                                        <div class="resumen-item">
-                                            <span>Experto:</span>
-                                            <span>
-                                                <%= experto.nombre %>
-                                                    <%= experto.apellido %>
-                                            </span>
-                                        </div>
-                                        <div class="resumen-item">
-                                            <span>Precio:</span>
-                                            <span>$25,000 COP</span>
-                                        </div>
-                                        <div class="resumen-item">
-                                            <span>Duración:</span>
-                                            <span>60 minutos</span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Mensajes -->
-                                    <div id="errorCalendar" class="error-message" style="display: none;"></div>
-                                    <div id="successMsg" class="success-message" style="display: none;"></div>
-
-                                    <button type="submit" class="btn btn-primary btn-block">
-                                        <i class="fas fa-calendar-check"></i>
-                                        Agendar asesoría
-                                    </button>
-                                </form>
+                                </div>
+                                <div class="auth-actions">
+                                    <a href="/login.html?next=/expertos/<%= encodeURIComponent(experto.email) %>/calendario"
+                                        class="btn btn-primary">
+                                        <i class="fas fa-sign-in-alt"></i>
+                                        Iniciar Sesion
+                                    </a>
+                                    <a href="/registro.html" class="btn btn-secondary">
+                                        <i class="fas fa-user-plus"></i>
+                                        Crear Cuenta
+                                    </a>
+                                </div>
                             </div>
                         </div>
+                        <% } else { %>
+                            <!-- Grid principal: Calendario + Formulario -->
+                            <div class="calendario-grid">
+                                <!-- Seccion del calendario -->
+                                <div class="calendario-section">
+                                    <div class="section-header">
+                                        <h2>
+                                            <i class="fas fa-calendar-alt"></i>
+                                            Selecciona fecha y hora
+                                        </h2>
+                                        <p>Elige el dia y horario que mejor se adapte a tu agenda</p>
+                                    </div>
 
-                        <!-- Información adicional -->
-                        <div class="info-adicional">
-                            <div class="info-card">
-                                <h3><i class="fas fa-info-circle"></i> Información importante</h3>
-                                <ul>
-                                    <li>El pago se procesará al confirmar la asesoría</li>
-                                    <li>El experto tiene 24 horas para aceptar o rechazar</li>
-                                    <li>Si es rechazada, recibirás el reembolso completo</li>
-                                    <li>Si cancelas después de aceptada, recibirás el 80% de reembolso</li>
-                                </ul>
+                                    <div class="calendario-widget">
+                                        <div id="calendar" class="calendar"></div>
+                                    </div>
+
+                                    <div class="horarios-section" id="horariosSection" style="display: none;">
+                                        <h3>Horarios disponibles</h3>
+                                        <p class="horarios-help">Selecciona la hora de inicio. El tiempo se reservara de
+                                            forma continua segun la duracion elegida.</p>
+                                        <div class="horarios-grid" id="horariosGrid">
+                                            <!-- Los horarios se generaran dinamicamente -->
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Seccion del formulario -->
+                                <div class="formulario-section">
+                                    <div class="section-header">
+                                        <h2>
+                                            <i class="fas fa-file-alt"></i>
+                                            Detalles de la asesoria
+                                        </h2>
+                                        <p>Completa la informacion para tu solicitud</p>
+                                    </div>
+
+                                    <form id="formAgendarAsesoria" class="asesoria-form">
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label for="fechaSeleccionada">Fecha seleccionada</label>
+                                                <div class="input-with-icon">
+                                                    <i class="fas fa-calendar"></i>
+                                                    <input type="text" id="fechaSeleccionada" name="fecha"
+                                                        class="form-control" readonly
+                                                        placeholder="Selecciona una fecha">
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="horaSeleccionada">Hora de inicio</label>
+                                                <div class="input-with-icon">
+                                                    <i class="fas fa-clock"></i>
+                                                    <input type="text" id="horaSeleccionada" name="hora"
+                                                        class="form-control" readonly placeholder="Selecciona una hora">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="tituloAsesoria">Titulo de la asesoria *</label>
+                                            <input type="text" id="tituloAsesoria" name="titulo" class="form-control"
+                                                required
+                                                placeholder="Ej: Configuracion de servidor, Desarrollo web, etc."
+                                                maxlength="300">
+                                            <small class="form-help">Describe brevemente el tema de tu asesoria</small>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="descripcionAsesoria">Descripcion detallada *</label>
+                                            <textarea id="descripcionAsesoria" name="descripcion" class="form-control"
+                                                rows="4" required
+                                                placeholder="Describe detalladamente que necesitas, cual es el problema o que quieres aprender..."></textarea>
+                                            <small class="form-help">Mientras mas detalles proporciones, mejor podra
+                                                prepararse el experto</small>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Duracion de la asesoria</label>
+                                            <div class="duracion-options">
+                                                <label class="option-card">
+                                                    <input type="radio" name="duracion" value="60" checked>
+                                                    <div class="option-content">
+                                                        <span class="option-title">1 hora</span>
+                                                        <span class="option-price" id="precio-60">$<%=
+                                                                (experto.infoExperto?.precioPorHora ||
+                                                                20000).toLocaleString('es-CO') %></span>
+                                                    </div>
+                                                </label>
+                                                <label class="option-card">
+                                                    <input type="radio" name="duracion" value="90">
+                                                    <div class="option-content">
+                                                        <span class="option-title">1.5 horas</span>
+                                                        <span class="option-price" id="precio-90">$<%=
+                                                                Math.round((experto.infoExperto?.precioPorHora || 20000)
+                                                                * 1.5).toLocaleString('es-CO') %></span>
+                                                    </div>
+                                                </label>
+                                                <label class="option-card">
+                                                    <input type="radio" name="duracion" value="120">
+                                                    <div class="option-content">
+                                                        <span class="option-title">2 horas</span>
+                                                        <span class="option-price" id="precio-120">$<%=
+                                                                Math.round((experto.infoExperto?.precioPorHora || 20000)
+                                                                * 2).toLocaleString('es-CO') %></span>
+                                                    </div>
+                                                </label>
+                                                <label class="option-card">
+                                                    <input type="radio" name="duracion" value="180">
+                                                    <div class="option-content">
+                                                        <span class="option-title">3 horas</span>
+                                                        <span class="option-price" id="precio-180">$<%=
+                                                                Math.round((experto.infoExperto?.precioPorHora || 20000)
+                                                                * 3).toLocaleString('es-CO') %></span>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                            <small class="form-help">El horario seleccionado reservara las horas
+                                                continuas necesarias</small>
+                                        </div>
+
+                                        <div class="resumen-card">
+                                            <h3>
+                                                <i class="fas fa-receipt"></i>
+                                                Resumen de tu solicitud
+                                            </h3>
+                                            <div class="resumen-content">
+                                                <div class="resumen-item">
+                                                    <span class="label">Experto:</span>
+                                                    <span class="value">
+                                                        <%= experto.nombre %>
+                                                            <%= experto.apellido %>
+                                                    </span>
+                                                </div>
+                                                <div class="resumen-item">
+                                                    <span class="label">Fecha:</span>
+                                                    <span class="value" id="resumenFecha">-</span>
+                                                </div>
+                                                <div class="resumen-item">
+                                                    <span class="label">Hora de inicio:</span>
+                                                    <span class="value" id="resumenHora">-</span>
+                                                </div>
+                                                <div class="resumen-item">
+                                                    <span class="label">Hora de fin:</span>
+                                                    <span class="value" id="resumenHoraFin">-</span>
+                                                </div>
+                                                <div class="resumen-item">
+                                                    <span class="label">Duracion:</span>
+                                                    <span class="value" id="resumenDuracion">60 minutos</span>
+                                                </div>
+                                                <div class="resumen-item total">
+                                                    <span class="label">Total a pagar:</span>
+                                                    <span class="value" id="resumenTotal">$<%=
+                                                            (experto.infoExperto?.precioPorHora ||
+                                                            20000).toLocaleString('es-CO') %> COP</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div id="mensajesFormulario" class="messages-container"></div>
+
+                                        <button type="submit" class="btn btn-primary btn-large" id="btnEnviarSolicitud">
+                                            <i class="fas fa-paper-plane"></i>
+                                            Enviar solicitud de asesoria
+                                        </button>
+
+                                        <p class="form-disclaimer">
+                                            Al enviar la solicitud, el experto tendra 24 horas para aceptar o rechazar.
+                                            <br><strong>Modalidad:</strong> Todas las asesorias son virtuales por
+                                            videollamada.
+                                        </p>
+                                    </form>
+                                </div>
                             </div>
+                            <% } %>
+                </div>
+            </section>
+
+            <!-- Seccion de informacion adicional -->
+            <section class="info-adicional">
+                <div class="container">
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <div class="info-icon">
+                                <i class="fas fa-video"></i>
+                            </div>
+                            <h3>Asesorias virtuales</h3>
+                            <p>Todas las asesorias se realizan por videollamada, desde la comodidad de tu hogar u
+                                oficina.</p>
                         </div>
-                        <% } %>
-        </div>
+
+                        <div class="info-card">
+                            <div class="info-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <h3>Horarios continuos</h3>
+                            <p>El horario seleccionado reserva las horas continuas necesarias segun la duracion elegida.
+                            </p>
+                        </div>
+
+                        <div class="info-card">
+                            <div class="info-icon">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <h3>Pago seguro</h3>
+                            <p>Tu pago esta protegido. Solo se libera al experto cuando confirmes que la asesoria fue
+                                exitosa.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
 
         <!-- Footer -->
         <%- include('componentes/footer') %>
 
             <% if (user) { %>
-                <!-- Hidden data for JavaScript -->
                 <script type="application/json" id="expertoData"><%- JSON.stringify(experto) %></script>
                 <script type="application/json" id="usuarioData"><%- JSON.stringify(user) %></script>
                 <script type="application/json" id="asesoriasData"><%- JSON.stringify(asesoriasExistentes) %></script>
                 <% } %>
 
-                    <!-- Scripts -->
                     <script src="/assets/js/common.js"></script>
                     <% if (user) { %>
                         <script src="/assets/js/calendario.js"></script>
