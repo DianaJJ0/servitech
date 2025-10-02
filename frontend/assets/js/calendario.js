@@ -1,6 +1,6 @@
 /**
- * CALENDARIO DE ASESORIAS - FUNCIONALIDAD COMPLETA
- * Maneja la seleccion de fechas, horarios continuos y envio de solicitudes
+ * CALENDARIO DE ASESORIAS - CON INTEGRACION DE PAGOS
+ * Maneja la seleccion de fechas, horarios y redirige a pagos antes de crear asesoria
  */
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -399,7 +399,7 @@ function configurarFormulario() {
 
   form.addEventListener("submit", function (e) {
     e.preventDefault();
-    enviarSolicitudAsesoria();
+    procederAPago(); // CAMBIO: Redirigir a pago en lugar de crear asesoría directamente
   });
 }
 
@@ -532,107 +532,53 @@ function validarFormulario() {
 }
 
 /**
- * Envia la solicitud de asesoria
+ * NUEVO: Procede al pago antes de crear la asesoría
  */
-async function enviarSolicitudAsesoria() {
+function procederAPago() {
   if (!validarFormulario()) {
     mostrarMensaje("Por favor completa todos los campos requeridos", "error");
     return;
   }
 
-  const btnEnviar = document.getElementById("btnEnviarSolicitud");
-  if (btnEnviar) {
-    btnEnviar.disabled = true;
-    btnEnviar.innerHTML =
-      '<i class="fas fa-spinner fa-spin"></i> Enviando solicitud...';
-  }
+  const duracionSeleccionada = document.querySelector(
+    'input[name="duracion"]:checked'
+  );
+  const duracionMinutos = parseInt(duracionSeleccionada.value);
+  const horas = duracionMinutos / 60;
+  const precio = precioPorHora * horas;
 
-  try {
-    const duracionSeleccionada = document.querySelector(
-      'input[name="duracion"]:checked'
-    );
-    const duracionMinutos = parseInt(duracionSeleccionada.value);
-
-    // Construir fecha y hora de inicio
-    const fechaHoraInicio = new Date(
+  // Guardar datos de la asesoría en localStorage para después del pago
+  const datosAsesoria = {
+    titulo: document.getElementById("tituloAsesoria").value.trim(),
+    descripcion: document.getElementById("descripcionAsesoria").value.trim(),
+    experto: {
+      email: expertoData.email,
+      nombre: expertoData.nombre,
+      apellido: expertoData.apellido,
+      avatarUrl: expertoData.avatarUrl || null,
+    },
+    fechaHoraInicio: new Date(
       fechaSeleccionada + "T" + horaSeleccionada + ":00"
-    );
+    ).toISOString(),
+    duracionMinutos: duracionMinutos,
+    categoria: "Tecnologia",
+    precio: precio,
+  };
 
-    // Recopilar datos del formulario segun el modelo
-    const formData = {
-      titulo: document.getElementById("tituloAsesoria").value.trim(),
-      descripcion: document.getElementById("descripcionAsesoria").value.trim(),
-      experto: {
-        email: expertoData.email,
-        nombre: expertoData.nombre,
-        apellido: expertoData.apellido,
-        avatarUrl: expertoData.avatarUrl || null,
-      },
-      fechaHoraInicio: fechaHoraInicio.toISOString(),
-      duracionMinutos: duracionMinutos,
-      categoria: "Tecnologia",
-    };
+  // Guardar en localStorage
+  localStorage.setItem("asesoriaEnProceso", JSON.stringify(datosAsesoria));
 
-    console.log("Enviando solicitud:", formData);
+  // Redirigir a la pasarela de pagos
+  const urlPagos = `/pasarela-pagos?experto=${encodeURIComponent(
+    JSON.stringify({
+      id: expertoData.email,
+      nombre: expertoData.nombre,
+      apellido: expertoData.apellido,
+      especialidad: expertoData.infoExperto?.descripcion || "Tecnología",
+    })
+  )}&monto=${precio}&duracion=${horas}`;
 
-    // Enviar al backend
-    const token = localStorage.getItem("token");
-    const response = await fetch("/api/asesorias", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(formData),
-    });
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      throw new Error(result.mensaje || "Error al crear la asesoria");
-    }
-
-    // Exito
-    mostrarMensaje(
-      "Solicitud enviada exitosamente. El experto sera notificado.",
-      "success"
-    );
-
-    // Limpiar formulario
-    document.getElementById("formAgendarAsesoria").reset();
-    fechaSeleccionada = null;
-    horaSeleccionada = null;
-
-    // Ocultar seccion de horarios
-    const horariosSection = document.getElementById("horariosSection");
-    if (horariosSection) {
-      horariosSection.style.display = "none";
-    }
-
-    // Remover selecciones
-    document.querySelectorAll(".calendar-table td.selected").forEach((td) => {
-      td.classList.remove("selected");
-    });
-    document
-      .querySelectorAll(
-        ".horario-slot.selected, .horario-slot.reservado-preview"
-      )
-      .forEach((slot) => {
-        slot.classList.remove("selected", "reservado-preview");
-      });
-
-    // Actualizar resumen
-    actualizarResumen();
-  } catch (error) {
-    console.error("Error enviando solicitud:", error);
-    mostrarMensaje("Error al enviar la solicitud: " + error.message, "error");
-  } finally {
-    if (btnEnviar) {
-      btnEnviar.disabled = false;
-      btnEnviar.innerHTML =
-        '<i class="fas fa-paper-plane"></i> Enviar solicitud de asesoria';
-    }
-  }
+  window.location.href = urlPagos;
 }
 
 /**

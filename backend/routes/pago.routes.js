@@ -20,7 +20,7 @@ const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
  * @swagger
  * /api/pagos/webhook:
  *   post:
- *     summary: Webhook de Mercado Pago
+ *     summary: Webhook de MercadoPago
  *     tags: [Pagos]
  *     responses:
  *       200:
@@ -48,14 +48,19 @@ router.post("/webhook", pagoController.webhookMercadoPago);
  *               - expertoEmail
  *               - fechaHoraInicio
  *               - duracionMinutos
+ *               - monto
  *             properties:
  *               titulo:
+ *                 type: string
+ *               descripcion:
  *                 type: string
  *               expertoEmail:
  *                 type: string
  *               fechaHoraInicio:
  *                 type: string
  *               duracionMinutos:
+ *                 type: number
+ *               monto:
  *                 type: number
  *     responses:
  *       201:
@@ -87,10 +92,10 @@ router.post(
  *           schema:
  *             type: object
  *             properties:
- *               porcentaje:
- *                 type: number
  *               motivo:
  *                 type: string
+ *               monto:
+ *                 type: number
  *     responses:
  *       200:
  *         description: Reembolso procesado
@@ -100,45 +105,6 @@ router.post(
   authMiddleware.autenticar,
   pagoController.procesarReembolso
 );
-
-/**
- * @swagger
- * /api/pagos:
- *   post:
- *     summary: Registrar pago
- *     tags: [Pagos]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - clienteId
- *               - expertoId
- *               - monto
- *               - metodo
- *               - estado
- *             properties:
- *               clienteId:
- *                 type: string
- *               expertoId:
- *                 type: string
- *               monto:
- *                 type: number
- *               metodo:
- *                 type: string
- *               estado:
- *                 type: string
- *               transaccionId:
- *                 type: string
- *     responses:
- *       201:
- *         description: Pago registrado
- */
-router.post("/", authMiddleware.autenticar, pagoController.crearPago);
 
 /**
  * @swagger
@@ -211,7 +177,7 @@ router.get(
  *             properties:
  *               estado:
  *                 type: string
- *                 enum: [pendiente, procesando, retenido, liberado, reembolsado-total, reembolsado-parcial, fallido]
+ *                 enum: [pendiente, procesando, retenido, liberado, reembolsado, reembolsado-parcial, fallido]
  *     responses:
  *       200:
  *         description: Estado actualizado

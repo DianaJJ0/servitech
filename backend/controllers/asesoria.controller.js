@@ -13,12 +13,11 @@ const generarLogs = require("../services/generarLogs");
 const { enviarCorreo } = require("../services/email.service.js");
 
 /**
- * Crea una nueva asesoría con validación de conflictos de horarios continuos.
- * Notifica al experto por email para aceptar/rechazar.
+ * Crea una nueva asesoría SOLO cuando hay un pago exitoso asociado.
  * @openapi
  * /api/asesorias:
  *   post:
- *     summary: Crear asesoría (cliente autenticado)
+ *     summary: Crear asesoría con pago previo validado
  *     tags: [Asesorías]
  *     security:
  *       - bearerAuth: []
@@ -34,6 +33,7 @@ const { enviarCorreo } = require("../services/email.service.js");
  *               - experto
  *               - fechaHoraInicio
  *               - duracionMinutos
+ *               - pagoId
  *             properties:
  *               titulo:
  *                 type: string
@@ -61,11 +61,14 @@ const { enviarCorreo } = require("../services/email.service.js");
  *               categoria:
  *                 type: string
  *                 default: "Tecnologia"
+ *               pagoId:
+ *                 type: string
+ *                 description: ID del pago procesado por MercadoPago
  *     responses:
  *       201:
- *         description: Asesoría creada y pendiente de aceptación
+ *         description: Asesoría creada y experto notificado
  *       400:
- *         description: Error de validación
+ *         description: Error de validación o pago no válido
  *       409:
  *         description: Conflicto de horarios
  */
@@ -78,25 +81,49 @@ const crearAsesoria = async (req, res) => {
       fechaHoraInicio,
       duracionMinutos,
       categoria = "Tecnologia",
+      pagoId // NUEVO: Requerido
     } = req.body;
 
     // Validaciones básicas
-    if (
-      !titulo ||
-      !descripcion ||
-      !experto ||
-      !fechaHoraInicio ||
-      !duracionMinutos
-    ) {
+    if (!titulo || !descripcion || !experto || !fechaHoraInicio || !duracionMinutos || !pagoId) {
       return res.status(400).json({
-        mensaje: "Faltan datos obligatorios para la asesoría.",
+        mensaje: "Faltan datos obligatorios para la asesoría, incluyendo el pagoId."
+      });
+    }
+
+    // VALIDAR EL PAGO PRIMERO
+    const pago = await Pago.findById(pagoId);
+    if (!pago) {
+      return res.status(400).json({
+        mensaje: "Pago no encontrado."
+      });
+    }
+
+    // Verificar que el pago esté en estado correcto
+    if (pago.estado !== "procesando" && pago.estado !== "retenido") {
+      return res.status(400).json({
+        mensaje: "El pago no está en un estado válido para crear la asesoría."
+      });
+    }
+
+    // Verificar que el pago corresponde al usuario autenticado
+    if (pago.clienteId !== req.usuario.email) {
+      return res.status(403).json({
+        mensaje: "El pago no corresponde al usuario autenticado."
+      });
+    }
+
+    // Verificar que el pago corresponde al experto
+    if (pago.expertoId !== experto.email) {
+      return res.status(400).json({
+        mensaje: "El pago no corresponde al experto seleccionado."
       });
     }
 
     // Verificar que el usuario autenticado es diferente del experto
     if (req.usuario.email === experto.email) {
       return res.status(400).json({
-        mensaje: "No puedes crear una asesoría contigo mismo.",
+        mensaje: "No puedes crear una asesoría contigo mismo."
       });
     }
 
@@ -104,7 +131,7 @@ const crearAsesoria = async (req, res) => {
     const clienteUsuario = await Usuario.findOne({ email: req.usuario.email });
     if (!clienteUsuario) {
       return res.status(404).json({
-        mensaje: "Usuario cliente no encontrado.",
+        mensaje: "Usuario cliente no encontrado."
       });
     }
 
@@ -112,11 +139,11 @@ const crearAsesoria = async (req, res) => {
     const expertoUsuario = await Usuario.findOne({
       email: experto.email,
       roles: "experto",
-      estado: "activo",
+      estado: "activo"
     });
     if (!expertoUsuario) {
       return res.status(404).json({
-        mensaje: "Experto no encontrado o no está activo.",
+        mensaje: "Experto no encontrado o no está activo."
       });
     }
 
@@ -127,7 +154,7 @@ const crearAsesoria = async (req, res) => {
 
     if (fechaInicio <= ahora) {
       return res.status(400).json({
-        mensaje: "La fecha de la asesoría debe ser futura.",
+        mensaje: "La fecha de la asesoría debe ser futura."
       });
     }
 
@@ -137,15 +164,14 @@ const crearAsesoria = async (req, res) => {
 
     if (horaInicio < 8 || horaFin > 18) {
       return res.status(400).json({
-        mensaje:
-          "Las asesorías solo se pueden agendar entre 8:00 AM y 6:00 PM, y deben completarse antes de las 6:00 PM.",
+        mensaje: "Las asesorías solo se pueden agendar entre 8:00 AM y 6:00 PM, y deben completarse antes de las 6:00 PM."
       });
     }
 
     // Validar que la duración es permitida
     if (![60, 90, 120, 180].includes(duracionMinutos)) {
       return res.status(400).json({
-        mensaje: "La duración debe ser 60, 90, 120 o 180 minutos.",
+        mensaje: "La duración debe ser 60, 90, 120 o 180 minutos."
       });
     }
 
@@ -159,70 +185,59 @@ const crearAsesoria = async (req, res) => {
           fechaHoraInicio: { $lte: fechaInicio },
           $expr: {
             $gte: [
-              {
-                $add: [
-                  "$fechaHoraInicio",
-                  { $multiply: ["$duracionMinutos", 60000] },
-                ],
-              },
-              fechaInicio,
-            ],
-          },
+              { $add: ["$fechaHoraInicio", { $multiply: ["$duracionMinutos", 60000] }] },
+              fechaInicio
+            ]
+          }
         },
         // Nueva asesoría termina durante una existente
         {
           fechaHoraInicio: { $lte: fechaFin },
           $expr: {
             $gte: [
-              {
-                $add: [
-                  "$fechaHoraInicio",
-                  { $multiply: ["$duracionMinutos", 60000] },
-                ],
-              },
-              fechaFin,
-            ],
-          },
+              { $add: ["$fechaHoraInicio", { $multiply: ["$duracionMinutos", 60000] }] },
+              fechaFin
+            ]
+          }
         },
         // Nueva asesoría contiene completamente una existente
         {
-          fechaHoraInicio: { $gte: fechaInicio, $lte: fechaFin },
+          fechaHoraInicio: { $gte: fechaInicio, $lte: fechaFin }
         },
         // Asesoría existente contiene completamente la nueva
         {
           fechaHoraInicio: { $lte: fechaInicio },
           $expr: {
             $gte: [
-              {
-                $add: [
-                  "$fechaHoraInicio",
-                  { $multiply: ["$duracionMinutos", 60000] },
-                ],
-              },
-              fechaFin,
-            ],
-          },
-        },
-      ],
+              { $add: ["$fechaHoraInicio", { $multiply: ["$duracionMinutos", 60000] }] },
+              fechaFin
+            ]
+          }
+        }
+      ]
     });
 
     if (conflictos.length > 0) {
-      const conflictosInfo = conflictos.map((c) => {
+      // Si hay conflictos, reembolsar el pago
+      await Pago.findByIdAndUpdate(pagoId, {
+        estado: "reembolsado",
+        fechaReembolso: new Date()
+      });
+
+      const conflictosInfo = conflictos.map(c => {
         const inicioConflicto = new Date(c.fechaHoraInicio);
-        const finConflicto = new Date(
-          inicioConflicto.getTime() + c.duracionMinutos * 60000
-        );
+        const finConflicto = new Date(inicioConflicto.getTime() + c.duracionMinutos * 60000);
         return {
           titulo: c.titulo,
-          inicio: inicioConflicto.toLocaleString("es-CO"),
-          fin: finConflicto.toLocaleString("es-CO"),
-          duracion: c.duracionMinutos,
+          inicio: inicioConflicto.toLocaleString('es-CO'),
+          fin: finConflicto.toLocaleString('es-CO'),
+          duracion: c.duracionMinutos
         };
       });
 
       return res.status(409).json({
-        mensaje: "El experto ya tiene una asesoría agendada en ese horario.",
-        conflictos: conflictosInfo,
+        mensaje: "El experto ya tiene una asesoría agendada en ese horario. Tu pago ha sido reembolsado.",
+        conflictos: conflictosInfo
       });
     }
 
@@ -230,13 +245,12 @@ const crearAsesoria = async (req, res) => {
     const asesoriaClientePendiente = await Asesoria.findOne({
       "cliente.email": clienteUsuario.email,
       "experto.email": experto.email,
-      estado: "pendiente-aceptacion",
+      estado: "pendiente-aceptacion"
     });
 
     if (asesoriaClientePendiente) {
       return res.status(409).json({
-        mensaje:
-          "Ya tienes una asesoría pendiente con este experto. Espera a que sea aceptada o rechazada antes de crear otra.",
+        mensaje: "Ya tienes una asesoría pendiente con este experto. Espera a que sea aceptada o rechazada antes de crear otra."
       });
     }
 
@@ -248,21 +262,28 @@ const crearAsesoria = async (req, res) => {
         email: clienteUsuario.email,
         nombre: clienteUsuario.nombre,
         apellido: clienteUsuario.apellido,
-        avatarUrl: clienteUsuario.avatarUrl || null,
+        avatarUrl: clienteUsuario.avatarUrl || null
       },
       experto: {
         email: expertoUsuario.email,
         nombre: expertoUsuario.nombre,
         apellido: expertoUsuario.apellido,
-        avatarUrl: expertoUsuario.avatarUrl || null,
+        avatarUrl: expertoUsuario.avatarUrl || null
       },
       categoria,
       fechaHoraInicio: fechaInicio,
       duracionMinutos,
       estado: "pendiente-aceptacion",
+      pagoId: pagoId // Asociar el pago
     });
 
     await nuevaAsesoria.save();
+
+    // Actualizar el estado del pago
+    await Pago.findByIdAndUpdate(pagoId, {
+      estado: "retenido",
+      asesoriaId: nuevaAsesoria._id
+    });
 
     // Notificación y correo al experto
     try {
@@ -278,23 +299,15 @@ const crearAsesoria = async (req, res) => {
       });
 
       const fechaLocal = fechaInicio.toLocaleString("es-CO");
-      const horasTexto =
-        duracionMinutos === 60
-          ? "1 hora"
-          : duracionMinutos === 90
-          ? "1.5 horas"
-          : duracionMinutos === 120
-          ? "2 horas"
-          : "3 horas";
+      const horasTexto = duracionMinutos === 60 ? "1 hora" :
+                        duracionMinutos === 90 ? "1.5 horas" :
+                        duracionMinutos === 120 ? "2 horas" : "3 horas";
 
       await enviarCorreo(
         expertoUsuario.email,
         "Nueva asesoría pendiente de aceptación",
-        `Tienes una nueva solicitud de asesoría titulada "${titulo}".\n\nCliente: ${clienteUsuario.nombre} ${clienteUsuario.apellido}\nFecha y hora: ${fechaLocal}\nDuración: ${horasTexto}\n\nIngresa a ServiTech para aceptarla o rechazarla.`,
-        {
-          nombreDestinatario: expertoUsuario.nombre,
-          apellidoDestinatario: expertoUsuario.apellido,
-        }
+        `Tienes una nueva solicitud de asesoría titulada "${titulo}".\n\nCliente: ${clienteUsuario.nombre} ${clienteUsuario.apellido}\nFecha y hora: ${fechaLocal}\nDuración: ${horasTexto}\n\nEl pago ya está procesado y será retenido hasta que aceptes o rechaces la solicitud.\n\nIngresa a ServiTech para aceptarla o rechazarla.`,
+        { nombreDestinatario: expertoUsuario.nombre, apellidoDestinatario: expertoUsuario.apellido }
       );
     } catch (emailError) {
       console.warn("Error enviando notificación:", emailError);
@@ -304,23 +317,24 @@ const crearAsesoria = async (req, res) => {
       usuarioEmail: clienteUsuario.email,
       nombre: clienteUsuario.nombre,
       apellido: clienteUsuario.apellido,
-      accion: "CREAR_ASESORIA",
-      detalle: `Asesoría registrada id:${nuevaAsesoria._id}, duración: ${duracionMinutos}min`,
+      accion: "CREAR_ASESORIA_CON_PAGO",
+      detalle: `Asesoría registrada id:${nuevaAsesoria._id}, pagoId:${pagoId}, duración: ${duracionMinutos}min`,
       resultado: "Exito",
       tipo: "asesoria",
       persistirEnDB: true,
     });
 
     res.status(201).json({
-      mensaje: "Asesoría creada y pendiente de aceptación del experto.",
+      mensaje: "Asesoría creada exitosamente con pago procesado. El experto será notificado.",
       asesoria: nuevaAsesoria,
     });
+
   } catch (error) {
     console.error("Error creando asesoría:", error);
 
     await generarLogs.registrarEvento({
       usuarioEmail: req.usuario?.email || null,
-      accion: "ERROR_CREAR_ASESORIA",
+      accion: "ERROR_CREAR_ASESORIA_CON_PAGO",
       detalle: error.message,
       resultado: "Error",
       tipo: "asesoria",
@@ -333,6 +347,7 @@ const crearAsesoria = async (req, res) => {
     });
   }
 };
+
 
 /**
  * Obtener asesorías del usuario autenticado (como cliente o experto)
