@@ -1,403 +1,172 @@
 /**
  * Confirmación de Asesoría - ServiTech
- * Muestra los datos completos del pago y la cita procesada
+ * Versión simplificada para el sistema actual
  */
 
 document.addEventListener("DOMContentLoaded", function () {
-  // Inicializar página de confirmación con datos reales o fallback SIEMPRE
-  inicializarConfirmacion();
+  // Obtener datos del DOM
+  let status = "unknown";
+
+  try {
+    const statusScript = document.getElementById("pageStatus");
+    if (statusScript) {
+      status = JSON.parse(statusScript.textContent);
+    }
+  } catch (error) {
+    console.error("Error leyendo estado de la página:", error);
+  }
+
+  console.log("Estado de confirmación:", status);
+
+  // Inicializar según el estado
+  inicializarConfirmacion(status);
 
   /**
-   * Inicializa la página con los datos del pago completado
+   * Inicializa la página según el estado
    */
-  function inicializarConfirmacion() {
-    // Recuperar datos completos del pago
-    const pagoCompleto = localStorage.getItem("pagoCompleto");
-
-    if (!pagoCompleto) {
-      // Si no hay datos, usar datos de ejemplo/fallback SIEMPRE
-      usarDatosFallback();
-      return;
-    }
-    try {
-      const datosCompletos = JSON.parse(pagoCompleto);
-      console.log(" Datos de confirmación recuperados:", datosCompletos);
-      // Actualizar toda la información en la página
-      actualizarInformacionCita(datosCompletos);
-      actualizarInformacionExperto(datosCompletos);
-      actualizarInformacionPago(datosCompletos);
-
-      // --- GUARDAR CITA EN BACKEND DESPUÉS DEL PAGO ---
-      if (datosCompletos && datosCompletos.cita && datosCompletos.pago) {
-        // Construir el objeto para el backend
-        const datosCita = {
-          clienteId: window.usuarioId || datosCompletos.cita.clienteId,
-          expertoId: datosCompletos.cita.expertoId,
-          categoriaId: datosCompletos.cita.categoriaId,
-          tipoServicio: datosCompletos.cita.tipoServicio || "asesoria-detallada",
-          titulo: datosCompletos.cita.titulo || `Asesoría con ${datosCompletos.cita.experto?.nombre || "experto"}`,
-          descripcion: datosCompletos.cita.descripcion || "Asesoría agendada y pagada",
-          fechaHora: datosCompletos.cita.fechaHora || new Date(),
-          duracion: datosCompletos.cita.duracion || 60,
-          precio: datosCompletos.cita.precio || 20000,
-          metodoPago: datosCompletos.pago.metodo || "tarjeta",
-          requerimientos: datosCompletos.cita.requerimientos || {},
-          pagada: true,
-          transactionId: datosCompletos.pago.transactionId
-        };
-        // Enviar al backend solo si no existe ya la cita (puedes mejorar esta lógica)
-        fetch("/api/asesorias", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify(datosCita)
-        })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            console.log(" Cita guardada en la base de datos después del pago");
-          } else {
-            console.warn("⚠️ No se pudo guardar la cita después del pago:", data.message);
-          }
-        })
-        .catch(err => {
-          console.error("Error al guardar la cita después del pago:", err);
-        });
-      }
-
-      // Limpiar datos del localStorage después de mostrarlos
-      const citaFinalizada = {
-        transactionId: datosCompletos.pago.transactionId,
-        fecha: datosCompletos.cita.fecha,
-        hora: datosCompletos.cita.hora,
-        experto: datosCompletos.cita.experto,
-        servicio: datosCompletos.cita.servicio,
-        fechaProcesamiento: new Date().toISOString(),
-      };
-      localStorage.setItem("ultimaCita", JSON.stringify(citaFinalizada));
-    } catch (error) {
-      console.error("Error al parsear datos de confirmación:", error);
-      usarDatosFallback();
+  function inicializarConfirmacion(estado) {
+    switch (estado) {
+      case "success":
+        manejarExito();
+        break;
+      case "pending":
+        manejarPendiente();
+        break;
+      case "failure":
+      default:
+        manejarError();
+        break;
     }
   }
 
   /**
-   * Actualiza la información de la cita en la página
+   * Maneja el estado de éxito
    */
-  function actualizarInformacionCita(datos) {
-    const cita = datos.cita;
+  function manejarExito() {
+    console.log("Asesoría agendada exitosamente");
 
-    // Actualizar servicio
-    const servicioElement = document.querySelector(".detail-item .value");
-    if (servicioElement) {
-      servicioElement.textContent = `Asesoría: ${cita.servicio}`;
-    }
+    // Animación de entrada
+    aplicarAnimacionEntrada();
 
-    // Actualizar fecha
-    const fechaElement = document.getElementById("sessionDate");
-    if (fechaElement) {
-      fechaElement.textContent = formatearFechaLegible(cita.fecha);
-    }
+    // Mostrar notificación de éxito
+    setTimeout(() => {
+      mostrarNotificacion("¡Asesoría agendada exitosamente!", "success");
+    }, 1000);
 
-    // Actualizar hora
-    const horaElement = document.getElementById("sessionTime");
-    if (horaElement) {
-      const horaInicio = cita.hora;
-      const horaFin = calcularHoraFin(horaInicio);
-      horaElement.textContent = `${horaInicio} - ${horaFin}`;
-    }
+    // Simular envío de email de confirmación
+    setTimeout(() => {
+      mostrarNotificacion("Email de confirmación enviado", "info");
+    }, 3000);
 
-    // Actualizar ID de transacción
-    const transactionElement = document.getElementById("transactionId");
-    if (transactionElement) {
-      transactionElement.textContent = datos.pago.transactionId;
-    }
+    // Limpiar datos temporales si existen
+    limpiarDatosTemporales();
   }
 
   /**
-   * Actualiza la información del experto
+   * Maneja el estado pendiente
    */
-  function actualizarInformacionExperto(datos) {
-    let experto = datos.cita.experto;
-    // Si experto es un objeto, usar el nombre
-    if (typeof experto === "object" && experto !== null) {
-      experto = experto.nombre || "Experto";
-    }
-    const servicio = datos.cita.servicio;
+  function manejarPendiente() {
+    console.log("Pago en proceso...");
 
-    // Actualizar nombre del experto
-    const nombreElement = document.querySelector(".expert-details h4");
-    if (nombreElement) {
-      nombreElement.textContent = experto;
-    }
-    // Actualizar avatar
-    const avatarImg = document.querySelector(".expert-avatar img");
-    if (avatarImg) {
-      const nombreParaAvatar = (typeof experto === "string" ? experto : String(experto)).replace(" ", "+");
-      avatarImg.src = `https://ui-avatars.com/api/?name=${nombreParaAvatar}&background=3a8eff&color=fff&size=80`;
-      avatarImg.alt = `Foto de ${experto}`;
-    }
+    // Auto-refresh cada 30 segundos para estado pendiente
+    setTimeout(function () {
+      console.log("Recargando página para verificar estado...");
+      window.location.reload();
+    }, 30000);
+
+    // Mostrar indicador de carga
+    mostrarIndicadorCarga();
   }
 
   /**
-   * Actualiza información adicional del pago si es necesario
+   * Maneja errores o fallos
    */
-  function actualizarInformacionPago(datos) {
-    const pago = datos.pago;
+  function manejarError() {
+    console.log("Error en el proceso de asesoría");
 
-    // Mostrar información del método de pago
-    const metodoPagoContainer = document.querySelector(
-      ".payment-method-info-container"
-    );
-    const metodoPagoElement = document.querySelector(".payment-method-info");
+    // Aplicar animación de entrada
+    aplicarAnimacionEntrada();
 
-    if (metodoPagoContainer && metodoPagoElement) {
-      let metodoPagoTexto = "";
-
-      switch (pago.metodo) {
-        case "credit-card":
-          metodoPagoTexto = "Tarjeta de Crédito/Débito";
-          if (pago.tarjeta && pago.tarjeta.cuotas > 1) {
-            metodoPagoTexto += ` (${pago.tarjeta.cuotas} cuotas)`;
-          }
-          break;
-        case "pse":
-          metodoPagoTexto = "PSE - Transferencia Bancaria";
-          break;
-        case "nequi":
-          metodoPagoTexto = "Nequi";
-          break;
-        case "daviplata":
-          metodoPagoTexto = "Daviplata";
-          break;
-        case "payu":
-          metodoPagoTexto = "PayU";
-          break;
-        case "efecty":
-          metodoPagoTexto = "Efecty";
-          break;
-        default:
-          metodoPagoTexto = "Pago Online";
-      }
-
-      // Agregar información adicional para PSE
-      if (pago.metodo === "pse" && pago.pse) {
-        const bancos = {
-          bancolombia: "Bancolombia",
-          davivienda: "Banco Davivienda",
-          bbva: "BBVA Colombia",
-          bogota: "Banco de Bogotá",
-          popular: "Banco Popular",
-          occidente: "Banco de Occidente",
-          av_villas: "Banco AV Villas",
-          colpatria: "Scotiabank Colpatria",
-          bancamia: "Bancamía",
-          itau: "Banco Itaú",
-          falabella: "Banco Falabella",
-          pichincha: "Banco Pichincha",
-          coopcentral: "Coopcentral",
-          otras: "Otras entidades",
-        };
-
-        const nombreBanco = bancos[pago.pse.banco] || pago.pse.banco;
-        metodoPagoTexto += ` - ${nombreBanco}`;
-      }
-
-      // Agregar información adicional para Nequi
-      if (pago.metodo === "nequi" && pago.nequi) {
-        const numeroCelular = pago.nequi.numeroCelular;
-        // Ocultar los dígitos del medio por seguridad
-        const numeroOculto = numeroCelular.replace(
-          /(\d{3})(\d{3})(\d{4})/,
-          "$1 *** $3"
-        );
-        metodoPagoTexto += ` - ${numeroOculto}`;
-      }
-
-      // Agregar información adicional para PayU
-      if (pago.metodo === "payu" && pago.payu) {
-        const email = pago.payu.email;
-        const documento = pago.payu.documento;
-        // Ocultar parte del email y documento por seguridad
-        const emailOculto = email.replace(/(.{2})(.*)(@.*)/, "$1***$3");
-        const documentoOculto = documento.replace(
-          /(\d{2})(\d*)(\d{2})/,
-          "$1***$3"
-        );
-        metodoPagoTexto += ` - ${emailOculto} | Doc: ${documentoOculto}`;
-      }
-
-      // Agregar información adicional para Daviplata
-      if (pago.metodo === "daviplata" && pago.daviplata) {
-        const numeroCelular = pago.daviplata.numeroCelular;
-        // Ocultar los dígitos del medio por seguridad
-        const numeroOculto = numeroCelular.replace(
-          /(\d{3})(\d{3})(\d{4})/,
-          "$1 *** $3"
-        );
-        metodoPagoTexto += ` - ${numeroOculto}`;
-      }
-
-      metodoPagoElement.textContent = metodoPagoTexto;
-      metodoPagoContainer.style.display = "flex"; // Mostrar el elemento
-    }
-
-    // Enviar email de confirmación simulado
-    enviarEmailConfirmacion(datos);
-  }
-
-  /**
-   * Simula el envío de email de confirmación
-   */
-  function enviarEmailConfirmacion(datos) {
-    console.log("📧 Enviando email de confirmación a:", datos.pago.email);
-
-    // Mostrar notificación de email enviado
+    // Mostrar notificación de error
     setTimeout(() => {
       mostrarNotificacion(
-        `Email de confirmación enviado a ${datos.pago.email}`,
-        "success"
+        "Ocurrió un problema. Puedes intentar nuevamente.",
+        "error"
       );
-    }, 2000);
+    }, 1000);
+
+    // Limpiar datos temporales
+    limpiarDatosTemporales();
   }
 
   /**
-   * Calcula la hora de fin basada en la hora de inicio
+   * Aplica animaciones de entrada a la tarjeta
    */
-  function calcularHoraFin(horaInicio) {
-    try {
-      const [hora, minutos] = horaInicio.split(":");
-      const fecha = new Date();
-      fecha.setHours(parseInt(hora), parseInt(minutos));
-      fecha.setHours(fecha.getHours() + 1); // Sumar 1 hora
+  function aplicarAnimacionEntrada() {
+    const card = document.querySelector(".confirmacion-card");
+    if (card) {
+      card.style.opacity = "0";
+      card.style.transform = "translateY(20px)";
 
-      return fecha.toTimeString().substr(0, 5);
-    } catch (error) {
-      // Fallback si hay error
-      const horaNum = parseInt(horaInicio.split(":")[0]);
-      return `${horaNum + 1}:00`;
+      setTimeout(function () {
+        card.style.transition = "all 0.6s ease";
+        card.style.opacity = "1";
+        card.style.transform = "translateY(0)";
+      }, 100);
     }
   }
 
   /**
-   * Formatea fecha para mostrar de forma legible
+   * Muestra indicador de carga para estado pendiente
    */
-  function formatearFechaLegible(fechaString) {
-    try {
-      const fecha = new Date(fechaString + "T00:00:00");
-      const opciones = {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-        weekday: "long",
-      };
-
-      return fecha.toLocaleDateString("es-ES", opciones);
-    } catch (error) {
-      return fechaString;
+  function mostrarIndicadorCarga() {
+    const spinner = document.querySelector(".spinner");
+    if (spinner) {
+      spinner.style.display = "block";
     }
   }
 
   /**
-   * Usar datos de fallback si hay error
+   * Limpia datos temporales del localStorage
    */
-  function usarDatosFallback() {
-    console.log(" Usando datos de fallback para confirmación");
-    // Datos de ejemplo personalizados y realistas
-    const nombresExpertos = [
-      {
-        nombre: "Camilo Martínez",
-        especialidad: "Redes y Seguridad",
-        avatar: "Camilo+Martinez",
-      },
-      {
-        nombre: "Ana García",
-        especialidad: "Desarrollo Web",
-        avatar: "Ana+Garcia",
-      },
-      {
-        nombre: "Roberto Sánchez",
-        especialidad: "Soporte Técnico",
-        avatar: "Roberto+Sanchez",
-      },
+  function limpiarDatosTemporales() {
+    // Limpiar datos antiguos que pudieran estar en localStorage
+    const keysToClean = [
+      "pagoCompleto",
+      "asesoriaTemp",
+      "expertoSeleccionado",
+      "fechaSeleccionada",
+      "horaSeleccionada",
     ];
-    const experto =
-      nombresExpertos[Math.floor(Math.random() * nombresExpertos.length)];
-    const servicios = [
-      "Optimización de PC",
-      "Configuración de redes",
-      "Desarrollo de página web",
-      "Soporte remoto",
-      "Asesoría en ciberseguridad",
-    ];
-    const servicio = servicios[Math.floor(Math.random() * servicios.length)];
-    const metodos = [
-      {
-        metodo: "credit-card",
-        texto: "Tarjeta de Crédito/Débito",
-        email: "cliente1@correo.com",
-        cuotas: 1,
-      },
-      {
-        metodo: "pse",
-        texto: "PSE - Bancolombia",
-        email: "cliente2@correo.com",
-        banco: "bancolombia",
-      },
-      {
-        metodo: "nequi",
-        texto: "Nequi",
-        email: "cliente3@correo.com",
-        numeroCelular: "+573001234567",
-      },
-      {
-        metodo: "daviplata",
-        texto: "Daviplata",
-        email: "cliente4@correo.com",
-        numeroCelular: "+573007654321",
-      },
-    ];
-    const metodo = metodos[Math.floor(Math.random() * metodos.length)];
-    const fecha = getRandomFutureDate();
-    const hora = getRandomTimeSlot().split(" - ")[0];
-    const datosEjemplo = {
-      cita: {
-        servicio: servicio,
-        fecha: fecha,
-        hora: hora,
-        experto: experto.nombre,
-      },
-      pago: {
-        transactionId: generateTransactionId(),
-        metodo: metodo.metodo,
-        email: metodo.email,
-        tarjeta: metodo.cuotas ? { cuotas: metodo.cuotas } : undefined,
-        pse: metodo.banco ? { banco: metodo.banco } : undefined,
-        nequi:
-          metodo.numeroCelular && metodo.metodo === "nequi"
-            ? { numeroCelular: metodo.numeroCelular }
-            : undefined,
-        daviplata:
-          metodo.numeroCelular && metodo.metodo === "daviplata"
-            ? { numeroCelular: metodo.numeroCelular }
-            : undefined,
-      },
-      expertoInfo: experto,
-    };
-    actualizarInformacionCita(datosEjemplo);
-    actualizarInformacionExperto(datosEjemplo);
-    actualizarInformacionPago(datosEjemplo);
+
+    keysToClean.forEach((key) => {
+      if (localStorage.getItem(key)) {
+        localStorage.removeItem(key);
+      }
+    });
   }
 
   /**
    * Muestra notificaciones al usuario
    */
   function mostrarNotificacion(mensaje, tipo = "info") {
+    // Verificar si ya existe un contenedor de notificaciones
+    let container = document.querySelector(".notification-container");
+    if (!container) {
+      container = document.createElement("div");
+      container.className = "notification-container";
+      container.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 10000;
+      `;
+      document.body.appendChild(container);
+    }
+
     const notificacion = document.createElement("div");
+    notificacion.className = `notification notification-${tipo}`;
     notificacion.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
       background: ${
         tipo === "success"
           ? "#28a745"
@@ -406,63 +175,126 @@ document.addEventListener("DOMContentLoaded", function () {
           : "#007bff"
       };
       color: white;
-      padding: 15px 20px;
+      padding: 12px 20px;
       border-radius: 8px;
-      z-index: 9999;
-      max-width: 400px;
+      margin-bottom: 10px;
+      max-width: 350px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      transform: translateX(400px);
+      transition: transform 0.3s ease;
+      font-size: 14px;
+      line-height: 1.4;
     `;
 
-    const icono = tipo === "success" ? "✅" : tipo === "error" ? "❌" : "ℹ️";
+    const icono = tipo === "success" ? "✓" : tipo === "error" ? "✗" : "i";
     notificacion.innerHTML = `
-      <div style="display: flex; align-items: center; gap: 10px;">
-        <span>${icono}</span>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-weight: bold; font-size: 16px;">${icono}</span>
         <span>${mensaje}</span>
       </div>
     `;
 
-    document.body.appendChild(notificacion);
+    container.appendChild(notificacion);
 
+    // Animar entrada
     setTimeout(() => {
-      if (notificacion.parentNode) {
-        notificacion.remove();
-      }
+      notificacion.style.transform = "translateX(0)";
+    }, 100);
+
+    // Auto-remover después de 5 segundos
+    setTimeout(() => {
+      notificacion.style.transform = "translateX(400px)";
+      setTimeout(() => {
+        if (notificacion.parentNode) {
+          notificacion.remove();
+        }
+        // Remover container si está vacío
+        if (container.children.length === 0) {
+          container.remove();
+        }
+      }, 300);
     }, 5000);
+
+    // Permitir cerrar haciendo clic
+    notificacion.addEventListener("click", () => {
+      notificacion.style.transform = "translateX(400px)";
+      setTimeout(() => {
+        if (notificacion.parentNode) {
+          notificacion.remove();
+        }
+      }, 300);
+    });
   }
 
   /**
-   * Muestra errores al usuario
+   * Obtiene parámetros de la URL si son necesarios
    */
-  function mostrarError(mensaje) {
-    mostrarNotificacion(mensaje, "error");
+  function obtenerParametrosURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return {
+      status: urlParams.get("status"),
+      asesoriaId: urlParams.get("asesoriaId"),
+      transactionId: urlParams.get("transactionId"),
+    };
   }
 
-  // Funciones de fallback para datos aleatorios (mantener compatibilidad)
-  function getRandomFutureDate() {
-    const today = new Date();
-    const futureDate = new Date(today);
-    futureDate.setDate(today.getDate() + Math.floor(Math.random() * 10) + 1);
+  /**
+   * Registra evento de confirmación (opcional, para analytics)
+   */
+  function registrarEventoConfirmacion(estado) {
+    // Aquí puedes agregar lógica para analytics o tracking
+    console.log(`Evento de confirmación registrado: ${estado}`);
 
-    const options = { day: "numeric", month: "long", year: "numeric" };
-    return futureDate.toLocaleDateString("es-ES", options);
+    // Ejemplo de envío a analytics (descomenta si usas Google Analytics)
+    // if (typeof gtag !== 'undefined') {
+    //   gtag('event', 'asesoria_confirmacion', {
+    //     'event_category': 'engagement',
+    //     'event_label': estado
+    //   });
+    // }
   }
 
-  function getRandomTimeSlot() {
-    const hours = [
-      "9:00 - 10:00",
-      "10:30 - 11:30",
-      "13:00 - 14:00",
-      "14:30 - 15:30",
-      "16:00 - 17:00",
-      "17:30 - 18:30",
-    ];
-    return hours[Math.floor(Math.random() * hours.length)];
+  // Registrar el evento de confirmación
+  registrarEventoConfirmacion(status);
+
+  // Event listeners adicionales
+  setupEventListeners();
+
+  /**
+   * Configura event listeners adicionales
+   */
+  function setupEventListeners() {
+    // Botón de actualizar estado (para estado pendiente)
+    const btnActualizar = document.querySelector('button[onclick*="reload"]');
+    if (btnActualizar) {
+      btnActualizar.addEventListener("click", function (e) {
+        e.preventDefault();
+        mostrarNotificacion("Actualizando estado...", "info");
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      });
+    }
+
+    // Enlaces de navegación - agregar confirmación para algunos
+    const enlaces = document.querySelectorAll(
+      'a[href*="expertos"], a[href*="contacto"]'
+    );
+    enlaces.forEach((enlace) => {
+      enlace.addEventListener("click", function (e) {
+        // Solo para enlaces externos o de salida
+        if (enlace.href.includes("expertos") && status === "success") {
+          const confirmar = confirm(
+            "¿Estás seguro de salir? Tu asesoría ya está agendada y recibirás confirmación por email."
+          );
+          if (!confirmar) {
+            e.preventDefault();
+          }
+        }
+      });
+    });
   }
 
-  function generateTransactionId() {
-    const prefix = "ST-";
-    const timestamp = Date.now();
-    const random = Math.random().toString(36).substr(2, 9).toUpperCase();
-    return `${prefix}${timestamp}-${random}`;
-  }
+  // Log final para debugging
+  console.log("Confirmación de asesoría inicializada correctamente");
 });
