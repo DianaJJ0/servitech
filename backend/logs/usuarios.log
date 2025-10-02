@@ -62,3 +62,41 @@
 2025-10-01T03:32:01.663Z | LOGIN | 2@gmail.com | juan carlos quintero | Resultado: Exito
 2025-10-01T03:38:27.723Z | REGISTRO | 3@gmail.com | Leon Camilo Castro | Resultado: Exito
 2025-10-01T03:38:32.873Z | LOGIN | 3@gmail.com | Leon Camilo Castro | Resultado: Exito
+2025-10-01T21:32:12.955Z | LOGIN | 2@gmail.com | juan carlos quintero | Resultado: Exito
+2025-10-01T23:09:35.218Z | LOGIN | 3@gmail.com | Leon Camilo Castro | Resultado: Exito
+2025-10-01T23:09:51.854Z | LOGIN | 1@gmail.com | Juan Castro | Resultado: Exito
+2025-10-01T23:10:26.016Z | LOGIN | 3@gmail.com | Leon Camilo Castro | Resultado: Exito
+2025-10-01T23:21:03.963Z | LOGIN | 1@gmail.com | Juan Castro | Resultado: Exito
+2025-10-01T23:23:30.855Z | LOGIN | 3@gmail.com | Leon Camilo Castro | Resultado: Exito
+2025-10-01T23:23:45.942Z | LOGIN | 3@gmail.com | Leon Camilo Castro | Resultado: Exito
+2025-10-01T23:24:59.434Z | LOGIN | 3@gmail.com | Leon Camilo Castro | Resultado: Exito
+2025-10-01T23:26:06.035Z | LOGIN | 3@gmail.com | Leon Camilo Castro | Resultado: Exito
+2025-10-01T23:27:10.110Z | LOGIN | 3@gmail.com | Leon Camilo Castro | Resultado: Exito
+2025-10-01T23:29:42.624Z | LOGIN | 3@gmail.com | Leon Camilo Castro | Resultado: Exito
+2025-10-01T23:29:55.475Z | LOGIN | 3@gmail.com | Leon Camilo Castro | Resultado: Exito
+2025-10-01T23:30:15.077Z | LOGIN | 3@gmail.com | Leon Camilo Castro | Resultado: Exito
+2025-10-01T23:43:40.997Z | LOGIN | 1@gmail.com | Juan Castro | Resultado: Exito
+2025-10-01T23:45:37.445Z | LOGIN | 3@gmail.com | Leon Camilo Castro | Resultado: Exito
+2025-10-01T23:57:42.545Z | LOGIN | 1@gmail.com | Juan Castro | Resultado: Exito
+2025-10-01T23:58:01.324Z | LOGIN | 3@gmail.com | Leon Camilo Castro | Resultado: Exito
+2025-10-02T00:22:27.105Z | LOGIN | 1@gmail.com | Juan Castro | Resultado: Exito
+2025-10-02T00:33:45.159Z | LOGIN | 3@gmail.com | Leon Camilo Castro | Resultado: Exito
+2025-10-02T00:34:44.608Z | LOGIN | 1@gmail.com | Juan Castro | Resultado: Exito
+2025-10-02T00:36:18.079Z | LOGIN | 3@gmail.com | Leon Camilo Castro | Resultado: Exito
+2025-10-02T00:37:41.723Z | LOGIN | 1@gmail.com | Juan Castro | Resultado: Exito
+2025-10-02T00:40:10.038Z | LOGIN | 3@gmail.com | Leon Camilo Castro | Resultado: Exito
+2025-10-02T00:49:52.358Z | LOGIN | 3@gmail.com | Leon Camilo Castro | Resultado: Exito
+2025-10-02T01:09:02.598Z | LOGIN | 1@gmail.com | Juan Castro | Resultado: Exito
+2025-10-02T01:10:26.559Z | LOGIN | 3@gmail.com | Leon Camilo Castro | Resultado: Exito
+2025-10-02T01:15:19.858Z | LOGIN | 1@gmail.com | Juan Castro | Resultado: Exito
+2025-10-02T01:18:06.147Z | LOGIN | 3@gmail.com | Leon Camilo Castro | Resultado: Exito
+2025-10-02T01:40:07.264Z | LOGIN | 3@gmail.com | Leon Camilo Castro | Resultado: Exito
+2025-10-02T02:35:53.953Z | LOGIN | 3@gmail.com | Leon Camilo Castro | Resultado: Exito
+2025-10-02T02:37:04.213Z | LOGIN | 3@gmail.com | Leon Camilo Castro | Resultado: Exito
+2025-10-02T02:39:56.306Z | LOGIN | 3@gmail.com | Leon Camilo Castro | Resultado: Exito
+2025-10-02T02:51:53.231Z | LOGIN | 3@gmail.com | Leon Camilo Castro | Resultado: Exito
+2025-10-02T03:43:48.782Z | LOGIN | 3@gmail.com | - | Resultado: Error: credenciales incorrectas
+2025-10-02T03:43:53.563Z | LOGIN | 3@gmail.com | - | Resultado: Error: credenciales incorrectas
+2025-10-02T03:43:57.254Z | LOGIN | 3@gmail.com | - | Resultado: Error: credenciales incorrectas
+2025-10-02T03:44:56.249Z | REGISTRO | 4@gmail.com | juan carlos Rodriguez | Resultado: Exito
+2025-10-02T03:45:01.195Z | LOGIN | 4@gmail.com | juan carlos Rodriguez | Resultado: Exito

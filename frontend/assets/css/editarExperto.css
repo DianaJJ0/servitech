@@ -1,5 +1,3 @@
-
-
 :root {
   --primary-color: #3a8eff;
   --primary-hover: #2a7af0;
@@ -175,6 +173,24 @@ button,
   box-shadow: var(--focus-shadow);
 }
 
+/* Textarea descripción profesional */
+.descripcion-textarea {
+  resize: none; /* evitar que el usuario cambie el tamaño manualmente */
+  overflow: hidden; /* para auto-resize sin barra */
+  line-height: 1.4;
+  min-height: 6rem; /* altura inicial consistente */
+  font-family: inherit;
+  font-size: 0.95rem;
+  white-space: pre-wrap;
+}
+
+@supports (-webkit-touch-callout: none) {
+  /* Ajuste menor en iOS Safari para evitar salto inicial */
+  .descripcion-textarea {
+    padding-top: 0.9rem;
+  }
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -323,224 +339,6 @@ button,
   gap: 0.75rem;
 }
 
-/* Select múltiple y adaptación para Choices.js */
-.form-control[multiple],
-.choices__inner {
-  background-color: var(--input-bg) !important;
-  border: 0.0625rem solid var(--border-color) !important;
-  color: var(--text-color) !important;
-}
-
-.form-control[multiple] {
-  min-height: 3.5rem;
-  padding: 0.5rem 0.75rem;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-}
-
-/* Contenedor principal de Choices */
-.choices {
-  position: relative;
-  margin-bottom: 1rem;
-  font-size: 1rem;
-}
-
-.choices__inner {
-  display: inline-block;
-  vertical-align: top;
-  width: 100%;
-  padding: 0.5rem 0.75rem;
-  border-radius: var(--input-radius);
-  min-height: 3.5rem;
-  overflow: hidden;
-  word-wrap: break-word;
-}
-
-/* Tokens (selecciones) en Choices.js */
-.choices__list--multiple .choices__item {
-  background: linear-gradient(
-    90deg,
-    var(--primary-color),
-    var(--accent-color)
-  ) !important;
-  color: #ffffff !important;
-  padding: 0.28rem 0.6rem;
-  margin: 0.18rem 0.25rem;
-  border-radius: 0.4rem;
-  font-weight: 600;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-/* Forzar texto blanco en los items seleccionados */
-.choices__list--multiple .choices__item,
-.choices__item[data-value] {
-  color: #ffffff !important;
-}
-
-/* Botón de eliminar (X) en los tokens */
-.choices__list--multiple .choices__item .choices__button,
-.choices__list--multiple .choices__item button {
-  color: #ffffff !important;
-  opacity: 0.9;
-  border-left-color: rgba(255, 255, 255, 0.3) !important;
-}
-
-.choices__list--multiple .choices__item .choices__button:hover,
-.choices__list--multiple .choices__item button:hover {
-  color: #ffffff !important;
-  opacity: 1;
-}
-
-/* Asegurar que el valor del item sea visible */
-.choices__list--multiple .choices__item[data-value]::before {
-  color: #ffffff !important;
-}
-
-.choices__inner.is-focused {
-  box-shadow: var(--focus-shadow);
-  border-color: var(--primary-color);
-}
-
-.choices__input,
-.choices__list--single .choices__item {
-  color: var(--text-color) !important;
-}
-
-/* Forzar tema oscuro en el dropdown de Choices.js */
-.choices__list--dropdown {
-  background: var(--card-bg) !important;
-  border: 0.0625rem solid var(--border-color) !important;
-  box-shadow: var(--card-shadow) !important;
-  color: #ffffff !important;
-  z-index: 10 !important;
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-.choices__list--dropdown .choices__item {
-  background: transparent !important;
-  color: #ffffff !important;
-  padding: 0.75rem 1rem !important;
-  transition: background-color 0.2s ease;
-  cursor: pointer;
-}
-
-.choices__list--dropdown .choices__item--selectable {
-  color: #ffffff !important;
-  background: transparent !important;
-}
-
-.choices__list--dropdown .choices__item--selectable:hover,
-.choices__list--dropdown .choices__item--selectable.is-highlighted {
-  background: rgba(58, 142, 255, 0.4) !important;
-}
-
-.choices__list--dropdown .choices__item:not(.choices__item--disabled) {
-  color: #ffffff !important;
-}
-
-.choices__item--choice {
-  color: #ffffff !important;
-}
-
-.choices__item--choice.choices__item--selectable {
-  color: #ffffff !important;
-}
-
-.choices__item--highlighted,
-.choices__item.is-highlighted {
-  background: rgba(58, 142, 255, 0.4) !important;
-  color: #ffffff !important;
-}
-
-.choices__item--highlighted .choices__item__text,
-.choices__item.is-highlighted .choices__item__text {
-  color: #ffffff !important;
-}
-
-/* Asegurar que TODOS los textos dentro del dropdown sean blancos */
-.choices__list--dropdown * {
-  color: #ffffff !important;
-}
-
-/* placeholder/input dentro del control */
-.choices__inner .choices__placeholder {
-  color: #999999 !important;
-  opacity: 1 !important;
-}
-
-.choices__inner .choices__input {
-  color: #ffffff !important;
-  background-color: transparent !important;
-}
-
-.choices__input {
-  color: #ffffff !important;
-}
-
-/* texto dentro del input de búsqueda de dropdown */
-.choices__input--cloned {
-  color: #ffffff !important;
-  background-color: var(--input-bg) !important;
-}
-
-/* Forzar color en el input cuando está escribiendo */
-.choices[data-type*="select-multiple"] .choices__input,
-.choices[data-type*="select-one"] .choices__input {
-  color: #ffffff !important;
-}
-
-/* Mejor separación entre tokens y el input */
-.choices__list--multiple {
-  padding: 0.35rem 0.5rem;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-}
-
-/* Asegurar que el texto "Sin resultados" también sea visible */
-.choices__list--dropdown .choices__item--disabled {
-  color: var(--text-light) !important;
-}
-
-/* ==========================================
-   FORZAR VISIBILIDAD DE TEXTO EN CHOICES.JS
-   ========================================== */
-
-/* Forzar texto blanco en TODOS los elementos de Choices con máxima especificidad */
-.choices__list--multiple .choices__item,
-.choices__list--multiple .choices__item *,
-.choices[data-type*="select-multiple"] .choices__item,
-.choices[data-type*="select-multiple"] .choices__list--multiple .choices__item {
-  color: #ffffff !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-}
-
-/* Dropdown: forzar texto blanco en todas las opciones con máxima prioridad */
-.choices__list--dropdown .choices__item,
-.choices__list--dropdown .choices__item *,
-.choices__list[aria-expanded] .choices__item,
-.choices__list.choices__list--dropdown .choices__item {
-  color: #ffffff !important;
-  background-color: transparent;
-}
-
-/* Input de búsqueda en el dropdown */
-.choices__list--dropdown .choices__input,
-.choices__input.choices__input--cloned,
-.choices .choices__input.choices__input--cloned {
-  color: #ffffff !important;
-  background: var(--input-bg) !important;
-}
-
-/* Placeholder visible */
-.choices__placeholder,
-.choices .choices__placeholder {
-  color: #999999 !important;
-  opacity: 1 !important;
-}
-
 /* Estilos para el contenedor de especialización/categorías */
 .especializacion-container {
   width: 100%;
@@ -574,15 +372,148 @@ button,
   box-shadow: var(--focus-shadow);
 }
 
-/* Mejorar el contenedor de Choices cuando está renderizado */
-.choices {
-  width: 100%;
-  margin-bottom: 0;
+.especializacion-container .choices {
+  color: var(--text-color);
+  background-color: transparent;
 }
 
-.choices[data-type*="select-multiple"] .choices__inner {
+.especializacion-container .choices__inner {
   min-height: 3.5rem;
-  padding: 0.5rem 0.75rem;
+  padding: 0.75rem 0.75rem 0.25rem;
+  background-color: var(--input-bg) !important;
+  border-radius: var(--input-radius);
+  border: 1px solid var(--border-color) !important;
+  transition: var(--transition);
+}
+
+.especializacion-container .choices__list--multiple {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.especializacion-container .choices__list--multiple .choices__item {
+  background-color: var(--primary-color) !important;
+  border: none;
+  color: #fff !important;
+  font-weight: 500;
+  font-size: 0.9375rem;
+  letter-spacing: 0.015em;
+  display: inline-flex;
+  align-items: center;
+  white-space: normal;
+  line-height: 1.3;
+  max-width: 100%;
+  word-break: break-word;
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  margin-bottom: 0.35rem;
+  box-shadow: var(--btn-shadow);
+}
+
+.especializacion-container
+  .choices__list--multiple
+  .choices__item.choices__placeholder {
+  background-color: transparent !important;
+  color: var(--text-light) !important;
+  padding: 0;
+  margin-bottom: 0;
+  box-shadow: none;
+}
+
+.especializacion-container
+  .choices__list--multiple
+  .choices__item.is-highlighted,
+.especializacion-container
+  .choices__list--dropdown
+  .choices__item--selectable.is-highlighted {
+  background-color: var(--primary-hover);
+  color: #fff;
+}
+
+.especializacion-container .choices__input {
+  background-color: transparent !important;
+  border: none !important;
+  color: var(--text-color) !important;
+  margin: 0.25rem 0;
+}
+
+.especializacion-container .choices__placeholder {
+  opacity: 0.85;
+  color: var(--text-light) !important;
+  font-size: 0.9375rem;
+}
+
+.especializacion-container .choices__list--dropdown {
+  background-color: var(--card-bg) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: var(--hover-shadow);
+  color: var(--text-color) !important;
+  z-index: 30;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.especializacion-container .choices__list--dropdown .choices__item {
+  color: var(--text-color) !important;
+  background: transparent !important;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+/* Forzar color de texto explícito en cada opción de lista (algunos navegadores aplican color heredado distinto) */
+.especializacion-container .choices__list--dropdown .choices__item[data-value] {
+  color: #ffffff !important;
+}
+
+/* Asegurar contraste mientras se navega con teclado */
+.especializacion-container
+  .choices__list--dropdown
+  .choices__item--selectable.is-highlighted {
+  background-color: var(--primary-hover) !important;
+  color: #ffffff !important;
+}
+
+.especializacion-container .choices__list--dropdown .choices__item--selectable {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.especializacion-container
+  .choices__list--dropdown
+  .choices__item--selectable.is-highlighted {
+  background-color: var(--primary-hover) !important;
+  color: #fff !important;
+}
+
+.especializacion-container .choices.is-focused .choices__inner {
+  border-color: var(--primary-color);
+  box-shadow: var(--focus-shadow);
+}
+
+.especializacion-container .choices.invalid .choices__inner,
+.selector-categorias.invalid {
+  border-color: #ff6b6b;
+  box-shadow: 0 0 0 0.1875rem rgba(255, 107, 107, 0.25);
+}
+
+.especializacion-container .choices__button {
+  margin-left: 0.5rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fff !important;
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+.especializacion-container .choices.is-open .choices__inner {
+  border-bottom-left-radius: 0.25rem;
+  border-bottom-right-radius: 0.25rem;
+}
+
+.especializacion-container
+  .choices__list--dropdown
+  .choices__item--selectable:last-child {
+  border-bottom: none;
 }
 
 /* Si el navegador no soporta Choices, hacemos el select multiple más legible */

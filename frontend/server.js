@@ -489,6 +489,29 @@ router.get("/editarExperto", async (req, res) => {
     }
     const catRes = await fetch(`${BACKEND_URL}/api/categorias`);
     categorias = catRes.ok ? await catRes.json() : [];
+    // Normalizar categorías seleccionadas del experto a IDs si en el perfil vienen como nombres
+    if (
+      experto &&
+      experto.infoExperto &&
+      Array.isArray(experto.infoExperto.categorias) &&
+      categorias.length
+    ) {
+      const nombreToId = {};
+      categorias.forEach((c) => {
+        if (c && c.nombre)
+          nombreToId[c.nombre.toLowerCase()] = String(
+            c._id || c.id || c.value || c.nombre
+          );
+      });
+      experto.infoExperto.categorias = experto.infoExperto.categorias.map(
+        (c) => {
+          if (!c) return c;
+          const clave = String(c).toLowerCase();
+          // Si coincide con un nombre, reemplazar por el ID correspondiente para que el <option selected> funcione
+          return nombreToId[clave] || String(c);
+        }
+      );
+    }
   } catch (e) {}
   res.render("editarExpertos", {
     experto,
