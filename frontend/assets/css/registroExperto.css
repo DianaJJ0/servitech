@@ -1,5 +1,3 @@
-
-
 :root {
   --primary-color: #3a8eff;
   --primary-hover: #2a7af0;
@@ -22,6 +20,7 @@
   --transition: all 0.5s ease;
   --header-height: 4.5rem;
   --content-max-width: 81.25rem;
+  --danger: #dc3545;
 }
 
 * {
@@ -676,6 +675,15 @@ select.form-control:focus {
   margin-top: 0.25rem;
 }
 
+/* Mensajes de error consistentes (color rojo) */
+.mensaje-error,
+#numero-cuenta-error,
+.input-error {
+  color: var(--danger);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
 .email-field {
   padding: 0.75rem 1rem;
   background-color: var(--input-bg);
@@ -843,42 +851,6 @@ select:not([multiple]):focus {
   background-color: rgba(58, 142, 255, 0.05);
 }
 
-.ep-preview {
-  display: none;
-  margin-top: 0.5rem;
-  padding: 0.75rem;
-  background-color: var(--input-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--input-radius);
-  align-items: center;
-  gap: 1rem;
-}
-
-.ep-img {
-  width: 60px;
-  height: 60px;
-  object-fit: cover;
-  border-radius: 50%;
-  border: 2px solid var(--primary-color);
-}
-
-.ep-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.ep-remove {
-  display: none;
-  margin-top: 0.5rem;
-}
-
-.ep-error {
-  color: #ff6b6b;
-  font-size: 0.875rem;
-  margin-top: 0.25rem;
-}
-
 .password-wrapper {
   position: relative;
   display: flex;
@@ -931,45 +903,10 @@ select:not([multiple]):focus {
   box-shadow: 0 8px 20px rgba(58, 142, 255, 0.4);
 }
 
-/* Estilos para el campo de archivo personalizado */
-.file-input-wrapper {
-  position: relative;
-  overflow: hidden;
-  display: inline-block;
-  width: 100%;
-}
-
-.file-input-button {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  background: var(--input-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--input-radius);
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: var(--transition);
-  width: 100%;
-  justify-content: center;
-  font-weight: 500;
-}
-
-.file-input-button:hover {
-  background: var(--border-color);
-  color: var(--primary-color);
-  border-color: var(--primary-color);
-}
-
-.file-input {
-  position: absolute;
-  left: 0;
-  top: 0;
-  opacity: 0;
-  width: 100%;
-  height: 100%;
-  cursor: pointer;
-}
+/* Estilos de input de archivo removidos de esta hoja porque la sección de
+   Foto de perfil fue eliminada de registroExperto.ejs. Reutilizar las
+   definiciones compartidas en frontend/assets/css/editarExperto.css cuando
+   sea necesario en otras vistas. */
 
 /* ===== ESTILOS MEJORADOS PARA SECCIÓN DATOS BANCARIOS ===== */
 
@@ -991,6 +928,163 @@ select:not([multiple]):focus {
   width: 100%;
 }
 
+/* Bank selector: que parezca un input consistente con .form-control */
+.bank-selector-wrapper {
+  width: 100%;
+}
+
+.bank-selector-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: var(--input-bg);
+  border: 0.0625rem solid var(--border-color);
+  border-radius: var(--input-radius);
+  color: var(--text-color);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: var(--transition);
+  min-height: 48px;
+}
+
+.bank-selector-trigger:hover {
+  border-color: var(--primary-color);
+}
+
+.bank-selector[aria-expanded="true"] .bank-selector-trigger,
+.bank-selector-trigger:focus {
+  border-color: var(--primary-color);
+  box-shadow: var(--focus-shadow);
+}
+
+.selected-bank-name {
+  display: inline-block;
+  color: var(--text-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: calc(100% - 3rem);
+  display: block;
+}
+
+/* Asegurar que el contenedor interno use flex y permita el truncado correcto */
+.bank-selector-trigger .selected-bank {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1 1 auto;
+  min-width: 0; /* importante para que overflow funcione en flex items */
+}
+
+/* Reglas más específicas para garantizar visibilidad del texto seleccionado */
+.bank-selector-trigger .selected-bank-name {
+  color: var(--text-color) !important;
+  font-size: 1rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+/* Ensure the bank-selector is the positioning context so dropdown aligns to trigger */
+.bank-selector {
+  position: relative;
+  display: block;
+}
+
+.bank-selector-icon {
+  color: var(--text-light);
+  margin-left: 0.5rem;
+}
+
+/* Dropdown container */
+.bank-options-container {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--card-bg);
+  border: 0.0625rem solid var(--border-color);
+  border-radius: var(--input-radius);
+  box-shadow: var(--card-shadow);
+  z-index: 1200;
+  max-height: 300px;
+  overflow: auto;
+  padding: 0.25rem;
+}
+
+.bank-search-container {
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.bank-search {
+  flex: 1 1 auto;
+  padding: 0.5rem 0.75rem;
+  background: var(--input-bg);
+  border: 0.0625rem solid var(--border-color);
+  border-radius: calc(var(--input-radius) / 1.2);
+  color: var(--text-color);
+}
+
+.bank-search:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: var(--focus-shadow);
+}
+
+.bank-options-list {
+  padding: 0.5rem;
+}
+
+.bank-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+}
+
+.bank-option:hover,
+.bank-option.focused,
+.bank-option[aria-selected="true"] {
+  background: rgba(58, 142, 255, 0.08);
+  color: var(--text-color);
+}
+
+.bank-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.4rem;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-color);
+  font-weight: 700;
+}
+
+/* Mobile: dropdown fixed so it doesn't overflow */
+@media (max-width: 480px) {
+  .bank-options-container {
+    position: fixed;
+    left: 0.5rem;
+    right: 0.5rem;
+    top: 20%;
+    max-height: 60vh;
+    transform: none;
+  }
+}
+
 /* Grid principal de datos bancarios */
 .bank-data-grid {
   display: grid;
@@ -1006,94 +1100,8 @@ select:not([multiple]):focus {
   margin-bottom: 1.5rem;
 }
 
-.form-field-group {
-  background: var(--input-bg);
-  border: 1px solid var(--border-light);
-  border-radius: var(--border-radius);
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.form-subtitle {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--text-color);
-  margin-bottom: 1.5rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--border-light);
-}
-
-/* Campos de ancho completo */
-.bank-field--full {
-  grid-column: 1 / -1;
-}
-
-/* Selector de banco mejorado */
-.bank-selector-wrapper {
-  position: relative;
-}
-
-.bank-selector {
-  position: relative;
-}
-
-.bank-selector-trigger {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 0.75rem 1rem;
-  background-color: var(--input-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--input-radius);
-  color: var(--text-color);
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.bank-selector-trigger:hover {
-  border-color: var(--primary-color);
-}
-
-.bank-selector[aria-expanded="true"] .bank-selector-trigger {
-  border-color: var(--primary-color);
-  box-shadow: var(--focus-shadow);
-}
-
-.selected-bank-name {
-  flex: 1;
-  text-align: left;
-}
-
-.bank-selector-icon {
-  color: var(--text-light);
-  transition: var(--transition);
-}
-
-.bank-selector[aria-expanded="true"] .bank-selector-icon {
-  transform: rotate(180deg);
-  color: var(--primary-color);
-}
-
-/* Contenedor de opciones de bancos */
-.bank-options-container {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--input-radius);
-  box-shadow: var(--card-shadow);
-  z-index: 1000;
-  margin-top: 0.25rem;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(-10px);
-  transition: var(--transition);
-}
-
+/* end of bank selector styles */
+/* bank selector styles consolidated above */
 .bank-selector[aria-expanded="true"] .bank-options-container {
   opacity: 1;
   visibility: visible;
