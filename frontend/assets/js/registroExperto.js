@@ -748,7 +748,7 @@
         });
       }
 
-      // --- Precio: validación (min 10.000, max 100.000, múltiplos de 100) ---
+      // --- Precio: validación (min 10.000, max 120.000, múltiplos de 100) ---
       const precio = document.getElementById("precio");
       if (precio) {
         precio.addEventListener("keydown", function (e) {
@@ -778,7 +778,7 @@
             const next =
               current.slice(0, selStart) + e.key + current.slice(selEnd);
             const numeric = parseInt(next, 10);
-            if (!isNaN(numeric) && numeric > 100000) {
+            if (!isNaN(numeric) && numeric > 120000) {
               e.preventDefault();
               return;
             }
@@ -792,7 +792,7 @@
           paste = paste.replace(/\D/g, "").slice(0, 6);
           if (paste) {
             let num = parseInt(paste, 10);
-            if (!isNaN(num) && num > 100000) num = 100000;
+            if (!isNaN(num) && num > 120000) num = 120000;
             paste = String(num);
           }
           precio.value = paste;
@@ -815,8 +815,8 @@
             showError(precio, "El mínimo es $10.000 COP");
             return;
           }
-          if (num > 100000) {
-            showError(precio, "El máximo es $100.000 COP");
+          if (num > 120000) {
+            showError(precio, "El máximo es $120.000 COP");
             return;
           }
           if (num % 100 !== 0) {
@@ -1125,7 +1125,7 @@
         trigger.setAttribute("aria-expanded", "true");
         optionsContainer.setAttribute("aria-hidden", "false");
         open = true;
-        // Fallback robusto: forzar ancho del dropdown igual al ancho del trigger
+         // Fallback robusto: forzar ancho del dropdown igual al ancho del trigger
         // Esto protege contra estilos externos o si el contenedor se reubica en el DOM.
         try {
           if (window && window.innerWidth > 480) {
