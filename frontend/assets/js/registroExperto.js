@@ -178,341 +178,17 @@
       updateSelectedDays(); // Estado inicial
     })();
 
-    // --- Vista previa de imagen ---
-    (function imagePreview() {
-      const fotoPerfilInput = document.getElementById("fotoPerfil");
-      const fileInputText = document.getElementById("file-input-text");
-      const epPreview = document.getElementById("epPreview");
-      const epImg = document.getElementById("epImg");
-      const fotoNombre = document.getElementById("fotoNombre");
-      const fotoTamano = document.getElementById("fotoTamano");
-      const epRemove = document.getElementById("epRemove");
-      const fotoError = document.getElementById("fotoError");
-
-      if (!fotoPerfilInput) return;
-
-      function formatFileSize(bytes) {
-        if (bytes < 1024) return bytes + " bytes";
-        else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
-        else return (bytes / 1048576).toFixed(1) + " MB";
-      }
-
-      function showImageError(message) {
-        if (!fotoError) return;
-        fotoError.textContent = message;
-        fotoError.style.display = "block";
-        fotoPerfilInput.value = "";
-        if (fileInputText) fileInputText.textContent = "Seleccionar archivo";
-      }
-
-      function resetPreview() {
-        if (epPreview) epPreview.style.display = "none";
-        if (epRemove) epRemove.style.display = "none";
-        if (fotoError) fotoError.style.display = "none";
-        if (fileInputText) fileInputText.textContent = "Seleccionar archivo";
-      }
-
-      fotoPerfilInput.addEventListener("change", async function (e) {
-        const file = e.target.files && e.target.files[0];
-        if (!file) {
-          resetPreview();
-          return;
-        }
-
-        // Reglas recomendadas
-        const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
-        const MAX_SIZE = 2 * 1024 * 1024; // 2MB
-        const MIN_WIDTH = 300;
-        const MIN_HEIGHT = 300;
-        const MAX_WIDTH = 4000;
-        const MAX_HEIGHT = 4000;
-        const MAX_DIM_FOR_RESIZE = 2000; // si supera esto intentamos redimensionar
-        const MIN_ASPECT = 0.5; // ancho/alto
-        const MAX_ASPECT = 2.0;
-
-        // Tipo
-        if (!allowedTypes.includes(file.type)) {
-          showImageError("Tipo de archivo no soportado. Usa JPG, PNG o WebP.");
-          return;
-        }
-
-        // Tamaño inicial (si es evidente que sobrepasa límites)
-        if (file.size > MAX_SIZE * 4) {
-          // demasiado grande para intentar procesar en cliente
-          showImageError(
-            "Archivo demasiado grande. Sube una imagen más pequeña."
-          );
-          return;
-        }
-
-        // Leer en memoria y comprobar dimensiones
-        const dataUrl = await new Promise((res, rej) => {
-          const r = new FileReader();
-          r.onload = () => res(r.result);
-          r.onerror = rej;
-          r.readAsDataURL(file);
-        }).catch(() => null);
-
-        if (!dataUrl) {
-          showImageError("No se pudo leer el archivo. Intenta otro archivo.");
-          return;
-        }
-
-        const img = new Image();
-        const imgLoad = new Promise((res, rej) => {
-          img.onload = () => res();
-          img.onerror = () => rej();
-        });
-        img.src = dataUrl;
-        try {
-          await imgLoad;
-        } catch (err) {
-          showImageError("Imagen inválida o corrupta.");
-          return;
-        }
-
-        const w = img.naturalWidth || img.width;
-        const h = img.naturalHeight || img.height;
-        if (w < MIN_WIDTH || h < MIN_HEIGHT) {
-          showImageError(
-            `Imagen demasiado pequeña. Mínimo ${MIN_WIDTH}x${MIN_HEIGHT}px.`
-          );
-          return;
-        }
-        if (w > MAX_WIDTH || h > MAX_HEIGHT) {
-          showImageError(
-            `Imagen demasiado grande en dimensiones. Máximo ${MAX_WIDTH}x${MAX_HEIGHT}px.`
-          );
-          return;
-        }
-        const aspect = w / h;
-        if (aspect < MIN_ASPECT || aspect > MAX_ASPECT) {
-          showImageError(
-            "Proporción de la imagen no válida. Usa un recorte aproximadamente cuadrado o 4:3/3:4."
-          );
-          return;
-        }
-
-        let fileToUse = file;
-
-        // Si es grande en tamaño o en dimensiones, intentar redimensionar/comprimir
-        if (
-          file.size > MAX_SIZE ||
-          w > MAX_DIM_FOR_RESIZE ||
-          h > MAX_DIM_FOR_RESIZE
-        ) {
-          try {
-            const targetMax = MAX_DIM_FOR_RESIZE;
-            const scale = Math.min(1, targetMax / Math.max(w, h));
-            const tw = Math.round(w * scale);
-            const th = Math.round(h * scale);
-            const canvas = document.createElement("canvas");
-            canvas.width = tw;
-            canvas.height = th;
-            const ctx = canvas.getContext("2d");
-            // Dibujar con alta calidad cuando esté disponible
-            if (ctx && typeof ctx.imageSmoothingEnabled !== "undefined") {
-              ctx.imageSmoothingEnabled = true;
-              ctx.imageSmoothingQuality = "high";
-            }
-            ctx.drawImage(img, 0, 0, tw, th);
-
-            // Intentar generar JPEG comprimido para reducir tamaño (mantener calidad razonable)
-            const blob = await new Promise((res) =>
-              canvas.toBlob(res, "image/jpeg", 0.85)
-            );
-            if (blob && blob.size > 0) {
-              // Si el blob es aceptable en tamaño, reemplazamos
-              if (blob.size <= MAX_SIZE) {
-                fileToUse = new File(
-                  [blob],
-                  file.name.replace(/\.[^.]+$/, ".jpg"),
-                  {
-                    type: blob.type,
-                  }
-                );
-              } else {
-                // Si aún es mayor, intentar otra compresión más agresiva
-                const blob2 = await new Promise((res) =>
-                  canvas.toBlob(res, "image/jpeg", 0.7)
-                );
-                if (blob2 && blob2.size <= MAX_SIZE) {
-                  fileToUse = new File(
-                    [blob2],
-                    file.name.replace(/\.[^.]+$/, ".jpg"),
-                    {
-                      type: blob2.type,
-                    }
-                  );
-                } else {
-                  // No pudimos reducir lo suficiente
-                  showImageError(
-                    "No fue posible optimizar la imagen lo suficiente. Intenta subir una versión más pequeña."
-                  );
-                  return;
-                }
-              }
-            }
-          } catch (err) {
-            // Si falla la compresión en cliente, avisar y permitir que el usuario suba otra
-            showImageError(
-              "Fallo al procesar la imagen en el navegador. Usa una imagen más pequeña o de otro formato."
-            );
-            return;
-          }
-        }
-
-        // Limpiar errores previos
-        if (fotoError) fotoError.style.display = "none";
-        clearError(fotoPerfilInput);
-
-        // Reemplazar el FileList del input si usamos un blob diferente
-        if (fileToUse !== file) {
-          try {
-            const dt = new DataTransfer();
-            dt.items.add(fileToUse);
-            fotoPerfilInput.files = dt.files;
-          } catch (e) {
-            // Algunos navegadores antiguos pueden no soportarlo; no crítico
-          }
-        }
-
-        // Actualizar UI
-        if (fileInputText) fileInputText.textContent = fileToUse.name;
-        if (fotoNombre) fotoNombre.textContent = fileToUse.name;
-        if (fotoTamano) fotoTamano.textContent = formatFileSize(fileToUse.size);
-
-        // Mostrar preview desde blob/url
-        try {
-          const url = URL.createObjectURL(fileToUse);
-          if (epImg) epImg.src = url;
-        } catch (e) {
-          if (epImg) epImg.src = dataUrl;
-        }
-        if (epPreview) epPreview.style.display = "flex";
-        if (epRemove) epRemove.style.display = "inline-block";
-      });
-
-      if (epRemove) {
-        epRemove.addEventListener("click", function () {
-          fotoPerfilInput.value = "";
-          resetPreview();
-        });
-      }
-    })();
+    // --- Se ha eliminado la lógica de vista previa y validación de imagen para registroExperto ---
 
     // --- Validación número de cuenta ---
-    (function accountValidation() {
-      const numero = document.getElementById("numeroCuenta");
-      const confirm = document.getElementById("numeroCuentaConfirm");
-      const error = document.getElementById("numero-cuenta-error");
-      const toggle = document.getElementById("toggleAccountNumber");
-
-      if (!numero || !confirm) return;
-
-      function normalize(val) {
-        return (val || "").replace(/\s|\./g, "");
-      }
-
-      function validateMatch() {
-        const a = normalize(numero.value);
-        const b = normalize(confirm.value);
-
-        if (b === "" || a === b) {
-          confirm.setCustomValidity("");
-          if (error) error.style.display = "none";
-          clearError(confirm);
-        } else {
-          confirm.setCustomValidity("Los números de cuenta no coinciden");
-          if (error) error.style.display = "block";
-          showError(confirm, "Los números de cuenta no coinciden");
-        }
-      }
-
-      numero.addEventListener("input", validateMatch);
-      confirm.addEventListener("input", validateMatch);
-
-      if (toggle) {
-        toggle.addEventListener("click", function () {
-          const type = numero.type === "password" ? "text" : "password";
-          numero.type = type;
-          confirm.type = type;
-
-          const icon = this.querySelector("i");
-          if (icon) {
-            icon.className =
-              type === "password" ? "fas fa-eye" : "fas fa-eye-slash";
-          }
-        });
-      }
-    })();
+    // Mantener validación del campo principal `numeroCuenta` (format, maxlength, etc.).
+    // La lógica de confirmación fue eliminada porque el formulario ya no incluye el campo de confirmación.
 
     // --- Validación número de documento ---
-    (function documentValidation() {
-      const numero = document.getElementById("numero-documento");
-      const confirm = document.getElementById("numero-documento-confirm");
-      const error = document.getElementById("numero-documento-error");
+    // La lógica de confirmación fue eliminada; se mantiene la validación del campo principal `numero-documento`.
 
-      if (!numero || !confirm) return;
-
-      function normalize(val) {
-        return (val || "").replace(/\s|\./g, "");
-      }
-
-      function validateMatch() {
-        const a = normalize(numero.value);
-        const b = normalize(confirm.value);
-
-        if (b === "" || a === b) {
-          confirm.setCustomValidity("");
-          if (error) error.style.display = "none";
-          clearError(confirm);
-        } else {
-          confirm.setCustomValidity("Los números no coinciden");
-          if (error) error.style.display = "block";
-          showError(confirm, "Los números de documento no coinciden");
-        }
-      }
-
-      numero.addEventListener("input", validateMatch);
-      confirm.addEventListener("input", validateMatch);
-    })();
-
-    // --- Validación final en submit: obligar foto de perfil y revalidar antes de enviar ---
+    // El chequeo final del formulario no incluye validación de foto en esta vista.
     const registroForm = document.getElementById("registroExpertoForm");
-    if (registroForm) {
-      registroForm.addEventListener("submit", function (e) {
-        const fotoInput = document.getElementById("fotoPerfil");
-        if (!fotoInput) return;
-        const f = fotoInput.files && fotoInput.files[0];
-        if (!f) {
-          e.preventDefault();
-          showError(fotoInput, "Debes subir una imagen de perfil");
-          const el = fotoInput;
-          el.scrollIntoView({ behavior: "smooth", block: "center" });
-          return false;
-        }
-        const allowed = ["image/jpeg", "image/png", "image/webp"];
-        if (!allowed.includes(f.type)) {
-          e.preventDefault();
-          showError(
-            fotoInput,
-            "Tipo de archivo no permitido. Usa JPG/PNG/WebP."
-          );
-          return false;
-        }
-        if (f.size > 2 * 1024 * 1024) {
-          e.preventDefault();
-          showError(
-            fotoInput,
-            "La imagen excede 2MB. Usa una versión más pequeña."
-          );
-          return false;
-        }
-        // si pasa, permitir submit
-        return true;
-      });
-    }
 
     // --- Sistema de manejo de errores ---
     function ensureErrorEl(input) {
@@ -625,9 +301,28 @@
             this.value = this.value.replace(/^\s+/, "");
           }
 
-          const res = isValidName(this.value.trim());
-          if (!res.ok) showError(this, res.msg);
-          else clearError(this);
+          // Preferir validación compartida si está disponible
+          try {
+            if (
+              window &&
+              window.SharedValidators &&
+              typeof window.SharedValidators.validateTitularName === "function"
+            ) {
+              const r = window.SharedValidators.validateTitularName(
+                this.value.trim()
+              );
+              if (!r.valid) showError(this, r.message);
+              else clearError(this);
+            } else {
+              const res = isValidName(this.value.trim());
+              if (!res.ok) showError(this, res.msg);
+              else clearError(this);
+            }
+          } catch (e) {
+            const res = isValidName(this.value.trim());
+            if (!res.ok) showError(this, res.msg);
+            else clearError(this);
+          }
         });
 
         titular.addEventListener("paste", function (e) {
@@ -645,17 +340,29 @@
 
         titular.addEventListener("blur", function () {
           this.value = sanitizeName(this.value);
-          const res = isValidName(this.value);
-          if (!res.ok) showError(this, res.msg);
+          try {
+            if (
+              window &&
+              window.SharedValidators &&
+              typeof window.SharedValidators.validateTitularName === "function"
+            ) {
+              const r = window.SharedValidators.validateTitularName(
+                this.value.trim()
+              );
+              if (!r.valid) showError(this, r.message);
+            } else {
+              const res = isValidName(this.value);
+              if (!res.ok) showError(this, res.msg);
+            }
+          } catch (e) {
+            const res = isValidName(this.value);
+            if (!res.ok) showError(this, res.msg);
+          }
         });
       }
 
       // Solo números para campos numéricos (excluir numeroCuenta, que tiene reglas propias)
-      const numericIds = [
-        "numero-documento",
-        "numero-documento-confirm",
-        "numeroCuentaConfirm",
-      ];
+      const numericIds = ["numero-documento"];
 
       numericIds.forEach((id) => {
         const el = document.getElementById(id);
@@ -705,8 +412,18 @@
       const numeroCuentaEl = document.getElementById("numeroCuenta");
       const errorNumeroCuenta = document.getElementById("numero-cuenta-error");
 
+      // Usar SharedValidators.isColombianBankName/validateNumeroCuentaByBank si está disponible
       function isColombianBank(val) {
-        if (!val) return true; // por defecto tratar como local
+        try {
+          if (
+            window &&
+            window.SharedValidators &&
+            typeof window.SharedValidators.isColombianBankName === "function"
+          )
+            return window.SharedValidators.isColombianBankName(val);
+        } catch (e) {}
+        // fallback local
+        if (!val) return true;
         const colombianBanks = [
           "Bancolombia",
           "Davivienda",
@@ -728,9 +445,33 @@
         const bancoVal = bancoHiddenEl?.value || "";
         const val = (numeroCuentaEl.value || "").trim();
         if (!val) {
-          showError(numeroCuentaEl, "Número de cuenta obligatorio");
+          showError(numeroCuentaEl, "Este campo es obligatorio");
           return false;
         }
+        // Try SharedValidators for authoritative validation
+        try {
+          if (
+            window &&
+            window.SharedValidators &&
+            typeof window.SharedValidators.validateNumeroCuentaByBank ===
+              "function"
+          ) {
+            const res = window.SharedValidators.validateNumeroCuentaByBank(
+              bancoVal,
+              val
+            );
+            if (!res.valid) {
+              showError(
+                numeroCuentaEl,
+                res.message || "Número de cuenta inválido"
+              );
+              return false;
+            }
+            clearError(numeroCuentaEl);
+            return true;
+          }
+        } catch (e) {}
+        // Fallback local logic
         if (isColombianBank(bancoVal)) {
           const cleaned = val.replace(/\D/g, "");
           if (!/^[0-9]{6,14}$/.test(cleaned)) {
@@ -758,6 +499,21 @@
       }
 
       if (numeroCuentaEl) {
+        // toggle show/hide numeroCuenta cuando exista el botón
+        try {
+          const toggleBtn = document.getElementById("toggleAccountNumber");
+          if (toggleBtn) {
+            toggleBtn.addEventListener("click", function () {
+              const type =
+                numeroCuentaEl.type === "password" ? "text" : "password";
+              numeroCuentaEl.type = type;
+              const icon = this.querySelector("i");
+              if (icon)
+                icon.className =
+                  type === "password" ? "fas fa-eye" : "fas fa-eye-slash";
+            });
+          }
+        } catch (e) {}
         numeroCuentaEl.addEventListener("keydown", function (e) {
           const allowed = [
             "Backspace",
@@ -780,7 +536,7 @@
 
         numeroCuentaEl.addEventListener("paste", function (e) {
           e.preventDefault();
-          const bancoVal = bancoHidden?.value || "";
+          const bancoVal = bancoHiddenEl?.value || "";
           let paste =
             (e.clipboardData || window.clipboardData).getData("text") || "";
           if (isColombianBank(bancoVal))
@@ -798,19 +554,23 @@
         });
 
         numeroCuentaEl.addEventListener("input", function () {
-          const bancoVal = bancoHidden?.value || "";
+          const bancoVal = bancoHiddenEl?.value || "";
           if (isColombianBank(bancoVal)) {
             const cleaned = (numeroCuentaEl.value || "")
               .replace(/\D/g, "")
               .slice(0, 14);
             if (numeroCuentaEl.value !== cleaned)
               numeroCuentaEl.value = cleaned;
-            if (!cleaned || cleaned.length < 6 || cleaned.length > 14) {
-              if (errorNumeroCuenta)
-                errorNumeroCuenta.textContent = "Solo números, 6-14 dígitos.";
+            const errEl =
+              document.getElementById("errorNumeroCuenta") || errorNumeroCuenta;
+            if (!cleaned) {
+              if (errEl) errEl.textContent = "Este campo es obligatorio";
+              numeroCuentaEl.classList.add("invalid");
+            } else if (cleaned.length < 6 || cleaned.length > 14) {
+              if (errEl) errEl.textContent = "Solo números, 6-14 dígitos.";
               numeroCuentaEl.classList.add("invalid");
             } else {
-              if (errorNumeroCuenta) errorNumeroCuenta.textContent = "";
+              if (errEl) errEl.textContent = "";
               numeroCuentaEl.classList.remove("invalid");
             }
           } else {
@@ -819,13 +579,18 @@
               .slice(0, 34);
             if (numeroCuentaEl.value !== cleaned)
               numeroCuentaEl.value = cleaned;
-            if (!cleaned || cleaned.length < 15 || cleaned.length > 34) {
-              if (errorNumeroCuenta)
-                errorNumeroCuenta.textContent =
+            const errEl =
+              document.getElementById("errorNumeroCuenta") || errorNumeroCuenta;
+            if (!cleaned) {
+              if (errEl) errEl.textContent = "Este campo es obligatorio";
+              numeroCuentaEl.classList.add("invalid");
+            } else if (cleaned.length < 15 || cleaned.length > 34) {
+              if (errEl)
+                errEl.textContent =
                   "Cuenta internacional: 15-34 caracteres alfanuméricos.";
               numeroCuentaEl.classList.add("invalid");
             } else {
-              if (errorNumeroCuenta) errorNumeroCuenta.textContent = "";
+              if (errEl) errEl.textContent = "";
               numeroCuentaEl.classList.remove("invalid");
             }
           }
@@ -839,7 +604,19 @@
               numeroCuentaEl.maxLength = 14;
             else numeroCuentaEl.maxLength = 34;
           } catch (e) {}
-          validateNumeroCuenta();
+          // Solo validar si ya hay un valor en el campo de número de cuenta.
+          try {
+            const currentVal = (numeroCuentaEl?.value || "").trim();
+            if (currentVal) {
+              validateNumeroCuenta();
+            } else {
+              // limpiar errores visuales para no mostrar "obligatorio" cuando el usuario
+              // aún no ha escrito el número pero acaba de seleccionar el banco.
+              clearError(numeroCuentaEl);
+              if (typeof errorNumeroCuenta !== "undefined" && errorNumeroCuenta)
+                errorNumeroCuenta.textContent = "";
+            }
+          } catch (e) {}
         });
       }
 
@@ -971,7 +748,7 @@
         });
       }
 
-      // --- Precio: validación (min 10.000, max 100.000, múltiplos de 100) ---
+      // --- Precio: validación (min 10.000, max 120.000, múltiplos de 100) ---
       const precio = document.getElementById("precio");
       if (precio) {
         precio.addEventListener("keydown", function (e) {
@@ -1001,7 +778,7 @@
             const next =
               current.slice(0, selStart) + e.key + current.slice(selEnd);
             const numeric = parseInt(next, 10);
-            if (!isNaN(numeric) && numeric > 100000) {
+            if (!isNaN(numeric) && numeric > 120000) {
               e.preventDefault();
               return;
             }
@@ -1015,7 +792,7 @@
           paste = paste.replace(/\D/g, "").slice(0, 6);
           if (paste) {
             let num = parseInt(paste, 10);
-            if (!isNaN(num) && num > 100000) num = 100000;
+            if (!isNaN(num) && num > 120000) num = 120000;
             paste = String(num);
           }
           precio.value = paste;
@@ -1038,8 +815,8 @@
             showError(precio, "El mínimo es $10.000 COP");
             return;
           }
-          if (num > 100000) {
-            showError(precio, "El máximo es $100.000 COP");
+          if (num > 120000) {
+            showError(precio, "El máximo es $120.000 COP");
             return;
           }
           if (num % 100 !== 0) {
@@ -1174,19 +951,7 @@
         });
       }
 
-      // Validación de foto de perfil
-      const fotoPerfil = document.getElementById("fotoPerfil");
-      if (fotoPerfil) {
-        fotoPerfil.addEventListener("change", function () {
-          const file = this.files && this.files[0];
-          if (!file) {
-            showError(this, "Selecciona una foto de perfil");
-          } else {
-            clearError(this);
-            // La validación de tipo/tamaño se hace en imagePreview()
-          }
-        });
-      }
+      // La validación/preview de foto fue removida en esta vista por petición del usuario.
 
       // Validación de días disponibles
       function validateDays() {
@@ -1323,6 +1088,33 @@
         console.warn("bankSelector: no se pudo inicializar visibilidad", e);
       }
 
+      // Si el input hidden ya contiene un valor (por ejemplo en edición), preseleccionar
+      try {
+        const hiddenVal = hiddenInput?.value || "";
+        const otherBankWrapper = document.getElementById("other-bank-wrapper");
+        const otherBankInput = document.getElementById("other-bank-input");
+        if (hiddenVal) {
+          const match = optionsList.querySelector(
+            `.bank-option[data-value="${CSS.escape(hiddenVal)}"]`
+          );
+          if (match) {
+            const label =
+              match.querySelector(".bank-name")?.textContent || hiddenVal;
+            if (selectedName) selectedName.textContent = label;
+            // marcar visualmente la opción si se requiere
+            match.classList.add("selected");
+          } else if (hiddenVal) {
+            // valor personalizado -> marcar Other
+            if (hiddenInput) hiddenInput.value = "Other";
+            if (selectedName) selectedName.textContent = "Otro (Especificar)";
+            if (otherBankWrapper) otherBankWrapper.style.display = "block";
+            if (otherBankInput) otherBankInput.value = hiddenVal;
+          }
+        }
+      } catch (e) {
+        // no crítico
+      }
+
       let open = false;
       let focusedIndex = -1;
 
@@ -1333,6 +1125,19 @@
         trigger.setAttribute("aria-expanded", "true");
         optionsContainer.setAttribute("aria-hidden", "false");
         open = true;
+         // Fallback robusto: forzar ancho del dropdown igual al ancho del trigger
+        // Esto protege contra estilos externos o si el contenedor se reubica en el DOM.
+        try {
+          if (window && window.innerWidth > 480) {
+            const rect = bankSelectorEl.getBoundingClientRect();
+            optionsContainer.style.width = rect.width + "px";
+          } else {
+            // En móviles dejamos que el CSS responsivo maneje el tamaño (position: fixed)
+            optionsContainer.style.width = "";
+          }
+        } catch (e) {
+          // no crítico
+        }
         // recalcular opciones en caso de que el DOM haya cambiado dinámicamente
         if (optionsList) {
           const refreshed = Array.from(
@@ -1354,6 +1159,10 @@
         optionsContainer.setAttribute("aria-hidden", "true");
         open = false;
         focusedIndex = -1;
+        // limpiar estilos inline aplicados al abrir
+        try {
+          optionsContainer.style.width = "";
+        } catch (e) {}
         updateFocus();
       }
 
@@ -1529,29 +1338,27 @@
       });
 
       // Validar coincidencia de números
+      // Confirmaciones de campos removidas: ya no existen inputs de confirmación en el formulario.
       const numDoc = document.getElementById("numero-documento");
-      const numDocConfirm = document.getElementById("numero-documento-confirm");
-      if (numDoc && numDocConfirm && numDoc.value !== numDocConfirm.value) {
-        showError(numDocConfirm, "Los números de documento no coinciden");
-        valid = false;
-      }
-
       const nCuenta = document.getElementById("numeroCuenta");
-      const nCuentaC = document.getElementById("numeroCuentaConfirm");
-      if (nCuenta && nCuentaC && nCuenta.value !== nCuentaC.value) {
-        showError(nCuentaC, "Los números de cuenta no coinciden");
-        valid = false;
-      }
 
-      // Verificar formato de número de cuenta: solo dígitos y 6-20
-      if (nCuenta) {
-        const cleaned = (nCuenta.value || "").replace(/\D/g, "");
-        if (!/^[0-9]{6,20}$/.test(cleaned)) {
-          showError(nCuenta, "Número de cuenta inválido (6-20 dígitos)");
-          valid = false;
-        } else {
-          clearError(nCuenta);
+      // Verificar formato de número de cuenta usando la función canónica
+      try {
+        if (typeof validateNumeroCuenta === "function") {
+          const ok = validateNumeroCuenta();
+          if (!ok) valid = false;
+        } else if (nCuenta) {
+          // Fallback: formato simple (solo dígitos 6-20)
+          const cleaned = (nCuenta.value || "").replace(/\D/g, "");
+          if (!/^[0-9]{6,20}$/.test(cleaned)) {
+            showError(nCuenta, "Número de cuenta inválido (6-20 dígitos)");
+            valid = false;
+          } else {
+            clearError(nCuenta);
+          }
         }
+      } catch (e) {
+        // no bloquear validación por error inesperado
       }
 
       // Validar teléfono
@@ -1561,12 +1368,7 @@
         valid = false;
       }
 
-      // Validar foto
-      const fotoPerfil = document.getElementById("fotoPerfil");
-      if (fotoPerfil && !fotoPerfil.files?.length) {
-        showError(fotoPerfil, "Selecciona una foto de perfil");
-        valid = false;
-      }
+      // Validación de foto eliminada (no requerida en registroExperto)
 
       // Validar días
       const diasInput = document.getElementById("diasDisponibles");

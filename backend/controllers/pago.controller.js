@@ -28,6 +28,182 @@ const payment = new Payment(client);
 
 /**
  * Crear preferencia de pago para asesoría
+ * @function crearPreferenciaPago
+ * @description Crea una preferencia de pago en MercadoPago para una asesoría específica
+ * @param {Object} req - Request object
+ * @param {Object} req.body - Datos de la preferencia
+ * @param {string} req.body.titulo - Título de la asesoría
+ * @param {string} [req.body.descripcion] - Descripción opcional de la asesoría
+ * @param {string} req.body.expertoEmail - Email del experto
+ * @param {string} req.body.fechaHoraInicio - Fecha y hora de inicio (ISO string)
+ * @param {number} req.body.duracionMinutos - Duración en minutos (60, 90, 120, 180)
+ * @param {number} req.body.monto - Monto del pago en COP
+ * @param {Object} req.usuario - Usuario autenticado
+ * @param {Object} res - Response object
+ * @returns {Promise<Object>} Datos de la preferencia creada
+ * @throws {400} Datos faltantes o inválidos
+ * @throws {403} Usuario no autorizado
+ * @throws {404} Experto no encontrado
+ * @throws {500} Error interno del servidor
+ * @example
+ * // Crear preferencia de pago
+ * POST /api/pagos/crear-preferencia
+ * {
+ *   "titulo": "Configuración de servidor",
+ *   "descripcion": "Asesoría para configurar servidor web",
+ *   "expertoEmail": "experto@ejemplo.com",
+ *   "fechaHoraInicio": "2024-12-15T14:00:00.000Z",
+ *   "duracionMinutos": 60,
+ *   "monto": 50000
+ * }
+ *
+ * @openapi
+ * /api/pagos/crear-preferencia:
+ *   post:
+ *     summary: Crear preferencia de pago para asesoría
+ *     description: |
+ *       Crea una preferencia de pago en MercadoPago para procesar el pago de una asesoría.
+ *       Valida que el experto exista y esté activo, que el monto sea válido y que el usuario
+ *       no esté creando una asesoría consigo mismo.
+ *     tags: [Pagos]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - titulo
+ *               - expertoEmail
+ *               - fechaHoraInicio
+ *               - duracionMinutos
+ *               - monto
+ *             properties:
+ *               titulo:
+ *                 type: string
+ *                 minLength: 5
+ *                 maxLength: 300
+ *                 description: Título descriptivo de la asesoría
+ *                 example: "Configuración de servidor web"
+ *               descripcion:
+ *                 type: string
+ *                 maxLength: 2000
+ *                 description: Descripción detallada de la asesoría
+ *                 example: "Asesoría para configurar Apache y SSL"
+ *               expertoEmail:
+ *                 type: string
+ *                 format: email
+ *                 description: Email del experto que dará la asesoría
+ *                 example: "experto@ejemplo.com"
+ *               fechaHoraInicio:
+ *                 type: string
+ *                 format: date-time
+ *                 description: Fecha y hora de inicio de la asesoría
+ *                 example: "2024-12-15T14:00:00.000Z"
+ *               duracionMinutos:
+ *                 type: integer
+ *                 enum: [60, 90, 120, 180]
+ *                 description: Duración de la asesoría en minutos
+ *                 example: 60
+ *               monto:
+ *                 type: number
+ *                 minimum: 1000
+ *                 description: Monto del pago en pesos colombianos
+ *                 example: 50000
+ *           examples:
+ *             asesoria_basica:
+ *               summary: Asesoría básica de 1 hora
+ *               value:
+ *                 titulo: "Configuración de servidor"
+ *                 descripcion: "Configurar servidor web con Apache"
+ *                 expertoEmail: "experto@ejemplo.com"
+ *                 fechaHoraInicio: "2024-12-15T14:00:00.000Z"
+ *                 duracionMinutos: 60
+ *                 monto: 50000
+ *             asesoria_extendida:
+ *               summary: Asesoría extendida de 3 horas
+ *               value:
+ *                 titulo: "Desarrollo completo de API"
+ *                 descripcion: "Desarrollo y documentación de API REST"
+ *                 expertoEmail: "experto@ejemplo.com"
+ *                 fechaHoraInicio: "2024-12-16T09:00:00.000Z"
+ *                 duracionMinutos: 180
+ *                 monto: 150000
+ *     responses:
+ *       201:
+ *         description: Preferencia de pago creada exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 pagoId:
+ *                   type: string
+ *                   description: ID del registro de pago en la base de datos
+ *                   example: "507f1f77bcf86cd799439011"
+ *                 preferenceId:
+ *                   type: string
+ *                   description: ID de la preferencia en MercadoPago
+ *                   example: "123456789-abcd-1234-efgh-987654321098"
+ *                 initPoint:
+ *                   type: string
+ *                   format: uri
+ *                   description: URL para iniciar el pago en MercadoPago
+ *                   example: "https://www.mercadopago.com.co/checkout/v1/redirect?pref_id=123456789"
+ *                 sandboxInitPoint:
+ *                   type: string
+ *                   format: uri
+ *                   description: URL de sandbox para pruebas
+ *                   example: "https://sandbox.mercadopago.com.co/checkout/v1/redirect?pref_id=123456789"
+ *                 publicKey:
+ *                   type: string
+ *                   description: Clave pública de MercadoPago para el frontend
+ *                   example: "APP_USR-12345678-abcd-1234-efgh-987654321098"
+ *       400:
+ *         description: Datos inválidos o faltantes
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mensaje:
+ *                   type: string
+ *               examples:
+ *                 datos_faltantes:
+ *                   value:
+ *                     mensaje: "Faltan datos requeridos: titulo, expertoEmail, fechaHoraInicio, duracionMinutos, monto"
+ *                 monto_minimo:
+ *                   value:
+ *                     mensaje: "El monto mínimo es $1.000 COP"
+ *                 auto_asesoria:
+ *                   value:
+ *                     mensaje: "No puedes crear una asesoría contigo mismo"
+ *       404:
+ *         description: Experto no encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mensaje:
+ *                   type: string
+ *                   example: "Experto no encontrado o no está activo"
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mensaje:
+ *                   type: string
+ *                 error:
+ *                   type: string
+ *               example:
+ *                 mensaje: "Error interno al crear preferencia de pago"
+ *                 error: "Connection timeout"
  */
 const crearPreferenciaPago = async (req, res) => {
   try {
@@ -101,7 +277,7 @@ const crearPreferenciaPago = async (req, res) => {
 
     await nuevoPago.save();
 
-    // Crear preferencia en MercadoPago con la nueva API
+    // Crear preferencia en MercadoPago
     const fechaAsesoria = new Date(fechaHoraInicio);
     const duracionTexto =
       duracionMinutos === 60
@@ -168,7 +344,7 @@ const crearPreferenciaPago = async (req, res) => {
       },
     };
 
-    // Crear preferencia usando la nueva API
+    // Crear preferencia usando la API de MercadoPago
     const response = await preference.create({ body: preferenceData });
 
     if (!response || !response.id) {
@@ -225,6 +401,63 @@ const crearPreferenciaPago = async (req, res) => {
 
 /**
  * Webhook de MercadoPago para procesar notificaciones de pago
+ * @function webhookMercadoPago
+ * @description Procesa las notificaciones automáticas de MercadoPago sobre cambios en el estado de los pagos
+ * @param {Object} req - Request object con datos del webhook
+ * @param {Object} req.body - Datos de la notificación
+ * @param {string} req.body.type - Tipo de notificación (payment, merchant_order, etc.)
+ * @param {Object} req.body.data - Datos del evento
+ * @param {string} req.body.data.id - ID del pago en MercadoPago
+ * @param {Object} res - Response object
+ * @returns {Promise<Object>} Confirmación de recepción del webhook
+ * @example
+ * // Webhook de MercadoPago
+ * POST /api/pagos/webhook
+ * {
+ *   "type": "payment",
+ *   "data": {
+ *     "id": "12345678901"
+ *   }
+ * }
+ *
+ * @openapi
+ * /api/pagos/webhook:
+ *   post:
+ *     summary: Webhook de MercadoPago
+ *     description: |
+ *       Recibe notificaciones automáticas de MercadoPago sobre cambios en el estado de los pagos.
+ *       Actualiza el estado del pago en la base de datos y crea automáticamente la asesoría
+ *       cuando el pago es aprobado.
+ *     tags: [Pagos]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               type:
+ *                 type: string
+ *                 description: Tipo de notificación
+ *                 example: "payment"
+ *               data:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                     description: ID del pago en MercadoPago
+ *                     example: "12345678901"
+ *     responses:
+ *       200:
+ *         description: Webhook recibido y procesado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 received:
+ *                   type: boolean
+ *                   example: true
  */
 const webhookMercadoPago = async (req, res) => {
   try {
@@ -235,98 +468,154 @@ const webhookMercadoPago = async (req, res) => {
 
     const { type, data } = req.body;
 
+    // Responder inmediatamente a MercadoPago para evitar reintentos
+    res.status(200).json({ received: true });
+
+    // Procesar solo notificaciones de pagos
     if (type === "payment" && data && data.id) {
       const paymentId = data.id;
 
-      // Obtener información del pago desde MercadoPago usando la nueva API
-      const paymentInfo = await payment.get({ id: paymentId });
+      console.log(`Procesando notificación de pago: ${paymentId}`);
 
-      console.log(
-        "Información del pago de MercadoPago:",
-        JSON.stringify(paymentInfo, null, 2)
-      );
-
-      // Buscar el pago en nuestra base de datos usando external_reference
-      const pago = await Pago.findById(paymentInfo.external_reference);
-
-      if (!pago) {
-        console.warn(
-          "Pago no encontrado en base de datos:",
-          paymentInfo.external_reference
+      try {
+        // Obtener información detallada del pago desde MercadoPago
+        const paymentInfo = await payment.get({ id: paymentId });
+        console.log(
+          "Información del pago de MercadoPago:",
+          JSON.stringify(paymentInfo, null, 2)
         );
-        return res.status(404).json({ mensaje: "Pago no encontrado" });
+
+        // Buscar el pago en nuestra base de datos usando external_reference
+        const pago = await Pago.findById(paymentInfo.external_reference);
+
+        if (!pago) {
+          console.warn(
+            `Pago no encontrado en base de datos: ${paymentInfo.external_reference}`
+          );
+          return;
+        }
+
+        console.log(
+          `Pago encontrado: ${pago._id}, estado actual: ${pago.estado}`
+        );
+
+        // Determinar nuevo estado según el estado del pago en MercadoPago
+        let nuevoEstado = pago.estado;
+        let procesoExitoso = false;
+
+        switch (paymentInfo.status) {
+          case "approved":
+            if (pago.estado === "pendiente" || pago.estado === "procesando") {
+              nuevoEstado = "retenido";
+              procesoExitoso = true;
+            }
+            break;
+          case "pending":
+            if (pago.estado === "pendiente") {
+              nuevoEstado = "procesando";
+            }
+            break;
+          case "in_process":
+            nuevoEstado = "procesando";
+            break;
+          case "rejected":
+          case "cancelled":
+            if (pago.estado !== "reembolsado" && pago.estado !== "liberado") {
+              nuevoEstado = "fallido";
+            }
+            break;
+          case "refunded":
+            nuevoEstado = "reembolsado";
+            break;
+          default:
+            console.log(
+              `Estado de MercadoPago no manejado: ${paymentInfo.status}`
+            );
+        }
+
+        // Solo actualizar si hay cambio de estado
+        if (nuevoEstado !== pago.estado) {
+          console.log(
+            `Actualizando estado del pago ${pago._id}: ${pago.estado} -> ${nuevoEstado}`
+          );
+
+          await Pago.findByIdAndUpdate(pago._id, {
+            estado: nuevoEstado,
+            transaccionId: paymentId,
+            metadatos: {
+              ...pago.metadatos,
+              mercadopagoStatus: paymentInfo.status,
+              mercadopagoDetail: paymentInfo.status_detail,
+              fechaProcesamiento: new Date(),
+              paymentMethod: paymentInfo.payment_method_id,
+              transactionAmount: paymentInfo.transaction_amount,
+              lastWebhookUpdate: new Date(),
+            },
+          });
+
+          // Si el pago fue aprobado y cambió a retenido, crear asesoría automáticamente
+          if (nuevoEstado === "retenido" && procesoExitoso) {
+            console.log("Pago aprobado, creando asesoría automáticamente...");
+            await crearAsesoriaDesdeWebhook(pago);
+          }
+
+          // Si el pago falló, notificar al cliente
+          if (nuevoEstado === "fallido") {
+            await notificarFalloPago(pago, paymentInfo);
+          }
+
+          await generarLogs.registrarEvento({
+            usuarioEmail: pago.clienteId,
+            accion: "WEBHOOK_PAGO_ACTUALIZADO",
+            detalle: `Pago ${pago._id} actualizado: ${pago.estado} -> ${nuevoEstado}, MP status: ${paymentInfo.status}`,
+            resultado: "Exito",
+            tipo: "pago",
+            persistirEnDB: true,
+          });
+        } else {
+          console.log(
+            `Sin cambios de estado para pago ${pago._id}: ${nuevoEstado}`
+          );
+        }
+      } catch (mpError) {
+        console.error(
+          "Error obteniendo información del pago de MercadoPago:",
+          mpError
+        );
+
+        await generarLogs.registrarEvento({
+          usuarioEmail: null,
+          accion: "ERROR_WEBHOOK_MP_API",
+          detalle: `Error consultando pago ${paymentId}: ${mpError.message}`,
+          resultado: "Error",
+          tipo: "pago",
+          persistirEnDB: true,
+        });
       }
-
-      // Determinar nuevo estado según el estado del pago
-      let nuevoEstado = "pendiente";
-
-      switch (paymentInfo.status) {
-        case "approved":
-          nuevoEstado = "retenido";
-          break;
-        case "pending":
-          nuevoEstado = "pendiente";
-          break;
-        case "in_process":
-          nuevoEstado = "procesando";
-          break;
-        case "rejected":
-        case "cancelled":
-        case "refunded":
-          nuevoEstado = "fallido";
-          break;
-        default:
-          nuevoEstado = "pendiente";
-      }
-
-      // Actualizar pago en base de datos
-      await Pago.findByIdAndUpdate(pago._id, {
-        estado: nuevoEstado,
-        transaccionId: paymentId,
-        metadatos: {
-          ...pago.metadatos,
-          mercadopagoStatus: paymentInfo.status,
-          mercadopagoDetail: paymentInfo.status_detail,
-          fechaProcesamiento: new Date(),
-          paymentMethod: paymentInfo.payment_method_id,
-          transactionAmount: paymentInfo.transaction_amount,
-        },
-      });
-
-      // Si el pago fue aprobado, crear la asesoría automáticamente
-      if (nuevoEstado === "retenido") {
-        await crearAsesoriaDesdeWebhook(pago);
-      }
-
-      await generarLogs.registrarEvento({
-        usuarioEmail: pago.clienteId,
-        accion: "WEBHOOK_PAGO_PROCESADO",
-        detalle: `Pago ${pago._id} actualizado a estado: ${nuevoEstado}, MP status: ${paymentInfo.status}`,
-        resultado: "Exito",
-        tipo: "pago",
-        persistirEnDB: true,
-      });
+    } else {
+      console.log(`Tipo de notificación no procesada: ${type}`);
     }
-
-    res.status(200).json({ received: true });
   } catch (error) {
     console.error("Error procesando webhook de MercadoPago:", error);
 
     await generarLogs.registrarEvento({
       usuarioEmail: null,
-      accion: "ERROR_WEBHOOK_PAGO",
+      accion: "ERROR_WEBHOOK_GENERAL",
       detalle: error.message,
       resultado: "Error",
       tipo: "pago",
       persistirEnDB: true,
     });
-
-    res.status(500).json({ error: "Error procesando webhook" });
   }
 };
 
 /**
  * Crear asesoría automáticamente desde webhook cuando el pago es aprobado
+ * @function crearAsesoriaDesdeWebhook
+ * @description Crea una asesoría automáticamente cuando se recibe confirmación de pago exitoso
+ * @param {Object} pago - Objeto del pago procesado exitosamente
+ * @returns {Promise<void>}
+ * @private
  */
 async function crearAsesoriaDesdeWebhook(pago) {
   try {
@@ -451,7 +740,7 @@ async function crearAsesoriaDesdeWebhook(pago) {
           nuevaAsesoria.titulo
         }" fue enviada a ${experto.nombre} ${
           experto.apellido
-        } para su revisión.\n\nEl experto tiene 24 horas para aceptar o rechazar tu solicitud. Recibirás una notificación con su respuesta.\n\nTu dinero está protegido y solo se liberará al experto cuando la asesoría se complete exitosamente.`,
+        } para su revisión.\n\nEl experto tiene 24 horas para aceptar o rechazar tu solicitud. Recibirás una notificación con su respuesta.\n\nTu dinero está protegido y solo se liberará al experto cuando confirmes que la asesoría fue exitosa.`,
         {
           nombreDestinatario: cliente.nombre,
           apellidoDestinatario: cliente.apellido,
@@ -491,7 +780,104 @@ async function crearAsesoriaDesdeWebhook(pago) {
 }
 
 /**
+ * Notifica al cliente sobre fallo en el pago
+ * @function notificarFalloPago
+ * @description Envía notificación al cliente cuando un pago falla
+ * @param {Object} pago - Objeto del pago que falló
+ * @param {Object} paymentInfo - Información del pago desde MercadoPago
+ * @returns {Promise<void>}
+ * @private
+ */
+async function notificarFalloPago(pago, paymentInfo) {
+  try {
+    const cliente = await Usuario.findOne({ email: pago.clienteId });
+    if (!cliente) return;
+
+    const motivoFallo = paymentInfo.status_detail || "No especificado";
+    const asuntoEmail = "Problema con tu pago - ServiTech";
+    const mensajeEmail = `Hubo un problema procesando tu pago para la asesoría.\n\nDetalle: ${motivoFallo}\nMonto: $${pago.monto.toLocaleString(
+      "es-CO"
+    )} COP\n\nPuedes intentar nuevamente con otro método de pago o contactar a nuestro soporte si el problema persiste.\n\nNo se realizó ningún cargo a tu cuenta.`;
+
+    await Notificacion.create({
+      usuarioId: cliente._id,
+      email: cliente.email,
+      tipo: "email",
+      asunto: asuntoEmail,
+      mensaje: "Hubo un problema procesando tu pago",
+      relacionadoCon: { tipo: "Pago", referenciaId: pago._id },
+      estado: "enviado",
+      fechaEnvio: new Date(),
+    });
+
+    await enviarCorreo(cliente.email, asuntoEmail, mensajeEmail, {
+      nombreDestinatario: cliente.nombre,
+      apellidoDestinatario: cliente.apellido,
+    });
+
+    console.log(`Notificación de fallo enviada al cliente: ${cliente.email}`);
+  } catch (error) {
+    console.error("Error notificando fallo de pago:", error);
+  }
+}
+
+/**
  * Procesar reembolso de pago
+ * @function procesarReembolso
+ * @description Procesa un reembolso total o parcial de un pago
+ * @param {Object} req - Request object
+ * @param {Object} req.params - Parámetros de la URL
+ * @param {string} req.params.id - ID del pago a reembolsar
+ * @param {Object} req.body - Datos del reembolso
+ * @param {string} [req.body.motivo] - Motivo del reembolso
+ * @param {number} [req.body.monto] - Monto a reembolsar (opcional, por defecto el total)
+ * @param {Object} req.usuario - Usuario autenticado
+ * @param {Object} res - Response object
+ * @returns {Promise<Object>} Resultado del reembolso
+ * @throws {404} Pago no encontrado
+ * @throws {400} Estado no válido para reembolso
+ * @throws {403} Sin permisos para reembolsar
+ * @throws {500} Error interno del servidor
+ *
+ * @openapi
+ * /api/pagos/{id}/reembolso:
+ *   post:
+ *     summary: Procesar reembolso de pago
+ *     description: |
+ *       Procesa un reembolso total o parcial de un pago específico.
+ *       Solo administradores o el cliente que realizó el pago pueden solicitar reembolsos.
+ *     tags: [Pagos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID del pago a reembolsar
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               motivo:
+ *                 type: string
+ *                 default: "Solicitud de reembolso"
+ *                 description: Motivo del reembolso
+ *               monto:
+ *                 type: number
+ *                 description: Monto a reembolsar (opcional, por defecto el total)
+ *     responses:
+ *       200:
+ *         description: Reembolso procesado exitosamente
+ *       400:
+ *         description: El pago no puede ser reembolsado
+ *       403:
+ *         description: Sin permisos para reembolsar
+ *       404:
+ *         description: Pago no encontrado
  */
 const procesarReembolso = async (req, res) => {
   try {
@@ -619,6 +1005,49 @@ const procesarReembolso = async (req, res) => {
   }
 };
 
+/**
+ * Obtener lista de pagos con paginación
+ * @function obtenerPagos
+ * @description Obtiene una lista paginada de pagos con filtros opcionales
+ * @param {Object} req - Request object
+ * @param {Object} req.query - Query parameters
+ * @param {number} [req.query.page=1] - Número de página
+ * @param {number} [req.query.limit=20] - Límite de resultados por página
+ * @param {string} [req.query.estado] - Filtrar por estado
+ * @param {Object} res - Response object
+ * @returns {Promise<Object>} Lista de pagos con información de paginación
+ *
+ * @openapi
+ * /api/pagos:
+ *   get:
+ *     summary: Obtener lista de pagos
+ *     description: Obtiene una lista paginada de pagos con filtros opcionales
+ *     tags: [Pagos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Número de página
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *         description: Límite de resultados por página
+ *       - in: query
+ *         name: estado
+ *         schema:
+ *           type: string
+ *           enum: [pendiente, procesando, retenido, liberado, reembolsado, fallido]
+ *         description: Filtrar por estado
+ *     responses:
+ *       200:
+ *         description: Lista de pagos obtenida exitosamente
+ */
 const obtenerPagos = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -654,6 +1083,38 @@ const obtenerPagos = async (req, res) => {
   }
 };
 
+/**
+ * Obtener pago por ID
+ * @function obtenerPagoPorId
+ * @description Obtiene la información completa de un pago específico
+ * @param {Object} req - Request object
+ * @param {Object} req.params - Parámetros de la URL
+ * @param {string} req.params.id - ID del pago
+ * @param {Object} res - Response object
+ * @returns {Promise<Object>} Información del pago
+ * @throws {404} Pago no encontrado
+ *
+ * @openapi
+ * /api/pagos/{id}:
+ *   get:
+ *     summary: Obtener pago por ID
+ *     description: Obtiene la información completa de un pago específico
+ *     tags: [Pagos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID del pago
+ *     responses:
+ *       200:
+ *         description: Información del pago
+ *       404:
+ *         description: Pago no encontrado
+ */
 const obtenerPagoPorId = async (req, res) => {
   try {
     const pago = await Pago.findById(req.params.id);
@@ -673,6 +1134,56 @@ const obtenerPagoPorId = async (req, res) => {
   }
 };
 
+/**
+ * Actualizar estado de pago
+ * @function actualizarEstadoPago
+ * @description Actualiza manualmente el estado de un pago (solo administradores)
+ * @param {Object} req - Request object
+ * @param {Object} req.params - Parámetros de la URL
+ * @param {string} req.params.id - ID del pago
+ * @param {Object} req.body - Datos de actualización
+ * @param {string} req.body.estado - Nuevo estado del pago
+ * @param {Object} res - Response object
+ * @returns {Promise<Object>} Pago actualizado
+ * @throws {400} Estado no válido
+ * @throws {404} Pago no encontrado
+ *
+ * @openapi
+ * /api/pagos/{id}/estado:
+ *   put:
+ *     summary: Actualizar estado de pago
+ *     description: Actualiza manualmente el estado de un pago (solo administradores)
+ *     tags: [Pagos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID del pago
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - estado
+ *             properties:
+ *               estado:
+ *                 type: string
+ *                 enum: [pendiente, procesando, retenido, liberado, reembolsado, reembolsado-parcial, fallido]
+ *                 description: Nuevo estado del pago
+ *     responses:
+ *       200:
+ *         description: Estado actualizado exitosamente
+ *       400:
+ *         description: Estado no válido
+ *       404:
+ *         description: Pago no encontrado
+ */
 const actualizarEstadoPago = async (req, res) => {
   try {
     const { estado } = req.body;
