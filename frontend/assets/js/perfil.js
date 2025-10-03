@@ -96,13 +96,42 @@ function actualizarCamposPerfil(usuario) {
   const formEmailInput = document.getElementById("formEmail");
 
   // Manejar valores undefined/null
-  const nombre =
+  let nombre =
     usuario.nombre && usuario.nombre !== "undefined" ? usuario.nombre : "";
-  const apellido =
+  let apellido =
     usuario.apellido && usuario.apellido !== "undefined"
       ? usuario.apellido
       : "";
-  const email = usuario.email || "";
+  let email = usuario.email || "";
+
+  // Heurística de corrección: en algunos casos inconsistentes el servidor puede
+  // haber guardado el email en `nombre` y el nombre completo en `apellido`.
+  // Detectamos ese patrón y reacomodamos los valores para que los inputs muestren
+  // la información correcta.
+  if (nombre && nombre.includes("@") && (!email || email === "")) {
+    console.warn(
+      "perfil.js: detected nombre contains email, attempting to fix fields",
+      usuario
+    );
+    email = nombre;
+    // Si `apellido` parece contener nombre completo, dividirlo en nombre y apellido
+    if (apellido && apellido.trim().includes(" ")) {
+      const parts = apellido.trim().split(/\s+/);
+      nombre = parts.shift();
+      apellido = parts.join(" ");
+    } else {
+      // No hay forma de dividir, dejamos apellido vacío
+      apellido = "";
+    }
+  }
+
+  // Si no hay nombre pero el apellido contiene dos o más palabras, repartir
+  // la primera como nombre y el resto como apellido.
+  if ((!nombre || nombre === "") && apellido && apellido.trim().includes(" ")) {
+    const parts = apellido.trim().split(/\s+/);
+    nombre = parts.shift();
+    apellido = parts.join(" ");
+  }
 
   // Actualizar campos en la pagina
   if (userName) {
@@ -114,6 +143,16 @@ function actualizarCamposPerfil(usuario) {
   if (firstNameInput) firstNameInput.value = nombre;
   if (lastNameInput) lastNameInput.value = apellido;
   if (formEmailInput) formEmailInput.value = email;
+
+  // Actualizar localStorage con la versión saneada para mantener consistencia
+  try {
+    usuario.nombre = nombre;
+    usuario.apellido = apellido;
+    usuario.email = email;
+    localStorage.setItem("usuario", JSON.stringify(usuario));
+  } catch (e) {
+    // no crítico
+  }
 
   // Actualizar header si las funciones estan disponibles (desde common.js)
   if (typeof window.actualizarDatosUsuario === "function") {
