@@ -1,5 +1,5 @@
 /**
- * MIS ASESORIAS - GESTION COMPLETA
+ * MIS ASESORIAS - GESTION COMPLETA CON ESTADOS DE PAGO
  * Maneja la visualización y gestión de asesorías para clientes y expertos
  */
 
@@ -12,6 +12,7 @@ let usuarioData = null;
 let asesorias = [];
 let filtroActual = "todas";
 let accionPendiente = null;
+let verificacionesActivas = new Set();
 
 /**
  * Inicializa la página de mis asesorías
@@ -36,6 +37,9 @@ function inicializarMisAsesorias() {
 
     // Cargar asesorías
     cargarAsesorias();
+
+    // Configurar verificación periódica para asesorías pendientes
+    configurarVerificacionPeriodica();
   } catch (error) {
     console.error("Error inicializando mis asesorías:", error);
     mostrarError("Error al inicializar la página");
@@ -95,6 +99,9 @@ async function cargarAsesorias() {
     asesorias = await response.json();
     console.log("Asesorías cargadas:", asesorias);
 
+    // Enriquecer con datos de pago
+    await enriquecerConDatosPago();
+
     if (asesorias.length === 0) {
       mostrarEstado("empty");
     } else {
@@ -104,6 +111,118 @@ async function cargarAsesorias() {
   } catch (error) {
     console.error("Error cargando asesorías:", error);
     mostrarError("Error al cargar las asesorías: " + error.message);
+  }
+}
+
+/**
+ * Enriquece las asesorías con datos de pago
+ */
+async function enriquecerConDatosPago() {
+  const token = localStorage.getItem("token");
+  if (!token) return;
+
+  for (let asesoria of asesorias) {
+    if (asesoria.pagoId) {
+      try {
+        const response = await fetch(`/api/pagos/${asesoria.pagoId}`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (response.ok) {
+          const datoPago = await response.json();
+          asesoria.datoPago = datoPago;
+          console.log(
+            `Pago cargado para asesoría ${asesoria._id}: ${datoPago.estado}`
+          );
+        }
+      } catch (error) {
+        console.warn(
+          `Error cargando pago para asesoría ${asesoria._id}:`,
+          error
+        );
+      }
+    }
+  }
+}
+
+/**
+ * Configura verificación periódica para asesorías con pagos pendientes
+ */
+function configurarVerificacionPeriodica() {
+  setInterval(() => {
+    const asesoriasPendientes = asesorias.filter(
+      (a) =>
+        a.datoPago &&
+        ["pendiente", "procesando"].includes(a.datoPago.estado) &&
+        !verificacionesActivas.has(a._id)
+    );
+
+    asesoriasPendientes.forEach((asesoria) => {
+      verificarEstadoPagoAsesoria(asesoria._id);
+    });
+  }, 30000); // Verificar cada 30 segundos
+}
+
+/**
+ * Verifica el estado del pago de una asesoría específica
+ */
+async function verificarEstadoPagoAsesoria(asesoriaId) {
+  if (verificacionesActivas.has(asesoriaId)) return;
+
+  verificacionesActivas.add(asesoriaId);
+
+  try {
+    const asesoria = asesorias.find((a) => a._id === asesoriaId);
+    if (!asesoria || !asesoria.pagoId) return;
+
+    const token = localStorage.getItem("token");
+    const response = await fetch(`/api/pagos/${asesoria.pagoId}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (response.ok) {
+      const datosPagoActualizados = await response.json();
+      const estadoAnterior = asesoria.datoPago?.estado;
+
+      if (estadoAnterior !== datosPagoActualizados.estado) {
+        console.log(
+          `Estado de pago actualizado para asesoría ${asesoriaId}: ${estadoAnterior} -> ${datosPagoActualizados.estado}`
+        );
+
+        // Actualizar datos locales
+        asesoria.datoPago = datosPagoActualizados;
+
+        // Recargar asesorías si hay cambio significativo
+        if (
+          datosPagoActualizados.estado === "retenido" ||
+          datosPagoActualizados.estado === "fallido"
+        ) {
+          mostrarNotificacion(
+            "Estado de pago actualizado. Recargando...",
+            "info"
+          );
+          setTimeout(() => cargarAsesorias(), 2000);
+        }
+
+        // Re-renderizar la tarjeta específica
+        renderizarAsesorias();
+      }
+    }
+  } catch (error) {
+    console.warn(
+      `Error verificando estado de pago para asesoría ${asesoriaId}:`,
+      error
+    );
+  } finally {
+    verificacionesActivas.delete(asesoriaId);
   }
 }
 
@@ -154,7 +273,7 @@ function renderizarAsesorias(asesoriasList = null) {
 }
 
 /**
- * Genera HTML para una tarjeta de asesoría
+ * Genera HTML para una tarjeta de asesoría con información de pago
  */
 function generarTarjetaAsesoria(asesoria) {
   const esExperto = usuarioData.rolUsuario === "experto";
@@ -188,6 +307,12 @@ function generarTarjetaAsesoria(asesoria) {
     participante.apellido
   );
 
+  // Información de pago
+  let infoPago = "";
+  if (asesoria.datoPago) {
+    infoPago = generarInfoPago(asesoria.datoPago, esExperto);
+  }
+
   // Información de contacto para asesorías confirmadas
   let contactoInfo = "";
   if (
@@ -204,7 +329,7 @@ function generarTarjetaAsesoria(asesoria) {
   }
 
   return `
-        <div class="asesoria-card">
+        <div class="asesoria-card" data-asesoria-id="${asesoria._id}">
             <div class="asesoria-header">
                 <div class="asesoria-titulo">${asesoria.titulo}</div>
                 <div class="asesoria-estado estado-${asesoria.estado}">
@@ -227,6 +352,7 @@ function generarTarjetaAsesoria(asesoria) {
             </div>
 
             ${contactoInfo}
+            ${infoPago}
 
             <div class="asesoria-detalles">
                 <div class="detalle-item">
@@ -259,10 +385,107 @@ function generarTarjetaAsesoria(asesoria) {
 }
 
 /**
+ * Genera información de pago para mostrar en la tarjeta
+ */
+function generarInfoPago(datoPago, esExperto) {
+  if (!datoPago) return "";
+
+  const estado = datoPago.estado;
+  const monto = datoPago.monto;
+
+  let claseEstado = "";
+  let iconoEstado = "";
+  let textoEstado = "";
+  let descripcion = "";
+
+  switch (estado) {
+    case "pendiente":
+      claseEstado = "pago-pendiente";
+      iconoEstado = "fas fa-clock";
+      textoEstado = "Pago pendiente";
+      descripcion = "El pago está siendo procesado";
+      break;
+    case "procesando":
+      claseEstado = "pago-procesando";
+      iconoEstado = "fas fa-spinner fa-spin";
+      textoEstado = "Procesando pago";
+      descripcion = "Verificando con MercadoPago";
+      break;
+    case "retenido":
+      claseEstado = "pago-retenido";
+      iconoEstado = "fas fa-shield-alt";
+      textoEstado = esExperto ? "Pago retenido" : "Pago confirmado";
+      descripcion = esExperto
+        ? "Se liberará al completar la asesoría"
+        : "Tu pago está seguro y protegido";
+      break;
+    case "liberado":
+      claseEstado = "pago-liberado";
+      iconoEstado = "fas fa-check-circle";
+      textoEstado = "Pago liberado";
+      descripcion = esExperto
+        ? "Pago disponible en tu cuenta"
+        : "Pago entregado al experto";
+      break;
+    case "reembolsado":
+      claseEstado = "pago-reembolsado";
+      iconoEstado = "fas fa-undo-alt";
+      textoEstado = "Reembolsado";
+      descripcion = "Dinero devuelto a tu cuenta";
+      break;
+    case "fallido":
+      claseEstado = "pago-fallido";
+      iconoEstado = "fas fa-exclamation-triangle";
+      textoEstado = "Pago fallido";
+      descripcion = "Hubo un problema con el pago";
+      break;
+    default:
+      return "";
+  }
+
+  return `
+        <div class="pago-info ${claseEstado}">
+            <div class="pago-header">
+                <i class="${iconoEstado}"></i>
+                <span class="pago-estado">${textoEstado}</span>
+            </div>
+            <div class="pago-detalles">
+                <div class="pago-monto">$${monto.toLocaleString(
+                  "es-CO"
+                )} COP</div>
+                <div class="pago-descripcion">${descripcion}</div>
+            </div>
+            ${
+              estado === "pendiente" || estado === "procesando"
+                ? `<button class="btn-verificar-pago" onclick="verificarEstadoPagoAsesoria('${
+                    datoPago.asesoriaId || ""
+                  }')">
+                    <i class="fas fa-sync-alt"></i> Verificar estado
+                </button>`
+                : ""
+            }
+        </div>
+    `;
+}
+
+/**
  * Genera los botones de acción según el estado y rol
  */
 function generarBotonesAccion(asesoria, esExperto) {
   const botones = [];
+
+  // Si hay problema con el pago, mostrar acción especial
+  if (asesoria.datoPago && asesoria.datoPago.estado === "fallido") {
+    if (!esExperto) {
+      botones.push(`
+                <button class="btn-accion btn-reintentar-pago" onclick="reintentarPago('${asesoria._id}')">
+                    <i class="fas fa-credit-card"></i>
+                    Reintentar pago
+                </button>
+            `);
+    }
+    return botones.join("");
+  }
 
   switch (asesoria.estado) {
     case "pendiente-aceptacion":
@@ -283,7 +506,7 @@ function generarBotonesAccion(asesoria, esExperto) {
         botones.push(`
                     <button class="btn-accion btn-cancelar" onclick="cancelarAsesoria('${asesoria._id}', 'cliente')">
                         <i class="fas fa-times"></i>
-                        Cancelar Solicitud
+                        Cancelar solicitud
                     </button>
                 `);
       }
@@ -317,11 +540,55 @@ function generarBotonesAccion(asesoria, esExperto) {
       break;
 
     case "completada":
-      // Solo mostrar información, sin acciones
+      // Mostrar información de pago liberado si aplica
+      if (
+        asesoria.datoPago &&
+        asesoria.datoPago.estado === "liberado" &&
+        esExperto
+      ) {
+        botones.push(`
+                    <div class="pago-completado">
+                        <i class="fas fa-money-bill-wave"></i>
+                        Pago recibido: $${asesoria.datoPago.monto.toLocaleString(
+                          "es-CO"
+                        )} COP
+                    </div>
+                `);
+      }
       break;
   }
 
   return botones.join("");
+}
+
+/**
+ * Reintentar pago para una asesoría fallida
+ */
+function reintentarPago(asesoriaId) {
+  const asesoria = asesorias.find((a) => a._id === asesoriaId);
+  if (!asesoria) return;
+
+  // Guardar datos de la asesoría para reintentar el pago
+  const datosAsesoria = {
+    titulo: asesoria.titulo,
+    descripcion: asesoria.descripcion,
+    experto: asesoria.experto,
+    fechaHoraInicio: asesoria.fechaHoraInicio,
+    duracionMinutos: asesoria.duracionMinutos,
+    categoria: asesoria.categoria,
+    precio: asesoria.datoPago?.monto || 20000,
+  };
+
+  localStorage.setItem("asesoriaEnProceso", JSON.stringify(datosAsesoria));
+
+  // Redirigir a la pasarela de pagos
+  window.location.href = `/pasarela-pagos?experto=${encodeURIComponent(
+    JSON.stringify({
+      id: asesoria.experto.email,
+      nombre: asesoria.experto.nombre,
+      apellido: asesoria.experto.apellido,
+    })
+  )}&monto=${datosAsesoria.precio}&reintentar=true`;
 }
 
 /**
@@ -330,7 +597,7 @@ function generarBotonesAccion(asesoria, esExperto) {
 async function aceptarAsesoria(asesoriaId) {
   try {
     await confirmarAccion(
-      "Aceptar Asesoría",
+      "Aceptar asesoría",
       "¿Estás seguro de aceptar esta asesoría? El pago será retenido hasta que se complete.",
       async () => {
         const token = localStorage.getItem("token");
@@ -362,9 +629,12 @@ async function aceptarAsesoria(asesoriaId) {
  */
 async function rechazarAsesoria(asesoriaId) {
   try {
+    const motivo =
+      prompt("Motivo del rechazo (opcional):") || "Rechazada por el experto";
+
     await confirmarAccion(
-      "Rechazar Asesoría",
-      "¿Estás seguro de rechazar esta asesoría? El pago será reembolsado al cliente.",
+      "Rechazar asesoría",
+      "¿Estás seguro de rechazar esta asesoría? El pago será reembolsado al cliente automáticamente.",
       async () => {
         const token = localStorage.getItem("token");
         const response = await fetch(`/api/asesorias/${asesoriaId}/rechazar`, {
@@ -373,6 +643,7 @@ async function rechazarAsesoria(asesoriaId) {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
+          body: JSON.stringify({ motivo }),
         });
 
         if (!response.ok) {
@@ -380,10 +651,20 @@ async function rechazarAsesoria(asesoriaId) {
           throw new Error(errorData.mensaje || "Error al rechazar asesoría");
         }
 
-        mostrarNotificacion(
-          "Asesoría rechazada. El pago será reembolsado.",
-          "success"
-        );
+        const resultado = await response.json();
+
+        if (resultado.reembolsoExitoso) {
+          mostrarNotificacion(
+            "Asesoría rechazada. Reembolso procesado automáticamente.",
+            "success"
+          );
+        } else {
+          mostrarNotificacion(
+            "Asesoría rechazada. El reembolso será procesado manualmente.",
+            "warning"
+          );
+        }
+
         cargarAsesorias();
       }
     );
@@ -401,17 +682,28 @@ async function rechazarAsesoria(asesoriaId) {
  */
 async function finalizarAsesoria(asesoriaId) {
   try {
+    const comentarios =
+      prompt("Comentarios sobre la asesoría (opcional):") || "";
+    const calificacionStr = prompt("Calificación del 1 al 5 (opcional):") || "";
+    const calificacion = calificacionStr ? parseInt(calificacionStr) : null;
+
     await confirmarAccion(
-      "Finalizar Asesoría",
+      "Finalizar asesoría",
       "¿Estás seguro de finalizar esta asesoría? El pago será liberado al experto.",
       async () => {
         const token = localStorage.getItem("token");
+        const body = {};
+        if (comentarios) body.comentarios = comentarios;
+        if (calificacion && calificacion >= 1 && calificacion <= 5)
+          body.calificacion = calificacion;
+
         const response = await fetch(`/api/asesorias/${asesoriaId}/finalizar`, {
           method: "PUT",
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
+          body: JSON.stringify(body),
         });
 
         if (!response.ok) {
@@ -419,10 +711,19 @@ async function finalizarAsesoria(asesoriaId) {
           throw new Error(errorData.mensaje || "Error al finalizar asesoría");
         }
 
-        mostrarNotificacion(
-          "Asesoría finalizada. El pago fue liberado al experto.",
-          "success"
-        );
+        const resultado = await response.json();
+
+        if (resultado.pagoLiberado) {
+          mostrarNotificacion(
+            `Asesoría finalizada. Pago de $${resultado.montoPago.toLocaleString(
+              "es-CO"
+            )} COP liberado al experto.`,
+            "success"
+          );
+        } else {
+          mostrarNotificacion("Asesoría finalizada exitosamente.", "success");
+        }
+
         cargarAsesorias();
       }
     );
@@ -446,7 +747,7 @@ async function cancelarAsesoria(asesoriaId, tipo) {
         ? "¿Estás seguro de cancelar esta asesoría?"
         : "¿Estás seguro de cancelar esta asesoría? Esto puede afectar tu calificación.";
 
-    await confirmarAccion("Cancelar Asesoría", mensaje, async () => {
+    await confirmarAccion("Cancelar asesoría", mensaje, async () => {
       const token = localStorage.getItem("token");
       const response = await fetch(endpoint, {
         method: "PUT",
@@ -567,7 +868,7 @@ function mostrarError(mensaje) {
 }
 
 /**
- * Muestra notificaciones
+ * Muestra notificaciones mejoradas
  */
 function mostrarNotificacion(mensaje, tipo = "info") {
   // Crear contenedor si no existe
@@ -592,25 +893,39 @@ function mostrarNotificacion(mensaje, tipo = "info") {
             ? "#28a745"
             : tipo === "error"
             ? "#dc3545"
+            : tipo === "warning"
+            ? "#ffc107"
             : "#007bff"
         };
-        color: white;
+        color: ${tipo === "warning" ? "#000" : "#fff"};
         padding: 12px 20px;
-        border-radius: 8px;
+        border-radius: 12px;
         margin-bottom: 10px;
         max-width: 350px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+        backdrop-filter: blur(10px);
         transform: translateX(400px);
-        transition: transform 0.3s ease;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         font-size: 14px;
         line-height: 1.4;
+        border: 1px solid rgba(255,255,255,0.2);
     `;
 
-  const icono = tipo === "success" ? "✓" : tipo === "error" ? "✗" : "i";
+  const iconos = {
+    success: "fas fa-check-circle",
+    error: "fas fa-exclamation-circle",
+    warning: "fas fa-exclamation-triangle",
+    info: "fas fa-info-circle",
+  };
+
   notification.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-weight: bold; font-size: 16px;">${icono}</span>
-            <span>${mensaje}</span>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <i class="${iconos[tipo]}" style="font-size: 1.2rem;"></i>
+            <span style="flex: 1;">${mensaje}</span>
+            <button onclick="this.parentElement.parentElement.remove()"
+                    style="background: none; border: none; color: inherit; cursor: pointer; font-size: 1.1rem; opacity: 0.7;">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
     `;
 
@@ -622,14 +937,17 @@ function mostrarNotificacion(mensaje, tipo = "info") {
   }, 100);
 
   // Auto-remover
+  const timeout = tipo === "error" ? 8000 : tipo === "warning" ? 6000 : 5000;
   setTimeout(() => {
-    notification.style.transform = "translateX(400px)";
-    setTimeout(() => {
-      if (notification.parentNode) {
-        notification.remove();
-      }
-    }, 300);
-  }, 5000);
+    if (notification.parentNode) {
+      notification.style.transform = "translateX(400px)";
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.remove();
+        }
+      }, 300);
+    }
+  }, timeout);
 }
 
 /**
@@ -661,3 +979,7 @@ window.finalizarAsesoria = finalizarAsesoria;
 window.cancelarAsesoria = cancelarAsesoria;
 window.contactarExperto = contactarExperto;
 window.cerrarModal = cerrarModal;
+window.reintentarPago = reintentarPago;
+window.verificarEstadoPagoAsesoria = verificarEstadoPagoAsesoria;
+
+console.log("Script misAsesorias.js cargado correctamente");

@@ -6,18 +6,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mis Asesorías - ServiTech</title>
   <link rel="stylesheet" href="/assets/css/base.css">
-  <link rel="stylesheet" href="/assets/css/componentes.css">
   <link rel="stylesheet" href="/assets/css/mis-asesorias.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta name="description" content="Gestiona tus asesorías técnicas en ServiTech">
 </head>
 
 <body>
-  <!-- Header -->
   <%- include('componentes/header') %>
 
     <main class="mis-asesorias-main">
       <div class="container">
-        <!-- Encabezado -->
+
+        <!-- Header de la página -->
         <div class="page-header">
           <h1>
             <i class="fas fa-calendar-check"></i>
@@ -27,72 +27,116 @@
           </p>
         </div>
 
-        <!-- Filtros -->
-        <div class="filtros-container">
-          <div class="filtros-tabs">
-            <button class="filtro-tab active" data-filtro="todas">
-              <i class="fas fa-list"></i>
-              Todas
-            </button>
-            <% if (rolUsuario==='experto' ) { %>
-              <button class="filtro-tab" data-filtro="pendientes">
-                <i class="fas fa-clock"></i>
-                Pendientes de Aceptar
-              </button>
-              <% } %>
-                <button class="filtro-tab" data-filtro="confirmadas">
-                  <i class="fas fa-check-circle"></i>
-                  Confirmadas
-                </button>
-                <button class="filtro-tab" data-filtro="completadas">
-                  <i class="fas fa-star"></i>
-                  Completadas
-                </button>
-                <button class="filtro-tab" data-filtro="canceladas">
-                  <i class="fas fa-times-circle"></i>
-                  Canceladas
-                </button>
-          </div>
-        </div>
-
-        <!-- Loading state -->
-        <div id="loadingState" class="loading-container">
-          <div class="loading-spinner">
-            <i class="fas fa-spinner fa-spin"></i>
-          </div>
-          <p>Cargando asesorías...</p>
-        </div>
-
-        <!-- Error state -->
-        <div id="errorState" class="error-container" style="display: none;">
-          <div class="error-content">
+        <!-- Validación de usuario -->
+        <% if (!user || !user.email) { %>
+          <div class="alert alert-error">
             <i class="fas fa-exclamation-triangle"></i>
-            <h3>Error al cargar asesorías</h3>
-            <p id="errorMessage">Ocurrió un problema al cargar tus asesorías.</p>
-            <button onclick="cargarAsesorias()" class="btn btn-primary">
-              <i class="fas fa-sync-alt"></i>
-              Intentar nuevamente
-            </button>
+            <div>
+              <strong>Error de autenticación</strong>
+              <p>No se pudo cargar tu información de usuario. Por favor inicia sesión nuevamente.</p>
+            </div>
+            <div class="alert-actions">
+              <a href="/login.html" class="btn btn-primary">Iniciar Sesión</a>
+            </div>
           </div>
-        </div>
+          <% } else { %>
 
-        <!-- Contenedor de asesorías -->
-        <div id="asesoriasContainer" class="asesorias-container" style="display: none;">
-          <!-- Las asesorías se cargarán dinámicamente aquí -->
-        </div>
+            <!-- Filtros -->
+            <div class="filtros-container">
+              <div class="filtros-tabs">
+                <div class="filtro-tab active" data-filtro="todas">
+                  <i class="fas fa-list"></i>
+                  <span>Todas</span>
+                </div>
 
-        <!-- Estado vacío -->
-        <div id="emptyState" class="empty-state" style="display: none;">
-          <div class="empty-content">
-            <i class="fas fa-calendar-times"></i>
-            <h3>No tienes asesorías</h3>
-            <p id="emptyMessage">No tienes asesorías registradas aún.</p>
-            <a href="/expertos.html" class="btn btn-primary">
-              <i class="fas fa-search"></i>
-              Buscar Expertos
-            </a>
-          </div>
-        </div>
+                <% if (rolUsuario==='experto' ) { %>
+                  <div class="filtro-tab" data-filtro="pendientes">
+                    <i class="fas fa-clock"></i>
+                    <span>Pendientes</span>
+                  </div>
+                  <% } %>
+
+                    <div class="filtro-tab" data-filtro="confirmadas">
+                      <i class="fas fa-check-circle"></i>
+                      <span>Confirmadas</span>
+                    </div>
+
+                    <div class="filtro-tab" data-filtro="completadas">
+                      <i class="fas fa-flag-checkered"></i>
+                      <span>Completadas</span>
+                    </div>
+
+                    <div class="filtro-tab" data-filtro="canceladas">
+                      <i class="fas fa-times-circle"></i>
+                      <span>Canceladas</span>
+                    </div>
+              </div>
+            </div>
+
+            <!-- Estados de la página -->
+
+            <!-- Estado de carga -->
+            <div id="loadingState" class="loading-container">
+              <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+              </div>
+              <h3>Cargando asesorías...</h3>
+              <p>Obteniendo tu información más reciente</p>
+            </div>
+
+            <!-- Estado de error -->
+            <div id="errorState" class="error-container" style="display: none;">
+              <div class="error-content">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>Error al cargar asesorías</h3>
+                <p id="errorMessage">Ocurrió un problema al obtener tus asesorías. Verifica tu conexión e intenta
+                  nuevamente.</p>
+                <div class="error-actions">
+                  <button onclick="cargarAsesorias()" class="btn btn-primary">
+                    <i class="fas fa-redo"></i>
+                    Reintentar
+                  </button>
+                  <a href="/contacto.html" class="btn btn-secondary">
+                    <i class="fas fa-headset"></i>
+                    Contactar Soporte
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Estado vacío -->
+            <div id="emptyState" class="empty-state" style="display: none;">
+              <div class="empty-content">
+                <i class="fas fa-calendar-times"></i>
+                <h3>No tienes asesorías aún</h3>
+                <p>
+                  <% if (rolUsuario==='experto' ) { %>
+                    Cuando los clientes soliciten asesorías contigo, aparecerán aquí.
+                    <% } else { %>
+                      Comienza solicitando una asesoría con nuestros expertos.
+                      <% } %>
+                </p>
+                <div class="empty-actions">
+                  <% if (rolUsuario==='cliente' ) { %>
+                    <a href="/expertos.html" class="btn btn-primary">
+                      <i class="fas fa-search"></i>
+                      Buscar Expertos
+                    </a>
+                    <% } %>
+                      <a href="/perfil" class="btn btn-secondary">
+                        <i class="fas fa-user"></i>
+                        Ver Perfil
+                      </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Contenedor de asesorías -->
+            <div id="asesoriasContainer" class="asesorias-container" style="display: none;">
+              <!-- Las asesorías se cargan dinámicamente aquí -->
+            </div>
+
+            <% } %>
       </div>
     </main>
 
@@ -106,29 +150,135 @@
           </button>
         </div>
         <div class="modal-body">
+          <div class="modal-icon">
+            <i id="modalIcon" class="fas fa-question-circle"></i>
+          </div>
           <p id="modalMessage">¿Estás seguro de realizar esta acción?</p>
+          <div id="modalDetails" class="modal-details" style="display: none;"></div>
         </div>
         <div class="modal-footer">
-          <button onclick="cerrarModal()" class="btn btn-secondary">Cancelar</button>
-          <button id="modalConfirmBtn" class="btn btn-primary">Confirmar</button>
+          <button onclick="cerrarModal()" class="btn btn-secondary">
+            <i class="fas fa-times"></i>
+            Cancelar
+          </button>
+          <button id="modalConfirmBtn" class="btn btn-primary">
+            <i class="fas fa-check"></i>
+            Confirmar
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- Footer -->
+    <!-- Modal de input para comentarios -->
+    <div id="inputModal" class="modal" style="display: none;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="inputModalTitle">Información adicional</h3>
+          <button class="modal-close" onclick="cerrarModalInput()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="input-group">
+            <label for="modalTextInput" id="inputLabel">Comentarios:</label>
+            <textarea id="modalTextInput" placeholder="Escribe aquí..." rows="4"></textarea>
+            <small class="input-help">Este campo es opcional</small>
+          </div>
+          <div class="input-group" id="ratingGroup" style="display: none;">
+            <label>Calificación:</label>
+            <div class="rating-stars">
+              <span class="star" data-rating="1"><i class="far fa-star"></i></span>
+              <span class="star" data-rating="2"><i class="far fa-star"></i></span>
+              <span class="star" data-rating="3"><i class="far fa-star"></i></span>
+              <span class="star" data-rating="4"><i class="far fa-star"></i></span>
+              <span class="star" data-rating="5"><i class="far fa-star"></i></span>
+            </div>
+            <small class="rating-help">Opcional: Califica la asesoría del 1 al 5</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button onclick="cerrarModalInput()" class="btn btn-secondary">
+            <i class="fas fa-times"></i>
+            Cancelar
+          </button>
+          <button id="inputModalConfirmBtn" class="btn btn-primary">
+            <i class="fas fa-check"></i>
+            Continuar
+          </button>
+        </div>
+      </div>
+    </div>
+
     <%- include('componentes/footer') %>
 
       <!-- Datos del usuario para JavaScript -->
       <script type="application/json" id="userData"><%- JSON.stringify({
-        email: user.email,
-        nombre: user.nombre,
-        apellido: user.apellido,
-        roles: user.roles,
-        rolUsuario: rolUsuario
-    }) %></script>
+    usuarioId: user ? user._id : null,
+    rolUsuario: rolUsuario || 'cliente',
+    email: user ? user.email : null,
+    nombre: user ? user.nombre : null,
+    apellido: user ? user.apellido : null,
+    token: user ? user.token : null,
+    esExperto: rolUsuario === 'experto'
+  }) %></script>
 
+      <!-- Scripts -->
       <script src="/assets/js/common.js"></script>
       <script src="/assets/js/misAsesorias.js"></script>
+
+      <script>
+        // Validaciones adicionales en el lado del cliente
+        document.addEventListener('DOMContentLoaded', function () {
+          // Validar datos del usuario
+          const userDataScript = document.getElementById('userData');
+          if (!userDataScript) {
+            console.error('No se encontraron datos del usuario');
+            mostrarError('Error cargando datos del usuario');
+            return;
+          }
+
+          let userData;
+          try {
+            userData = JSON.parse(userDataScript.textContent);
+          } catch (e) {
+            console.error('Error parseando datos del usuario:', e);
+            mostrarError('Error en los datos del usuario');
+            return;
+          }
+
+          // Validar campos requeridos del usuario
+          if (!userData.email || !userData.token) {
+            console.error('Datos de usuario incompletos');
+            mostrarError('Sesión inválida. Por favor inicia sesión nuevamente.');
+            setTimeout(() => {
+              window.location.href = '/login.html?next=' + encodeURIComponent(window.location.pathname);
+            }, 3000);
+            return;
+          }
+
+          // Validar token en localStorage
+          const localToken = localStorage.getItem('token');
+          if (!localToken || localToken !== userData.token) {
+            console.warn('Token local desactualizado, actualizando...');
+            localStorage.setItem('token', userData.token);
+          }
+
+          console.log('Validaciones de usuario completadas exitosamente');
+        });
+
+        // Función auxiliar para mostrar errores
+        function mostrarError(mensaje) {
+          const errorState = document.getElementById('errorState');
+          const loadingState = document.getElementById('loadingState');
+          const errorMessage = document.getElementById('errorMessage');
+
+          if (loadingState) loadingState.style.display = 'none';
+          if (errorState) {
+            errorState.style.display = 'block';
+            if (errorMessage) errorMessage.textContent = mensaje;
+          }
+        }
+      </script>
 </body>
 
 </html>
