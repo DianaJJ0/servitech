@@ -48,6 +48,9 @@ body {
       transparent 25%
     ),
     radial-gradient(circle at 85% 30%, #3a8eff1a 0%, transparent 25%);
+  color: var(--danger);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
 }
 
 a {
@@ -258,7 +261,8 @@ button,
   font-weight: 700;
   color: var(--text-color);
   margin: 0;
-  background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+  background: var(--primary-color);
+  background-image: none;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -331,8 +335,8 @@ button,
 }
 
 .form-control[multiple] {
-  min-height: 3.5rem;
-  padding: 0.5rem 0.75rem;
+  min-height: 4rem; /* un poco más alto para tokens más grandes */
+  padding: 0.75rem 0.9rem;
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
@@ -342,33 +346,33 @@ button,
 .choices {
   position: relative;
   margin-bottom: 1rem;
-  font-size: 1rem;
+  font-size: 0.7rem !important; /* establecemos un tamaño base razonable */
 }
 
 .choices__inner {
   display: inline-block;
   vertical-align: top;
   width: 100%;
-  padding: 0.5rem 0.75rem;
+  padding: 0.5rem 0.8rem !important; /* espacio alrededor de los tokens */
   border-radius: var(--input-radius);
-  min-height: 3.5rem;
+  min-height: 3.5rem !important; /* dar altura para tokens */
   overflow: hidden;
   word-wrap: break-word;
+  font-size: 1rem !important;
 }
 
 /* Tokens (selecciones) en Choices.js */
 .choices__list--multiple .choices__item {
-  background: linear-gradient(
-    90deg,
-    var(--primary-color),
-    var(--accent-color)
-  ) !important;
+  background: var(--primary-color) !important;
+  background-image: none !important;
   color: #ffffff !important;
-  padding: 0.28rem 0.6rem;
-  margin: 0.18rem 0.25rem;
-  border-radius: 0.4rem;
-  font-weight: 600;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 0.3rem 0.5rem !important; /* padding más legible */
+  margin: 0.2rem 0.8rem !important;
+  border-radius: 0.4rem !important;
+  font-weight: 400 !important;
+  font-size: 0.8rem !important; /* tamaño de texto legible */
+  line-height: 1 !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
 }
 
 /* Forzar texto blanco en los items seleccionados */
@@ -381,8 +385,10 @@ button,
 .choices__list--multiple .choices__item .choices__button,
 .choices__list--multiple .choices__item button {
   color: #ffffff !important;
-  opacity: 0.9;
-  border-left-color: rgba(255, 255, 255, 0.3) !important;
+  opacity: 0.95;
+  border-left-color: rgba(255, 255, 255, 0.35) !important;
+  font-size: 0.95rem; /* que la X no se vea demasiado pequeña */
+  padding: 0.1rem 0.25rem;
 }
 
 .choices__list--multiple .choices__item .choices__button:hover,
@@ -890,17 +896,15 @@ select:not([multiple]):focus {
   padding: 0.85rem 2rem;
   font-size: 1.1rem;
   border-radius: var(--border-radius);
-  background: linear-gradient(
-    135deg,
-    var(--primary-color),
-    var(--accent-color)
-  );
+  background: var(--primary-color);
+  color: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.05);
   transition: var(--transition);
 }
 
 .form-actions .btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(58, 142, 255, 0.4);
+  box-shadow: 0 8px 20px rgba(58, 142, 255, 0.2);
 }
 
 /* Estilos de input de archivo removidos de esta hoja porque la sección de
@@ -1091,6 +1095,22 @@ select:not([multiple]):focus {
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1.5rem;
   align-items: start;
+}
+
+/* Titulos específicos dentro de la sección Datos bancarios (Información del banco / Información del titular) */
+.bank-data-grid .form-subtitle {
+  color: #ffffff;
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+/* Recuadros de fondo para separar Información del banco e Información del titular */
+.bank-data-grid .form-field-group {
+  background: rgba(255, 255, 255, 0.041);
+  padding: 1rem;
+  border-radius: 1.5rem;
+  border: 1px solid rgba(214, 214, 214, 0.102);
 }
 
 /* Campos de formulario */
