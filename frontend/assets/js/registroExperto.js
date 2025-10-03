@@ -625,9 +625,28 @@
             this.value = this.value.replace(/^\s+/, "");
           }
 
-          const res = isValidName(this.value.trim());
-          if (!res.ok) showError(this, res.msg);
-          else clearError(this);
+          // Preferir validación compartida si está disponible
+          try {
+            if (
+              window &&
+              window.SharedValidators &&
+              typeof window.SharedValidators.validateTitularName === "function"
+            ) {
+              const r = window.SharedValidators.validateTitularName(
+                this.value.trim()
+              );
+              if (!r.valid) showError(this, r.message);
+              else clearError(this);
+            } else {
+              const res = isValidName(this.value.trim());
+              if (!res.ok) showError(this, res.msg);
+              else clearError(this);
+            }
+          } catch (e) {
+            const res = isValidName(this.value.trim());
+            if (!res.ok) showError(this, res.msg);
+            else clearError(this);
+          }
         });
 
         titular.addEventListener("paste", function (e) {
@@ -645,8 +664,24 @@
 
         titular.addEventListener("blur", function () {
           this.value = sanitizeName(this.value);
-          const res = isValidName(this.value);
-          if (!res.ok) showError(this, res.msg);
+          try {
+            if (
+              window &&
+              window.SharedValidators &&
+              typeof window.SharedValidators.validateTitularName === "function"
+            ) {
+              const r = window.SharedValidators.validateTitularName(
+                this.value.trim()
+              );
+              if (!r.valid) showError(this, r.message);
+            } else {
+              const res = isValidName(this.value);
+              if (!res.ok) showError(this, res.msg);
+            }
+          } catch (e) {
+            const res = isValidName(this.value);
+            if (!res.ok) showError(this, res.msg);
+          }
         });
       }
 
@@ -705,8 +740,18 @@
       const numeroCuentaEl = document.getElementById("numeroCuenta");
       const errorNumeroCuenta = document.getElementById("numero-cuenta-error");
 
+      // Usar SharedValidators.isColombianBankName/validateNumeroCuentaByBank si está disponible
       function isColombianBank(val) {
-        if (!val) return true; // por defecto tratar como local
+        try {
+          if (
+            window &&
+            window.SharedValidators &&
+            typeof window.SharedValidators.isColombianBankName === "function"
+          )
+            return window.SharedValidators.isColombianBankName(val);
+        } catch (e) {}
+        // fallback local
+        if (!val) return true;
         const colombianBanks = [
           "Bancolombia",
           "Davivienda",
@@ -731,6 +776,30 @@
           showError(numeroCuentaEl, "Número de cuenta obligatorio");
           return false;
         }
+        // Try SharedValidators for authoritative validation
+        try {
+          if (
+            window &&
+            window.SharedValidators &&
+            typeof window.SharedValidators.validateNumeroCuentaByBank ===
+              "function"
+          ) {
+            const res = window.SharedValidators.validateNumeroCuentaByBank(
+              bancoVal,
+              val
+            );
+            if (!res.valid) {
+              showError(
+                numeroCuentaEl,
+                res.message || "Número de cuenta inválido"
+              );
+              return false;
+            }
+            clearError(numeroCuentaEl);
+            return true;
+          }
+        } catch (e) {}
+        // Fallback local logic
         if (isColombianBank(bancoVal)) {
           const cleaned = val.replace(/\D/g, "");
           if (!/^[0-9]{6,14}$/.test(cleaned)) {
