@@ -191,20 +191,21 @@ document.addEventListener("DOMContentLoaded", function () {
         e.preventDefault();
         return;
       }
-      // Previsualizar valor resultante y bloquear si supera 100000
+      // Previsualizar valor resultante y bloquear si supera 120000
       const selStart = precio.selectionStart;
       const selEnd = precio.selectionEnd;
       const current = precio.value;
       const next = current.slice(0, selStart) + e.key + current.slice(selEnd);
       const numeric = parseInt(next, 10);
-      if (!isNaN(numeric) && numeric > 100000) {
+      if (!isNaN(numeric) && numeric > 120000) {
         e.preventDefault();
         // Feedback rápido (sin alterar valor) - solo si aún no hay mensaje específico
         if (
           !errorPrecio.textContent ||
           /máximo/i.test(errorPrecio.textContent) === false
         ) {
-          errorPrecio.textContent = "El máximo es $100.000 COP.";
+          errorPrecio.textContent = "El máximo es $120.000 COP.";
+          errorPrecio.classList.add("input-error");
           precio.classList.add("invalid");
         }
       }
@@ -220,7 +221,7 @@ document.addEventListener("DOMContentLoaded", function () {
         .slice(0, maxLen);
       if (paste) {
         let num = parseInt(paste, 10);
-        if (!isNaN(num) && num > 100000) num = 100000;
+        if (!isNaN(num) && num > 120000) num = 120000;
         paste = String(num);
       }
       precio.value = paste;
@@ -235,31 +236,37 @@ document.addEventListener("DOMContentLoaded", function () {
 
       if (val === "") {
         errorPrecio.textContent = "Precio requerido.";
+        errorPrecio.classList.add("input-error");
         precio.classList.add("invalid");
         return;
       }
       const num = parseInt(val, 10);
       if (isNaN(num)) {
         errorPrecio.textContent = "Valor inválido.";
+        errorPrecio.classList.add("input-error");
         precio.classList.add("invalid");
         return;
       }
       if (num < 10000) {
         errorPrecio.textContent = "El mínimo es $10.000 COP.";
+        errorPrecio.classList.add("input-error");
         precio.classList.add("invalid");
         return;
       }
-      if (num > 100000) {
-        errorPrecio.textContent = "El máximo es $100.000 COP.";
+      if (num > 120000) {
+        errorPrecio.textContent = "El máximo es $120.000 COP.";
+        errorPrecio.classList.add("input-error");
         precio.classList.add("invalid");
         return;
       }
       if (num % 100 !== 0) {
         errorPrecio.textContent = "Debe ser múltiplo de 100.";
+        errorPrecio.classList.add("input-error");
         precio.classList.add("invalid");
         return;
       }
       errorPrecio.textContent = "";
+      errorPrecio.classList.remove("input-error");
       precio.classList.remove("invalid");
     });
   }
@@ -450,19 +457,12 @@ document.addEventListener("DOMContentLoaded", function () {
   const errorDias = document.getElementById("errorDias");
 
   function updateDias() {
-    // Scope selection to the days selector container to avoid picking
-    // elements with class 'selected' elsewhere on the page.
-    const base = diasSelector || document;
     const seleccionados = Array.from(
-      base.querySelectorAll(".day-option.selected")
+      document.querySelectorAll(".day-option.selected")
     ).map((d) => d.getAttribute("data-day"));
-    if (diasDisponiblesInput) {
-      diasDisponiblesInput.value = seleccionados.length
-        ? seleccionados.join(",")
-        : "";
-    } else {
-      console.warn("updateDias: input #diasDisponibles no encontrado");
-    }
+    diasDisponiblesInput.value = seleccionados.length
+      ? seleccionados.join(",")
+      : "";
     if (seleccionados.length > 0) {
       diasDisplay.textContent = seleccionados.join(", ");
       diasDisplay.classList.add("days-selected-display");
@@ -489,13 +489,6 @@ document.addEventListener("DOMContentLoaded", function () {
         b.classList.contains("selected") ? "true" : "false"
       );
       if (b.tagName.toLowerCase() === "button") b.type = "button";
-      // Add keyboard support: toggle on Enter or Space
-      b.addEventListener("keydown", function (e) {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          b.click();
-        }
-      });
     });
   }
   // inicializa visual
