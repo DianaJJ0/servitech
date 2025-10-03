@@ -598,21 +598,26 @@ const actualizarPerfilUsuario = async (req, res) => {
       return res.status(404).json({ mensaje: "Usuario no encontrado." });
     }
     const datos = req.body;
-    // Validar nombre y apellido siempre
-    if (!datos.nombre || !datos.apellido) {
-      return res
-        .status(400)
-        .json({ mensaje: "Nombre y apellido son obligatorios." });
+    // Validar nombre y apellido solo si vienen en el payload
+    const nombrePresente = typeof datos.nombre !== "undefined";
+    const apellidoPresente = typeof datos.apellido !== "undefined";
+    if (nombrePresente || apellidoPresente) {
+      // Si se envía alguno de los dos, se requieren ambos
+      if (!datos.nombre || !datos.apellido) {
+        return res
+          .status(400)
+          .json({ mensaje: "Nombre y apellido son obligatorios." });
+      }
+      const regNombre = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s'-]{1,80}$/;
+      if (!regNombre.test(datos.nombre) || !regNombre.test(datos.apellido)) {
+        return res.status(400).json({
+          mensaje:
+            "Nombre y apellido solo pueden tener letras y hasta 80 caracteres.",
+        });
+      }
+      usuario.nombre = datos.nombre.trim();
+      usuario.apellido = datos.apellido.trim();
     }
-    const regNombre = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s'-]{1,80}$/;
-    if (!regNombre.test(datos.nombre) || !regNombre.test(datos.apellido)) {
-      return res.status(400).json({
-        mensaje:
-          "Nombre y apellido solo pueden tener letras y hasta 80 caracteres.",
-      });
-    }
-    usuario.nombre = datos.nombre.trim();
-    usuario.apellido = datos.apellido.trim();
 
     // Solo puede editar nombre/apellido si es cliente puro
     if (!usuario.roles.includes("experto")) {
