@@ -7,6 +7,12 @@
   min-height: calc(100vh - var(--header-height));
   padding-top: 0;
   background: var(--background);
+  background-image: radial-gradient(
+      circle at 15% 50%,
+      #3a8eff1a 0%,
+      transparent 25%
+    ),
+    radial-gradient(circle at 85% 30%, #3a8eff1a 0%, transparent 25%);
 }
 
 .container {
@@ -20,9 +26,8 @@
    =============================================== */
 
 .experto-hero {
-  background: var(--card-bg);
+  background: transparent;
   padding: 2rem 0;
-  border-bottom: 1px solid var(--border-light);
   margin-bottom: 0;
 }
 
@@ -128,17 +133,41 @@
   gap: 3rem;
 }
 
-.stat-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
+/* Categorías del experto */
+.experto-categorias {
+  margin-top: 1rem;
 }
 
-.stat-item i {
+.experto-categorias h4 {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin: 0 0 0.5rem 0;
+  font-weight: 500;
+}
+
+.categorias-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.categoria-tag {
+  background: rgba(18, 216, 250, 0.15);
   color: var(--accent-color);
-  width: 16px;
+  padding: 0.4rem 0.9rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1px solid rgba(18, 216, 250, 0.3);
+  text-transform: capitalize;
+  transition: var(--transition);
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.categoria-tag:hover {
+  background: rgba(18, 216, 250, 0.25);
+  transform: translateY(-1px);
 }
 
 /* ===============================================
@@ -146,8 +175,8 @@
    =============================================== */
 
 .calendario-content {
-  padding: 3rem 0;
-  background: var(--background);
+  padding: 1rem 0 3rem 0;
+  background: transparent;
 }
 
 /* Mensaje de autenticacion */
@@ -525,12 +554,12 @@
   background: var(--input-bg);
   border-radius: var(--input-radius);
   padding: 1.5rem;
-  border-left: 4px solid var(--accent-color);
+  border-left: 4px solid var(--primary-color);
   margin: 1rem 0;
 }
 
 .resumen-card h3 {
-  color: var(--accent-color);
+  color: var(--primary-color);
   font-size: 1.1rem;
   margin: 0 0 1rem 0;
   display: flex;
@@ -632,8 +661,10 @@
    =============================================== */
 
 .info-adicional {
-  background: var(--card-bg);
+  background: transparent;
   padding: 3rem 0;
+  border-top: none;
+  margin-top: 2rem;
   border-top: 1px solid var(--border-light);
 }
 
@@ -880,4 +911,16 @@
   .auth-text p {
     font-size: 0.9rem;
   }
+}
+.auth-message-card {
+  padding: 1.5rem;
+  margin: 0 0.5rem;
+}
+
+.auth-text h2 {
+  font-size: 1.3rem;
+}
+
+.auth-text p {
+  font-size: 0.9rem;
 }

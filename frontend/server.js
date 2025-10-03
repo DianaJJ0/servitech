@@ -19,11 +19,11 @@ const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:5020";
 const PROXY_MODE =
   String(process.env.PROXY_MODE || "false").toLowerCase() === "true";
 
-// Usar fetch nativo (Node >=18). Si no existe, avisar para actualizar o instalar polyfill.
+// Usar fetch nativo (Node >=18). Si no existe, avisar para actualizar
 const fetch = typeof globalThis.fetch === "function" ? globalThis.fetch : null;
 if (!fetch) {
   console.warn(
-    "Aviso: global fetch no disponible. Actualiza Node a v18+ o instala node-fetch si lo necesitas."
+    "Aviso: global fetch no disponible. Actualiza Node a v18+."
   );
 }
 
@@ -99,7 +99,7 @@ if (process.env.USE_REDIS === "true" || process.env.REDIS_URL) {
   }
 }
 
-// Middlewares parsing solo modo standalone
+// Middlewares parsing solo modo standalone que es cuando se ejecuta directamente
 if (require.main === module) {
   router.use(express.json());
   router.use(express.urlencoded({ extended: true }));
@@ -622,24 +622,149 @@ router.get("/expertos/:email/calendario", async (req, res) => {
   }
 });
 
-// Ruta: pasarela de pagos
-router.get("/pasarela-pagos", (req, res) => {
-  const expertoSeleccionado = req.query.experto
-    ? JSON.parse(req.query.experto)
-    : null;
-  res.render("pasarelaPagos", {
-    user: req.session.user || null,
-    expertoSeleccionado,
-  });
-});
-
-// Ruta: confirmación de asesoría
+// Ruta: confirmación de asesoría (ACTUALIZADA CON VALIDACIONES)
 router.get("/confirmacion-asesoria", (req, res) => {
-  const status = req.query.status || "pending";
+  const status = req.query.status || "unknown";
+  const pagoId = req.query.pagoId || null;
+  const paymentId = req.query.paymentId || null;
+  const preferenceId = req.query.preferenceId || null;
+  const asesoriaId = req.query.asesoriaId || null;
+
+  // Validaciones básicas
+  if (!status) {
+    console.warn("Acceso a confirmación sin estado definido");
+  }
+
+  if (status === "success" && !pagoId && !paymentId) {
+    console.warn("Estado exitoso pero sin IDs de pago");
+  }
+
   res.render("confirmacionAsesoria", {
     user: req.session.user || null,
     usuario: req.session.user || null,
     status,
+    pagoId,
+    paymentId,
+    preferenceId,
+    asesoriaId
+  });
+});
+
+// Ruta: pasarela de pagos (ACTUALIZADA CON VALIDACIONES)
+router.get("/pasarela-pagos", (req, res) => {
+  const expertoSeleccionado = req.query.experto
+    ? (() => {
+        try {
+          return JSON.parse(req.query.experto);
+        } catch (e) {
+          console.warn("Error parseando experto seleccionado:", e);
+          return null;
+        }
+      })()
+    : null;
+
+  const monto = req.query.monto ? parseInt(req.query.monto) : null;
+  const duracion = req.query.duracion ? parseInt(req.query.duracion) : null;
+
+  // Validaciones básicas
+  if (monto && monto < 1000) {
+    console.warn("Monto inválido en pasarela de pagos:", monto);
+  }
+
+  if (duracion && ![60, 90, 120, 180].includes(duracion)) {
+    console.warn("Duración inválida en pasarela de pagos:", duracion);
+  }
+
+  res.render("pasarelaPagos", {
+    user: req.session.user || null,
+    expertoSeleccionado,
+    monto,
+    duracion
+  });
+});
+
+// Ruta: API proxy para verificación de pagos (MEJORADA)
+router.get("/api/verificar-pago/:pagoId", async (req, res) => {
+  try {
+    if (!req.session.user || !req.session.user.token) {
+      return res.status(401).json({
+        mensaje: "No autenticado",
+        codigo: "NO_AUTH"
+      });
+    }
+
+    const pagoId = req.params.pagoId;
+
+    // Validar formato del pagoId
+    if (!pagoId || pagoId.length !== 24) {
+      return res.status(400).json({
+        mensaje: "ID de pago inválido",
+        codigo: "INVALID_PAGO_ID"
+      });
+    }
+
+    const token = req.session.user.token;
+
+    const response = await fetch(`${BACKEND_URL}/api/pagos/${pagoId}`, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      return res.status(response.status).json({
+        mensaje: errorData.mensaje || "Error verificando pago",
+        codigo: errorData.codigo || "BACKEND_ERROR"
+      });
+    }
+
+    const pago = await response.json();
+
+    // Sanitizar datos sensibles antes de enviar al frontend
+    const pagoSanitizado = {
+      _id: pago._id,
+      estado: pago.estado,
+      monto: pago.monto,
+      fechaCreacion: pago.fechaCreacion,
+      fechaActualizacion: pago.fechaActualizacion,
+      metodo: pago.metodo,
+      descripcion: pago.descripcion
+    };
+
+    res.json(pagoSanitizado);
+
+  } catch (error) {
+    console.error("Error verificando pago:", error);
+    res.status(500).json({
+      mensaje: "Error interno verificando pago",
+      codigo: "INTERNAL_ERROR",
+      error: error.message
+    });
+  }
+});
+
+// Ruta: manejar errores de MercadoPago (NUEVA)
+router.get("/pago-error", (req, res) => {
+  const errorCode = req.query.error || "unknown";
+  const errorMessage = req.query.message || "Error desconocido en el pago";
+
+  console.error("Error de MercadoPago:", { errorCode, errorMessage });
+
+  res.render("confirmacionAsesoria", {
+    user: req.session.user || null,
+    usuario: req.session.user || null,
+    status: "error",
+    pagoId: null,
+    paymentId: null,
+    preferenceId: null,
+    asesoriaId: null,
+    errorDetails: {
+      code: errorCode,
+      message: errorMessage
+    }
   });
 });
 
@@ -752,6 +877,25 @@ router.get("/admin/adminExpertos", requireAdmin, async (req, res) => {
     initialExpertos: initialExpertos,
   });
 });
+// Ruta: confirmación de asesoría
+router.get("/confirmacion-asesoria", (req, res) => {
+  const status = req.query.status || "pending";
+  const pagoId = req.query.pagoId || null;
+  const paymentId = req.query.paymentId || null;
+  const preferenceId = req.query.preferenceId || null;
+  const asesoriaId = req.query.asesoriaId || null;
+
+  res.render("confirmacionAsesoria", {
+    user: req.session.user || null,
+    usuario: req.session.user || null,
+    status,
+    pagoId,
+    paymentId,
+    preferenceId,
+    asesoriaId
+  });
+});
+
 
 // Manejo de errores 404
 router.use((req, res) => {
