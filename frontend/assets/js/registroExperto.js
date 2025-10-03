@@ -442,61 +442,77 @@
 
       function validateNumeroCuenta() {
         if (!numeroCuentaEl) return true;
-        const bancoVal = bancoHiddenEl?.value || "";
         const val = (numeroCuentaEl.value || "").trim();
         if (!val) {
           showError(numeroCuentaEl, "Este campo es obligatorio");
           return false;
         }
-        // Try SharedValidators for authoritative validation
+        const cleaned = val.replace(/\D/g, "");
+        if (!/^[0-9]{10,34}$/.test(cleaned)) {
+          showError(
+            numeroCuentaEl,
+            "Número de cuenta inválido (10-34 dígitos, sólo números)"
+          );
+          return false;
+        }
+        // Si pasa validación, asegurarse de que el valor visible sea sólo dígitos
+        if (numeroCuentaEl.value !== cleaned) numeroCuentaEl.value = cleaned;
+        clearError(numeroCuentaEl);
+        return true;
+      }
+
+      // Actualizar opciones de tipo de cuenta según banco seleccionado
+      const tipoCuentaSelect = document.getElementById("tipo-cuenta");
+      function updateTipoCuentaOptions(banco) {
+        if (!tipoCuentaSelect) return;
+        // Guardar valor actual para intentar mantener selección si aplica
+        const current = tipoCuentaSelect.value;
+        // Limpiar opciones
+        tipoCuentaSelect.innerHTML = "";
+        const createOpt = (val, label) => {
+          const o = document.createElement("option");
+          o.value = val;
+          o.textContent = label;
+          return o;
+        };
+        tipoCuentaSelect.appendChild(createOpt("", "Selecciona"));
+        if (banco === "Bancolombia") {
+          tipoCuentaSelect.appendChild(createOpt("Ahorros", "Ahorros"));
+          tipoCuentaSelect.appendChild(createOpt("Corriente", "Corriente"));
+        } else if (banco === "Nequi") {
+          tipoCuentaSelect.appendChild(createOpt("Nequi", "Nequi"));
+        } else {
+          // por defecto, ofrecer las tres opciones
+          tipoCuentaSelect.appendChild(createOpt("Ahorros", "Ahorros"));
+          tipoCuentaSelect.appendChild(createOpt("Corriente", "Corriente"));
+          tipoCuentaSelect.appendChild(createOpt("Nequi", "Nequi"));
+        }
+        // Restaurar valor si sigue disponible
         try {
           if (
-            window &&
-            window.SharedValidators &&
-            typeof window.SharedValidators.validateNumeroCuentaByBank ===
-              "function"
-          ) {
-            const res = window.SharedValidators.validateNumeroCuentaByBank(
-              bancoVal,
-              val
-            );
-            if (!res.valid) {
-              showError(
-                numeroCuentaEl,
-                res.message || "Número de cuenta inválido"
-              );
-              return false;
-            }
-            clearError(numeroCuentaEl);
-            return true;
-          }
+            Array.from(tipoCuentaSelect.options).some(
+              (o) => o.value === current
+            )
+          )
+            tipoCuentaSelect.value = current;
         } catch (e) {}
-        // Fallback local logic
-        if (isColombianBank(bancoVal)) {
-          const cleaned = val.replace(/\D/g, "");
-          if (!/^[0-9]{6,14}$/.test(cleaned)) {
-            showError(
-              numeroCuentaEl,
-              "Número de cuenta inválido (6-14 dígitos)"
-            );
-            return false;
-          }
-          clearError(numeroCuentaEl);
-          return true;
-        } else {
-          // Internacional: permitir alfanumérico IBAN-like 15-34
-          const cleaned = val.replace(/[^0-9A-Za-z]/g, "");
-          if (!/^[0-9A-Za-z]{15,34}$/.test(cleaned)) {
-            showError(
-              numeroCuentaEl,
-              "Cuenta internacional inválida (15-34 caracteres alfanuméricos)"
-            );
-            return false;
-          }
-          clearError(numeroCuentaEl);
-          return true;
-        }
       }
+
+      // Vincular cambio de banco
+      try {
+        const bancoSelect = document.getElementById("banco");
+        if (bancoSelect) {
+          bancoSelect.addEventListener("change", function () {
+            updateTipoCuentaOptions(this.value);
+            // limpiar errores relacionados
+            clearError(numeroCuentaEl);
+            const errBanco = document.getElementById("errorBanco");
+            if (errBanco) errBanco.textContent = "";
+          });
+          // Inicializar al cargar
+          updateTipoCuentaOptions(bancoSelect.value || "");
+        }
+      } catch (e) {}
 
       if (numeroCuentaEl) {
         // toggle show/hide numeroCuenta cuando exista el botón
@@ -525,23 +541,24 @@
             "End",
           ];
           if (allowed.includes(e.key)) return;
-          const bancoVal = bancoHiddenEl?.value || "";
-          if (isColombianBank(bancoVal)) {
-            if (!(e.key >= "0" && e.key <= "9")) e.preventDefault();
-          } else {
-            // permitir letras y números
-            if (!/^[0-9A-Za-z]$/.test(e.key)) e.preventDefault();
-          }
+          // Solo permitir dígitos
+          if (!(e.key >= "0" && e.key <= "9")) e.preventDefault();
+          // Limitar longitud a 34
+          try {
+            const selStart = numeroCuentaEl.selectionStart;
+            const selEnd = numeroCuentaEl.selectionEnd;
+            const current = numeroCuentaEl.value || "";
+            const next =
+              current.slice(0, selStart) + e.key + current.slice(selEnd);
+            if (next.replace(/\D/g, "").length > 34) e.preventDefault();
+          } catch (err) {}
         });
 
         numeroCuentaEl.addEventListener("paste", function (e) {
           e.preventDefault();
-          const bancoVal = bancoHiddenEl?.value || "";
           let paste =
             (e.clipboardData || window.clipboardData).getData("text") || "";
-          if (isColombianBank(bancoVal))
-            paste = paste.replace(/\D/g, "").slice(0, 14);
-          else paste = paste.replace(/[^0-9A-Za-z]/g, "").slice(0, 34);
+          paste = paste.replace(/\D/g, "").slice(0, 34);
           const start = numeroCuentaEl.selectionStart;
           const end = numeroCuentaEl.selectionEnd;
           const cur = numeroCuentaEl.value || "";
@@ -554,45 +571,21 @@
         });
 
         numeroCuentaEl.addEventListener("input", function () {
-          const bancoVal = bancoHiddenEl?.value || "";
-          if (isColombianBank(bancoVal)) {
-            const cleaned = (numeroCuentaEl.value || "")
-              .replace(/\D/g, "")
-              .slice(0, 14);
-            if (numeroCuentaEl.value !== cleaned)
-              numeroCuentaEl.value = cleaned;
-            const errEl =
-              document.getElementById("errorNumeroCuenta") || errorNumeroCuenta;
-            if (!cleaned) {
-              if (errEl) errEl.textContent = "Este campo es obligatorio";
-              numeroCuentaEl.classList.add("invalid");
-            } else if (cleaned.length < 6 || cleaned.length > 14) {
-              if (errEl) errEl.textContent = "Solo números, 6-14 dígitos.";
-              numeroCuentaEl.classList.add("invalid");
-            } else {
-              if (errEl) errEl.textContent = "";
-              numeroCuentaEl.classList.remove("invalid");
-            }
+          const cleaned = (numeroCuentaEl.value || "")
+            .replace(/\D/g, "")
+            .slice(0, 34);
+          if (numeroCuentaEl.value !== cleaned) numeroCuentaEl.value = cleaned;
+          const errEl =
+            document.getElementById("errorNumeroCuenta") || errorNumeroCuenta;
+          if (!cleaned) {
+            if (errEl) errEl.textContent = "Este campo es obligatorio";
+            numeroCuentaEl.classList.add("invalid");
+          } else if (cleaned.length < 10 || cleaned.length > 34) {
+            if (errEl) errEl.textContent = "Solo números, 10-34 dígitos.";
+            numeroCuentaEl.classList.add("invalid");
           } else {
-            const cleaned = (numeroCuentaEl.value || "")
-              .replace(/[^0-9A-Za-z]/g, "")
-              .slice(0, 34);
-            if (numeroCuentaEl.value !== cleaned)
-              numeroCuentaEl.value = cleaned;
-            const errEl =
-              document.getElementById("errorNumeroCuenta") || errorNumeroCuenta;
-            if (!cleaned) {
-              if (errEl) errEl.textContent = "Este campo es obligatorio";
-              numeroCuentaEl.classList.add("invalid");
-            } else if (cleaned.length < 15 || cleaned.length > 34) {
-              if (errEl)
-                errEl.textContent =
-                  "Cuenta internacional: 15-34 caracteres alfanuméricos.";
-              numeroCuentaEl.classList.add("invalid");
-            } else {
-              if (errEl) errEl.textContent = "";
-              numeroCuentaEl.classList.remove("invalid");
-            }
+            if (errEl) errEl.textContent = "";
+            numeroCuentaEl.classList.remove("invalid");
           }
         });
 
@@ -1125,7 +1118,7 @@
         trigger.setAttribute("aria-expanded", "true");
         optionsContainer.setAttribute("aria-hidden", "false");
         open = true;
-         // Fallback robusto: forzar ancho del dropdown igual al ancho del trigger
+        // Fallback robusto: forzar ancho del dropdown igual al ancho del trigger
         // Esto protege contra estilos externos o si el contenedor se reubica en el DOM.
         try {
           if (window && window.innerWidth > 480) {
@@ -1350,8 +1343,8 @@
         } else if (nCuenta) {
           // Fallback: formato simple (solo dígitos 6-20)
           const cleaned = (nCuenta.value || "").replace(/\D/g, "");
-          if (!/^[0-9]{6,20}$/.test(cleaned)) {
-            showError(nCuenta, "Número de cuenta inválido (6-20 dígitos)");
+          if (!/^[0-9]{10,34}$/.test(cleaned)) {
+            showError(nCuenta, "Número de cuenta inválido (10-34 dígitos)");
             valid = false;
           } else {
             clearError(nCuenta);
