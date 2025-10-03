@@ -450,12 +450,19 @@ document.addEventListener("DOMContentLoaded", function () {
   const errorDias = document.getElementById("errorDias");
 
   function updateDias() {
+    // Scope selection to the days selector container to avoid picking
+    // elements with class 'selected' elsewhere on the page.
+    const base = diasSelector || document;
     const seleccionados = Array.from(
-      document.querySelectorAll(".day-option.selected")
+      base.querySelectorAll(".day-option.selected")
     ).map((d) => d.getAttribute("data-day"));
-    diasDisponiblesInput.value = seleccionados.length
-      ? seleccionados.join(",")
-      : "";
+    if (diasDisponiblesInput) {
+      diasDisponiblesInput.value = seleccionados.length
+        ? seleccionados.join(",")
+        : "";
+    } else {
+      console.warn("updateDias: input #diasDisponibles no encontrado");
+    }
     if (seleccionados.length > 0) {
       diasDisplay.textContent = seleccionados.join(", ");
       diasDisplay.classList.add("days-selected-display");
@@ -482,6 +489,13 @@ document.addEventListener("DOMContentLoaded", function () {
         b.classList.contains("selected") ? "true" : "false"
       );
       if (b.tagName.toLowerCase() === "button") b.type = "button";
+      // Add keyboard support: toggle on Enter or Space
+      b.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          b.click();
+        }
+      });
     });
   }
   // inicializa visual
