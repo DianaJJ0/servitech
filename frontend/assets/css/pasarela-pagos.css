@@ -1,1084 +1,400 @@
-/* --- pasarela-pagos.css --- */
+/* PASARELA DE PAGOS*/
 
 /* Container principal */
 .container {
-  max-width: var(--content-max-width);
-  margin: 0 auto;
-  padding: 2rem;
+    max-width: 700px;
+    margin: 2rem auto;
+    padding: 1rem;
 }
 
 .payment-container {
-  max-width: 50rem;
-  margin: 0 auto;
-  padding: 1rem;
+    margin: 0 auto;
 }
 
 /* Enlace para volver */
 .back-link {
-  display: inline-flex;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  color: var(--text-secondary);
-  font-weight: 500;
-  transition: var(--transition);
-}
-
-.back-link i {
-  margin-right: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
 }
 
 .back-link:hover {
-  color: var(--accent-color);
-  transform: translateX(-5px);
+    color: var(--accent-color);
+    transform: translateX(-5px);
 }
 
-/* Tarjeta de pago */
+.back-link i {
+    margin-right: 0.5rem;
+}
+
+/* Alerta simple */
+.alert-container {
+    margin-bottom: 1.5rem;
+}
+
+.alert {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    border-radius: 8px;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.alert button {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    margin-left: auto;
+    padding: 0.25rem;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.alert button:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+/* Tarjeta principal */
 .payment-card {
-  border-radius: var(--border-radius);
-  overflow: hidden;
-  background-color: var(--card-bg);
-  box-shadow: var(--card-shadow);
-  transition: var(--transition);
-  position: relative;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    margin-bottom: 2rem;
 }
 
-/* Encabezado de la tarjeta de pago */
 .payment-header {
-  background-color: var(--background);
-  background-image: linear-gradient(
-    135deg,
-    rgba(58, 142, 255, 0.2) 0%,
-    transparent 70%
-  );
-  border-bottom: 1px solid var(--border-color);
-  color: var(--text-color);
-  padding: 2rem;
-  text-align: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2.5rem 2rem;
+    text-align: center;
+    position: relative;
+}
+
+.payment-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.payment-header * {
+    position: relative;
+    z-index: 1;
+}
+
+.logo {
+    max-height: 45px;
+    margin-bottom: 1rem;
+    filter: brightness(0) invert(1);
 }
 
 .payment-header h1 {
-  font-size: 2rem;
-  font-weight: 700;
-  margin: 0.5rem 0;
+    margin: 0 0 0.5rem 0;
+    font-size: 2rem;
+    font-weight: 700;
 }
 
-.logo-img {
-  max-height: 50px;
-  margin-bottom: 1rem;
-}
-
-.service-info {
-  margin-top: 1rem;
-}
-
-.service-info p {
-  font-size: 1rem;
-  color: var(--text-secondary);
-  margin: 0.5rem 0;
+.payment-header p {
+    margin: 0.5rem 0 1rem 0;
+    opacity: 0.9;
+    font-size: 1.1rem;
 }
 
 .price {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--accent-color);
+    font-size: 1.8rem;
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* Pasos del proceso de pago */
-.payment-steps {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem;
-  background-color: rgba(0, 0, 0, 0.2);
-  border-bottom: 1px solid var(--border-color);
-}
-
-.step {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  position: relative;
-  z-index: 1;
-  transition: var(--transition);
-}
-
-.step-number {
-  width: 1.875rem;
-  height: 1.875rem;
-  border-radius: 50%;
-  background-color: var(--card-bg);
-  border: 1px solid var(--border-color);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  font-size: 0.9rem;
-  margin-bottom: 0.5rem;
-  transition: var(--transition);
-}
-
-.step-text {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  text-align: center;
-}
-
-.step.active .step-number {
-  background-color: var(--primary-color);
-  color: white;
-  border-color: var(--primary-color);
-}
-
-.step.active .step-text {
-  color: var(--text-color);
-  font-weight: 500;
-}
-
-.step-line {
-  flex-grow: 1;
-  height: 1px;
-  background-color: var(--border-color);
-  margin: 0 10px;
-  margin-bottom: 30px;
-  position: relative;
-  z-index: 0;
-}
-
-/* Cuerpo del formulario de pago */
 .payment-body {
-  padding: 2rem;
+    padding: 2rem;
 }
 
-/* Formularios */
-.input-group {
-  margin-bottom: 1.5rem;
+/* Resumen de la asesoría */
+.resumen-asesoria {
+    background: var(--input-bg);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border: 1px solid var(--border-color);
 }
 
-.input-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-  color: var(--text-color);
+.resumen-asesoria h3 {
+    margin: 0 0 1.5rem 0;
+    color: var(--text-color);
+    font-size: 1.2rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
-.input-wrapper {
-  position: relative;
+.resumen-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
-.input-icon {
-  position: absolute;
-  top: 50%;
-  left: 1rem;
-  transform: translateY(-50%);
-  color: var(--text-secondary);
-  font-size: 1rem;
-  pointer-events: none;
+.resumen-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
 }
 
-.input-wrapper input,
-.input-wrapper select {
-  width: 100%;
-  padding: 0.75rem 1rem 0.75rem 2.5rem;
-  background-color: var(--input-bg);
-  color: var(--text-color);
-  border: 1px solid var(--border-color);
-  border-radius: var(--input-radius);
-  font-size: 1rem;
-  transition: var(--transition);
+.resumen-item.total {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 2px solid var(--accent-color);
+    font-size: 1.1rem;
+    font-weight: 600;
 }
 
-.input-wrapper input:focus,
-.input-wrapper select:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: var(--focus-shadow);
+.resumen-item .label {
+    color: var(--text-secondary);
+    font-weight: 500;
 }
 
-.input-wrapper input::placeholder {
-  color: var(--text-light);
+.resumen-item .value {
+    color: var(--text-color);
+    font-weight: 600;
 }
 
-.input-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+.resumen-item.total .label,
+.resumen-item.total .value {
+    color: var(--accent-color);
 }
 
-.error-message {
-  color: #e74c3c;
-  font-size: 0.8rem;
-  margin-top: 0.25rem;
-  display: none;
-}
-
-/* Sección de métodos de pago */
-.payment-method-section {
-  margin: 2rem 0;
-}
-
-.payment-method-section h3 {
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-}
-
-.payment-methods {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.payment-method {
-  display: flex;
-  align-items: center;
-  padding: 1rem;
-  background-color: var(--input-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--input-radius);
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.payment-method:hover {
-  background-color: rgba(58, 142, 255, 0.1);
-  border-color: var(--primary-color);
-}
-
-.payment-method.selected {
-  background-color: rgba(58, 142, 255, 0.15);
-  border-color: var(--primary-color);
-  box-shadow: var(--focus-shadow);
-}
-
-.payment-method-icon {
-  width: 2.5rem;
-  height: 2.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(58, 142, 255, 0.1);
-  color: var(--primary-color);
-  border-radius: 50%;
-  margin-right: 1rem;
-  font-size: 1.2rem;
-}
-
-.payment-method-info {
-  flex-grow: 1;
-}
-
-.payment-method-title {
-  font-weight: 500;
-  margin-bottom: 0.25rem;
-}
-
-.payment-method-description {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-}
-
-.payment-method-brands {
-  display: flex;
-  gap: 0.5rem;
-  font-size: 1.2rem;
-  margin-top: 0.25rem;
-}
-
-.payment-method-arrow {
-  color: var(--text-light);
-  transition: var(--transition);
-}
-
-.payment-method:hover .payment-method-arrow {
-  color: var(--primary-color);
-  transform: translateX(5px);
-}
-
-/* Colores específicos para iconos de métodos de pago */
-.nequi-icon {
-  background: rgba(237, 28, 36, 0.1);
-  color: #ed1c24;
-}
-
-.daviplata-icon {
-  background: rgba(237, 28, 36, 0.1);
-  color: #ed1c24;
-}
-
-.payu-icon {
-  background: rgba(18, 216, 250, 0.1);
-  color: var(--accent-color);
-}
-
-.efecty-icon {
-  background: rgba(255, 165, 0, 0.1);
-  color: #ffa500;
-}
-
-/* Formulario de detalle de pago */
-.payment-detail-form {
-  margin-top: 2rem;
-}
-
-.payment-detail-form h3 {
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin-bottom: 1.5rem;
-}
-
-/* Botones de acción */
-.payment-actions {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-top: 2rem;
-}
-
-.btn {
-  flex: 1;
-  display: inline-block;
-  padding: 0.85rem 1.5rem;
-  border-radius: var(--btn-radius);
-  font-weight: 600;
-  transition: var(--transition);
-  text-align: center;
-  cursor: pointer;
-}
-
-.btn-primary {
-  background-color: var(--primary-color);
-  color: #fff;
-  border: none;
-}
-
-.btn-primary:hover {
-  background-color: var(--primary-hover);
-  transform: translateY(-2px);
-  box-shadow: var(--btn-shadow);
-}
-
-.btn-secondary {
-  background-color: transparent;
-  color: var(--text-color);
-  border: 1px solid var(--border-color);
-}
-
-.btn-secondary:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-  transform: translateY(-2px);
-}
-
-/* Sección de seguridad */
-.payment-security {
-  display: flex;
-  justify-content: center;
-  gap: 2rem;
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--border-color);
-}
-
-.security-item {
-  display: flex;
-  align-items: center;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-}
-
-.security-item i {
-  margin-right: 0.5rem;
-  color: var(--accent-color);
-}
-
-/* Estilos para formulario PSE */
-.pse-description {
-  background: #e8f4fd;
-  color: #0066cc;
-  padding: 15px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  font-size: 0.9rem;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.pse-description i {
-  color: #0066cc;
-}
-
-.pse-info-box {
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-radius: 8px;
-  padding: 20px;
-  margin: 20px 0;
-}
-
-.pse-info-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-  color: #495057;
-}
-
-.pse-info-header i {
-  color: #17a2b8;
-}
-
-.pse-info-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.pse-info-list li {
-  padding: 6px 0;
-  color: #6c757d;
-  font-size: 0.9rem;
-  position: relative;
-  padding-left: 20px;
-}
-
-.pse-info-list li:before {
-  content: "✓";
-  position: absolute;
-  left: 0;
-  color: #28a745;
-  font-weight: bold;
-}
-
-.pse-security {
-  display: flex;
-  gap: 15px;
-  margin-top: 20px;
-  flex-wrap: wrap;
-}
-
-.security-badge {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #fff;
-  padding: 10px 15px;
-  border-radius: 6px;
-  border: 1px solid #dee2e6;
-  font-size: 0.85rem;
-  color: #495057;
-  flex: 1;
-  min-width: 200px;
-}
-
-.security-badge i {
-  color: #28a745;
-}
-
-/* Estilos para formulario Nequi */
-.nequi-description {
-  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
-  color: white;
-  padding: 15px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  font-size: 0.9rem;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: 500;
-}
-
-.nequi-description i {
-  color: white;
-  font-size: 1.1rem;
-}
-
-.nequi-info-box {
-  background: #f8f9fa;
-  border: 2px solid #ff6b6b;
-  border-radius: 12px;
-  padding: 20px;
-  margin: 20px 0;
-}
-
-.nequi-info-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 15px;
-  color: #495057;
-  font-weight: 600;
-}
-
-.nequi-info-header i {
-  color: #ff6b6b;
-}
-
-.nequi-steps {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px;
-}
-
-.nequi-step {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px;
-  background: white;
-  border-radius: 8px;
-  border: 1px solid #dee2e6;
-}
-
-.nequi-step .step-number {
-  background: #ff6b6b;
-  color: white;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.8rem;
-  font-weight: bold;
-  flex-shrink: 0;
-}
-
-.nequi-step .step-text {
-  font-size: 0.85rem;
-  color: #495057;
-  line-height: 1.3;
-}
-
-.nequi-security {
-  display: flex;
-  gap: 15px;
-  margin: 20px 0;
-  flex-wrap: wrap;
-}
-
-.nequi-badge {
-  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
-  color: white;
-  border: none;
-}
-
-.nequi-badge i {
-  color: white;
-}
-
-.nequi-amount-display {
-  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
-  color: white;
-  padding: 20px;
-  border-radius: 12px;
-  text-align: center;
-  margin-top: 20px;
-}
-
-.amount-label {
-  font-size: 0.9rem;
-  opacity: 0.9;
-  margin-bottom: 5px;
-}
-
-.amount-value {
-  font-size: 1.5rem;
-  font-weight: bold;
-}
-
-/* Inputs específicos de Nequi */
-#nequiPhone {
-  font-family: "Courier New", monospace;
-  letter-spacing: 1px;
-}
-
-#nequiPin {
-  font-family: "Courier New", monospace;
-  letter-spacing: 3px;
-  text-align: center;
-  font-size: 1.2rem;
-}
-
-.input-help {
-  font-size: 0.8rem;
-  color: #6c757d;
-  margin-top: 5px;
-  margin-bottom: 0;
-}
-
-/* Responsivo para Nequi */
-@media (max-width: 768px) {
-  .nequi-steps {
-    grid-template-columns: 1fr;
-  }
-
-  .nequi-security {
-    flex-direction: column;
-  }
-
-  .nequi-step {
-    flex-direction: column;
+/* Estados de carga y error */
+.loading-state,
+.error-state {
     text-align: center;
-    gap: 8px;
-  }
+    padding: 3rem 2rem;
 }
 
-/* Animación de loading para Nequi */
-.nequi-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 15px;
-  padding: 20px;
-  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
-  color: white;
-  border-radius: 12px;
-  margin: 20px 0;
+.loading-spinner {
+    margin-bottom: 1rem;
 }
 
-.nequi-loading .phone-animation {
-  width: 60px;
-  height: 60px;
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  border-top: 3px solid white;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
+.loading-spinner i {
+    font-size: 3rem;
+    color: var(--accent-color);
+    animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
-/* Estilos para formulario PayU */
-.payu-description {
-  background: linear-gradient(135deg, #00b4d8, #0077b6);
-  color: white;
-  padding: 15px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  font-size: 0.9rem;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: 500;
+.loading-state p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    margin: 0;
 }
 
-.payu-description i {
-  color: white;
-  font-size: 1.1rem;
+.error-state {
+    color: #721c24;
 }
 
-.payu-info-box {
-  background: #f8feff;
-  border: 2px solid #00b4d8;
-  border-radius: 12px;
-  padding: 20px;
-  margin: 20px 0;
+.error-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: #dc3545;
 }
 
-.payu-info-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 15px;
-  color: #495057;
-  font-weight: 600;
+.error-state h3 {
+    margin: 0 0 1rem 0;
+    color: #721c24;
+    font-size: 1.3rem;
 }
 
-.payu-info-header i {
-  color: #00b4d8;
+.error-state p {
+    margin: 0 0 1.5rem 0;
+    color: #721c24;
 }
 
-.payu-methods {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px;
+.btn-retry {
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
-.payu-method {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: white;
-  border-radius: 8px;
-  border: 1px solid #dee2e6;
-  transition: all 0.3s ease;
+.btn-retry:hover {
+    background: var(--primary-color);
+    transform: translateY(-1px);
 }
 
-.payu-method:hover {
-  border-color: #00b4d8;
-  box-shadow: 0 2px 8px rgba(0, 180, 216, 0.1);
+/* Información de seguridad */
+.payment-security {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+    flex-wrap: wrap;
 }
 
-.payu-method .method-icon {
-  background: #00b4d8;
-  color: white;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.9rem;
-  flex-shrink: 0;
+.security-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
 }
 
-.payu-method .method-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+.security-item i {
+    color: var(--accent-color);
+    font-size: 1rem;
 }
 
-.payu-method .method-text strong {
-  font-size: 0.85rem;
-  color: #495057;
-  font-weight: 600;
+/* Información adicional */
+.info-adicional {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
-.payu-method .method-text span {
-  font-size: 0.75rem;
-  color: #6c757d;
-  line-height: 1.2;
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
 }
 
-.payu-security {
-  display: flex;
-  gap: 15px;
-  margin: 20px 0;
-  flex-wrap: wrap;
+.info-item {
+    text-align: center;
+    padding: 1rem;
 }
 
-.payu-badge {
-  background: linear-gradient(135deg, #00b4d8, #0077b6);
-  color: white !important;
-  border: none !important;
+.info-item i {
+    font-size: 2.5rem;
+    color: var(--accent-color);
+    margin-bottom: 1rem;
+    display: block;
 }
 
-.payu-badge i {
-  color: white !important;
+.info-item h4 {
+    color: var(--text-color);
+    margin: 0 0 0.5rem 0;
+    font-size: 1.1rem;
+    font-weight: 600;
 }
 
-.payu-amount-display {
-  background: linear-gradient(135deg, #00b4d8, #0077b6);
-  color: white;
-  padding: 20px;
-  border-radius: 12px;
-  text-align: center;
-  margin-top: 20px;
+.info-item p {
+    color: var(--text-secondary);
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.4;
 }
 
-.payu-amount-display .amount-label {
-  font-size: 0.9rem;
-  opacity: 0.9;
-  margin-bottom: 5px;
-}
-
-.payu-amount-display .amount-value {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-bottom: 8px;
-}
-
-.payu-amount-display .amount-note {
-  font-size: 0.8rem;
-  opacity: 0.8;
-  font-style: italic;
-}
-
-/* Inputs específicos de PayU */
-#payuEmail {
-  text-transform: lowercase;
-}
-
-#payuDocument {
-  font-family: "Courier New", monospace;
-  letter-spacing: 1px;
-}
-
-/* Responsivo para PayU */
+/* Responsive */
 @media (max-width: 768px) {
-  .payu-methods {
-    grid-template-columns: 1fr;
-  }
+    .container {
+        padding: 0.5rem;
+        margin: 1rem auto;
+    }
 
-  .payu-security {
-    flex-direction: column;
-  }
+    .payment-header {
+        padding: 2rem 1.5rem;
+    }
 
-  .payu-method {
-    flex-direction: column;
-    text-align: center;
-    gap: 8px;
-  }
+    .payment-header h1 {
+        font-size: 1.6rem;
+    }
+
+    .price {
+        font-size: 1.5rem;
+    }
+
+    .payment-body {
+        padding: 1.5rem;
+    }
+
+    .resumen-asesoria {
+        padding: 1rem;
+    }
+
+    .payment-security {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+
+    .resumen-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .info-item {
+        padding: 0.5rem;
+    }
 }
 
-/* Animación de loading para PayU */
-.payu-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 15px;
-  padding: 20px;
-  background: linear-gradient(135deg, #00b4d8, #0077b6);
-  color: white;
-  border-radius: 12px;
-  margin: 20px 0;
+@media (max-width: 480px) {
+    .payment-header {
+        padding: 1.5rem 1rem;
+    }
+
+    .payment-body {
+        padding: 1rem;
+    }
+
+    .loading-state,
+    .error-state {
+        padding: 2rem 1rem;
+    }
 }
 
-.payu-loading .redirect-animation {
-  width: 60px;
-  height: 60px;
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  border-top: 3px solid white;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
+/* Accesibilidad */
+@media (prefers-reduced-motion: reduce) {
+    .alert,
+    .loading-spinner i {
+        animation: none;
+    }
+
+    .back-link:hover {
+        transform: none;
+    }
 }
-
-.payu-loading .redirect-text {
-  text-align: center;
-  font-size: 0.9rem;
-}
-
-/* Estilos para formulario Daviplata */
-.daviplata-description {
-  background: linear-gradient(135deg, #ed1c24, #c41e3a);
-  color: white;
-  padding: 15px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  font-size: 0.9rem;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: 500;
-}
-
-.daviplata-description i {
-  color: white;
-  font-size: 1.1rem;
-}
-
-.daviplata-info-box {
-  background: #fff5f5;
-  border: 2px solid #ed1c24;
-  border-radius: 12px;
-  padding: 20px;
-  margin: 20px 0;
-}
-
-.daviplata-info-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 15px;
-  color: #495057;
-  font-weight: 600;
-}
-
-.daviplata-info-header i {
-  color: #ed1c24;
-}
-
-.daviplata-steps {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px;
-}
-
-.daviplata-step {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: white;
-  border-radius: 8px;
-  border: 1px solid #dee2e6;
-  transition: all 0.3s ease;
-}
-
-.daviplata-step:hover {
-  border-color: #ed1c24;
-  box-shadow: 0 2px 8px rgba(237, 28, 36, 0.1);
-}
-
-.daviplata-step .step-number {
-  background: #ed1c24;
-  color: white;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.8rem;
-  font-weight: bold;
-  flex-shrink: 0;
-}
-
-.daviplata-step .step-text {
-  font-size: 0.85rem;
-  color: #495057;
-  line-height: 1.3;
-}
-
-.daviplata-benefits {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin: 20px 0;
-}
-
-.benefit-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: #fff5f5;
-  border-radius: 8px;
-  border: 1px solid rgba(237, 28, 36, 0.2);
-}
-
-.benefit-item .benefit-icon {
-  background: #ed1c24;
-  color: white;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.9rem;
-  flex-shrink: 0;
-}
-
-.benefit-item .benefit-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.benefit-item .benefit-text strong {
-  font-size: 0.85rem;
-  color: #495057;
-  font-weight: 600;
-}
-
-.benefit-item .benefit-text span {
-  font-size: 0.75rem;
-  color: #6c757d;
-  line-height: 1.2;
-}
-
-.daviplata-security {
-  display: flex;
-  gap: 15px;
-  margin: 20px 0;
-  flex-wrap: wrap;
-}
-
-.daviplata-badge {
-  background: linear-gradient(135deg, #ed1c24, #c41e3a);
-  color: white !important;
-  border: none !important;
-}
-
-.daviplata-badge i {
-  color: white !important;
-}
-
-.daviplata-amount-display {
-  background: linear-gradient(135deg, #ed1c24, #c41e3a);
-  color: white;
-  padding: 20px;
-  border-radius: 12px;
-  text-align: center;
-  margin-top: 20px;
-}
-
-.daviplata-amount-display .amount-label {
-  font-size: 0.9rem;
-  opacity: 0.9;
-  margin-bottom: 5px;
-}
-
-.daviplata-amount-display .amount-value {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-bottom: 8px;
-}
-
-.daviplata-amount-display .amount-note {
-  font-size: 0.8rem;
-  opacity: 0.8;
-  font-style: italic;
-}
-
-/* Inputs específicos de Daviplata */
-#daviplataPhone {
-  font-family: "Courier New", monospace;
-  letter-spacing: 1px;
-}
-
-#daviplataPin {
-  font-family: "Courier New", monospace;
-  letter-spacing: 3px;
-  text-align: center;
-  font-size: 1.2rem;
-}
-
-/* Responsivo para Daviplata */
-@media (max-width: 768px) {
-  .daviplata-steps {
-    grid-template-columns: 1fr;
-  }
-
-  .daviplata-security {
-    flex-direction: column;
-  }
-
-  .daviplata-step {
-    flex-direction: column;
-    text-align: center;
-    gap: 8px;
-  }
-
-  .benefit-item {
-    flex-direction: column;
-    text-align: center;
-    gap: 8px;
-  }
-}
-
-/* Animación de loading para Daviplata */
-.daviplata-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 15px;
-  padding: 20px;
-  background: linear-gradient(135deg, #ed1c24, #c41e3a);
-  color: white;
-  border-radius: 12px;
-  margin: 20px 0;
-}
-
-.daviplata-loading .fingerprint-animation {
-  width: 60px;
-  height: 60px;
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  border-top: 3px solid white;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* ...existing code... */

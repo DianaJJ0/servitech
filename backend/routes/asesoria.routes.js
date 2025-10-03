@@ -40,23 +40,7 @@ const Asesoria = require("../models/asesoria.model.js");
  */
 router.post("/", authMiddleware.autenticar, asesoriaController.crearAsesoria);
 
-/**
- * @openapi
- * /api/asesorias/mias:
- *   get:
- *     summary: Obtener asesorias del usuario autenticado
- *     tags: [Asesorias]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Lista de asesorias del usuario
- */
-router.get(
-  "/mias",
-  authMiddleware.autenticar,
-  asesoriaController.obtenerMisAsesorias
-);
+
 
 /**
  * @openapi
@@ -231,41 +215,24 @@ router.get(
  * @openapi
  * /api/asesorias/experto/{email}:
  *   get:
- *     summary: Listar asesorias por experto (publico para calendario)
- *     tags: [Asesorias]
+ *     summary: Listar asesorías por experto (público para calendario)
+ *     tags: [Asesorías]
  *     parameters:
  *       - name: email
  *         in: path
  *         required: true
  *         schema:
  *           type: string
+ *         description: Email del experto
  *     responses:
  *       200:
- *         description: Lista de asesorias del experto
+ *         description: Lista de asesorías del experto
+ *       404:
+ *         description: Experto no encontrado
+ *       500:
+ *         description: Error interno del servidor
  */
-// Obtener asesorias de un experto por email - CORREGIDO CON IMPORT
-router.get("/experto/:email", async (req, res) => {
-  try {
-    const expertoEmail = req.params.email;
-    console.log("Obteniendo asesorias para experto:", expertoEmail);
-
-    const asesorias = await Asesoria.find({
-      "experto.email": expertoEmail,
-      estado: { $in: ["pendiente-aceptacion", "confirmada"] },
-    }).sort({ fechaHoraInicio: 1 });
-
-    console.log(
-      `Encontradas ${asesorias.length} asesorias para ${expertoEmail}`
-    );
-    res.json(asesorias);
-  } catch (error) {
-    console.error("Error obteniendo asesorias del experto:", error);
-    res.status(500).json({
-      mensaje: "Error al obtener asesorias",
-      error: error.message,
-    });
-  }
-});
+router.get("/experto/:email", asesoriaController.listarPorExperto);
 
 /**
  * @openapi
