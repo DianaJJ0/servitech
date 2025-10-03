@@ -746,46 +746,72 @@ document.addEventListener("DOMContentLoaded", function () {
 
   numeroCuenta.addEventListener("input", function () {
     const bancoVal = bankHiddenEl?.value || "";
-    const colombianBanks = [
-      "Bancolombia",
-      "Davivienda",
-      "BBVA",
-      "Banco de Bogotá",
-      "Banco Popular",
-      "Scotiabank",
-      "Colpatria",
-      "Banco AV Villas",
-      "Bancoomeva",
-      "Nequi",
-      "Daviplata",
-    ];
-    const isCol = colombianBanks.includes(bancoVal) || !bancoVal;
-    if (isCol) {
-      const cleaned = (numeroCuenta.value || "")
-        .replace(/\D/g, "")
-        .slice(0, 14);
-      if (numeroCuenta.value !== cleaned) numeroCuenta.value = cleaned;
-      if (!cleaned || cleaned.length < 6 || cleaned.length > 14) {
-        document.getElementById("errorNumeroCuenta").textContent =
-          "Solo números, 6-14 dígitos.";
-        numeroCuenta.classList.add("invalid");
+    // Preferir validadores compartidos si existen
+    try {
+      if (
+        window &&
+        window.SharedValidators &&
+        typeof window.SharedValidators.validateNumeroCuentaByBank === "function"
+      ) {
+        const bancoActual = bankHiddenEl?.value || "";
+        const res = window.SharedValidators.validateNumeroCuentaByBank(
+          bancoActual,
+          numeroCuenta.value || ""
+        );
+        if (!res.valid) {
+          document.getElementById("errorNumeroCuenta").textContent =
+            res.message || "Número de cuenta inválido.";
+          numeroCuenta.classList.add("invalid");
+        } else {
+          document.getElementById("errorNumeroCuenta").textContent = "";
+          numeroCuenta.classList.remove("invalid");
+        }
       } else {
-        document.getElementById("errorNumeroCuenta").textContent = "";
-        numeroCuenta.classList.remove("invalid");
+        // Fallback al comportamiento local previo
+        const colombianBanks = [
+          "Bancolombia",
+          "Davivienda",
+          "BBVA",
+          "Banco de Bogotá",
+          "Banco Popular",
+          "Scotiabank",
+          "Colpatria",
+          "Banco AV Villas",
+          "Bancoomeva",
+          "Nequi",
+          "Daviplata",
+        ];
+        const isCol = colombianBanks.includes(bancoVal) || !bancoVal;
+        if (isCol) {
+          const cleaned = (numeroCuenta.value || "")
+            .replace(/\D/g, "")
+            .slice(0, 14);
+          if (numeroCuenta.value !== cleaned) numeroCuenta.value = cleaned;
+          if (!cleaned || cleaned.length < 6 || cleaned.length > 14) {
+            document.getElementById("errorNumeroCuenta").textContent =
+              "Solo números, 6-14 dígitos.";
+            numeroCuenta.classList.add("invalid");
+          } else {
+            document.getElementById("errorNumeroCuenta").textContent = "";
+            numeroCuenta.classList.remove("invalid");
+          }
+        } else {
+          const cleaned = (numeroCuenta.value || "")
+            .replace(/[^0-9A-Za-z]/g, "")
+            .slice(0, 34);
+          if (numeroCuenta.value !== cleaned) numeroCuenta.value = cleaned;
+          if (!cleaned || cleaned.length < 15 || cleaned.length > 34) {
+            document.getElementById("errorNumeroCuenta").textContent =
+              "Cuenta internacional: 15-34 caracteres alfanuméricos.";
+            numeroCuenta.classList.add("invalid");
+          } else {
+            document.getElementById("errorNumeroCuenta").textContent = "";
+            numeroCuenta.classList.remove("invalid");
+          }
+        }
       }
-    } else {
-      const cleaned = (numeroCuenta.value || "")
-        .replace(/[^0-9A-Za-z]/g, "")
-        .slice(0, 34);
-      if (numeroCuenta.value !== cleaned) numeroCuenta.value = cleaned;
-      if (!cleaned || cleaned.length < 15 || cleaned.length > 34) {
-        document.getElementById("errorNumeroCuenta").textContent =
-          "Cuenta internacional: 15-34 caracteres alfanuméricos.";
-        numeroCuenta.classList.add("invalid");
-      } else {
-        document.getElementById("errorNumeroCuenta").textContent = "";
-        numeroCuenta.classList.remove("invalid");
-      }
+    } catch (e) {
+      // en caso de error usar fallback local
     }
   });
 
@@ -820,7 +846,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const sanitizeName = (s) => {
     if (!s) return "";
     // permitir letras, marcas, espacios y apóstrofe (no puntos ni guiones)
-    const allowed = s.replace(/[^\p{L}\p{M}\s']+/gu, "");
+    const allowed = s.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s'\-]+/g, "");
     return allowed.replace(/\s+/g, " ").trim().slice(0, 100);
   };
 
@@ -828,7 +854,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!s) return { ok: false, msg: "Nombre obligatorio." };
     if (s.length > 100) return { ok: false, msg: "Máximo 100 caracteres." };
     // verificar caracteres permitidos (letras, espacios y - ' .)
-    if (!/^[\p{L}\p{M}\s']+$/u.test(s))
+    if (!/^[\p{L}\p{M}\s'\-]+$/u.test(s))
       return {
         ok: false,
         msg: "Usa solo letras, espacios o apóstrofes.",
@@ -868,6 +894,50 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     }
   });
+  // Nombre y Apellido: campos que el backend requiere
+  const nombreInput = form.nombre;
+  const apellidoInput = form.apellido;
+  const errorNombre = document.getElementById("errorNombre");
+  const errorApellido = document.getElementById("errorApellido");
+  const nameReg = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s'\-]{1,80}$/;
+  if (nombreInput) {
+    nombreInput.addEventListener("input", function () {
+      const v = (nombreInput.value || "").trim();
+      if (!v) {
+        if (errorNombre) errorNombre.textContent = "Nombre obligatorio.";
+        nombreInput.classList.add("invalid");
+        return;
+      }
+      if (!nameReg.test(v)) {
+        if (errorNombre)
+          errorNombre.textContent =
+            "Nombre solo puede tener letras y hasta 80 caracteres.";
+        nombreInput.classList.add("invalid");
+        return;
+      }
+      if (errorNombre) errorNombre.textContent = "";
+      nombreInput.classList.remove("invalid");
+    });
+  }
+  if (apellidoInput) {
+    apellidoInput.addEventListener("input", function () {
+      const v = (apellidoInput.value || "").trim();
+      if (!v) {
+        if (errorApellido) errorApellido.textContent = "Apellido obligatorio.";
+        apellidoInput.classList.add("invalid");
+        return;
+      }
+      if (!nameReg.test(v)) {
+        if (errorApellido)
+          errorApellido.textContent =
+            "Apellido solo puede tener letras y hasta 80 caracteres.";
+        apellidoInput.classList.add("invalid");
+        return;
+      }
+      if (errorApellido) errorApellido.textContent = "";
+      apellidoInput.classList.remove("invalid");
+    });
+  }
 
   titular.addEventListener("paste", function (e) {
     e.preventDefault();
@@ -885,13 +955,39 @@ document.addEventListener("DOMContentLoaded", function () {
     const raw = titular.value || "";
     const clean = sanitizeName(raw);
     if (titular.value !== clean) titular.value = clean;
-    const res = isValidName(clean);
-    if (!res.ok) {
-      document.getElementById("errorTitular").textContent = res.msg;
-      titular.classList.add("invalid");
-    } else {
-      document.getElementById("errorTitular").textContent = "";
-      titular.classList.remove("invalid");
+    try {
+      if (
+        window &&
+        window.SharedValidators &&
+        typeof window.SharedValidators.validateTitularName === "function"
+      ) {
+        const r = window.SharedValidators.validateTitularName(clean);
+        if (!r.valid) {
+          document.getElementById("errorTitular").textContent = r.message;
+          titular.classList.add("invalid");
+        } else {
+          document.getElementById("errorTitular").textContent = "";
+          titular.classList.remove("invalid");
+        }
+      } else {
+        const res = isValidName(clean);
+        if (!res.ok) {
+          document.getElementById("errorTitular").textContent = res.msg;
+          titular.classList.add("invalid");
+        } else {
+          document.getElementById("errorTitular").textContent = "";
+          titular.classList.remove("invalid");
+        }
+      }
+    } catch (e) {
+      const res = isValidName(clean);
+      if (!res.ok) {
+        document.getElementById("errorTitular").textContent = res.msg;
+        titular.classList.add("invalid");
+      } else {
+        document.getElementById("errorTitular").textContent = "";
+        titular.classList.remove("invalid");
+      }
     }
   });
   const tipoDocumento = form.tipoDocumento;
@@ -1047,21 +1143,67 @@ document.addEventListener("DOMContentLoaded", function () {
     tipoDocumento.dispatchEvent(new Event("change"));
     numeroDocumento.dispatchEvent(new Event("input"));
 
-    if (
-      (errorPrecio && errorPrecio.textContent) ||
-      (errorTelefono && errorTelefono.textContent) ||
-      (errorDescripcion && errorDescripcion.textContent) ||
-      (errorCategorias && errorCategorias.textContent) ||
-      (errorDias && errorDias.textContent) ||
-      document.getElementById("errorBanco").textContent ||
-      document.getElementById("errorTipoCuenta").textContent ||
-      document.getElementById("errorNumeroCuenta").textContent ||
-      document.getElementById("errorTitular").textContent ||
-      document.getElementById("errorTipoDocumento").textContent ||
-      document.getElementById("errorNumeroDocumento").textContent
-    ) {
-      alerta.textContent = "Corrige los campos marcados antes de continuar.";
+    // Si hay errores, mostrar cuál es el primer campo inválido para facilitar depuración
+    // Asegurar que nombre/apellido validen antes de chequear errores
+    try {
+      if (nombreInput) nombreInput.dispatchEvent(new Event("input"));
+    } catch (e) {}
+    try {
+      if (apellidoInput) apellidoInput.dispatchEvent(new Event("input"));
+    } catch (e) {}
+
+    const errorChecks = [
+      { errEl: errorPrecio, field: precio },
+      { errEl: errorTelefono, field: telefono },
+      { errEl: errorDescripcion, field: descripcion },
+      { errEl: document.getElementById("errorNombre"), field: nombreInput },
+      { errEl: document.getElementById("errorApellido"), field: apellidoInput },
+      { errEl: errorCategorias, field: categoriasSelect },
+      { errEl: errorDias, field: diasDisponiblesInput },
+      {
+        errEl: document.getElementById("errorBanco"),
+        field: bankTrigger || bancoHidden,
+      },
+      { errEl: document.getElementById("errorTipoCuenta"), field: tipoCuenta },
+      {
+        errEl: document.getElementById("errorNumeroCuenta"),
+        field: numeroCuenta,
+      },
+      { errEl: document.getElementById("errorTitular"), field: titular },
+      {
+        errEl: document.getElementById("errorTipoDocumento"),
+        field: form.tipoDocumento,
+      },
+      {
+        errEl: document.getElementById("errorNumeroDocumento"),
+        field: form.numeroDocumento,
+      },
+      {
+        errEl: document.getElementById("errorOtherBank"),
+        field: otherBankInput,
+      },
+    ];
+
+    const firstInvalid = errorChecks.find(
+      (c) => c.errEl && String(c.errEl.textContent).trim()
+    );
+    if (firstInvalid) {
+      const msg =
+        firstInvalid.errEl.textContent.trim() ||
+        "Corrige los campos marcados antes de continuar.";
+      alerta.textContent = msg;
       alerta.className = "registro-alerta alert-danger";
+      // intentar enfocar el campo relacionado para ayudar al usuario
+      try {
+        if (
+          firstInvalid.field &&
+          typeof firstInvalid.field.focus === "function"
+        ) {
+          firstInvalid.field.focus();
+        }
+      } catch (e) {
+        // no es crítico
+      }
       return;
     }
 
@@ -1080,6 +1222,37 @@ document.addEventListener("DOMContentLoaded", function () {
       tipoCuenta: tipoCuenta.value,
       numeroCuenta: numeroCuenta.value,
       titular: titular.value.trim(),
+      // Backend exige nombre y apellido en la actualización de perfil
+      // Saneamos permitiendo solo letras, espacios, apóstrofo y guion, y truncando a 80
+      // Incluir nombre/apellido solo si el usuario los escribió (evitar enviar campos vacíos)
+      ...(function () {
+        const out = {};
+        const vNom = (form.nombre && form.nombre.value) || "";
+        const cleanNom = String(vNom)
+          .trim()
+          .replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s'\-]+/g, "")
+          .replace(/\s+/g, " ")
+          .slice(0, 80);
+        const vApe = (form.apellido && form.apellido.value) || "";
+        const cleanApe = String(vApe)
+          .trim()
+          .replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s'\-]+/g, "")
+          .replace(/\s+/g, " ")
+          .slice(0, 80);
+        if (cleanNom) {
+          out.nombre = cleanNom;
+          try {
+            if (form.nombre) form.nombre.value = cleanNom;
+          } catch (e) {}
+        }
+        if (cleanApe) {
+          out.apellido = cleanApe;
+          try {
+            if (form.apellido) form.apellido.value = cleanApe;
+          } catch (e) {}
+        }
+        return out;
+      })(),
       tipoDocumento: tipoDocumento.value,
       numeroDocumento: numeroDocumento.value.trim(),
       telefonoContacto: telefono.value.trim(),
@@ -1089,6 +1262,10 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     try {
+      // DEBUG: publicar payload en consola para depuración de nombre/apellido
+      try {
+        console.log("PUT /api/usuarios/perfil payload:", payload);
+      } catch (e) {}
       const resp = await fetch("/api/usuarios/perfil", {
         method: "PUT",
         headers: {
@@ -1106,7 +1283,19 @@ document.addEventListener("DOMContentLoaded", function () {
         }, 1500);
       } else {
         alerta.className = "registro-alerta alert-danger";
+        // Mostrar mensaje principal y adjuntar el body completo para depuración
         alerta.textContent = data.mensaje || "Error al actualizar perfil.";
+        try {
+          const extra = JSON.stringify(data);
+          const pre = document.createElement("pre");
+          pre.style.whiteSpace = "pre-wrap";
+          pre.style.maxHeight = "200px";
+          pre.style.overflow = "auto";
+          pre.textContent = extra;
+          alerta.appendChild(pre);
+        } catch (e) {
+          console.log("Server response:", data);
+        }
       }
     } catch (err) {
       alerta.className = "registro-alerta alert-danger";
