@@ -38,12 +38,53 @@ const expertoSubSchema = new Schema({
     default: null,
   },
   // Campos bancarios y de contacto
-  banco: { type: String, required: true, trim: true },
-  tipoCuenta: { type: String, required: true, trim: true },
-  numeroCuenta: { type: String, required: true, trim: true },
+  banco: {
+    type: String,
+    required: [true, "El banco es obligatorio."],
+    trim: true,
+    enum: {
+      values: ["Bancolombia", "Nequi"],
+      message: "Banco inválido. Opciones válidas: Bancolombia, Nequi.",
+    },
+  },
+  tipoCuenta: {
+    type: String,
+    required: [true, "El tipo de cuenta es obligatorio."],
+    trim: true,
+    enum: {
+      values: ["Ahorros", "Corriente", "Nequi"],
+      message: "Tipo de cuenta inválido. Opciones: Ahorros, Corriente, Nequi.",
+    },
+  },
+  numeroCuenta: {
+    type: String,
+    required: [true, "El número de cuenta es obligatorio."],
+    trim: true,
+    match: [/^\d+$/, "Número de cuenta inválido. Debe contener solo dígitos."],
+    minlength: [10, "Número de cuenta demasiado corto (mínimo 10 dígitos)."],
+    maxlength: [34, "Número de cuenta demasiado largo (máximo 34 dígitos)."],
+  },
   titular: { type: String, required: true, trim: true },
-  tipoDocumento: { type: String, required: true, trim: true },
-  numeroDocumento: { type: String, required: true, trim: true },
+  tipoDocumento: {
+    type: String,
+    required: [true, "El tipo de documento es obligatorio."],
+    trim: true,
+    enum: {
+      values: ["CC", "CE", "NIT"],
+      message: "Tipo de documento inválido. Opciones: CC, CE, NIT.",
+    },
+  },
+  numeroDocumento: {
+    type: String,
+    required: [true, "El número de documento es obligatorio."],
+    trim: true,
+    match: [
+      /^[0-9]+$/,
+      "Número de documento inválido. Debe contener solo dígitos.",
+    ],
+    minlength: [6, "Número de documento demasiado corto (mínimo 6 dígitos)."],
+    maxlength: [11, "Número de documento demasiado largo (máximo 11 dígitos)."],
+  },
   telefonoContacto: { type: String, trim: true },
   diasDisponibles: [{ type: String, trim: true }],
 });
