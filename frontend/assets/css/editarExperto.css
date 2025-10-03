@@ -275,7 +275,8 @@ button,
   font-weight: 700;
   color: var(--text-color);
   margin: 0;
-  background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+  background: var(--primary-color);
+  background-image: none;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -651,7 +652,7 @@ textarea.form-control {
 /* Contador de caracteres */
 .char-counter {
   text-align: right;
-  font-size: 0.85rem;
+  font-size: 0.85rem; /* mismo tamaño que registroExperto */
   color: var(--text-light);
   margin-top: 0.25rem;
   margin-bottom: 0.5rem;
@@ -660,6 +661,13 @@ textarea.form-control {
 .char-counter span {
   color: var(--primary-color);
   font-weight: 600;
+}
+
+/* Mensajes de error uniforme y visibles (usar el rojo de variables) */
+.mensaje-error {
+  color: var(--danger);
+  font-size: 0.875rem; /* mismo tamaño que registroExperto */
+  margin-top: 0.25rem;
 }
 
 /* Select múltiple mejorado para categorías */
@@ -673,6 +681,47 @@ select[multiple] {
   color: var(--text-color);
   font-size: 0.9rem;
   transition: var(--transition);
+}
+
+/* Evitar que los mensajes de error cambien el tamaño del input: reservar espacio y posicionar el texto a la derecha */
+.form-field {
+  position: relative;
+}
+.form-field .mensaje-error,
+.form-field .form-hint {
+  margin-left: 0; /* reset */
+}
+.form-field #numero-cuenta-error {
+  position: absolute;
+  right: 0.5rem;
+  top: 0.25rem;
+  color: var(--danger);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+.form-field .password-wrapper {
+  display: flex;
+  align-items: center;
+}
+.form-field .password-wrapper .form-control {
+  flex: 1 1 auto;
+}
+
+/* Botón principal sin degradado: color primary plano y texto blanco */
+/* Scoped: only primary submit buttons inside the editar form */
+#editarExpertoForm .form-actions .btn-primary {
+  background: var(--primary-color) !important;
+  background-image: none !important;
+  color: #fff !important;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Titulos específicos dentro de la sección Datos bancarios */
+.bank-data-grid .form-subtitle {
+  color: #ffffff;
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
 }
 
 select[multiple]:focus {
@@ -938,16 +987,14 @@ select:not([multiple]):focus {
 }
 
 .form-field-group {
-   padding: 1rem
+  padding: 1rem;
 }
 
 .form-subtitle {
-  font-size: 1.1rem;
+  font-size: 1.05rem; /* match registroExperto */
   font-weight: 600;
-  color: var(--text-color);
-  margin-bottom: 1.5rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--border-light);
+  color: #ffffff; /* use white like registro */
+  margin-bottom: 0.75rem;
 }
 
 /* Campos de ancho completo */

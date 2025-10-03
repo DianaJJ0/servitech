@@ -49,7 +49,10 @@
             <div class="form-group compact email-group">
               <label for="email"><i class="fas fa-envelope"></i> Email registrado</label>
               <div class="email-field">
-                <span id="email-display">email registrado</span>
+                <span id="email-display">
+                  <%= typeof email !=='undefined' && email ? email : (user && user.email ? user.email
+                    : 'email registrado' ) %>
+                </span>
               </div>
               <p class="form-hint">Email asociado a tu cuenta</p>
             </div>
@@ -151,49 +154,18 @@
 
                 <h4 class="form-subtitle">Información del banco</h4>
                 <div class="form-row cols-4">
-                  <!-- Banco (selector con búsqueda) -->
+                  <!-- Banco (selector simple) -->
                   <div class="form-field">
                     <label for="banco" class="form-label">Banco</label>
-                    <div class="bank-selector-wrapper">
-                      <div class="bank-selector" role="combobox" aria-expanded="false" aria-haspopup="listbox"
-                        aria-controls="bank-options-list">
-
-                        <button type="button" class="bank-selector-trigger" id="bank-trigger"
-                          aria-labelledby="bank-trigger selected-bank-name" aria-expanded="false">
-                          <span id="selected-bank" class="selected-bank">
-                            <span id="selected-bank-name" class="selected-bank-name">Selecciona tu banco</span>
-                          </span>
-                          <span class="bank-selector-icon" aria-hidden="true">
-                            <i class="fas fa-chevron-down"></i>
-                          </span>
-                        </button>
-
-                        <div class="bank-options-container" id="bank-options-container" aria-hidden="true">
-                          <div class="bank-search-container">
-                            <input type="search" id="bank-search" class="bank-search" placeholder="Buscar banco..."
-                              aria-label="Buscar banco" autocomplete="off">
-                            <i class="fas fa-search bank-search-icon" aria-hidden="true"></i>
-                          </div>
-
-                          <div class="bank-options-list" id="bank-options-list" role="listbox"
-                            aria-label="Opciones de bancos">
-                            <!-- Opciones de bancos -->
-                            <div class="bank-option" data-value="Bancolombia" role="option" tabindex="0">
-                              <span class="bank-logo" aria-hidden="true">B</span>
-                              <span class="bank-name">Bancolombia</span>
-                            </div>
-                            <div class="bank-option" data-value="Nequi" role="option" tabindex="0">
-                              <span class="bank-logo" aria-hidden="true">N</span>
-                              <span class="bank-name">Nequi</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <input type="hidden" id="banco" name="banco" value="">
+                    <div class="select-wrapper">
+                      <select id="banco" name="banco" class="form-control" aria-describedby="banco-hint">
+                        <option value="">Selecciona</option>
+                        <option value="Bancolombia">Bancolombia</option>
+                        <option value="Nequi">Nequi</option>
+                      </select>
+                      <i class="fas fa-chevron-down select-arrow" aria-hidden="true"></i>
                     </div>
-
-                    <p class="form-hint">Selecciona el banco donde recibirás los pagos</p>
+                    <p class="form-hint" id="banco-hint">El banco donde recibirás los pagos</p>
                     <div class="mensaje-error" id="errorBanco"></div>
                   </div>
                   <!-- Tipo de cuenta -->
@@ -206,9 +178,6 @@
                         <option value="Ahorros">Ahorros</option>
                         <option value="Corriente">Corriente</option>
                         <option value="Nequi">Nequi</option>
-                        <option value="Daviplata">Daviplata</option>
-                        <option value="Tarjeta débito">Tarjeta débito</option>
-                        <option value="Otro">Otro</option>
                       </select>
                       <i class="fas fa-chevron-down select-arrow" aria-hidden="true"></i>
                     </div>
@@ -219,14 +188,14 @@
                   <div class="form-field">
                     <label for="numeroCuenta" class="form-label">Número de cuenta</label>
                     <div class="password-wrapper">
-                      <input type="password" id="numeroCuenta" name="numeroCuenta" placeholder="********"
-                        class="form-control" aria-describedby="numero-cuenta-hint" maxlength="34">
+                      <input type="text" id="numeroCuenta" name="numeroCuenta" placeholder="********" autocomplete="off"
+                        class="form-control" aria-describedby="numero-cuenta-hint" maxlength="34" inputmode="numeric">
                       <button type="button" id="toggleAccountNumber" class="btn-icon"
                         aria-label="Mostrar/ocultar número de cuenta" aria-pressed="false">
                         <i class="fas fa-eye" aria-hidden="true"></i>
                       </button>
                     </div>
-                    <p id="numero-cuenta-hint" class="form-hint">Número de cuenta o identificación asociado a la cuenta
+                    <p id="numero-cuenta-hint" class="form-hint">Número de cuenta asociado a la cuenta
                     </p>
                     <p id="numero-cuenta-error" class="form-hint"
                       style="color:var(--danger);display:none;margin-top:0.25rem;"></p>
@@ -254,7 +223,6 @@
                         <option value="CC">Cédula</option>
                         <option value="CE">Cédula de extranjería</option>
                         <option value="NIT">NIT</option>
-                        <option value="PAS">Pasaporte</option>
                       </select>
                       <i class="fas fa-chevron-down select-arrow" aria-hidden="true"></i>
                     </div>
@@ -263,7 +231,8 @@
                   <div class="form-field">
                     <label for="numero-documento" class="form-label">Número de documento</label>
                     <input type="text" id="numero-documento" name="numeroDocumento" placeholder="Ej: 3004888442"
-                      class="form-control" aria-describedby="numero-documento-hint" inputmode="numeric">
+                      class="form-control" aria-describedby="numero-documento-hint" inputmode="numeric" maxlength="11"
+                      autocomplete="off">
                     <p id="numero-documento-hint" class="form-hint">Sin puntos ni espacios</p>
                   </div>
                 </div>

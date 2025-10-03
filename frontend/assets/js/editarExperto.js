@@ -688,8 +688,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
   const numeroCuenta = form.numeroCuenta;
-  // Validación y saneamiento para número de cuenta: dinámico según banco (colombiano 6-14 dígitos, internacional 15-34 alfanum.)
-  const bankHiddenEl = bancoHidden; // variable ya existente arriba in this file
+  // Validación y saneamiento para número de cuenta: solo dígitos 10-34
+  const bankSelectEl = document.getElementById("banco") || bancoHidden;
+
   numeroCuenta.addEventListener("keydown", function (e) {
     const allowed = [
       "Backspace",
@@ -701,48 +702,27 @@ document.addEventListener("DOMContentLoaded", function () {
       "End",
     ];
     if (allowed.includes(e.key)) return;
-    const bancoVal = bankHiddenEl?.value || "";
-    const colombianBanks = [
-      "Bancolombia",
-      "Davivienda",
-      "BBVA",
-      "Banco de Bogotá",
-      "Banco Popular",
-      "Scotiabank",
-      "Colpatria",
-      "Banco AV Villas",
-      "Bancoomeva",
-      "Nequi",
-      "Daviplata",
-    ];
-    const isCol = colombianBanks.includes(bancoVal) || !bancoVal;
-    if (isCol) {
-      if (!(e.key >= "0" && e.key <= "9")) e.preventDefault();
-    } else {
-      if (!/^[0-9A-Za-z]$/.test(e.key)) e.preventDefault();
+
+    // Solo dígitos permitidos
+    if (!(e.key >= "0" && e.key <= "9")) {
+      e.preventDefault();
+      return;
     }
+
+    // Previsualizar valor resultante y bloquear si excede longitud permitida (34)
+    try {
+      const selStart = numeroCuenta.selectionStart;
+      const selEnd = numeroCuenta.selectionEnd;
+      const current = numeroCuenta.value || "";
+      const next = current.slice(0, selStart) + e.key + current.slice(selEnd);
+      if (next.replace(/\D/g, "").length > 34) e.preventDefault();
+    } catch (err) {}
   });
 
   numeroCuenta.addEventListener("paste", function (e) {
     e.preventDefault();
-    const bancoVal = bankHiddenEl?.value || "";
-    const colombianBanks = [
-      "Bancolombia",
-      "Davivienda",
-      "BBVA",
-      "Banco de Bogotá",
-      "Banco Popular",
-      "Scotiabank",
-      "Colpatria",
-      "Banco AV Villas",
-      "Bancoomeva",
-      "Nequi",
-      "Daviplata",
-    ];
-    const isCol = colombianBanks.includes(bancoVal) || !bancoVal;
     let paste = (e.clipboardData || window.clipboardData).getData("text") || "";
-    if (isCol) paste = paste.replace(/\D/g, "").slice(0, 14);
-    else paste = paste.replace(/[^0-9A-Za-z]/g, "").slice(0, 34);
+    paste = paste.replace(/\D/g, "").slice(0, 34);
     const start = numeroCuenta.selectionStart;
     const end = numeroCuenta.selectionEnd;
     const cur = numeroCuenta.value || "";
@@ -752,7 +732,6 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   numeroCuenta.addEventListener("input", function () {
-    const bancoVal = bankHiddenEl?.value || "";
     // Preferir validadores compartidos si existen
     try {
       if (
@@ -760,7 +739,7 @@ document.addEventListener("DOMContentLoaded", function () {
         window.SharedValidators &&
         typeof window.SharedValidators.validateNumeroCuentaByBank === "function"
       ) {
-        const bancoActual = bankHiddenEl?.value || "";
+        const bancoActual = (bankSelectEl && bankSelectEl.value) || "";
         const res = window.SharedValidators.validateNumeroCuentaByBank(
           bancoActual,
           numeroCuenta.value || ""
@@ -774,54 +753,36 @@ document.addEventListener("DOMContentLoaded", function () {
           numeroCuenta.classList.remove("invalid");
         }
       } else {
-        // Fallback al comportamiento local previo
-        const colombianBanks = [
-          "Bancolombia",
-          "Davivienda",
-          "BBVA",
-          "Banco de Bogotá",
-          "Banco Popular",
-          "Scotiabank",
-          "Colpatria",
-          "Banco AV Villas",
-          "Bancoomeva",
-          "Nequi",
-          "Daviplata",
-        ];
-        const isCol = colombianBanks.includes(bancoVal) || !bancoVal;
-        if (isCol) {
-          const cleaned = (numeroCuenta.value || "")
-            .replace(/\D/g, "")
-            .slice(0, 14);
-          if (numeroCuenta.value !== cleaned) numeroCuenta.value = cleaned;
-          if (!cleaned || cleaned.length < 6 || cleaned.length > 14) {
-            document.getElementById("errorNumeroCuenta").textContent =
-              "Solo números, 6-14 dígitos.";
-            numeroCuenta.classList.add("invalid");
-          } else {
-            document.getElementById("errorNumeroCuenta").textContent = "";
-            numeroCuenta.classList.remove("invalid");
-          }
+        // Fallback: solo dígitos 10-34
+        const cleaned = (numeroCuenta.value || "")
+          .replace(/\D/g, "")
+          .slice(0, 34);
+        if (numeroCuenta.value !== cleaned) numeroCuenta.value = cleaned;
+        if (!cleaned || cleaned.length < 10 || cleaned.length > 34) {
+          document.getElementById("errorNumeroCuenta").textContent =
+            "Solo números, 10-34 dígitos.";
+          numeroCuenta.classList.add("invalid");
         } else {
-          const cleaned = (numeroCuenta.value || "")
-            .replace(/[^0-9A-Za-z]/g, "")
-            .slice(0, 34);
-          if (numeroCuenta.value !== cleaned) numeroCuenta.value = cleaned;
-          if (!cleaned || cleaned.length < 15 || cleaned.length > 34) {
-            document.getElementById("errorNumeroCuenta").textContent =
-              "Cuenta internacional: 15-34 caracteres alfanuméricos.";
-            numeroCuenta.classList.add("invalid");
-          } else {
-            document.getElementById("errorNumeroCuenta").textContent = "";
-            numeroCuenta.classList.remove("invalid");
-          }
+          document.getElementById("errorNumeroCuenta").textContent = "";
+          numeroCuenta.classList.remove("invalid");
         }
       }
     } catch (e) {
-      // en caso de error usar fallback local
+      // fallback local
+      const cleaned = (numeroCuenta.value || "")
+        .replace(/\D/g, "")
+        .slice(0, 34);
+      if (numeroCuenta.value !== cleaned) numeroCuenta.value = cleaned;
+      if (!cleaned || cleaned.length < 10 || cleaned.length > 34) {
+        document.getElementById("errorNumeroCuenta").textContent =
+          "Solo números, 10-34 dígitos.";
+        numeroCuenta.classList.add("invalid");
+      } else {
+        document.getElementById("errorNumeroCuenta").textContent = "";
+        numeroCuenta.classList.remove("invalid");
+      }
     }
   });
-
   // Toggle mostrar/ocultar número de cuenta
   const toggleAccountBtn = document.getElementById("toggleAccountNumber");
   if (toggleAccountBtn && numeroCuenta) {
@@ -1022,19 +983,14 @@ document.addEventListener("DOMContentLoaded", function () {
       message: "Cédula de extranjería: solo números, 6-12 dígitos.",
     },
     NIT: {
-      sanitize: (s) => (s || "").replace(/\D/g, "").slice(0, 15),
-      valid: (s) => /^[0-9]{6,15}$/.test(s),
-      message: "NIT: solo números, 6-15 dígitos.",
-    },
-    PAS: {
-      sanitize: (s) => (s || "").replace(/[^A-Za-z0-9]/g, "").slice(0, 15),
-      valid: (s) => /^[A-Za-z0-9]{5,15}$/.test(s),
-      message: "Pasaporte: letras y números, 5-15 caracteres.",
+      sanitize: (s) => (s || "").replace(/\D/g, "").slice(0, 11),
+      valid: (s) => /^[0-9]{6,11}$/.test(s),
+      message: "NIT: solo números, 6-11 dígitos.",
     },
     default: {
-      sanitize: (s) => (s || "").replace(/\s+/g, " ").trim().slice(0, 20),
-      valid: (s) => !!s && s.length >= 4,
-      message: "Número de documento inválido.",
+      sanitize: (s) => (s || "").replace(/\D/g, "").slice(0, 11),
+      valid: (s) => /^[0-9]{6,11}$/.test(s),
+      message: "Número de documento inválido (6-11 dígitos).",
     },
   };
 
