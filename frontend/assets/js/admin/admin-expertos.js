@@ -1560,8 +1560,6 @@
     // Inicializador del botón "Nuevo experto": abre modal y coloca avatar por defecto
     function initAddExpertButton() {
       try {
-        const btn = document.getElementById("btnAddExpert");
-        const modal = document.getElementById("expertModal");
         const defaultAvatar = "/uploads/avatar_1757538342469.jpg";
 
         // Asegurar vista previa por defecto en los distintos contenedores si están vacíos
@@ -1582,18 +1580,81 @@
           } catch (e) {}
         });
 
-        if (btn && modal) {
-          btn.addEventListener("click", function (e) {
-            e.preventDefault();
-            modal.style.display = "flex";
+        // Intentar enlazar al botón y modal directamente
+        const btn = document.getElementById("btnAddExpert");
+        const modal = document.getElementById("expertModal");
+
+        function showExpertModal(modalEl) {
+          try {
+            if (!modalEl) return;
+            // Move modal to document.body to avoid stacking context / overflow hiding issues
             try {
-              const firstInput = modal.querySelector(
+              if (
+                modalEl.parentElement &&
+                modalEl.parentElement !== document.body
+              ) {
+                modalEl._originalParent = modalEl.parentElement;
+                modalEl._originalNextSibling = modalEl.nextSibling;
+                document.body.appendChild(modalEl);
+              }
+            } catch (e) {
+              console.warn("Could not move modal to body:", e);
+            }
+
+            // Mostrar con estilos en línea para evitar conflictos de CSS externos
+            modalEl.style.display = "flex";
+            modalEl.style.position = "fixed";
+            modalEl.style.top = "0";
+            modalEl.style.left = "0";
+            modalEl.style.right = "0";
+            modalEl.style.bottom = "0";
+            modalEl.style.zIndex = "99999";
+            modalEl.style.backgroundColor =
+              modalEl.style.backgroundColor || "rgba(0,0,0,0.45)";
+
+            modalEl.classList.add("show", "modal-open", "is-open");
+            try {
+              document.body.classList.add("modal-open");
+            } catch (e) {}
+
+            try {
+              const firstInput = modalEl.querySelector(
                 'input[type="text"], input:not([type]), textarea'
               );
               if (firstInput) firstInput.focus();
             } catch (e) {}
-          });
+
+            console.log("admin-expertos: expertModal mostrado");
+          } catch (e) {
+            console.warn("showExpertModal error", e);
+          }
         }
+
+        if (btn) {
+          try {
+            btn.addEventListener("click", function (e) {
+              e.preventDefault();
+              // Preferir el modal referenciado actualmente en DOM (puede cambiar)
+              const m = document.getElementById("expertModal");
+              showExpertModal(m);
+            });
+            return;
+          } catch (e) {
+            console.warn("initAddExpertButton: error al enlazar btn click", e);
+          }
+        }
+
+        // Fallback: delegación si el botón o modal no estaban presentes al enlazar
+        document.addEventListener("click", function (e) {
+          try {
+            const target =
+              e.target && e.target.closest && e.target.closest("#btnAddExpert");
+            if (!target) return;
+            e.preventDefault();
+            const m = document.getElementById("expertModal");
+            showExpertModal(m);
+          } catch (err) {}
+        });
       } catch (e) {
         console.warn("initAddExpertButton error", e);
       }
