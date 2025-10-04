@@ -127,7 +127,18 @@ const listarExpertos = async (req, res) => {
       ];
     }
 
-    if (estado) filtro.estado = estado;
+    // Por defecto solo mostrar expertos activos en lista pública
+    // Admin puede filtrar por estado específico o ver todos con "all"
+    if (estado) {
+      if (estado === "all") {
+        // No aplicar filtro de estado - mostrar todos
+      } else {
+        filtro.estado = estado;
+      }
+    } else {
+      // Si no se especifica estado, solo mostrar activos (para vista pública)
+      filtro.estado = "activo";
+    }
 
     if (categoria && mongoose.isValidObjectId(categoria)) {
       filtro["infoExperto.categorias"] = new mongoose.Types.ObjectId(categoria);
@@ -297,8 +308,169 @@ const actualizarPerfilExperto = async (req, res) => {
   }
 };
 
+/**
+ * @openapi
+ * /api/expertos/aprobar/{email}:
+ *   put:
+ *     summary: Aprobar solicitud de experto (admin)
+ *     tags: [Expertos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: email
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Experto aprobado exitosamente
+ *       404:
+ *         description: Experto no encontrado
+ *       400:
+ *         description: El experto ya está activo
+ */
+const aprobarExperto = async (req, res) => {
+  try {
+    const { email } = req.params;
+
+    const experto = await Usuario.findOne({
+      email,
+      roles: "experto",
+      estado: "pendiente-verificacion",
+    });
+
+    if (!experto) {
+      return res.status(404).json({
+        mensaje: "Experto no encontrado o ya está activo",
+      });
+    }
+
+    await Usuario.findByIdAndUpdate(experto._id, {
+      estado: "activo",
+    });
+
+    // Log de la acción (no bloqueante, si falla no debe afectar la respuesta)
+    try {
+      await generarLogs("experto", {
+        action: "aprobar",
+        expertEmail: email,
+        adminEmail: req.usuario?.email,
+        timestamp: new Date(),
+      });
+    } catch (logErr) {
+      console.warn("Error al generar log (no crítico):", logErr.message);
+    }
+
+    return res.status(200).json({
+      mensaje: "Experto aprobado exitosamente",
+      experto: {
+        email: experto.email,
+        nombre: experto.nombre,
+        apellido: experto.apellido,
+        estado: "activo",
+      },
+    });
+  } catch (err) {
+    console.error("aprobarExperto error:", err);
+    return res
+      .status(500)
+      .json({ error: "Error interno", mensaje: err.message });
+  }
+};
+
+/**
+ * @openapi
+ * /api/expertos/rechazar/{email}:
+ *   put:
+ *     summary: Rechazar solicitud de experto (admin)
+ *     tags: [Expertos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: email
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               motivo:
+ *                 type: string
+ *                 description: Motivo del rechazo
+ *     responses:
+ *       200:
+ *         description: Experto rechazado exitosamente
+ *       404:
+ *         description: Experto no encontrado
+ */
+const rechazarExperto = async (req, res) => {
+  try {
+    const { email } = req.params;
+    const { motivo } = req.body;
+
+    const experto = await Usuario.findOne({
+      email,
+      roles: "experto",
+      estado: "pendiente-verificacion",
+    });
+
+    if (!experto) {
+      return res.status(404).json({
+        mensaje: "Experto no encontrado o ya fue procesado",
+      });
+    }
+
+    // Quitar el rol de experto y mantener solo cliente
+    const nuevosRoles = experto.roles.filter((rol) => rol !== "experto");
+
+    await Usuario.findByIdAndUpdate(experto._id, {
+      estado: "activo",
+      roles: nuevosRoles,
+      $unset: { infoExperto: 1 }, // Remover información de experto
+    });
+
+    // Log de la acción (no crítico, no debe bloquear la respuesta)
+    try {
+      await generarLogs("experto", {
+        action: "rechazar",
+        expertEmail: email,
+        adminEmail: req.usuario?.email,
+        motivo: motivo || "Sin motivo especificado",
+        timestamp: new Date(),
+      });
+    } catch (logError) {
+      console.warn(
+        "Error al generar log de rechazo (no crítico):",
+        logError.message
+      );
+    }
+
+    return res.status(200).json({
+      mensaje: "Solicitud de experto rechazada",
+      experto: {
+        email: experto.email,
+        nombre: experto.nombre,
+        apellido: experto.apellido,
+        estado: "activo",
+        roles: nuevosRoles,
+      },
+    });
+  } catch (err) {
+    console.error("rechazarExperto error:", err);
+    res.status(500).json({ error: "Error interno", message: err.message });
+  }
+};
+
 module.exports = {
   listarExpertos,
   obtenerPerfilExperto,
   actualizarPerfilExperto,
+  aprobarExperto,
+  rechazarExperto,
 };
