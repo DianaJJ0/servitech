@@ -576,17 +576,83 @@
 
   function openModal(type, id) {
     const expert = allExperts.find((x) => getExpertField(x, "id") == id);
-    if (!expert) return;
+    if (!expert) {
+      console.warn('Expert not found with id:', id);
+      return;
+    }
 
-    const modal = $(`#${type}ExpertModal`);
-    if (!modal) return;
+    let modal;
+    if (type === "view") {
+      modal = $("#verPerfilExperto");
+    } else {
+      modal = $(`#${type}ExpertModal`);
+    }
+    
+    if (!modal) {
+      console.warn('Modal not found for type:', type);
+      return;
+    }
 
     try {
-      $(`#name_${type}`).value = getExpertField(expert, "name");
-      $(`#email_${type}`).value = getExpertField(expert, "email");
-      $(`#precio_${type}`).value = getExpertField(expert, "price");
-      $(`#bio_${type}`).value = getExpertField(expert, "bio");
+      // Mapear campos según el tipo de modal
+      if (type === "view") {
+        // Para el modal de ver
+        const nameField = $("#name_view");
+        const emailField = $("#email_view");
+        const precioField = $("#precio_view");
+        const bioField = $("#bio_view");
+        const statusField = $("#status_view");
+        
+        if (nameField) nameField.value = getExpertField(expert, "name") || "";
+        if (emailField) emailField.value = getExpertField(expert, "email") || "";
+        
+        // Formatear precio
+        const precio = getExpertField(expert, "price") || "";
+        if (precioField) {
+          // Buscar precio en infoExperto si no está en el nivel superior
+          const precioFromInfo = expert.infoExperto?.precioPorHora || expert.precioPorHora || precio;
+          precioField.value = precioFromInfo || "";
+        }
+        
+        // Buscar bio en diferentes ubicaciones posibles
+        const bio = getExpertField(expert, "bio") || expert.infoExperto?.descripcion || expert.descripcion || "";
+        if (bioField) bioField.value = bio;
+        
+        // Estado
+        const estado = getExpertField(expert, "status") || expert.estado || "inactivo";
+        if (statusField) statusField.value = estado;
+        
+        // Hacer campos de solo lectura
+        [nameField, emailField, precioField, bioField].forEach(field => {
+          if (field) {
+            field.readOnly = true;
+            field.style.backgroundColor = "#f8f9fa";
+            field.style.cursor = "default";
+          }
+        });
+        
+        // El select de estado también debe ser disabled
+        if (statusField) {
+          statusField.disabled = true;
+          statusField.style.backgroundColor = "#f8f9fa";
+          statusField.style.cursor = "default";
+        }
+        
+      } else {
+        // Para otros modales (edit, etc.)
+        const nameField = $(`#name_${type}`);
+        const emailField = $(`#email_${type}`);
+        const precioField = $(`#precio_${type}`);
+        const bioField = $(`#bio_${type}`);
+        
+        if (nameField) nameField.value = getExpertField(expert, "name") || "";
+        if (emailField) emailField.value = getExpertField(expert, "email") || "";
+        if (precioField) precioField.value = getExpertField(expert, "price") || "";
+        if (bioField) bioField.value = getExpertField(expert, "bio") || "";
+      }
+      
       modal.style.display = "block";
+      console.log('Modal opened for expert:', expert);
     } catch (e) {
       console.warn(`Error opening ${type} modal:`, e);
     }
