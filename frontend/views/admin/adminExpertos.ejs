@@ -7,10 +7,10 @@
   <title>Gestión de Expertos - Servitech Admin</title>
   <link rel="stylesheet" href="/assets/css/administrador.css" />
   <link rel="stylesheet" href="/assets/css/admin.css" />
+  <link rel="stylesheet" href="/assets/css/admin-panel-global.css" />
   <link rel="stylesheet" href="/assets/css/admin-components.css" />
   <link rel="stylesheet" href="/assets/css/admin-expertos.css" />
   <!-- page-specific CSS -->
-  <link rel="stylesheet" href="/assets/css/admin-clientes.css" />
   <link rel="stylesheet" href="/assets/css/admin-expertos-approval.css" />
   <!--<link rel="stylesheet" href="/assets/css/admin-responsive.css" />-->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -62,7 +62,8 @@
           <div class="admin-filters" style="margin-bottom: 1rem;">
             <div class="filter-group">
               <label for="estadoFilter" style="font-weight: 500; margin-right: 0.5rem;">Estado:</label>
-              <select id="estadoFilter" class="filter-select" style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+              <select id="estadoFilter" class="filter-select"
+                style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
                 <option value="all">Todos los estados</option>
                 <option value="activo">Activos</option>
                 <option value="pendiente-verificacion">Pendientes de verificación</option>
@@ -983,7 +984,8 @@
               </label>
               <div class="input-with-icon">
                 <i class="fas fa-toggle-on" aria-hidden="true"></i>
-                <select id="status_view" class="modal-expert__input modal-expert__select" aria-label="Estado del experto" disabled>
+                <select id="status_view" class="modal-expert__input modal-expert__select"
+                  aria-label="Estado del experto" disabled>
                   <option value="activo">Activo</option>
                   <option value="pendiente-verificacion">Pendiente de verificación</option>
                   <option value="inactivo">Inactivo</option>
@@ -1249,15 +1251,26 @@
 
   <script id="initial-expertos" type="application/json"><%- JSON.stringify(initialExpertos || []) %></script>
   <script id="categorias-data" type="application/json"><%- JSON.stringify(categorias || []) %></script>
+  <script id="current-user-data" type="application/json"><%- JSON.stringify(user || {}) %></script>
   <script>
-    // Pasar datos del usuario autenticado
-    window.authToken = '<%= user?.token || "" %>';
-    window.currentUser = <%- JSON.stringify(user || {}) %>;
+    // Inicializar datos del usuario autenticado de forma segura
+    (function () {
+      try {
+        var raw = document.getElementById('current-user-data').textContent || '{}';
+        window.currentUser = JSON.parse(raw);
+        window.authToken = (window.currentUser && window.currentUser.token) ? window.currentUser.token : '';
+      } catch (e) {
+        window.currentUser = {};
+        window.authToken = '';
+      }
+    })();
   </script>
 
   <script src="/assets/js/admin/admin-common.js"></script>
   <script src="/assets/js/admin/admin-expertos.js"></script>
   <script src="/assets/js/admin/admin-expertos.bootstrap.js"></script>
+
+
 
 </body>
 

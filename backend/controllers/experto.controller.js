@@ -333,43 +333,47 @@ const actualizarPerfilExperto = async (req, res) => {
 const aprobarExperto = async (req, res) => {
   try {
     const { email } = req.params;
-    
-    const experto = await Usuario.findOne({ 
-      email, 
+
+    const experto = await Usuario.findOne({
+      email,
       roles: "experto",
-      estado: "pendiente-verificacion"
+      estado: "pendiente-verificacion",
     });
-    
+
     if (!experto) {
-      return res.status(404).json({ 
-        mensaje: "Experto no encontrado o ya está activo" 
+      return res.status(404).json({
+        mensaje: "Experto no encontrado o ya está activo",
       });
     }
-    
-    await Usuario.findByIdAndUpdate(experto._id, { 
-      estado: "activo" 
+
+    await Usuario.findByIdAndUpdate(experto._id, {
+      estado: "activo",
     });
-    
-    // Log de la acción
-    await generarLogs("experto", {
-      action: "aprobar",
-      expertEmail: email,
-      adminEmail: req.usuario?.email,
-      timestamp: new Date()
-    });
-    
-    res.status(200).json({ 
+
+    // Log de la acción (no bloqueante, si falla no debe afectar la respuesta)
+    try {
+      await generarLogs("experto", {
+        action: "aprobar",
+        expertEmail: email,
+        adminEmail: req.usuario?.email,
+        timestamp: new Date(),
+      });
+    } catch (logErr) {
+      console.warn("Error al generar log (no crítico):", logErr.message);
+    }
+
+    return res.status(200).json({
       mensaje: "Experto aprobado exitosamente",
       experto: {
         email: experto.email,
         nombre: experto.nombre,
         apellido: experto.apellido,
-        estado: "activo"
-      }
+        estado: "activo",
+      },
     });
   } catch (err) {
     console.error("aprobarExperto error:", err);
-    res.status(500).json({ error: "Error interno", message: err.message });
+    return res.status(500).json({ error: "Error interno", mensaje: err.message });
   }
 };
 
@@ -407,46 +411,50 @@ const rechazarExperto = async (req, res) => {
   try {
     const { email } = req.params;
     const { motivo } = req.body;
-    
-    const experto = await Usuario.findOne({ 
-      email, 
+
+    const experto = await Usuario.findOne({
+      email,
       roles: "experto",
-      estado: "pendiente-verificacion"
+      estado: "pendiente-verificacion",
     });
-    
+
     if (!experto) {
-      return res.status(404).json({ 
-        mensaje: "Experto no encontrado o ya fue procesado" 
+      return res.status(404).json({
+        mensaje: "Experto no encontrado o ya fue procesado",
       });
     }
-    
+
     // Quitar el rol de experto y mantener solo cliente
-    const nuevosRoles = experto.roles.filter(rol => rol !== "experto");
-    
-    await Usuario.findByIdAndUpdate(experto._id, { 
+    const nuevosRoles = experto.roles.filter((rol) => rol !== "experto");
+
+    await Usuario.findByIdAndUpdate(experto._id, {
       estado: "activo",
       roles: nuevosRoles,
-      $unset: { infoExperto: 1 } // Remover información de experto
+      $unset: { infoExperto: 1 }, // Remover información de experto
     });
-    
-    // Log de la acción
-    await generarLogs("experto", {
-      action: "rechazar",
-      expertEmail: email,
-      adminEmail: req.usuario?.email,
-      motivo: motivo || "Sin motivo especificado",
-      timestamp: new Date()
-    });
-    
-    res.status(200).json({ 
+
+    // Log de la acción (no crítico, no debe bloquear la respuesta)
+    try {
+      await generarLogs("experto", {
+        action: "rechazar",
+        expertEmail: email,
+        adminEmail: req.usuario?.email,
+        motivo: motivo || "Sin motivo especificado",
+        timestamp: new Date(),
+      });
+    } catch (logError) {
+      console.warn("Error al generar log de rechazo (no crítico):", logError.message);
+    }
+
+    return res.status(200).json({
       mensaje: "Solicitud de experto rechazada",
       experto: {
         email: experto.email,
         nombre: experto.nombre,
         apellido: experto.apellido,
         estado: "activo",
-        roles: nuevosRoles
-      }
+        roles: nuevosRoles,
+      },
     });
   } catch (err) {
     console.error("rechazarExperto error:", err);
