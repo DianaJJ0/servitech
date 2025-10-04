@@ -31,20 +31,23 @@ ServiTech es una aplicación full-stack que facilita la conexión entre usuarios
 - 💳 Pagos integrados y seguros
 - 📧 Notificaciones automáticas por email
 - 🔒 Recuperación de contraseña
+- 📱 Interfaz responsive
 
 ### Para Expertos
 
-- 📋 Gestión de perfil profesional
-- ⏰ Control de disponibilidad
-- 💼 Administración de servicios
-- 📊 Dashboard de citas y ganancias
+- 📋 Gestión de perfil profesional con foto
+- ⏰ Control de disponibilidad por horarios
+- 💼 Administración de servicios y tarifas
+- 📊 Gestión de solicitudes de asesorías
 
 ### Para Administradores
 
-- 🎛️ Panel de control completo
+- 🎛️ Panel de control completo con Swagger UI
 - 👥 Gestión de usuarios y expertos
-- 📈 Estadísticas y reportes
+- 📈 Estadísticas y reportes en tiempo real
 - ⚙️ Configuración del sistema
+- 🔒 Autenticación basada en roles
+- 📋 Logs de auditoría
 
 ---
 
@@ -55,9 +58,10 @@ ServiTech es una aplicación full-stack que facilita la conexión entre usuarios
 | **Backend**       | Node.js + Express.js        |
 | **Base de Datos** | MongoDB (Atlas)             |
 | **Frontend**      | EJS + CSS3 + JavaScript     |
-| **Autenticación** | JWT + bcrypt                |
-| **Emails**        | Nodemailer (Gmail)          |
+| **Autenticación** | JWT + bcrypt + roles        |
+| **Emails**        | Nodemailer (Gmail SMTP)     |
 | **Seguridad**     | Google reCAPTCHA v2         |
+| **API Docs**      | Swagger UI (protegido)      |
 | **Deployment**    | Render (servidor unificado) |
 
 ---
@@ -70,8 +74,23 @@ ServiTech es una aplicación full-stack que facilita la conexión entre usuarios
 - Git
 - Cuenta MongoDB Atlas (gratuita)
 - Cuenta Gmail con App Password para emails
+- Claves de Google reCAPTCHA v2
 
-### 🔧 Desarrollo Local
+### 🏗️ Arquitectura del Sistema
+
+**ServiTech utiliza una arquitectura de servidor unificado:**
+
+```
+🔄 DESARROLLO (npm run dev)
+Frontend (Puerto 5021) --proxy--> Backend (Puerto 5020)
+↳ Servidor de desarrollo con live reload
+
+🚀 PRODUCCIÓN (npm start)
+Backend único (Puerto render) = API + Frontend servido
+↳ Servidor unificado optimizado
+```
+
+### 🔧 Instalación y Desarrollo
 
 ```bash
 # 1. Clonar repositorio
@@ -79,42 +98,45 @@ git clone https://github.com/DianaJJ0/servitech.git
 cd servitech
 
 # 2. Instalar dependencias del backend
-cd backend && npm install
+cd backend
+npm install
 
 # 3. Instalar dependencias del frontend
-cd ../frontend && npm install
+cd ../frontend
+npm install
 
-# 4. Configurar variables de entorno
-# Crear backend/.env con:
-# - MONGO_URI (tu string de MongoDB Atlas)
-# - JWT_SECRET (clave segura larga)
-# - EMAIL_USER y EMAIL_PASS (Gmail App Password)
-# - RECAPTCHA_SITE_KEY y RECAPTCHA_SECRET_KEY
+# 4. Configurar variables de entorno (ver sección variables)
+cp backend/.env.example backend/.env
+# Editar backend/.env con tus credenciales
 
-# 5. Modo desarrollo (2 servidores separados)
+# 5. MODO DESARROLLO (recomendado para desarrollo)
 # Terminal 1 - Backend API:
-cd backend && npm run dev  # Puerto 5020
+cd backend
+npm run dev  # Puerto 5020 (API + vistas)
 
-# Terminal 2 - Frontend con proxy:
-cd frontend && npm run dev  # Puerto 5021
+# Terminal 2 - Frontend con proxy y live reload:
+cd ../frontend
+npm run dev  # Puerto 5021 (proxy a backend)
+
+# 6. MODO PRODUCCIÓN LOCAL (para probar antes de deploy)
+cd backend
+npm start  # Solo backend sirviendo todo en puerto 5020
 ```
 
-### 🌐 Acceso en Desarrollo
+### 🌐 URLs de Acceso
 
-- **Frontend:** http://localhost:5021 (interfaz principal)
-- **Backend API:** http://localhost:5020 (solo API)
-- **Panel Admin:** http://localhost:5021/admin/adminUsuarios
+#### Desarrollo (npm run dev):
 
-### 🚀 Modo Producción (Servidor Unificado)
+- **Frontend Principal:** http://localhost:5021
+- **Backend API directo:** http://localhost:5020
+- **Admin Panel:** http://localhost:5021/admin/adminUsuarios
+- **Swagger UI:** http://localhost:5021/api-docs (requiere token admin)
 
-En producción, el backend sirve tanto la API como las vistas del frontend:
+#### Producción:
 
-```bash
-# Solo el backend ejecutándose
-cd backend && npm start  # Puerto configurado por Render
-```
-
-**Producción en Render:** https://servitech-2bja.onrender.com
+- **Aplicación completa:** https://servitech-2bja.onrender.com
+- **API:** https://servitech-2bja.onrender.com/api/
+- **Admin:** https://servitech-2bja.onrender.com/admin/adminUsuarios
 
 ---
 
@@ -122,21 +144,170 @@ cd backend && npm start  # Puerto configurado por Render
 
 ```
 servitech/
-├── 🔧 backend/              # Servidor principal (API + Vistas)
-│   ├── app.js              # Servidor unificado
-│   ├── controllers/        # Controladores MVC
-│   ├── models/            # Esquemas MongoDB
-│   ├── routes/            # Rutas API
-│   ├── middleware/        # Autenticación & validación
-│   └── .env               # Variables de entorno
-├── 🖥️ frontend/            # Assets y vistas (servido por backend)
-│   ├── server.js          # Router de vistas (importado por backend)
-│   ├── views/             # Plantillas EJS
-│   ├── assets/            # CSS, JS, imágenes
-│   └── .env               # Variables desarrollo (opcional)
-├── 📋 INSTALL.md          # Manual técnico detallado
-└── 📄 README.md           # Este archivo
+├── 🔧 backend/                    # Servidor principal (Node.js/Express)
+│   ├── config/                   # Configuraciones del sistema
+│   ├── controllers/              # Lógica de negocio MVC
+│   ├── middleware/               # Middleware personalizado
+│   ├── models/                   # Esquemas MongoDB (Mongoose)
+│   ├── routes/                   # Rutas API REST
+│   ├── services/                 # Servicios de negocio
+│   ├── uploads/                  # Archivos subidos (fotos perfil)
+│   ├── validators/               # Validaciones de entrada
+│   ├── .env                      # Variables de entorno
+│   ├── app.js                    # Aplicación principal unificada
+│   ├── inicializar.js            # Script de inicialización
+│   ├── package-lock.json         # Lock de dependencias
+│   └── package.json              # Dependencias backend
+├── 🖥️ frontend/                   # Assets y vistas (servido por backend)
+│   ├── assets/                   # Recursos estáticos
+│   │   ├── css/                  # Hojas de estilo CSS
+│   │   ├── img/                  # Imágenes del proyecto
+│   │   └── js/                   # JavaScript del cliente
+│   ├── views/                    # Plantillas EJS
+│   │   ├── admin/                # Panel administrativo
+│   │   ├── components/           # Componentes reutilizables
+│   │   ├── 404.ejs               # Página de error 404
+│   │   ├── calendarioAsesorias.ejs # Calendario de asesorías
+│   │   ├── confirmacionAsesoria.ejs # Confirmación de asesoría
+│   │   ├── contacto.ejs          # Página de contacto
+│   │   ├── debug-categorias.ejs  # Debug de categorías
+│   │   ├── editarExpertos.ejs    # Edición de expertos
+│   │   ├── expertos.ejs          # Lista de expertos
+│   │   ├── index.ejs             # Página principal
+│   │   ├── login.ejs             # Página de login
+│   │   ├── misAsesorias.ejs      # Mis asesorías
+│   │   ├── pasarelasPagos.ejs    # Pasarelas de pago
+│   │   ├── perfil.ejs            # Perfil de usuario
+│   │   ├── privacidad.ejs        # Política de privacidad
+│   │   ├── registro.ejs          # Registro de usuario
+│   │   ├── registroExperto.ejs   # Registro de experto
+│   │   ├── recuperarPassword.ejs # Recuperación de contraseña
+│   │   └── terminos.ejs          # Términos y condiciones
+│   ├── tests/                    # Archivos de prueba
+│   ├── .env                      # Variables de desarrollo (opcional)
+│   ├── package-lock.json         # Lock de dependencias
+│   ├── package.json              # Dependencias frontend
+│   └── server.js                 # Servidor de desarrollo con proxy
+├── 📋 INSTALL.md                  # Manual técnico detallado
+├── 📄 README.md                   # Documentación principal
+└── 🔒 .gitignore                  # Archivos ignorados por Git
 ```
+
+---
+
+## ⚙️ Variables de Entorno
+
+### Desarrollo Local (backend/.env)
+
+```env
+# === CONFIGURACIÓN DEL SERVIDOR ===
+PORT=5020
+NODE_ENV=development
+
+# === BASE DE DATOS ===
+MONGO_URI=mongodb+srv://usuario:password@cluster0.xxxxx.mongodb.net/servitech
+
+# === AUTENTICACIÓN ===
+JWT_SECRET=clave_super_secreta_de_al_menos_32_caracteres
+JWT_EXPIRES_IN=7d
+
+# === EMAIL (Gmail SMTP) ===
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=465
+EMAIL_SECURE=true
+EMAIL_USER=servitech.app.correo@gmail.com
+EMAIL_PASS=tu_app_password_de_16_caracteres
+
+# === GOOGLE RECAPTCHA V2 ===
+RECAPTCHA_SITE_KEY=6LcXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+RECAPTCHA_SECRET_KEY=6LcXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+# === URLs DE LA APLICACIÓN ===
+APP_URL=http://localhost:5020
+FRONTEND_URL=http://localhost:5021
+
+# === SEGURIDAD ===
+API_KEY=8g-X4JgECIPNcQ59tMN
+BCRYPT_ROUNDS=12
+
+# === CONFIGURACIÓN DE ARCHIVOS ===
+UPLOAD_PATH=uploads
+MAX_FILE_SIZE=5242880
+
+# === ADMINISTRACIÓN ===
+ADMIN_EMAIL=app.correo@gmail.com
+ADMIN_PASSWORD=Admin123
+```
+
+### Producción (Variables Render)
+
+```env
+# Mismas variables que desarrollo +
+NODE_ENV=production
+RENDER_EXTERNAL_URL=https://servitech-2bja.onrender.com
+PORT=10000  # Configurado automáticamente por Render
+
+# Sin FRONTEND_URL (servidor unificado)
+```
+
+---
+
+## 🚀 Scripts de Desarrollo
+
+### Backend (`cd backend`)
+
+```bash
+npm start          # 🚀 Servidor producción (unificado)
+npm run dev        # 🔧 Desarrollo con nodemon (solo backend)
+npm run build      # 📦 Instala dependencias frontend + backend
+npm test           # 🧪 Ejecutar tests (si existen)
+```
+
+### Frontend (`cd frontend`)
+
+```bash
+npm start          # 🌐 Servidor frontend standalone (no recomendado)
+npm run dev        # 🔧 Desarrollo con proxy y live reload
+npm run dev:proxy  # 🔄 Solo proxy al backend (alternativo)
+```
+
+### Comandos Combinados Recomendados
+
+```bash
+# DESARROLLO (2 terminales)
+Terminal 1: cd backend && npm run dev
+Terminal 2: cd frontend && npm run dev
+
+# PRODUCCIÓN LOCAL (1 terminal)
+cd backend && npm start
+```
+
+---
+
+## 🔐 Panel de Administración
+
+### Acceso al Panel Admin
+
+1. **Login como administrador:**
+
+   - Email: `servitech.app.correo@gmail.com`
+   - Password: `Admin123`
+
+2. **Acceder al panel:** `/admin/adminUsuarios`
+
+3. **Swagger UI protegido:**
+   - Endpoint: `/api-docs`
+   - Requiere token JWT de admin
+   - Ver [INSTALL.md](./INSTALL.md) para instrucciones detalladas
+
+### Funcionalidades Admin
+
+- 👥 Gestión completa de usuarios
+- 🏆 Administración de expertos
+- 📊 Estadísticas en tiempo real
+- 🔧 Configuración del sistema
+- 📋 Logs de auditoría
+- 🗂️ Gestión de categorías
 
 ---
 
@@ -145,148 +316,167 @@ servitech/
 ```mermaid
 graph TD
     A[Usuario se registra] --> B[Verifica reCAPTCHA]
-    B --> C[Busca expertos]
-    C --> D[Selecciona especialista]
-    D --> E[Agenda cita]
-    E --> F[Confirma pago]
-    F --> G[Recibe email confirmación]
-    G --> H[Realiza asesoría]
+    B --> C[Login JWT]
+    C --> D[Busca expertos]
+    D --> E[Selecciona especialista]
+    E --> F[Agenda cita]
+    F --> G[Confirma datos]
+    G --> H[Recibe email confirmación]
+    H --> I[Realiza asesoría]
 
-    I[Experto se registra] --> J[Configura perfil]
-    J --> K[Define servicios]
-    K --> L[Gestiona agenda]
-    L --> M[Recibe solicitudes]
-    M --> H
+    J[Experto se registra] --> K[Completa perfil]
+    K --> L[Sube foto perfil]
+    L --> M[Define servicios y tarifas]
+    M --> N[Configura disponibilidad]
+    N --> O[Recibe solicitudes]
+    O --> I[Realiza asesoría]
+
+    P[Admin] --> Q[Panel administrativo]
+    Q --> R[Gestiona usuarios/expertos]
+    R --> S[Monitorea sistema]
+    S --> T[Configura parámetros]
 ```
 
 ---
 
-## 🎮 Uso Básico
+## 🛡️ Seguridad Implementada
 
-### Como Usuario
+- 🔐 **Autenticación JWT** con roles (usuario, experto, admin)
+- 🛡️ **Encriptación bcrypt** para contraseñas
+- 🤖 **Google reCAPTCHA v2** en registro/login
+- 🔒 **Rutas protegidas** según rol de usuario
+- 📧 **Validación de email** en registro
+- 🚫 **Rate limiting** en endpoints críticos
+- 🔍 **Validación de entrada** con Joi/express-validator
+- 📋 **Logs de auditoría** para acciones importantes
 
-1. **Registrarse** en /registro.html con verificación reCAPTCHA
-2. **Explorar** expertos en /expertos.html
-3. **Agendar** cita con el especialista
-4. **Pagar** y recibir confirmación por email
-5. **Conectar** en el horario acordado
+---
+
+## 🎮 Guía de Uso
+
+### Como Usuario Final
+
+1. **Registro:** Ir a `/registro.html`, completar datos + reCAPTCHA
+2. **Login:** Autenticarse en `/login.html`
+3. **Explorar:** Ver expertos disponibles en `/expertos.html`
+4. **Agendar:** Seleccionar experto y agendar cita
+5. **Confirmar:** Revisar detalles y confirmar
+6. **Conectar:** Recibir detalles por email y conectar
 
 ### Como Experto
 
-1. **Registrarse** como usuario normal
-2. **Completar** perfil experto en /registroExperto
-3. **Configurar** servicios y tarifas
-4. **Gestionar** disponibilidad en /editarExperto
-5. **Atender** clientes agendados
+1. **Registro inicial:** Como usuario normal
+2. **Registro experto:** Completar perfil en `/registroExperto`
+3. **Configurar perfil:** Subir foto, definir categorías y tarifas
+4. **Gestionar servicios:** Precios, disponibilidad
+5. **Atender clientes:** Gestionar citas agendadas
 
 ### Como Administrador
 
-1. **Acceder** al panel /admin/adminUsuarios
-2. **Supervisar** usuarios y expertos
-3. **Gestionar** categorías y servicios
-4. **Monitorear** logs del sistema
-5. **Configurar** parámetros globales
+1. **Login admin:** Credenciales de administrador
+2. **Panel control:** Acceder a `/admin/adminUsuarios`
+3. **Gestionar usuarios:** CRUD completo de usuarios
+4. **Supervisar expertos:** Aprobar/rechazar perfiles
+5. **Monitorear sistema:** Ver estadísticas y logs
 
 ---
 
-## 🚀 Deployment
+## 🚀 Deployment en Render
 
-### Variables de Entorno Requeridas
+### Configuración para Render
 
-#### Desarrollo Local (backend/.env)
+1. **Conectar repositorio GitHub** a cuenta Render
+2. **Crear Web Service** con configuración:
+   ```
+   Name: servitech
+   Root Directory: backend
+   Environment: Node
+   Build Command: npm run build
+   Start Command: npm start
+   ```
+3. **Variables de entorno:** Configurar en panel Environment
+4. **Auto-deploy:** Activar desde rama main
+
+### Variables Render Requeridas
 
 ```env
-# Base de datos
+NODE_ENV=production
 MONGO_URI=mongodb+srv://...
-
-# Autenticación
-JWT_SECRET=clave-super-secreta-larga
-
-# Email (Gmail)
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=465
+JWT_SECRET=clave-larga-segura
 EMAIL_USER=tu-gmail@gmail.com
-EMAIL_PASS=tu-app-password
-
-# reCAPTCHA
+EMAIL_PASS=app-password-16-chars
 RECAPTCHA_SITE_KEY=6Lc...
 RECAPTCHA_SECRET_KEY=6Lc...
-
-# URLs desarrollo
-FRONTEND_URL=http://localhost:5021
-BACKEND_URL=http://localhost:5020
-```
-
-#### Producción (Variables Render)
-
-```env
-# Mismas variables que desarrollo +
-NODE_ENV=production
-RENDER_EXTERNAL_URL=https://tu-app.onrender.com
-PORT=configurado-por-render
-
-# Sin FRONTEND_URL ni BACKEND_URL (servidor unificado)
-```
-
-### Deploy en Render
-
-1. **Conectar** repositorio GitHub a Render
-2. **Configurar** Web Service:
-   - **Root Directory:** `backend`
-   - **Build Command:** `npm run build`
-   - **Start Command:** `npm start`
-3. **Añadir** variables de entorno en panel Environment
-4. **Desplegar** automáticamente
-
----
-
-## 🔧 Scripts Disponibles
-
-### Backend
-
-```bash
-npm start          # Servidor producción (unificado)
-npm run dev        # Servidor desarrollo con nodemon
-npm run build      # Instala deps frontend + backend
-```
-
-### Frontend
-
-```bash
-npm start          # Servidor frontend standalone
-npm run dev        # Desarrollo con nodemon + proxy
-npm run dev:proxy  # Desarrollo con proxy al backend
+ADMIN_EMAIL=admin@dominio.com
+ADMIN_PASSWORD=PasswordSeguro123
 ```
 
 ---
 
 ## 🤝 Contribuir
 
-1. **Fork** el repositorio
-2. **Crear** rama feature (`git checkout -b feature/nueva-funcionalidad`)
-3. **Desarrollar** en modo local (2 servidores)
-4. **Probar** en modo unificado antes de PR
-5. **Commit** cambios (`git commit -m 'Añadir nueva funcionalidad'`)
-6. **Push** a la rama (`git push origin feature/nueva-funcionalidad`)
-7. **Abrir** Pull Request
+### Preparar Entorno de Desarrollo
+
+```bash
+# 1. Fork y clonar
+git clone https://github.com/tu-usuario/servitech.git
+cd servitech
+
+# 2. Instalar dependencias
+cd backend && npm install
+cd ../frontend && npm install
+
+# 3. Configurar .env local
+cp backend/.env.example backend/.env
+# Editar con tus credenciales
+
+# 4. Crear rama feature
+git checkout -b feature/nueva-funcionalidad
+
+# 5. Desarrollar en modo dev
+# Terminal 1: cd backend && npm run dev
+# Terminal 2: cd frontend && npm run dev
+
+# 6. Probar modo producción
+cd backend && npm start
+
+# 7. Commit y push
+git commit -m "feat: descripción del cambio"
+git push origin feature/nueva-funcionalidad
+
+# 8. Crear Pull Request
+```
+
+### Estándares de Código
+
+- 🏗️ **Arquitectura MVC** estricta
+- 📝 **Comentarios** en funciones complejas
+- 🧪 **Tests** para nuevas funcionalidades
+- 📋 **Commits semánticos** (feat, fix, docs, etc.)
+- 🔍 **ESLint/Prettier** para formato consistente
 
 ---
 
-## 📞 Soporte
+## 📞 Soporte y Recursos
 
-| Canal                | Enlace                                                        |
-| -------------------- | ------------------------------------------------------------- |
-| 🐛 **Issues**        | [GitHub Issues](https://github.com/DianaJJ0/servitech/issues) |
-| 📧 **Email**         | servitech.app.correo@gmail.com                                |
-| 📚 **Documentación** | [Manual Completo](./INSTALL.md)                               |
-| 🌐 **Demo Live**     | https://servitech-2bja.onrender.com                           |
-| 👩‍💻 **Autor**         | [@DianaJJ0](https://github.com/DianaJJ0)                      |
+| Recurso               | Enlace                                                        |
+| --------------------- | ------------------------------------------------------------- |
+| 🐛 **Issues/Bugs**    | [GitHub Issues](https://github.com/DianaJJ0/servitech/issues) |
+| 📧 **Email Soporte**  | servitech.app.correo@gmail.com                                |
+| 📚 **Manual Técnico** | [INSTALL.md](./INSTALL.md)                                    |
+| 🌐 **Demo Live**      | https://servitech-2bja.onrender.com                           |
+| 👩‍💻 **Desarrolladora** | [@DianaJJ0](https://github.com/DianaJJ0)                      |
+| 📖 **API Docs**       | `/api-docs` (requiere auth admin)                             |
 
 ---
 
-## 📄 Licencia
+## 🔗 Enlaces Útiles
 
-Este proyecto está bajo la [Licencia MIT](LICENSE) - consulta el archivo LICENSE para más detalles.
+- [MongoDB Atlas](https://cloud.mongodb.com/) - Base de datos
+- [Render](https://render.com/) - Hosting
+- [Google reCAPTCHA](https://www.google.com/recaptcha/) - Seguridad
+- [Gmail App Passwords](https://support.google.com/accounts/answer/185833) - Email
+- [Node.js](https://nodejs.org/) - Runtime
 
 ---
 
@@ -294,6 +484,10 @@ Este proyecto está bajo la [Licencia MIT](LICENSE) - consulta el archivo LICENS
 
 **¿Necesitas ayuda técnica? ¡ServiTech te conecta con los mejores expertos! 🚀**
 
-[🌟 Dar una estrella](https://github.com/DianaJJ0/servitech) | [🐛 Reportar bug](https://github.com/DianaJJ0/servitech/issues) | [💡 Sugerir feature](https://github.com/DianaJJ0/servitech/issues)
+[🌟 Dar estrella](https://github.com/DianaJJ0/servitech) | [🐛 Reportar bug](https://github.com/DianaJJ0/servitech/issues) | [💡 Sugerir feature](https://github.com/DianaJJ0/servitech/issues) | [🚀 Ver demo](https://servitech-2bja.onrender.com)
+
+---
+
+### 🏆 Tecnología desarrollada con ❤️ para conectar talento
 
 </div>
