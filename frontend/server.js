@@ -412,10 +412,28 @@ router.get("/expertos.html", async (req, res) => {
     // 1) Obtener categorías
     const catRes = await fetch(`${BACKEND_URL}/api/categorias`);
     categorias = catRes.ok ? await catRes.json() : [];
-    // 2) Obtener expertos
+
+    // Debug: Log de categorías recibidas
+    console.log(
+      "Categorías recibidas del backend:",
+      JSON.stringify(categorias, null, 2)
+    );
+
+    // 2) Construir parámetros de consulta para expertos
     page = parseInt(req.query.page, 10) || 1;
     limit = 6;
-    const apiUrl = `${BACKEND_URL}/api/expertos?page=${page}&limit=${limit}`;
+
+    // Construir URL con filtros
+    const apiParams = new URLSearchParams();
+    apiParams.set("page", page);
+    apiParams.set("limit", limit);
+
+    // Añadir filtro de categoría si existe
+    if (req.query.categoria && req.query.categoria.trim()) {
+      apiParams.set("categoria", req.query.categoria.trim());
+    }
+
+    const apiUrl = `${BACKEND_URL}/api/expertos?${apiParams.toString()}`;
     const expRes = await fetch(apiUrl);
 
     if (expRes && expRes.ok) {
@@ -446,6 +464,7 @@ router.get("/expertos.html", async (req, res) => {
       .join("&");
     baseQuery = qp;
   } catch (e) {
+    console.error("Error en /expertos.html:", e);
     categorias = [];
     expertos = [];
   }
