@@ -7,10 +7,11 @@
   <title>Gestión de Expertos - Servitech Admin</title>
   <link rel="stylesheet" href="/assets/css/administrador.css" />
   <link rel="stylesheet" href="/assets/css/admin.css" />
+  <link rel="stylesheet" href="/assets/css/admin-panel-global.css" />
   <link rel="stylesheet" href="/assets/css/admin-components.css" />
   <link rel="stylesheet" href="/assets/css/admin-expertos.css" />
   <!-- page-specific CSS -->
-  <link rel="stylesheet" href="/assets/css/admin-clientes.css" />
+  <link rel="stylesheet" href="/assets/css/admin-expertos-approval.css" />
   <!--<link rel="stylesheet" href="/assets/css/admin-responsive.css" />-->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -54,6 +55,20 @@
                 <i class="fas fa-file-export"></i>
                 <span>Exportar</span>
               </button>
+            </div>
+          </div>
+
+          <!-- Filtros de Estado -->
+          <div class="admin-filters" style="margin-bottom: 1rem;">
+            <div class="filter-group">
+              <label for="estadoFilter" style="font-weight: 500; margin-right: 0.5rem;">Estado:</label>
+              <select id="estadoFilter" class="filter-select"
+                style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                <option value="all">Todos los estados</option>
+                <option value="activo">Activos</option>
+                <option value="pendiente-verificacion">Pendientes de verificación</option>
+                <option value="inactivo">Inactivos</option>
+              </select>
             </div>
           </div>
 
@@ -888,7 +903,7 @@
   <div id="verPerfilExperto" class="modal-expert">
     <div class="modal-expert__container">
       <div class="modal-expert__header">
-        <h2 class="modal-expert__title">Agregar nuevo experto</h2>
+        <h2 class="modal-expert__title">Ver perfil de experto</h2>
         <button class="btn-close" aria-label="Cerrar"><i class="fas fa-times"></i></button>
       </div>
 
@@ -963,20 +978,21 @@
 
             <!-- Estado -->
             <div>
-              <label class="modal-expert__label" for="status">
+              <label class="modal-expert__label" for="status_view">
                 <i class="fas fa-toggle-on modal-expert__icon" aria-hidden="true"></i>
                 Estado
               </label>
               <div class="input-with-icon">
                 <i class="fas fa-toggle-on" aria-hidden="true"></i>
-                <select id="status" class="modal-expert__input modal-expert__select" aria-label="Estado del experto">
-                  <option value="active">Activo</option>
-                  <option value="pending">Pendiente</option>
-                  <option value="inactive">Inactivo</option>
+                <select id="status_view" class="modal-expert__input modal-expert__select"
+                  aria-label="Estado del experto" disabled>
+                  <option value="activo">Activo</option>
+                  <option value="pendiente-verificacion">Pendiente de verificación</option>
+                  <option value="inactivo">Inactivo</option>
                 </select>
                 <i class="fas fa-chevron-down" aria-hidden="true"></i>
               </div>
-              <small class="modal-expert__hint">Define si el experto puede recibir solicitudes</small>
+              <small class="modal-expert__hint">Estado actual del experto</small>
             </div>
 
             <!-- Categorías -->
@@ -1235,10 +1251,26 @@
 
   <script id="initial-expertos" type="application/json"><%- JSON.stringify(initialExpertos || []) %></script>
   <script id="categorias-data" type="application/json"><%- JSON.stringify(categorias || []) %></script>
+  <script id="current-user-data" type="application/json"><%- JSON.stringify(user || {}) %></script>
+  <script>
+    // Inicializar datos del usuario autenticado de forma segura
+    (function () {
+      try {
+        var raw = document.getElementById('current-user-data').textContent || '{}';
+        window.currentUser = JSON.parse(raw);
+        window.authToken = (window.currentUser && window.currentUser.token) ? window.currentUser.token : '';
+      } catch (e) {
+        window.currentUser = {};
+        window.authToken = '';
+      }
+    })();
+  </script>
 
   <script src="/assets/js/admin/admin-common.js"></script>
   <script src="/assets/js/admin/admin-expertos.js"></script>
   <script src="/assets/js/admin/admin-expertos.bootstrap.js"></script>
+
+
 
 </body>
 

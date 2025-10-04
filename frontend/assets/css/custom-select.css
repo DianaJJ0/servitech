@@ -1,0 +1,181 @@
+/* ========================================
+   CUSTOM SELECT STYLES
+   Componente de select personalizado
+   ======================================== */
+
+.custom-select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.custom-select {
+  position: relative;
+  width: 100%;
+  cursor: pointer;
+  user-select: none;
+}
+
+.custom-select__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  background-color: #2a2a2a;
+  border: 1px solid var(--border-color, #3a3a3a);
+  border-radius: var(--input-radius, 8px);
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  min-height: 48px;
+}
+
+.custom-select:hover .custom-select__trigger {
+  border-color: var(--primary-color, #3a8eff);
+  box-shadow: 0 0 0 3px rgba(58, 142, 255, 0.1);
+}
+
+.custom-select:focus .custom-select__trigger,
+.custom-select.open .custom-select__trigger {
+  outline: none;
+  border-color: var(--primary-color, #3a8eff);
+  box-shadow: 0 0 0 3px rgba(58, 142, 255, 0.15);
+}
+
+.custom-select__text {
+  flex: 1;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.custom-select__arrow {
+  margin-left: 0.5rem;
+  color: #ffffff;
+  transition: transform 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.custom-select.open .custom-select__arrow {
+  transform: rotate(180deg);
+}
+
+.custom-select__options {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background-color: #2a2a2a;
+  border: 1px solid var(--primary-color, #3a8eff);
+  border-radius: var(--input-radius, 8px);
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.2s ease;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.custom-select.open .custom-select__options {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.custom-select__option {
+  padding: 0.75rem;
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.custom-select__option:last-child {
+  border-bottom: none;
+}
+
+.custom-select__option:hover {
+  background-color: rgba(58, 142, 255, 0.2);
+  color: #ffffff;
+}
+
+.custom-select__option.selected {
+  background-color: var(--primary-color, #3a8eff);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.custom-select__option.selected:hover {
+  background-color: #2a7af0;
+}
+
+/* Scrollbar personalizado para las opciones */
+.custom-select__options::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-select__options::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.custom-select__options::-webkit-scrollbar-thumb {
+  background: var(--primary-color, #3a8eff);
+  border-radius: 4px;
+}
+
+.custom-select__options::-webkit-scrollbar-thumb:hover {
+  background: #2a7af0;
+}
+
+/* Animación suave al abrir */
+@keyframes selectSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.custom-select.open .custom-select__options {
+  animation: selectSlideDown 0.2s ease;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .custom-select__options {
+    max-height: 200px;
+  }
+
+  .custom-select__option {
+    padding: 0.65rem;
+    font-size: 0.95rem;
+  }
+}
+
+/* Estado de focus para accesibilidad */
+.custom-select:focus-visible {
+  outline: 2px solid var(--primary-color, #3a8eff);
+  outline-offset: 2px;
+}
+
+/* Disabled state (por si acaso) */
+.custom-select.disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.custom-select.disabled .custom-select__trigger {
+  cursor: not-allowed;
+  background-color: #1a1a1a;
+}
