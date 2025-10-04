@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="/assets/css/admin-expertos.css" />
   <!-- page-specific CSS -->
   <link rel="stylesheet" href="/assets/css/admin-clientes.css" />
+  <link rel="stylesheet" href="/assets/css/admin-expertos-approval.css" />
   <!--<link rel="stylesheet" href="/assets/css/admin-responsive.css" />-->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -54,6 +55,19 @@
                 <i class="fas fa-file-export"></i>
                 <span>Exportar</span>
               </button>
+            </div>
+          </div>
+
+          <!-- Filtros de Estado -->
+          <div class="admin-filters" style="margin-bottom: 1rem;">
+            <div class="filter-group">
+              <label for="estadoFilter" style="font-weight: 500; margin-right: 0.5rem;">Estado:</label>
+              <select id="estadoFilter" class="filter-select" style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                <option value="all">Todos los estados</option>
+                <option value="activo">Activos</option>
+                <option value="pendiente-verificacion">Pendientes de verificación</option>
+                <option value="inactivo">Inactivos</option>
+              </select>
             </div>
           </div>
 
@@ -1235,6 +1249,11 @@
 
   <script id="initial-expertos" type="application/json"><%- JSON.stringify(initialExpertos || []) %></script>
   <script id="categorias-data" type="application/json"><%- JSON.stringify(categorias || []) %></script>
+  <script>
+    // Pasar datos del usuario autenticado
+    window.authToken = '<%= user?.token || "" %>';
+    window.currentUser = <%- JSON.stringify(user || {}) %>;
+  </script>
 
   <script src="/assets/js/admin/admin-common.js"></script>
   <script src="/assets/js/admin/admin-expertos.js"></script>

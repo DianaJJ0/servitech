@@ -855,10 +855,11 @@ router.get("/admin/adminExpertos", requireAdmin, async (req, res) => {
       categorias = await catRes.json();
     }
 
-    const expertosRes = await fetch(`${BACKEND_URL}/api/expertos?limit=10`, {
+    const expertosRes = await fetch(`${BACKEND_URL}/api/expertos?limit=100&estado=all`, {
       headers: req.session.user?.token
         ? {
             Authorization: `Bearer ${req.session.user.token}`,
+            'X-API-Key': process.env.API_KEY || 'servitech-api-key-2024'
           }
         : {},
     });
