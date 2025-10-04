@@ -401,22 +401,47 @@
     // tableEl puede ser el <table> o null; si no se proporciona, buscar la tabla de expertos
     const root =
       tableEl || document.querySelector("table.admin-table--expertos");
-    if (!root) return;
+    
+    console.log('bindRowActions called with:', tableEl);
+    console.log('Root element found:', root);
+    
+    if (!root) {
+      console.error('No table element found for binding actions!');
+      return;
+    }
+    
+    console.log('Binding action buttons...');
     bindActionToButtons(root, ".btn-view", openModalView);
     bindActionToButtons(root, ".btn-edit", openModalEdit);
     bindActionToButtons(root, ".btn-inactivate", inactivateExpert);
     bindActionToButtons(root, ".btn-activate", activateExpert);
     bindActionToButtons(root, ".btn-approve", approveExpert);
     bindActionToButtons(root, ".btn-reject", rejectExpert);
+    
+    console.log('All action buttons bound successfully');
   }
 
   function bindActionToButtons(root, selector, handler) {
     // root: elemento contenedor donde buscar los botones (table o tbody)
     // selector: selector relativo para los botones dentro del root
     const mount = root || document;
-    Array.from(mount.querySelectorAll(selector)).forEach((btn) => {
-      btn.addEventListener("click", function () {
+    const buttons = Array.from(mount.querySelectorAll(selector));
+    
+    console.log(`Binding ${buttons.length} buttons for selector "${selector}"`);
+    
+    buttons.forEach((btn) => {
+      btn.addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
         const id = this.getAttribute("data-id");
+        console.log(`Button clicked: ${selector}, ID: ${id}`);
+        
+        if (!id) {
+          console.error('No data-id found on button', this);
+          return;
+        }
+        
         handler(id);
       });
     });
@@ -575,33 +600,52 @@
   }
 
   function openModal(type, id) {
+    console.log(`openModal called with type: ${type}, id: ${id}`);
+    console.log(`Total experts in allExperts: ${allExperts.length}`);
+    
     const expert = allExperts.find((x) => getExpertField(x, "id") == id);
+    console.log(`Expert found:`, expert);
+    
     if (!expert) {
       console.warn('Expert not found with id:', id);
+      alert(`Experto no encontrado con ID: ${id}`);
       return;
     }
 
     let modal;
     if (type === "view") {
       modal = $("#verPerfilExperto");
+      console.log('Looking for modal #verPerfilExperto:', modal);
     } else {
       modal = $(`#${type}ExpertModal`);
+      console.log(`Looking for modal #${type}ExpertModal:`, modal);
     }
     
     if (!modal) {
-      console.warn('Modal not found for type:', type);
+      console.error('Modal not found for type:', type);
+      alert(`Modal no encontrado para tipo: ${type}`);
       return;
     }
 
     try {
       // Mapear campos según el tipo de modal
       if (type === "view") {
+        console.log('Filling view modal fields...');
+        
         // Para el modal de ver
         const nameField = $("#name_view");
         const emailField = $("#email_view");
         const precioField = $("#precio_view");
         const bioField = $("#bio_view");
         const statusField = $("#status_view");
+        
+        console.log('Fields found:', {
+          nameField: !!nameField,
+          emailField: !!emailField,
+          precioField: !!precioField,
+          bioField: !!bioField,
+          statusField: !!statusField
+        });
         
         if (nameField) nameField.value = getExpertField(expert, "name") || "";
         if (emailField) emailField.value = getExpertField(expert, "email") || "";
@@ -639,6 +683,8 @@
         }
         
       } else {
+        console.log(`Filling ${type} modal fields...`);
+        
         // Para otros modales (edit, etc.)
         const nameField = $(`#name_${type}`);
         const emailField = $(`#email_${type}`);
@@ -651,10 +697,18 @@
         if (bioField) bioField.value = getExpertField(expert, "bio") || "";
       }
       
+      console.log('About to show modal...');
       modal.style.display = "block";
-      console.log('Modal opened for expert:', expert);
+      modal.classList.add('show');
+      document.body.classList.add('modal-open');
+      
+      console.log('Modal should now be visible. Modal display:', modal.style.display);
+      console.log('Modal classes:', modal.className);
+      console.log('Body classes:', document.body.className);
+      
     } catch (e) {
-      console.warn(`Error opening ${type} modal:`, e);
+      console.error(`Error opening ${type} modal:`, e);
+      alert(`Error al abrir modal: ${e.message}`);
     }
   }
 
