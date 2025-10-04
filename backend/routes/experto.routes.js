@@ -159,4 +159,60 @@ router.get(
   expertoController.obtenerPerfilExperto
 );
 
+/**
+ * @swagger
+ * /api/expertos/aprobar/{email}:
+ *   put:
+ *     summary: Aprobar solicitud de experto (admin)
+ *     tags: [Expertos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: email
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Experto aprobado exitosamente
+ *       404:
+ *         description: Experto no encontrado
+ */
+router.put(
+  "/aprobar/:email",
+  apiKeyMiddleware,
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("admin"),
+  (req, res, next) => expertoController.aprobarExperto(req, res, next)
+);
+
+/**
+ * @swagger
+ * /api/expertos/rechazar/{email}:
+ *   put:
+ *     summary: Rechazar solicitud de experto (admin)
+ *     tags: [Expertos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: email
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Experto rechazado exitosamente
+ *       404:
+ *         description: Experto no encontrado
+ */
+router.put(
+  "/rechazar/:email",
+  apiKeyMiddleware,
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("admin"),
+  (req, res, next) => expertoController.rechazarExperto(req, res, next)
+);
+
 module.exports = router;

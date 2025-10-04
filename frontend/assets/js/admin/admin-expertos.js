@@ -205,9 +205,13 @@
 
   function getStatusBadgeClass(status) {
     const statusClasses = {
-      active: "badge--active",
-      pending: "badge--pending",
-      inactive: "badge--inactive",
+      "activo": "badge--active",
+      "pendiente-verificacion": "badge--pending",
+      "inactivo": "badge--inactive",
+      // Mantener compatibilidad con valores en inglés
+      "active": "badge--active",
+      "pending": "badge--pending", 
+      "inactive": "badge--inactive",
     };
     return statusClasses[status] || "badge--inactive";
   }
@@ -274,8 +278,35 @@
     const registro = formatDate(getExpertField(expert, "createdAt"));
     const sesiones = getExpertField(expert, "sessions") || 0;
 
+    // Generar botones de acción según el estado
+    let actionButtons = '';
+    if (status === 'pendiente-verificacion') {
+      actionButtons = `
+        <div class="action-buttons" role="group" aria-label="Acciones experto">
+          <button class="btn-success btn-approve" data-id="${id}" data-email="${email}" title="Aprobar solicitud">
+            <i class="fas fa-check"></i> Aprobar
+          </button>
+          <button class="btn-danger btn-reject" data-id="${id}" data-email="${email}" title="Rechazar solicitud">
+            <i class="fas fa-times"></i> Rechazar
+          </button>
+          <button class="btn-outline btn-view" data-id="${id}">Ver</button>
+        </div>
+      `;
+    } else {
+      actionButtons = `
+        <div class="action-buttons" role="group" aria-label="Acciones experto">
+          <button class="btn-outline btn-view" data-id="${id}">Ver</button>
+          <button class="btn-outline btn-edit" data-id="${id}">Editar</button>
+          ${status === 'activo' ? 
+            `<button class="btn-warning btn-inactivate" data-id="${id}">Inactivar</button>` :
+            `<button class="btn-success btn-activate" data-id="${id}">Activar</button>`
+          }
+        </div>
+      `;
+    }
+
     return `
-      <tr data-id="${id}">
+      <tr data-id="${id}" data-status="${status}">
         <td>
           <div style="display:flex;gap:.6rem;align-items:center">
             <img src="${avatar}" alt="avatar" style="width:40px;height:40px;border-radius:999px;object-fit:cover"/>
@@ -285,16 +316,12 @@
             </div>
           </div>
         </td>
-  <td>${cats}</td>
+        <td>${cats}</td>
         <td>${registro}</td>
         <td>${sesiones}</td>
         <td><span class="badge ${badgeClass}">${escapeHtml(status)}</span></td>
         <td class="expertos-actions-cell">
-          <div class="action-buttons" role="group" aria-label="Acciones experto">
-            <button class="btn-outline btn-view" data-id="${id}">Ver</button>
-            <button class="btn-outline btn-edit" data-id="${id}">Editar</button>
-            <button class="btn-primary btn-inactivate" data-id="${id}">Inactivar</button>
-          </div>
+          ${actionButtons}
         </td>
       </tr>
     `;
@@ -378,6 +405,9 @@
     bindActionToButtons(root, ".btn-view", openModalView);
     bindActionToButtons(root, ".btn-edit", openModalEdit);
     bindActionToButtons(root, ".btn-inactivate", inactivateExpert);
+    bindActionToButtons(root, ".btn-activate", activateExpert);
+    bindActionToButtons(root, ".btn-approve", approveExpert);
+    bindActionToButtons(root, ".btn-reject", rejectExpert);
   }
 
   function bindActionToButtons(root, selector, handler) {
@@ -401,7 +431,146 @@
     const badge = row.querySelector(".badge");
     if (badge) {
       badge.className = "badge badge--inactive";
-      badge.textContent = "inactive";
+      badge.textContent = "inactivo";
+    }
+  }
+
+  function activateExpert(id) {
+    const row = document.querySelector(
+      `table.admin-table--expertos tr[data-id="${id}"]`
+    );
+    if (!row) return;
+
+    const badge = row.querySelector(".badge");
+    if (badge) {
+      badge.className = "badge badge--active";
+      badge.textContent = "activo";
+    }
+  }
+
+  async function approveExpert(id) {
+    const btn = document.querySelector(`.btn-approve[data-id="${id}"]`);
+    const email = btn?.getAttribute('data-email');
+    
+    if (!email) {
+      alert('Error: No se pudo obtener el email del experto');
+      return;
+    }
+
+    if (!confirm('¿Estás seguro de que deseas aprobar este experto?')) {
+      return;
+    }
+
+    try {
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Aprobando...';
+
+      const response = await fetch(`/api/expertos/aprobar/${encodeURIComponent(email)}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${window.authToken || ''}`,
+          'X-API-Key': 'servitech-api-key-2024'
+        }
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        // Actualizar la fila para mostrar estado activo
+        const row = document.querySelector(`table.admin-table--expertos tr[data-id="${id}"]`);
+        if (row) {
+          const badge = row.querySelector(".badge");
+          if (badge) {
+            badge.className = "badge badge--active";
+            badge.textContent = "activo";
+          }
+          
+          // Actualizar botones de acción
+          const actionsCell = row.querySelector('.expertos-actions-cell');
+          if (actionsCell) {
+            actionsCell.innerHTML = `
+              <div class="action-buttons" role="group" aria-label="Acciones experto">
+                <button class="btn-outline btn-view" data-id="${id}">Ver</button>
+                <button class="btn-outline btn-edit" data-id="${id}">Editar</button>
+                <button class="btn-warning btn-inactivate" data-id="${id}">Inactivar</button>
+              </div>
+            `;
+            bindRowActions(row.closest('table'));
+          }
+          
+          row.setAttribute('data-status', 'activo');
+        }
+        
+        alert('Experto aprobado exitosamente');
+      } else {
+        throw new Error(result.mensaje || 'Error al aprobar experto');
+      }
+    } catch (error) {
+      console.error('Error al aprobar experto:', error);
+      alert('Error al aprobar experto: ' + error.message);
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-check"></i> Aprobar';
+    }
+  }
+
+  async function rejectExpert(id) {
+    const btn = document.querySelector(`.btn-reject[data-id="${id}"]`);
+    const email = btn?.getAttribute('data-email');
+    
+    if (!email) {
+      alert('Error: No se pudo obtener el email del experto');
+      return;
+    }
+
+    const motivo = prompt('Motivo del rechazo (opcional):');
+    if (motivo === null) {
+      return; // Usuario canceló
+    }
+
+    if (!confirm('¿Estás seguro de que deseas rechazar este experto?')) {
+      return;
+    }
+
+    try {
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Rechazando...';
+
+      const response = await fetch(`/api/expertos/rechazar/${encodeURIComponent(email)}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${window.authToken || ''}`,
+          'X-API-Key': 'servitech-api-key-2024'
+        },
+        body: JSON.stringify({ motivo: motivo || 'Sin motivo especificado' })
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        // Remover la fila de la tabla ya que el usuario ya no es experto
+        const row = document.querySelector(`table.admin-table--expertos tr[data-id="${id}"]`);
+        if (row) {
+          row.remove();
+        }
+        
+        alert('Solicitud de experto rechazada exitosamente');
+        
+        // Actualizar la paginación
+        const remainingRows = document.querySelectorAll('table.admin-table--expertos tbody tr:not(.placeholder-row)');
+        if (remainingRows.length === 0) {
+          const tbody = document.querySelector('table.admin-table--expertos tbody');
+          tbody.innerHTML = '<tr class="placeholder-row"><td colspan="6" style="text-align:center;padding:24px;color:var(--admin-text-secondary);">No hay expertos para mostrar.</td></tr>';
+        }
+      } else {
+        throw new Error(result.mensaje || 'Error al rechazar experto');
+      }
+    } catch (error) {
+      console.error('Error al rechazar experto:', error);
+      alert('Error al rechazar experto: ' + error.message);
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-times"></i> Rechazar';
     }
   }
 
@@ -433,13 +602,13 @@
   // ===== FILTRADO =====
   function applyFilters() {
     // Filtrado por estado, categoría y búsqueda de texto (headerSearch)
-    const estado = $("#filterEstado")?.value || "";
+    const estado = $("#estadoFilter")?.value || "";
     const categoria = $("#filterCategoria")?.value || "";
     const term = (headerSearch?.value || "").trim().toLowerCase();
 
     try {
       filteredExperts = allExperts.filter(function (ex) {
-        if (estado) {
+        if (estado && estado !== "all") {
           const st = (getExpertField(ex, "status") || "").toString();
           if (st !== estado) return false;
         }
@@ -903,6 +1072,12 @@
     } catch (e) {}
     headerSearch = $(".header-search input");
     headerSearch?.addEventListener("input", () => {
+      currentPage = 1;
+      applyFilters();
+    });
+
+    // Agregar listener para el filtro de estado
+    $("#estadoFilter")?.addEventListener("change", () => {
       currentPage = 1;
       applyFilters();
     });
