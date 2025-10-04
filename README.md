@@ -106,7 +106,7 @@ cd ../frontend
 npm install
 
 # 4. Configurar variables de entorno (ver sección variables)
-cp backend/.env.example backend/.env
+cd backend/.env.example backend/.env
 # Editar backend/.env con tus credenciales
 
 # 5. MODO DESARROLLO (recomendado para desarrollo)
