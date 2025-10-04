@@ -373,7 +373,9 @@ const aprobarExperto = async (req, res) => {
     });
   } catch (err) {
     console.error("aprobarExperto error:", err);
-    return res.status(500).json({ error: "Error interno", mensaje: err.message });
+    return res
+      .status(500)
+      .json({ error: "Error interno", mensaje: err.message });
   }
 };
 
@@ -443,7 +445,10 @@ const rechazarExperto = async (req, res) => {
         timestamp: new Date(),
       });
     } catch (logError) {
-      console.warn("Error al generar log de rechazo (no crítico):", logError.message);
+      console.warn(
+        "Error al generar log de rechazo (no crítico):",
+        logError.message
+      );
     }
 
     return res.status(200).json({
