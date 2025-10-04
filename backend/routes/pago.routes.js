@@ -1,6 +1,7 @@
 /**
- * RUTAS DE PAGO
- * Endpoints para registrar y consultar pagos con MercadoPago integrado.
+ * RUTAS DE PAGO SIMULADO
+ * Endpoints para gestión de pagos simulados sin integración externa
+ * @module routes/pago
  */
 const express = require("express");
 const router = express.Router();
@@ -12,28 +13,65 @@ const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
  * @swagger
  * tags:
  *   - name: Pagos
- *     description: Gestión de pagos y transacciones
+ *     description: Gestión de pagos simulados
  */
 
-// Rutas públicas (webhooks)
 /**
  * @swagger
- * /api/pagos/webhook:
- *   post:
- *     summary: Webhook de MercadoPago
- *     tags: [Pagos]
- *     responses:
- *       200:
- *         description: Webhook procesado
+ * components:
+ *   schemas:
+ *     PagoSimulado:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *           description: ID único del pago
+ *         clienteId:
+ *           type: string
+ *           description: Email del cliente
+ *         expertoId:
+ *           type: string
+ *           description: Email del experto
+ *         monto:
+ *           type: number
+ *           description: Monto en pesos colombianos
+ *         metodo:
+ *           type: string
+ *           enum: [simulado]
+ *           description: Método de pago
+ *         estado:
+ *           type: string
+ *           enum: [retenido, liberado, reembolsado]
+ *           description: Estado del pago
+ *         descripcion:
+ *           type: string
+ *           description: Descripción del pago
+ *         fechaHoraAsesoria:
+ *           type: string
+ *           format: date-time
+ *           description: Fecha de la asesoría
+ *         duracionMinutos:
+ *           type: integer
+ *           description: Duración en minutos
+ *         asesoriaId:
+ *           type: string
+ *           description: ID de la asesoría asociada
+ *         fechaCreacion:
+ *           type: string
+ *           format: date-time
+ *           description: Fecha de creación
+ *         metadatos:
+ *           type: object
+ *           description: Información adicional del pago
  */
-router.post("/webhook", pagoController.webhookMercadoPago);
 
-// Rutas protegidas
+// Rutas protegidas con autenticación
 /**
  * @swagger
- * /api/pagos/crear-preferencia:
+ * /api/pagos/crear-pago-simulado:
  *   post:
- *     summary: Crear preferencia de pago para asesoría
+ *     summary: Crear pago simulado y asesoría
+ *     description: Procesa un pago de forma simulada y crea la asesoría automáticamente
  *     tags: [Pagos]
  *     security:
  *       - bearerAuth: []
@@ -45,6 +83,7 @@ router.post("/webhook", pagoController.webhookMercadoPago);
  *             type: object
  *             required:
  *               - titulo
+ *               - descripcion
  *               - expertoEmail
  *               - fechaHoraInicio
  *               - duracionMinutos
@@ -56,27 +95,49 @@ router.post("/webhook", pagoController.webhookMercadoPago);
  *                 type: string
  *               expertoEmail:
  *                 type: string
+ *                 format: email
  *               fechaHoraInicio:
  *                 type: string
+ *                 format: date-time
  *               duracionMinutos:
- *                 type: number
+ *                 type: integer
+ *                 enum: [60, 90, 120, 180]
  *               monto:
  *                 type: number
+ *                 minimum: 1000
  *     responses:
  *       201:
- *         description: Preferencia creada
+ *         description: Pago procesado y asesoría creada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mensaje:
+ *                   type: string
+ *                 pagoId:
+ *                   type: string
+ *                 asesoriaId:
+ *                   type: string
+ *                 estadoPago:
+ *                   type: string
+ *       400:
+ *         description: Datos inválidos o conflicto de horario
+ *       404:
+ *         description: Experto no encontrado
  */
 router.post(
-  "/crear-preferencia",
+  "/crear-pago-simulado",
   authMiddleware.autenticar,
-  pagoController.crearPreferenciaPago
+  pagoController.crearPagoSimulado
 );
 
 /**
  * @swagger
- * /api/pagos/{id}/reembolsar:
+ * /api/pagos/{id}/liberar:
  *   post:
- *     summary: Procesar reembolso
+ *     summary: Liberar pago retenido
+ *     description: Libera el dinero al experto cuando se finaliza una asesoría
  *     tags: [Pagos]
  *     security:
  *       - bearerAuth: []
@@ -86,6 +147,37 @@ router.post(
  *         required: true
  *         schema:
  *           type: string
+ *         description: ID del pago
+ *     responses:
+ *       200:
+ *         description: Pago liberado exitosamente
+ *       400:
+ *         description: El pago no puede ser liberado
+ *       404:
+ *         description: Pago no encontrado
+ */
+router.post(
+  "/:id/liberar",
+  authMiddleware.autenticar,
+  pagoController.liberarPago
+);
+
+/**
+ * @swagger
+ * /api/pagos/{id}/reembolsar:
+ *   post:
+ *     summary: Procesar reembolso de pago
+ *     description: Reembolsa el dinero cuando se cancela una asesoría
+ *     tags: [Pagos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID del pago
  *     requestBody:
  *       content:
  *         application/json:
@@ -94,26 +186,51 @@ router.post(
  *             properties:
  *               motivo:
  *                 type: string
+ *                 description: Motivo del reembolso
  *               monto:
  *                 type: number
+ *                 description: Monto a reembolsar (opcional)
  *     responses:
  *       200:
- *         description: Reembolso procesado
+ *         description: Reembolso procesado exitosamente
+ *       400:
+ *         description: El pago no puede ser reembolsado
  */
 router.post(
   "/:id/reembolsar",
   authMiddleware.autenticar,
-  pagoController.procesarReembolso
+  pagoController.reembolsarPago
 );
 
+// Rutas de administrador
 /**
  * @swagger
  * /api/pagos:
  *   get:
  *     summary: Listar pagos (admin)
+ *     description: Obtiene lista paginada de pagos (solo administradores)
  *     tags: [Pagos]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Número de página
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *         description: Elementos por página
+ *       - in: query
+ *         name: estado
+ *         schema:
+ *           type: string
+ *           enum: [retenido, liberado, reembolsado]
+ *         description: Filtrar por estado
  *     responses:
  *       200:
  *         description: Lista de pagos
@@ -131,6 +248,7 @@ router.get(
  * /api/pagos/{id}:
  *   get:
  *     summary: Obtener pago por ID (admin)
+ *     description: Obtiene información detallada de un pago específico
  *     tags: [Pagos]
  *     security:
  *       - bearerAuth: []
@@ -140,9 +258,16 @@ router.get(
  *         required: true
  *         schema:
  *           type: string
+ *         description: ID del pago
  *     responses:
  *       200:
- *         description: Datos del pago
+ *         description: Información del pago
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PagoSimulado'
+ *       404:
+ *         description: Pago no encontrado
  */
 router.get(
   "/:id",
@@ -150,44 +275,6 @@ router.get(
   authMiddleware.autenticar,
   authMiddleware.asegurarRol("admin"),
   pagoController.obtenerPagoPorId
-);
-
-/**
- * @swagger
- * /api/pagos/{id}/estado:
- *   put:
- *     summary: Actualizar estado de pago (admin)
- *     tags: [Pagos]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - estado
- *             properties:
- *               estado:
- *                 type: string
- *                 enum: [pendiente, procesando, retenido, liberado, reembolsado, reembolsado-parcial, fallido]
- *     responses:
- *       200:
- *         description: Estado actualizado
- */
-router.put(
-  "/:id/estado",
-  apiKeyMiddleware,
-  authMiddleware.autenticar,
-  authMiddleware.asegurarRol("admin"),
-  pagoController.actualizarEstadoPago
 );
 
 module.exports = router;
