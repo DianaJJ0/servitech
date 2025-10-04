@@ -5,130 +5,240 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pago de Asesoría | ServiTech</title>
+
+  <!-- Estilos CSS en orden correcto -->
   <link rel="stylesheet" href="/assets/css/base.css">
+  <link rel="stylesheet" href="/assets/css/componentes.css">
   <link rel="stylesheet" href="/assets/css/pasarela-pagos.css">
+
+  <!-- Font Awesome para iconos -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://sdk.mercadopago.com/js/v2"></script>
+
+  <!-- Meta tags -->
+  <meta name="description" content="Procesa el pago de tu asesoría técnica de forma segura">
+  <meta name="robots" content="noindex, nofollow">
 </head>
 
 <body>
   <%- include('componentes/header') %>
 
-    <div class="container">
-      <div class="payment-container">
+    <main class="main-content">
+      <div class="container">
 
-        <a href="javascript:history.back()" class="back-link">
-          <i class="fas fa-arrow-left"></i> Volver al calendario
-        </a>
+        <!-- Navegación de retorno -->
+        <nav class="breadcrumb-nav">
+          <a href="javascript:history.back()" class="back-link">
+            <i class="fas fa-arrow-left"></i>
+            Volver al calendario
+          </a>
+        </nav>
 
-        <!-- Alerta simple -->
+        <!-- Alerta de notificaciones -->
         <div id="alertContainer" class="alert-container" style="display: none;">
-          <div class="alert alert-error">
+          <div class="alert">
             <i class="fas fa-exclamation-triangle"></i>
-            <span id="alertText"></span>
-            <button onclick="cerrarAlerta()"><i class="fas fa-times"></i></button>
+            <span id="alertText">Mensaje de alerta</span>
+            <button onclick="cerrarAlerta()" class="alert-close">
+              <i class="fas fa-times"></i>
+            </button>
           </div>
         </div>
 
-        <div class="payment-card">
-          <div class="payment-header">
-            <img src="/assets/img/logo.png" alt="ServiTech" class="logo">
-            <h1>Confirmar Pago</h1>
-            <% if (typeof expertoSeleccionado !=='undefined' && expertoSeleccionado) { %>
-              <p>Asesoría con <%= expertoSeleccionado.nombre %>
-                  <%= expertoSeleccionado.apellido || '' %>
-              </p>
-              <% } else { %>
-                <p>Asesoría técnica especializada</p>
-                <% } %>
-                  <div class="price" id="montoTotal">
-                    $<%= req.query.monto ? parseInt(req.query.monto).toLocaleString('es-CO') : '20.000' %> COP
-                  </div>
-          </div>
+        <!-- Tarjeta principal de pago -->
+        <section class="payment-card">
 
-          <div class="payment-body">
-            <!-- Resumen simple -->
-            <div class="resumen-asesoria">
-              <h3><i class="fas fa-calendar-alt"></i> Resumen de tu asesoría</h3>
-              <div id="resumenDatos">
-                <!-- Se llena con JavaScript -->
+          <!-- Header del pago -->
+          <header class="payment-header">
+            <div class="logo-container">
+              <i class="fas fa-graduation-cap"></i>
+              <span>ServiTech</span>
+            </div>
+
+            <div class="payment-title">
+              <h1>Confirmar Pago de Asesoría</h1>
+              <% if (typeof expertoSeleccionado !=='undefined' && expertoSeleccionado && expertoSeleccionado.nombre) {
+                %>
+                <p class="payment-subtitle">
+                  Asesoría con <%= expertoSeleccionado.nombre %>
+                    <% if (expertoSeleccionado.apellido) { %>
+                      <%= expertoSeleccionado.apellido %>
+                        <% } %>
+                </p>
+                <% } else { %>
+                  <p class="payment-subtitle">Asesoría técnica especializada</p>
+                  <% } %>
+            </div>
+
+            <div class="payment-amount">
+              <div class="amount-label">Total a pagar:</div>
+              <div class="amount-value" id="montoTotal">
+                <% let montoSeguro=20000; if (typeof monto !=='undefined' && monto !==null && !isNaN(monto)) {
+                  montoSeguro=parseInt(monto); } %>
+                  $<%= montoSeguro.toLocaleString('es-CO') %> COP
+              </div>
+            </div>
+          </header>
+
+          <!-- Cuerpo del pago -->
+          <section class="payment-body">
+
+            <!-- Resumen de la asesoría -->
+            <div class="payment-summary">
+              <h2 class="summary-title">
+                <i class="fas fa-calendar-check"></i>
+                Resumen de tu asesoría
+              </h2>
+
+              <div id="resumenDatos" class="summary-content">
+                <div class="loading-placeholder">
+                  <i class="fas fa-spinner fa-spin"></i>
+                  <span>Cargando datos de la asesoría...</span>
+                </div>
               </div>
             </div>
 
-            <!-- Botón de MercadoPago -->
-            <div id="wallet_container">
-              <!-- MercadoPago carga aquí -->
-            </div>
+            <!-- Área de procesamiento de pago -->
+            <div class="payment-process">
 
-            <!-- Loading simple -->
-            <div id="loadingState" class="loading-state" style="display: none;">
-              <div class="loading-spinner">
-                <i class="fas fa-spinner fa-spin"></i>
+              <!-- Estado de carga -->
+              <div id="loadingState" class="loading-state" style="display: none;">
+                <div class="loading-spinner">
+                  <i class="fas fa-spinner fa-spin"></i>
+                </div>
+                <p class="loading-text">Procesando tu solicitud...</p>
               </div>
-              <p>Creando preferencia de pago...</p>
+
+              <!-- Contenedor del botón de pago -->
+              <div id="paymentContainer" class="payment-container">
+                <div class="payment-info">
+                  <h3>Procesar Pago</h3>
+                  <p class="payment-description">
+                    Tu pago será procesado. El dinero se retendrá hasta que la asesoría sea completada.
+                  </p>
+                </div>
+
+                <button id="btnPagar" class="btn-pay" onclick="procesarPago()">
+                  <i class="fas fa-play"></i>
+                  Pagar Ahora
+                </button>
+              </div>
+
+              <!-- Estado de éxito -->
+              <div id="successState" class="success-state" style="display: none;">
+                <div class="success-icon">
+                  <i class="fas fa-check-circle"></i>
+                </div>
+                <h3 class="success-title">Pago Procesado Exitosamente</h3>
+                <p class="success-message">
+                  Tu pago simulado ha sido procesado y la solicitud de asesoría fue enviada al experto.
+                  Recibirás una notificación cuando el experto acepte o rechace tu solicitud.
+                </p>
+
+                <div class="success-actions">
+                  <a href="/misAsesorias.html" class="btn btn-primary">
+                    <i class="fas fa-calendar-alt"></i>
+                    Ver Mis Asesorías
+                  </a>
+                  <a href="/expertos.html" class="btn btn-outline">
+                    <i class="fas fa-search"></i>
+                    Buscar Más Expertos
+                  </a>
+                </div>
+              </div>
+
+              <!-- Estado de error -->
+              <div id="errorState" class="error-state" style="display: none;">
+                <div class="error-icon">
+                  <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h3 class="error-title">Error al procesar el pago</h3>
+                <p id="errorMessage" class="error-message">
+                  Ocurrió un problema al procesar tu pago. Por favor, inténtalo nuevamente.
+                </p>
+
+                <div class="error-actions">
+                  <button onclick="reintentar()" class="btn btn-primary">
+                    <i class="fas fa-redo"></i>
+                    Reintentar
+                  </button>
+                  <a href="/contacto.html" class="btn btn-outline">
+                    <i class="fas fa-headset"></i>
+                    Contactar Soporte
+                  </a>
+                </div>
+              </div>
             </div>
 
-            <!-- Error simple -->
-            <div id="errorState" class="error-state" style="display: none;">
-              <i class="fas fa-exclamation-triangle"></i>
-              <h3>Error al procesar el pago</h3>
-              <p id="errorMessage">Ocurrió un problema. Intenta nuevamente.</p>
-              <button onclick="location.reload()" class="btn-retry">
-                <i class="fas fa-redo"></i> Intentar nuevamente
-              </button>
-            </div>
+          </section>
 
-            <!-- Información de seguridad -->
-            <div class="payment-security">
+          <!-- Footer del pago -->
+          <footer class="payment-footer">
+            <div class="security-badges">
               <div class="security-item">
                 <i class="fas fa-shield-alt"></i>
-                <span>Pago 100% seguro con MercadoPago</span>
+                <span>Pago 100% seguro</span>
               </div>
               <div class="security-item">
                 <i class="fas fa-undo-alt"></i>
-                <span>Reembolso automático si el experto rechaza</span>
+                <span>Reembolso automático si rechaza</span>
               </div>
-              <div class="security-item">
-                <i class="fas fa-lock"></i>
-                <span>Datos protegidos con encriptación SSL</span>
-              </div>
+
             </div>
-          </div>
-        </div>
+
+            <div class="payment-notice">
+              <p class="notice-text">
+                <i class="fas fa-info-circle"></i>
+                <strong>Nota:</strong> Este es un pago simulado para demostración.
+                No se procesará dinero real.
+              </p>
+            </div>
+          </footer>
+
+        </section>
 
         <!-- Información adicional -->
-        <div class="info-adicional">
+        <section class="additional-info">
           <div class="info-grid">
-            <div class="info-item">
-              <i class="fas fa-video"></i>
-              <h4>Asesoría virtual</h4>
-              <p>Se realizará por videollamada</p>
-            </div>
-            <div class="info-item">
-              <i class="fas fa-clock"></i>
-              <h4>Confirmación en 24h</h4>
-              <p>El experto confirmará tu solicitud</p>
-            </div>
-            <div class="info-item">
-              <i class="fas fa-headset"></i>
-              <h4>Soporte completo</h4>
-              <p>Te ayudamos en todo el proceso</p>
-            </div>
+            <article class="info-card">
+              <div class="info-icon">
+                <i class="fas fa-video"></i>
+              </div>
+              <h3>Asesoría Virtual</h3>
+              <p>Se realizará por videollamada en la fecha y hora acordada</p>
+            </article>
+
+            <article class="info-card">
+              <div class="info-icon">
+                <i class="fas fa-clock"></i>
+              </div>
+              <h3>Confirmación en 24h</h3>
+              <p>El experto tiene hasta 24 horas para confirmar tu solicitud</p>
+            </article>
+
+            <article class="info-card">
+              <div class="info-icon">
+                <i class="fas fa-headset"></i>
+              </div>
+              <h3>Soporte Completo</h3>
+              <p>Te acompañamos en todo el proceso de tu asesoría</p>
+            </article>
           </div>
-        </div>
+        </section>
+
       </div>
-    </div>
+    </main>
 
     <%- include('componentes/footer') %>
 
-      <!-- Datos del servidor -->
+      <!-- Datos del servidor para JavaScript -->
       <script type="application/json" id="serverData"><%- JSON.stringify({
     expertoSeleccionado: expertoSeleccionado || {},
-    montoQuery: req.query.monto || "",
-    duracionQuery: req.query.duracion || "",
+    monto: typeof monto !== 'undefined' ? monto : 20000,
+    duracion: typeof duracion !== 'undefined' ? duracion : 1,
     user: user || null
   }) %></script>
 
+      <!-- Scripts JavaScript -->
       <script src="/assets/js/common.js"></script>
       <script src="/assets/js/pasarelaPagos.js"></script>
 </body>
