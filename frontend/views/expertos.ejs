@@ -204,34 +204,10 @@
         </div>
 
       </main>
-       <%- include('componentes/footer') %>
+
+      <%- include('componentes/footer') %>
+
         <script src="/assets/js/common.js"></script>
-        <script src="/assets/js/expertos.js"></script>
-
-        <!-- Script para forzar visibilidad de opciones del select -->
-        <script>
-          document.addEventListener('DOMContentLoaded', function () {
-            const select = document.getElementById('categoria-filter');
-            if (select) {
-              // Forzar estilos en el select
-              select.style.backgroundColor = '#2a2a2a';
-              select.style.color = '#ffffff';
-              select.style.fontSize = '1rem';
-              select.style.fontWeight = '500';
-
-              // Forzar estilos en cada opción
-              const options = select.querySelectorAll('option');
-              options.forEach(function (option) {
-                option.style.backgroundColor = '#2a2a2a';
-                option.style.color = '#ffffff';
-                option.style.padding = '0.75rem';
-                option.style.fontSize = '1rem';
-                option.style.fontWeight = '500';
-              });
-
-      </main >
-         <% - include('componentes/footer') %>
-                <script src="/assets/js/common.js"></script>
         <script src="/assets/js/custom-select.js"></script>
         <script src="/assets/js/expertos.js"></script>
 
