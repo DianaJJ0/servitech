@@ -902,7 +902,7 @@
   <div id="verPerfilExperto" class="modal-expert">
     <div class="modal-expert__container">
       <div class="modal-expert__header">
-        <h2 class="modal-expert__title">Agregar nuevo experto</h2>
+        <h2 class="modal-expert__title">Ver perfil de experto</h2>
         <button class="btn-close" aria-label="Cerrar"><i class="fas fa-times"></i></button>
       </div>
 
@@ -977,20 +977,20 @@
 
             <!-- Estado -->
             <div>
-              <label class="modal-expert__label" for="status">
+              <label class="modal-expert__label" for="status_view">
                 <i class="fas fa-toggle-on modal-expert__icon" aria-hidden="true"></i>
                 Estado
               </label>
               <div class="input-with-icon">
                 <i class="fas fa-toggle-on" aria-hidden="true"></i>
-                <select id="status" class="modal-expert__input modal-expert__select" aria-label="Estado del experto">
-                  <option value="active">Activo</option>
-                  <option value="pending">Pendiente</option>
-                  <option value="inactive">Inactivo</option>
+                <select id="status_view" class="modal-expert__input modal-expert__select" aria-label="Estado del experto" disabled>
+                  <option value="activo">Activo</option>
+                  <option value="pendiente-verificacion">Pendiente de verificación</option>
+                  <option value="inactivo">Inactivo</option>
                 </select>
                 <i class="fas fa-chevron-down" aria-hidden="true"></i>
               </div>
-              <small class="modal-expert__hint">Define si el experto puede recibir solicitudes</small>
+              <small class="modal-expert__hint">Estado actual del experto</small>
             </div>
 
             <!-- Categorías -->
