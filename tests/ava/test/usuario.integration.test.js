@@ -3,18 +3,18 @@
 
 import test from "ava";
 import mongoose from "mongoose";
-import { MongoMemoryServer } from "mongodb-memory-server";
+import { MongoMemoryServer } from "mongodb-memory-server"; //instalar con npm i mongodb-memory-server esto para tener mongo en memoria, es bueno para pruebas por su velocidad y porque no afecta datos reales
 import bcrypt from "bcryptjs";
 
 let mongoServer;
 
-test.before(async () => {
+test.before(async () => { // antes de todas las pruebas se ejecuta esto para levantar mongo en memoria
   mongoServer = await MongoMemoryServer.create();
   const uri = mongoServer.getUri();
   await mongoose.connect(uri);
 });
 
-test.after.always(async () => {
+test.after.always(async () => { // despues de todas las pruebas se ejecuta esto para desconectar y apagar mongo en memoria para liberar recursos
   try {
     await mongoose.disconnect();
   } catch (e) {}
@@ -50,16 +50,16 @@ test("crear categoria y usuario con referencia a categoria (integracion)", async
   );
 
   // Virtual para password
-  usuarioSchema.virtual("password").set(function (password) {
+  usuarioSchema.virtual("password").set(function (password) { // para asignar password y que genere el hash automáticamente para almacenarlo para luego comparar
     const salt = bcrypt.genSaltSync(10);
     this.passwordHash = bcrypt.hashSync(password, salt);
   });
 
-  usuarioSchema.methods.matchPassword = async function (enteredPassword) {
+  usuarioSchema.methods.matchPassword = async function (enteredPassword) { // para comparar la contraseña ingresada con el hash almacenado
     return await bcrypt.compare(enteredPassword, this.passwordHash);
   };
 
-  const Categoria =
+  const Categoria = // Evitar recompilar modelos en watch mode de AVA para no tener errores de OverwriteModelError que significa que el modelo ya fue compilado
     mongoose.models.CategoriaTest ||
     mongoose.model("CategoriaTest", categoriaSchema);
   const Usuario =
@@ -83,10 +83,10 @@ test("crear categoria y usuario con referencia a categoria (integracion)", async
   await user.save();
 
   // Recuperar y popular
-  const found = await Usuario.findOne({ email: "experto@integ.test" })
+  const found = await Usuario.findOne({ email: "experto@integ.test" }) // buscar el usuario creado y popular la categoria referenciada
     .populate("infoExperto.categorias")
     .lean();
-  t.truthy(found, "Usuario creado y recuperado");
+  t.truthy(found, "Usuario creado y recuperado"); // truthy verifica que el valor no es null ni undefined
   t.truthy(found.infoExperto, "infoExperto debe existir");
   t.is(
     found.infoExperto.categorias[0].nombre,
@@ -95,7 +95,7 @@ test("crear categoria y usuario con referencia a categoria (integracion)", async
   );
 
   // Verificar matchPassword
-  const inst = await Usuario.findOne({ email: "experto@integ.test" });
+  const inst = await Usuario.findOne({ email: "experto@integ.test" }); //para probar matchPassword necesitamos la instancia del modelo, no el objeto plano que devuelve .lean()
   t.true(
     await inst.matchPassword("ExpertPass1"),
     "matchPassword debe validar la contraseña correcta"
