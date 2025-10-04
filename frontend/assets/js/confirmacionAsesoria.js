@@ -1,24 +1,26 @@
 /**
- * Confirmación de Asesoría - ServiTech 
- * Maneja la confirmación de asesorías y verificación de estados de pago
+ * CONFIRMACIÓN DE ASESORÍA CON PAGOS SIMULADOS - SERVITECH
+ * Maneja la confirmación de asesorías con sistema de pagos simulados
+ * @description Sistema simplificado sin verificación de MercadoPago
  */
 
 document.addEventListener("DOMContentLoaded", function () {
+  console.log("Inicializando confirmación de asesoría...");
   inicializarConfirmacion();
 });
 
 // Variables globales
 let status = "unknown";
 let pageData = {};
-let verificacionInterval = null;
-let intentosVerificacion = 0;
-const MAX_INTENTOS = 8;
 
 /**
  * Inicializa la página de confirmación
+ * @description Configura la página según el estado del pago/asesoría
  */
 function inicializarConfirmacion() {
   try {
+    console.log("=== INICIALIZANDO CONFIRMACIÓN ===");
+
     // Obtener datos de la página
     obtenerDatosPagina();
 
@@ -36,23 +38,46 @@ function inicializarConfirmacion() {
     console.log("Confirmación inicializada:", { status, pageData });
   } catch (error) {
     console.error("Error inicializando confirmación:", error);
-    mostrarNotificacion("Error al cargar la página", "error");
+    mostrarNotificacion("Error al cargar la página de confirmación", "error");
   }
 }
 
 /**
  * Obtiene los datos de la página desde el DOM
+ * @description Lee los datos JSON embebidos desde el servidor
  */
 function obtenerDatosPagina() {
   try {
+    // Obtener estado desde script embebido
     const statusScript = document.getElementById("pageStatus");
     if (statusScript) {
       status = JSON.parse(statusScript.textContent);
+      console.log("Estado obtenido:", status);
     }
 
+    // Obtener datos adicionales
     const dataScript = document.getElementById("pageData");
     if (dataScript) {
       pageData = JSON.parse(dataScript.textContent);
+      console.log("Datos de página obtenidos:", pageData);
+    }
+
+    // También revisar parámetros URL como fallback
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlStatus = urlParams.get("status");
+
+    if (urlStatus && !status) {
+      status = urlStatus;
+      console.log("Estado obtenido desde URL:", status);
+    }
+
+    // Obtener IDs desde URL si no están en pageData
+    if (!pageData.pagoId && urlParams.get("pagoId")) {
+      pageData.pagoId = urlParams.get("pagoId");
+    }
+
+    if (!pageData.asesoriaId && urlParams.get("asesoriaId")) {
+      pageData.asesoriaId = urlParams.get("asesoriaId");
     }
   } catch (error) {
     console.error("Error leyendo datos de la página:", error);
@@ -63,8 +88,11 @@ function obtenerDatosPagina() {
 
 /**
  * Maneja el estado de confirmación según el tipo
+ * @description Ejecuta acciones específicas según el estado
  */
 function manejarEstadoConfirmacion() {
+  console.log("Manejando estado de confirmación:", status);
+
   switch (status) {
     case "success":
       manejarExito();
@@ -74,14 +102,17 @@ function manejarEstadoConfirmacion() {
       break;
     case "failure":
     case "error":
-    default:
       manejarError();
+      break;
+    default:
+      manejarEstadoDesconocido();
       break;
   }
 }
 
 /**
  * Maneja el estado de éxito
+ * @description Muestra mensajes de éxito y limpia datos temporales
  */
 function manejarExito() {
   console.log("Asesoría confirmada exitosamente");
@@ -93,49 +124,56 @@ function manejarExito() {
 
   // Información adicional
   setTimeout(() => {
-    mostrarNotificacion("Revisa tu correo para más detalles", "info");
+    mostrarNotificacion(
+      "El experto revisará tu solicitud en las próximas 24 horas",
+      "info"
+    );
   }, 3500);
 
   // Registrar evento exitoso
   registrarEvento("asesoria_confirmada", {
     status: "success",
     pagoId: pageData.pagoId,
+    asesoriaId: pageData.asesoriaId,
+    simulado: true,
   });
+
+  // Limpiar datos temporales después de un momento
+  setTimeout(() => {
+    limpiarDatosTemporales();
+  }, 2000);
 }
 
 /**
- * Maneja el estado pendiente
+ * Maneja el estado pendiente (para casos especiales)
+ * @description En el sistema simulado, esto sería raro pero manejamos el caso
  */
 function manejarPendiente() {
-  console.log("Pago en estado pendiente, iniciando verificación...");
+  console.log("Estado pendiente detectado");
 
-  // Iniciar verificación periódica del estado
-  if (pageData.pagoId) {
-    iniciarVerificacionEstado();
-  }
-
-  // Mostrar notificación informativa
+  // En el sistema simulado, esto no debería ocurrir frecuentemente
+  // pero lo manejamos por compatibilidad
   setTimeout(() => {
-    mostrarNotificacion("Verificando estado del pago...", "info");
+    mostrarNotificacion("Procesando tu solicitud...", "info");
   }, 1000);
 
-  // Auto-refresh después de 3 minutos si no hay cambios
-  setTimeout(() => {
-    if (verificacionInterval) {
-      console.log("Recargando página automáticamente");
-      window.location.reload();
-    }
-  }, 3 * 60 * 1000);
-
   // Registrar evento pendiente
-  registrarEvento("pago_pendiente", {
+  registrarEvento("estado_pendiente", {
     status: "pending",
     pagoId: pageData.pagoId,
+    simulado: true,
   });
+
+  // Auto-refresh después de 30 segundos para casos pendientes
+  setTimeout(() => {
+    console.log("Auto-refresh por estado pendiente");
+    window.location.reload();
+  }, 30000);
 }
 
 /**
  * Maneja errores o fallos
+ * @description Muestra mensajes de error y limpia datos
  */
 function manejarError() {
   console.log("Error en la confirmación de asesoría");
@@ -143,7 +181,7 @@ function manejarError() {
   // Mostrar notificación de error
   setTimeout(() => {
     mostrarNotificacion(
-      "Ocurrió un problema. Puedes intentar nuevamente.",
+      "Ocurrió un problema al procesar tu solicitud",
       "error"
     );
   }, 1000);
@@ -155,140 +193,31 @@ function manejarError() {
   registrarEvento("error_confirmacion", {
     status: "error",
     originalStatus: status,
+    pagoId: pageData.pagoId,
   });
 }
 
 /**
- * Inicia la verificación periódica del estado del pago
+ * Maneja estados desconocidos
+ * @description Fallback para estados no reconocidos
  */
-function iniciarVerificacionEstado() {
-  if (!pageData.pagoId) {
-    console.warn("No hay ID de pago para verificar");
-    return;
-  }
+function manejarEstadoDesconocido() {
+  console.warn("Estado desconocido:", status);
 
-  // Verificar inmediatamente
-  verificarEstadoPago();
+  mostrarNotificacion(
+    "Estado no reconocido. Contacta a soporte si persiste el problema.",
+    "warning"
+  );
 
-  // Configurar verificación cada 20 segundos
-  verificacionInterval = setInterval(() => {
-    if (intentosVerificacion >= MAX_INTENTOS) {
-      console.log("Máximo de intentos alcanzado, deteniendo verificación");
-      clearInterval(verificacionInterval);
-      verificacionInterval = null;
-      mostrarNotificacion(
-        "Verificación finalizada. Puedes actualizar manualmente.",
-        "info"
-      );
-      return;
-    }
-
-    verificarEstadoPago();
-  }, 20000);
-}
-
-/**
- * Verifica el estado del pago con el backend
- */
-async function verificarEstadoPago() {
-  try {
-    intentosVerificacion++;
-    console.log(
-      `Verificando estado del pago (intento ${intentosVerificacion}/${MAX_INTENTOS})`
-    );
-
-    const token = localStorage.getItem("token");
-    if (!token) {
-      console.warn("No hay token de autenticación");
-      return;
-    }
-
-    const pagoId = pageData.pagoId;
-    if (!pagoId) {
-      console.warn("No hay ID de pago para verificar");
-      return;
-    }
-
-    const response = await fetch(`/api/pagos/${pagoId}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!response.ok) {
-      if (response.status === 401) {
-        console.warn("Token expirado o inválido");
-        return;
-      }
-      throw new Error(`Error ${response.status} al verificar pago`);
-    }
-
-    const pago = await response.json();
-    console.log("Estado del pago verificado:", pago.estado);
-
-    // Manejar cambios de estado
-    if (pago.estado === "retenido" && status === "pending") {
-      // El pago fue aprobado
-      mostrarNotificacion("¡Pago confirmado! Redirigiendo...", "success");
-
-      // Detener verificación
-      if (verificacionInterval) {
-        clearInterval(verificacionInterval);
-        verificacionInterval = null;
-      }
-
-      setTimeout(() => {
-        window.location.href =
-          window.location.pathname + "?status=success&pagoId=" + pagoId;
-      }, 2000);
-    } else if (pago.estado === "fallido" && status === "pending") {
-      // El pago falló
-      mostrarNotificacion("El pago no pudo ser procesado", "error");
-
-      // Detener verificación
-      if (verificacionInterval) {
-        clearInterval(verificacionInterval);
-        verificacionInterval = null;
-      }
-
-      setTimeout(() => {
-        window.location.href =
-          window.location.pathname + "?status=failure&pagoId=" + pagoId;
-      }, 2000);
-    }
-  } catch (error) {
-    console.error("Error verificando estado del pago:", error);
-
-    // Solo mostrar error en el primer intento
-    if (intentosVerificacion === 1) {
-      mostrarNotificacion(
-        "Error verificando el estado. Reintentando...",
-        "warning"
-      );
-    }
-  }
-}
-
-/**
- * Función para verificar estado manualmente (botón)
- */
-function verificarEstadoPago() {
-  if (verificacionInterval) {
-    clearInterval(verificacionInterval);
-    verificacionInterval = null;
-  }
-
-  intentosVerificacion = 0;
-  mostrarNotificacion("Verificando estado...", "info");
-
-  // Reiniciar verificación
-  iniciarVerificacionEstado();
+  registrarEvento("estado_desconocido", {
+    status: status,
+    pageData: pageData,
+  });
 }
 
 /**
  * Configura el estado de conexión
+ * @description Monitorea y muestra el estado de conectividad
  */
 function configurarEstadoConexion() {
   const estadoElement = document.getElementById("conexionEstado");
@@ -303,7 +232,7 @@ function configurarEstadoConexion() {
     } else {
       estadoElement.className = "conexion-estado offline";
       estadoElement.innerHTML =
-        '<i class="fas fa-wifi"></i> <span>Sin conexión</span>';
+        '<i class="fas fa-wifi-slash"></i> <span>Sin conexión</span>';
       estadoElement.style.display = "block";
     }
   }
@@ -314,16 +243,18 @@ function configurarEstadoConexion() {
   // Escuchar cambios de conexión
   window.addEventListener("online", () => {
     actualizarEstadoConexion();
-    if (status === "pending" && !verificacionInterval) {
-      iniciarVerificacionEstado();
-    }
+    mostrarNotificacion("Conexión restaurada", "success");
   });
 
-  window.addEventListener("offline", actualizarEstadoConexion);
+  window.addEventListener("offline", () => {
+    actualizarEstadoConexion();
+    mostrarNotificacion("Conexión perdida", "warning");
+  });
 }
 
 /**
  * Limpia datos temporales del localStorage
+ * @description Elimina datos de procesos completados
  */
 function limpiarDatosTemporales() {
   const keysToClean = [
@@ -335,22 +266,58 @@ function limpiarDatosTemporales() {
     "preferenceId",
     "pagoCompleto",
     "asesoriaTemp",
+    "simulacionId",
+    "pagoId",
   ];
+
+  let limpiados = 0;
 
   keysToClean.forEach((key) => {
     try {
       if (localStorage.getItem(key)) {
         localStorage.removeItem(key);
+        limpiados++;
         console.log(`Limpiado del localStorage: ${key}`);
       }
     } catch (e) {
       console.warn(`Error limpiando ${key}:`, e);
     }
   });
+
+  if (limpiados > 0) {
+    console.log(`Se limpiaron ${limpiados} elementos del localStorage`);
+  }
 }
 
 /**
- * Muestra notificaciones
+ * Función para verificar estado (para compatibilidad con template)
+ * @description Función de compatibilidad que no hace verificación real en sistema simulado
+ */
+function verificarEstadoPago() {
+  console.log("Verificación de estado solicitada (sistema simulado)");
+
+  if (pageData.pagoId) {
+    mostrarNotificacion(
+      "En el sistema simulado, los pagos se procesan instantáneamente",
+      "info"
+    );
+
+    // Simular verificación con pequeña pausa
+    setTimeout(() => {
+      mostrarNotificacion(
+        "Estado verificado: pago procesado correctamente",
+        "success"
+      );
+    }, 1500);
+  } else {
+    mostrarNotificacion("No hay ID de pago para verificar", "warning");
+  }
+}
+
+/**
+ * Muestra notificaciones mejoradas
+ * @param {string} mensaje - Mensaje a mostrar
+ * @param {string} tipo - Tipo de notificación (success, error, warning, info)
  */
 function mostrarNotificacion(mensaje, tipo = "info") {
   // Crear contenedor si no existe
@@ -359,12 +326,12 @@ function mostrarNotificacion(mensaje, tipo = "info") {
     container = document.createElement("div");
     container.className = "notification-container";
     container.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 10000;
-            max-width: 400px;
-        `;
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 10000;
+      max-width: 400px;
+    `;
     document.body.appendChild(container);
   }
 
@@ -373,8 +340,8 @@ function mostrarNotificacion(mensaje, tipo = "info") {
 
   const iconos = {
     success: "fas fa-check-circle",
-    error: "fas fa-exclamation-circle",
-    warning: "fas fa-exclamation-triangle",
+    error: "fas fa-exclamation-triangle",
+    warning: "fas fa-exclamation-circle",
     info: "fas fa-info-circle",
   };
 
@@ -386,40 +353,42 @@ function mostrarNotificacion(mensaje, tipo = "info") {
   };
 
   notificacion.style.cssText = `
-        background: ${colores[tipo] || colores.info};
-        color: ${tipo === "warning" ? "#000" : "#fff"};
-        padding: 16px 20px;
-        border-radius: 12px;
-        margin-bottom: 12px;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.15);
-        backdrop-filter: blur(10px);
-        transform: translateX(100%);
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        font-size: 14px;
-        line-height: 1.4;
-        border: 1px solid rgba(255,255,255,0.2);
-    `;
+    background: ${colores[tipo] || colores.info};
+    color: ${tipo === "warning" ? "#000" : "#fff"};
+    padding: 16px 20px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    backdrop-filter: blur(10px);
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 14px;
+    line-height: 1.4;
+    border: 1px solid rgba(255,255,255,0.2);
+    animation: slideInRight 0.3s ease-out forwards;
+  `;
 
   notificacion.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 12px;">
-            <i class="${iconos[tipo]}" style="font-size: 1.2rem;"></i>
-            <span style="flex: 1;">${mensaje}</span>
-            <button onclick="this.parentElement.parentElement.remove()"
-                    style="background: none; border: none; color: inherit; cursor: pointer; font-size: 1.1rem; opacity: 0.7;">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-    `;
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <i class="${iconos[tipo]}" style="font-size: 1.2rem;"></i>
+      <span style="flex: 1;">${mensaje}</span>
+      <button onclick="this.parentElement.parentElement.remove()"
+              style="background: none; border: none; color: inherit; cursor: pointer; font-size: 1.1rem; opacity: 0.7; transition: opacity 0.2s;">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  `;
 
   container.appendChild(notificacion);
 
-  // Animar entrada
-  setTimeout(() => {
-    notificacion.style.transform = "translateX(0)";
-  }, 100);
+  // Auto-remover según el tipo
+  const tiempos = {
+    success: 5000,
+    info: 4000,
+    warning: 7000,
+    error: 8000,
+  };
 
-  // Auto-remover
-  const timeout = tipo === "error" ? 8000 : tipo === "warning" ? 6000 : 5000;
   setTimeout(() => {
     if (notificacion.parentNode) {
       notificacion.style.transform = "translateX(100%)";
@@ -429,11 +398,13 @@ function mostrarNotificacion(mensaje, tipo = "info") {
         }
       }, 300);
     }
-  }, timeout);
+  }, tiempos[tipo] || 5000);
 }
 
 /**
  * Registra eventos para analytics
+ * @param {string} evento - Nombre del evento
+ * @param {Object} datos - Datos adicionales del evento
  */
 function registrarEvento(evento, datos = {}) {
   try {
@@ -442,23 +413,33 @@ function registrarEvento(evento, datos = {}) {
     // Google Analytics si está disponible
     if (typeof gtag !== "undefined") {
       gtag("event", evento, {
-        event_category: "asesorias",
+        event_category: "asesorias_simuladas",
         event_label: status,
         custom_parameter: JSON.stringify(datos),
       });
     }
 
-    // Envío al backend para analytics propios
+    // Envío al backend para analytics propios (si el beacon está disponible)
     if (navigator.sendBeacon && pageData.hasUser) {
       const eventData = {
         evento,
-        datos,
-        timestamp: new Date().toISOString(),
-        userAgent: navigator.userAgent,
-        url: window.location.href,
+        datos: {
+          ...datos,
+          simulado: true,
+          timestamp: new Date().toISOString(),
+          userAgent: navigator.userAgent,
+          url: window.location.href,
+        },
       };
 
-      navigator.sendBeacon("/api/analytics/evento", JSON.stringify(eventData));
+      const success = navigator.sendBeacon(
+        "/api/analytics/evento",
+        JSON.stringify(eventData)
+      );
+
+      if (!success) {
+        console.warn("No se pudo enviar evento al backend");
+      }
     }
   } catch (error) {
     console.warn("Error registrando evento:", error);
@@ -466,29 +447,73 @@ function registrarEvento(evento, datos = {}) {
 }
 
 /**
+ * Función de navegación segura
+ * @param {string} url - URL a la que navegar
+ */
+function navegarA(url) {
+  try {
+    window.location.href = url;
+  } catch (error) {
+    console.error("Error navegando a:", url, error);
+    mostrarNotificacion(
+      "Error al navegar. Intenta refrescar la página.",
+      "error"
+    );
+  }
+}
+
+/**
  * Función de limpieza al salir de la página
  */
 window.addEventListener("beforeunload", function () {
-  // Limpiar interval si existe
-  if (verificacionInterval) {
-    clearInterval(verificacionInterval);
-    verificacionInterval = null;
-  }
-
   // Registrar evento de salida si corresponde
   if (status === "success") {
-    registrarEvento("pagina_confirmacion_salida", { status });
+    registrarEvento("pagina_confirmacion_salida", {
+      status,
+      tiempoEnPagina: Date.now() - performance.timing.navigationStart,
+    });
   }
 });
 
-// Hacer funciones disponibles globalmente
+/**
+ * Manejo de errores globales
+ */
+window.addEventListener("error", function (event) {
+  console.error("Error global capturado:", event.error);
+  registrarEvento("error_javascript", {
+    message: event.message,
+    filename: event.filename,
+    lineno: event.lineno,
+    colno: event.colno,
+  });
+});
+
+// Agregar estilos para las animaciones
+const style = document.createElement("style");
+style.textContent = `
+  @keyframes slideInRight {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+`;
+document.head.appendChild(style);
+
+// Hacer funciones disponibles globalmente para compatibilidad
 window.verificarEstadoPago = verificarEstadoPago;
-window.confirmarcionDebug = {
+window.navegarA = navegarA;
+window.confirmacionDebug = {
   verificarEstadoPago,
   limpiarDatosTemporales,
   mostrarNotificacion,
+  registrarEvento,
   status,
   pageData,
 };
 
-console.log("Script confirmacionAsesoria.js cargado");
+console.log("Script confirmacionAsesoria.js cargado correctamente");
