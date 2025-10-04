@@ -63,6 +63,10 @@
   function $$(sel, ctx) {
     return Array.from((ctx || document).querySelectorAll(sel));
   }
+  // Mitigar posibles problemas de autofill en el input email justo antes de mostrar
+  try {
+    mitigateAutofillForModal("verPerfilExperto");
+  } catch (e) {}
 
   function parseJsonId(id) {
     try {
@@ -93,6 +97,45 @@
     if (!d) return "-";
     const dt = new Date(d);
     return isNaN(dt) ? "-" : dt.toLocaleDateString();
+  }
+
+  // Mitigación para evitar autofill en inputs email dentro de modales.
+  // Se define en el ámbito superior para poder invocarla desde openModal cuando se abre
+  // un modal en particular (por ejemplo el modal de ver perfil). Esto es más fiable
+  // que ejecutarlo en DOMContentLoaded porque garantiza que el modal exista al aplicar los cambios.
+  function mitigateAutofillForModal(modalId) {
+    try {
+      const m = document.getElementById(modalId);
+      if (!m) return;
+      // Buscar el input email dentro del modal de forma robusta
+      const email =
+        m.querySelector('input[type="email"]') ||
+        m.querySelector('[id*="email"]');
+      if (!email) return;
+      try {
+        email.value = "";
+        email.setAttribute("autocomplete", "off");
+        email.setAttribute("autocorrect", "off");
+        email.setAttribute("autocapitalize", "off");
+        email.setAttribute("spellcheck", "false");
+        email.readOnly = true;
+        const sec =
+          getComputedStyle(document.documentElement).getPropertyValue(
+            "--admin-text-secondary"
+          ) || "#8892a6";
+        try {
+          email.style.setProperty("color", sec, "important");
+        } catch (e) {}
+        try {
+          email.style.setProperty("-webkit-text-fill-color", sec, "important");
+        } catch (e) {}
+        setTimeout(function () {
+          try {
+            email.readOnly = false;
+          } catch (e) {}
+        }, 80);
+      } catch (e) {}
+    } catch (e) {}
   }
 
   // Devuelve un array de nombres de categorías para un experto soportando
@@ -205,13 +248,13 @@
 
   function getStatusBadgeClass(status) {
     const statusClasses = {
-      "activo": "badge--active",
+      activo: "badge--active",
       "pendiente-verificacion": "badge--pending",
-      "inactivo": "badge--inactive",
+      inactivo: "badge--inactive",
       // Mantener compatibilidad con valores en inglés
-      "active": "badge--active",
-      "pending": "badge--pending", 
-      "inactive": "badge--inactive",
+      active: "badge--active",
+      pending: "badge--pending",
+      inactive: "badge--inactive",
     };
     return statusClasses[status] || "badge--inactive";
   }
@@ -279,8 +322,8 @@
     const sesiones = getExpertField(expert, "sessions") || 0;
 
     // Generar botones de acción según el estado
-    let actionButtons = '';
-    if (status === 'pendiente-verificacion') {
+    let actionButtons = "";
+    if (status === "pendiente-verificacion") {
       actionButtons = `
         <div class="action-buttons" role="group" aria-label="Acciones experto">
           <button class="btn-success btn-approve" data-id="${id}" data-email="${email}" title="Aprobar solicitud">
@@ -297,9 +340,10 @@
         <div class="action-buttons" role="group" aria-label="Acciones experto">
           <button class="btn-outline btn-view" data-id="${id}">Ver</button>
           <button class="btn-outline btn-edit" data-id="${id}">Editar</button>
-          ${status === 'activo' ? 
-            `<button class="btn-warning btn-inactivate" data-id="${id}">Inactivar</button>` :
-            `<button class="btn-success btn-activate" data-id="${id}">Activar</button>`
+          ${
+            status === "activo"
+              ? `<button class="btn-warning btn-inactivate" data-id="${id}">Inactivar</button>`
+              : `<button class="btn-success btn-activate" data-id="${id}">Activar</button>`
           }
         </div>
       `;
@@ -342,7 +386,11 @@
     let html = "";
 
     // Botón Anterior
-    html += createPaginationButton(page - 1, '<i class="fas fa-chevron-left"></i>', page <= 1);
+    html += createPaginationButton(
+      page - 1,
+      '<i class="fas fa-chevron-left"></i>',
+      page <= 1
+    );
 
     // Lógica de botones de página (ej. 1 ... 4 5 6 ... 10)
     const maxButtons = 5;
@@ -354,7 +402,7 @@
     }
 
     if (startPage > 1) {
-      html += createPaginationButton(1, '1');
+      html += createPaginationButton(1, "1");
       if (startPage > 2) {
         html += '<span class="admin-pagination__ellipsis">…</span>';
       }
@@ -372,13 +420,22 @@
     }
 
     // Botón Siguiente
-    html += createPaginationButton(page + 1, '<i class="fas fa-chevron-right"></i>', page >= totalPages);
+    html += createPaginationButton(
+      page + 1,
+      '<i class="fas fa-chevron-right"></i>',
+      page >= totalPages
+    );
 
     controls.innerHTML = html;
     bindPaginationEvents();
   }
 
-  function createPaginationButton(page, content, disabled = false, active = false) {
+  function createPaginationButton(
+    page,
+    content,
+    disabled = false,
+    active = false
+  ) {
     const disabledAttr = disabled ? 'disabled aria-disabled="true"' : "";
     const activeClass = active ? "active" : "";
     return `<button class="admin-pagination__btn ${activeClass}" data-page="${page}" ${disabledAttr}>${content}</button>`;
@@ -401,24 +458,23 @@
     // tableEl puede ser el <table> o null; si no se proporciona, buscar la tabla de expertos
     const root =
       tableEl || document.querySelector("table.admin-table--expertos");
-    
-    console.log('bindRowActions called with:', tableEl);
-    console.log('Root element found:', root);
-    
+
+    // bindRowActions initialized
+
     if (!root) {
-      console.error('No table element found for binding actions!');
+      console.error("No table element found for binding actions!");
       return;
     }
-    
-    console.log('Binding action buttons...');
+
+    // binding action buttons
     bindActionToButtons(root, ".btn-view", openModalView);
     bindActionToButtons(root, ".btn-edit", openModalEdit);
     bindActionToButtons(root, ".btn-inactivate", inactivateExpert);
     bindActionToButtons(root, ".btn-activate", activateExpert);
     bindActionToButtons(root, ".btn-approve", approveExpert);
     bindActionToButtons(root, ".btn-reject", rejectExpert);
-    
-    console.log('All action buttons bound successfully');
+
+    // action buttons bound
   }
 
   function bindActionToButtons(root, selector, handler) {
@@ -426,22 +482,22 @@
     // selector: selector relativo para los botones dentro del root
     const mount = root || document;
     const buttons = Array.from(mount.querySelectorAll(selector));
-    
-    console.log(`Binding ${buttons.length} buttons for selector "${selector}"`);
-    
+
+    // binding count: ${buttons.length}
+
     buttons.forEach((btn) => {
       btn.addEventListener("click", function (e) {
         e.preventDefault();
         e.stopPropagation();
-        
+
         const id = this.getAttribute("data-id");
-        console.log(`Button clicked: ${selector}, ID: ${id}`);
-        
+        // button clicked: ${selector}, id: ${id}
+
         if (!id) {
-          console.error('No data-id found on button', this);
+          console.error("No data-id found on button", this);
           return;
         }
-        
+
         handler(id);
       });
     });
@@ -475,14 +531,14 @@
 
   async function approveExpert(id) {
     const btn = document.querySelector(`.btn-approve[data-id="${id}"]`);
-    const email = btn?.getAttribute('data-email');
-    
+    const email = btn?.getAttribute("data-email");
+
     if (!email) {
-      alert('Error: No se pudo obtener el email del experto');
+      alert("Error: No se pudo obtener el email del experto");
       return;
     }
 
-    if (!confirm('¿Estás seguro de que deseas aprobar este experto?')) {
+    if (!confirm("¿Estás seguro de que deseas aprobar este experto?")) {
       return;
     }
 
@@ -490,29 +546,45 @@
       btn.disabled = true;
       btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Aprobando...';
 
-      const response = await fetch(`/api/expertos/aprobar/${encodeURIComponent(email)}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${window.authToken || ''}`,
-          'X-API-Key': 'servitech-api-key-2024'
+      const response = await fetch(
+        `/api/expertos/aprobar/${encodeURIComponent(email)}`,
+        {
+          method: "PUT",
+          credentials: "same-origin",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${window.authToken || ""}`,
+          },
         }
-      });
+      );
 
-      const result = await response.json();
+      let result = {};
+      try {
+        result = await response.json();
+      } catch (e) {
+        // fallback: try text if JSON parsing fails
+        try {
+          const txt = await response.text();
+          result = { mensaje: txt };
+        } catch (ee) {
+          result = { mensaje: "HTTP " + response.status };
+        }
+      }
 
       if (response.ok) {
         // Actualizar la fila para mostrar estado activo
-        const row = document.querySelector(`table.admin-table--expertos tr[data-id="${id}"]`);
+        const row = document.querySelector(
+          `table.admin-table--expertos tr[data-id="${id}"]`
+        );
         if (row) {
           const badge = row.querySelector(".badge");
           if (badge) {
             badge.className = "badge badge--active";
             badge.textContent = "activo";
           }
-          
+
           // Actualizar botones de acción
-          const actionsCell = row.querySelector('.expertos-actions-cell');
+          const actionsCell = row.querySelector(".expertos-actions-cell");
           if (actionsCell) {
             actionsCell.innerHTML = `
               <div class="action-buttons" role="group" aria-label="Acciones experto">
@@ -521,19 +593,23 @@
                 <button class="btn-warning btn-inactivate" data-id="${id}">Inactivar</button>
               </div>
             `;
-            bindRowActions(row.closest('table'));
+            bindRowActions(row.closest("table"));
           }
-          
-          row.setAttribute('data-status', 'activo');
+
+          row.setAttribute("data-status", "activo");
         }
-        
-        alert('Experto aprobado exitosamente');
+
+        alert("Experto aprobado exitosamente");
       } else {
-        throw new Error(result.mensaje || 'Error al aprobar experto');
+        const msg =
+          result && result.mensaje
+            ? result.mensaje
+            : "HTTP " + response.status + " " + response.statusText;
+        throw new Error(msg || "Error al aprobar experto");
       }
     } catch (error) {
-      console.error('Error al aprobar experto:', error);
-      alert('Error al aprobar experto: ' + error.message);
+      console.error("Error al aprobar experto:", error);
+      alert("Error al aprobar experto: " + error.message);
       btn.disabled = false;
       btn.innerHTML = '<i class="fas fa-check"></i> Aprobar';
     }
@@ -541,19 +617,19 @@
 
   async function rejectExpert(id) {
     const btn = document.querySelector(`.btn-reject[data-id="${id}"]`);
-    const email = btn?.getAttribute('data-email');
-    
+    const email = btn?.getAttribute("data-email");
+
     if (!email) {
-      alert('Error: No se pudo obtener el email del experto');
+      alert("Error: No se pudo obtener el email del experto");
       return;
     }
 
-    const motivo = prompt('Motivo del rechazo (opcional):');
+    const motivo = prompt("Motivo del rechazo (opcional):");
     if (motivo === null) {
       return; // Usuario canceló
     }
 
-    if (!confirm('¿Estás seguro de que deseas rechazar este experto?')) {
+    if (!confirm("¿Estás seguro de que deseas rechazar este experto?")) {
       return;
     }
 
@@ -561,53 +637,62 @@
       btn.disabled = true;
       btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Rechazando...';
 
-      const response = await fetch(`/api/expertos/rechazar/${encodeURIComponent(email)}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${window.authToken || ''}`,
-          'X-API-Key': 'servitech-api-key-2024'
-        },
-        body: JSON.stringify({ motivo: motivo || 'Sin motivo especificado' })
-      });
+      const response = await fetch(
+        `/api/expertos/rechazar/${encodeURIComponent(email)}`,
+        {
+          method: "PUT",
+          credentials: "same-origin",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${window.authToken || ""}`,
+          },
+          body: JSON.stringify({ motivo: motivo || "Sin motivo especificado" }),
+        }
+      );
 
       const result = await response.json();
 
       if (response.ok) {
         // Remover la fila de la tabla ya que el usuario ya no es experto
-        const row = document.querySelector(`table.admin-table--expertos tr[data-id="${id}"]`);
+        const row = document.querySelector(
+          `table.admin-table--expertos tr[data-id="${id}"]`
+        );
         if (row) {
           row.remove();
         }
-        
-        alert('Solicitud de experto rechazada exitosamente');
-        
+
+        alert("Solicitud de experto rechazada exitosamente");
+
         // Actualizar la paginación
-        const remainingRows = document.querySelectorAll('table.admin-table--expertos tbody tr:not(.placeholder-row)');
+        const remainingRows = document.querySelectorAll(
+          "table.admin-table--expertos tbody tr:not(.placeholder-row)"
+        );
         if (remainingRows.length === 0) {
-          const tbody = document.querySelector('table.admin-table--expertos tbody');
-          tbody.innerHTML = '<tr class="placeholder-row"><td colspan="6" style="text-align:center;padding:24px;color:var(--admin-text-secondary);">No hay expertos para mostrar.</td></tr>';
+          const tbody = document.querySelector(
+            "table.admin-table--expertos tbody"
+          );
+          tbody.innerHTML =
+            '<tr class="placeholder-row"><td colspan="6" style="text-align:center;padding:24px;color:var(--admin-text-secondary);">No hay expertos para mostrar.</td></tr>';
         }
       } else {
-        throw new Error(result.mensaje || 'Error al rechazar experto');
+        throw new Error(result.mensaje || "Error al rechazar experto");
       }
     } catch (error) {
-      console.error('Error al rechazar experto:', error);
-      alert('Error al rechazar experto: ' + error.message);
+      console.error("Error al rechazar experto:", error);
+      alert("Error al rechazar experto: " + error.message);
       btn.disabled = false;
       btn.innerHTML = '<i class="fas fa-times"></i> Rechazar';
     }
   }
 
   function openModal(type, id) {
-    console.log(`openModal called with type: ${type}, id: ${id}`);
-    console.log(`Total experts in allExperts: ${allExperts.length}`);
-    
+    // openModal called
+
     const expert = allExperts.find((x) => getExpertField(x, "id") == id);
-    console.log(`Expert found:`, expert);
-    
+    // expert resolved
+
     if (!expert) {
-      console.warn('Expert not found with id:', id);
+      console.warn("Expert not found with id:", id);
       alert(`Experto no encontrado con ID: ${id}`);
       return;
     }
@@ -615,14 +700,12 @@
     let modal;
     if (type === "view") {
       modal = $("#verPerfilExperto");
-      console.log('Looking for modal #verPerfilExperto:', modal);
     } else {
       modal = $(`#${type}ExpertModal`);
-      console.log(`Looking for modal #${type}ExpertModal:`, modal);
     }
-    
+
     if (!modal) {
-      console.error('Modal not found for type:', type);
+      console.error("Modal not found for type:", type);
       alert(`Modal no encontrado para tipo: ${type}`);
       return;
     }
@@ -630,82 +713,112 @@
     try {
       // Mapear campos según el tipo de modal
       if (type === "view") {
-        console.log('Filling view modal fields...');
-        
         // Para el modal de ver
         const nameField = $("#name_view");
         const emailField = $("#email_view");
         const precioField = $("#precio_view");
         const bioField = $("#bio_view");
         const statusField = $("#status_view");
-        
-        console.log('Fields found:', {
-          nameField: !!nameField,
-          emailField: !!emailField,
-          precioField: !!precioField,
-          bioField: !!bioField,
-          statusField: !!statusField
-        });
-        
+
+        // fields presence checked
+
         if (nameField) nameField.value = getExpertField(expert, "name") || "";
-        if (emailField) emailField.value = getExpertField(expert, "email") || "";
-        
+        if (emailField)
+          emailField.value = getExpertField(expert, "email") || "";
+
         // Formatear precio
         const precio = getExpertField(expert, "price") || "";
         if (precioField) {
           // Buscar precio en infoExperto si no está en el nivel superior
-          const precioFromInfo = expert.infoExperto?.precioPorHora || expert.precioPorHora || precio;
+          const precioFromInfo =
+            expert.infoExperto?.precioPorHora || expert.precioPorHora || precio;
           precioField.value = precioFromInfo || "";
         }
-        
+
         // Buscar bio en diferentes ubicaciones posibles
-        const bio = getExpertField(expert, "bio") || expert.infoExperto?.descripcion || expert.descripcion || "";
+        const bio =
+          getExpertField(expert, "bio") ||
+          expert.infoExperto?.descripcion ||
+          expert.descripcion ||
+          "";
         if (bioField) bioField.value = bio;
-        
+
         // Estado
-        const estado = getExpertField(expert, "status") || expert.estado || "inactivo";
+        const estado =
+          getExpertField(expert, "status") || expert.estado || "inactivo";
         if (statusField) statusField.value = estado;
-        
+
         // Hacer campos de solo lectura
-        [nameField, emailField, precioField, bioField].forEach(field => {
+        [nameField, emailField, precioField, bioField].forEach((field) => {
           if (field) {
             field.readOnly = true;
             field.style.backgroundColor = "#f8f9fa";
             field.style.cursor = "default";
           }
         });
-        
+
         // El select de estado también debe ser disabled
         if (statusField) {
           statusField.disabled = true;
           statusField.style.backgroundColor = "#f8f9fa";
           statusField.style.cursor = "default";
         }
-        
       } else {
-        console.log(`Filling ${type} modal fields...`);
-        
+        // filling other modal fields
+
         // Para otros modales (edit, etc.)
         const nameField = $(`#name_${type}`);
         const emailField = $(`#email_${type}`);
         const precioField = $(`#precio_${type}`);
         const bioField = $(`#bio_${type}`);
-        
+
         if (nameField) nameField.value = getExpertField(expert, "name") || "";
-        if (emailField) emailField.value = getExpertField(expert, "email") || "";
-        if (precioField) precioField.value = getExpertField(expert, "price") || "";
+        if (emailField)
+          emailField.value = getExpertField(expert, "email") || "";
+        if (precioField)
+          precioField.value = getExpertField(expert, "price") || "";
         if (bioField) bioField.value = getExpertField(expert, "bio") || "";
       }
-      
-      console.log('About to show modal...');
-      modal.style.display = "block";
-      modal.classList.add('show');
-      document.body.classList.add('modal-open');
-      
-      console.log('Modal should now be visible. Modal display:', modal.style.display);
-      console.log('Modal classes:', modal.className);
-      console.log('Body classes:', document.body.className);
-      
+
+      // Move modal to document.body to avoid stacking context / overflow hiding issues
+      try {
+        if (
+          modal &&
+          modal.parentElement &&
+          modal.parentElement !== document.body
+        ) {
+          // store original parent and nextSibling to restore later
+          modal._originalParent = modal.parentElement;
+          modal._originalNextSibling = modal.nextSibling;
+          document.body.appendChild(modal);
+        }
+      } catch (e) {
+        console.warn("Could not move modal to body:", e);
+      }
+
+      // about to show modal
+
+      // Force visibility using inline styles to avoid CSS conflicts / stacking context issues
+      try {
+        modal.style.display = "flex";
+        // make the modal cover the viewport and be above other contexts
+        modal.style.position = "fixed";
+        modal.style.top = "0";
+        modal.style.left = "0";
+        modal.style.right = "0";
+        modal.style.bottom = "0";
+        modal.style.zIndex = "99999";
+        // backdrop color (inline to ensure visibility)
+        modal.style.backgroundColor =
+          modal.style.backgroundColor || "rgba(0,0,0,0.45)";
+
+        modal.classList.add("show", "modal-open", "is-open");
+        document.body.classList.add("modal-open");
+      } catch (e) {
+        console.warn("Unable to force inline modal styles:", e);
+      }
+
+      // modal visibility forced via inline styles
     } catch (e) {
       console.error(`Error opening ${type} modal:`, e);
       alert(`Error al abrir modal: ${e.message}`);
@@ -777,9 +890,88 @@
       $$(selector).forEach((btn) => {
         btn.addEventListener("click", function () {
           const modal = this.closest(".modal-expert");
-          if (modal) modal.style.display = "none";
+          if (modal) {
+            // hide and remove inline forcing styles
+            modal.style.display = "none";
+            try {
+              modal.style.position = null;
+              modal.style.top = null;
+              modal.style.left = null;
+              modal.style.right = null;
+              modal.style.bottom = null;
+              modal.style.zIndex = null;
+              modal.style.backgroundColor = null;
+            } catch (e) {}
+            modal.classList.remove("show", "modal-open", "is-open");
+            try {
+              document.body.classList.remove("modal-open");
+            } catch (e) {}
+
+            // If we moved the modal to body earlier, restore original position
+            try {
+              if (modal._originalParent) {
+                if (modal._originalNextSibling) {
+                  modal._originalParent.insertBefore(
+                    modal,
+                    modal._originalNextSibling
+                  );
+                } else {
+                  modal._originalParent.appendChild(modal);
+                }
+                modal._originalParent = null;
+                modal._originalNextSibling = null;
+              }
+            } catch (e) {
+              console.warn("Could not restore modal original parent:", e);
+            }
+          }
         });
       });
+    });
+
+    // Close on Escape key
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" || e.key === "Esc") {
+        const openModal = document.querySelector(
+          ".modal-expert.is-open, .modal-expert.show, .modal-expert[style*='display: flex']"
+        );
+        if (openModal) {
+          try {
+            openModal.style.display = "none";
+            openModal.classList.remove("show", "modal-open", "is-open");
+            openModal.style.position = null;
+            openModal.style.top = null;
+            openModal.style.left = null;
+            openModal.style.right = null;
+            openModal.style.bottom = null;
+            openModal.style.zIndex = null;
+            openModal.style.backgroundColor = null;
+          } catch (e) {}
+          try {
+            document.body.classList.remove("modal-open");
+          } catch (e) {}
+
+          try {
+            if (openModal._originalParent) {
+              if (openModal._originalNextSibling) {
+                openModal._originalParent.insertBefore(
+                  openModal,
+                  openModal._originalNextSibling
+                );
+              } else {
+                openModal._originalParent.appendChild(openModal);
+              }
+              openModal._originalParent = null;
+              openModal._originalNextSibling = null;
+            }
+          } catch (e) {
+            console.warn(
+              "Could not restore modal original parent after Escape:",
+              e
+            );
+          }
+        }
+      }
     });
   }
 
@@ -852,6 +1044,13 @@
       console.warn("init error", e);
     }
   }
+
+  // ===== EXPORTACIONES GLOBALES PARA DEBUGGING =====
+  // Hacer funciones disponibles globalmente para debugging
+  window.openModalView = openModalView;
+  window.openModalEdit = openModalEdit;
+  window.openModal = openModal;
+  window.allExperts = allExperts;
 
   // ===== CategoriasSelector (migrated from inline EJS) =====
   class CategoriasSelector {
@@ -1356,45 +1555,7 @@
     } catch (e) {}
 
     // ===== MOVED FROM INLINE SCRIPTS IN EJS =====
-    // Mitigaciones para evitar autofill en inputs email dentro de modales.
-    function mitigateAutofillForModal(modalId) {
-      try {
-        const m = document.getElementById(modalId);
-        if (!m) return;
-        // Buscar el input email dentro del modal de forma robusta
-        const email =
-          m.querySelector('input[type="email"]') ||
-          m.querySelector('[id*="email"]');
-        if (!email) return;
-        try {
-          email.value = "";
-          email.setAttribute("autocomplete", "off");
-          email.setAttribute("autocorrect", "off");
-          email.setAttribute("autocapitalize", "off");
-          email.setAttribute("spellcheck", "false");
-          email.readOnly = true;
-          const sec =
-            getComputedStyle(document.documentElement).getPropertyValue(
-              "--admin-text-secondary"
-            ) || "#8892a6";
-          try {
-            email.style.setProperty("color", sec, "important");
-          } catch (e) {}
-          try {
-            email.style.setProperty(
-              "-webkit-text-fill-color",
-              sec,
-              "important"
-            );
-          } catch (e) {}
-          setTimeout(function () {
-            try {
-              email.readOnly = false;
-            } catch (e) {}
-          }, 80);
-        } catch (e) {}
-      } catch (e) {}
-    }
+    // ...existing code...
 
     // Inicializador del botón "Nuevo experto": abre modal y coloca avatar por defecto
     function initAddExpertButton() {
@@ -1438,10 +1599,7 @@
       }
     }
 
-    // Ejecutar mitigaciones para los modales conocidos
-    ["editExpertModal", "expertModal", "verPerfilExperto"].forEach(
-      mitigateAutofillForModal
-    );
+    // ...existing code...
     initAddExpertButton();
 
     // Handler para el formulario de agregar experto: valida, sube imagen y persiste via API
