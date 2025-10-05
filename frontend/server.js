@@ -668,14 +668,16 @@ router.get("/expertos/:email/calendario", async (req, res) => {
         )}`
       );
       if (asesoriaRes.ok) {
-        asesoriasExistentes = await asesoriaRes.json();
-        // Filtrar solo las asesorías relevantes para mostrar ocupación
+        const data = await asesoriaRes.json();
+        // SOLUCIÓN: asegura que asesoriasExistentes es SIEMPRE un array
+        asesoriasExistentes = Array.isArray(data) ? data : (data.asesorias || []);
         asesoriasExistentes = asesoriasExistentes.filter((a) =>
           ["pendiente-aceptacion", "confirmada"].includes(a.estado)
         );
       }
     } catch (e) {
       console.error("Error obteniendo asesorías:", e);
+      asesoriasExistentes = [];
     }
 
     // Usuario autenticado (puede ser null si no ha iniciado sesión)
@@ -696,21 +698,30 @@ router.get("/expertos/:email/calendario", async (req, res) => {
   }
 });
 
-// Ruta: confirmación de asesoría 
-router.get("/confirmacion-asesoria", (req, res) => {
+// Ruta: confirmación de asesoría
+router.get("/confirmacion-asesoria", async (req, res) => {
   const status = req.query.status || "unknown";
   const pagoId = req.query.pagoId || null;
-  const paymentId = req.query.paymentId || null;
-  const preferenceId = req.query.preferenceId || null;
   const asesoriaId = req.query.asesoriaId || null;
 
-  // Validaciones básicas
-  if (!status) {
-    console.warn("Acceso a confirmación sin estado definido");
-  }
+  let asesoria = null;
+  let pago = null;
 
-  if (status === "success" && !pagoId && !paymentId) {
-    console.warn("Estado exitoso pero sin IDs de pago");
+  try {
+    if (asesoriaId) {
+      const asesoriaRes = await fetch(`${BACKEND_URL}/api/asesorias/${asesoriaId}`, {
+        headers: req.session.user?.token ? { Authorization: `Bearer ${req.session.user.token}` } : {},
+      });
+      if (asesoriaRes.ok) asesoria = await asesoriaRes.json();
+    }
+    if (pagoId) {
+      const pagoRes = await fetch(`${BACKEND_URL}/api/pagos/${pagoId}`, {
+        headers: req.session.user?.token ? { Authorization: `Bearer ${req.session.user.token}` } : {},
+      });
+      if (pagoRes.ok) pago = await pagoRes.json();
+    }
+  } catch (e) {
+    console.error("Error trayendo datos de la factura:", e);
   }
 
   res.render("confirmacionAsesoria", {
@@ -718,12 +729,11 @@ router.get("/confirmacion-asesoria", (req, res) => {
     usuario: req.session.user || null,
     status,
     pagoId,
-    paymentId,
-    preferenceId,
     asesoriaId,
+    asesoria,
+    pago,
   });
 });
-
 // Ruta: pasarela de pagos
 router.get("/pasarela-pagos", (req, res) => {
   console.log("GET /pasarela-pagos - Query params:", req.query);
@@ -1100,24 +1110,6 @@ router.get("/admin/debug-session", requireAdmin, (req, res) => {
   } catch (e) {
     return res.status(500).json({ error: "debug error", detail: e.message });
   }
-});
-// Ruta: confirmación de asesoría
-router.get("/confirmacion-asesoria", (req, res) => {
-  const status = req.query.status || "pending";
-  const pagoId = req.query.pagoId || null;
-  const paymentId = req.query.paymentId || null;
-  const preferenceId = req.query.preferenceId || null;
-  const asesoriaId = req.query.asesoriaId || null;
-
-  res.render("confirmacionAsesoria", {
-    user: req.session.user || null,
-    usuario: req.session.user || null,
-    status,
-    pagoId,
-    paymentId,
-    preferenceId,
-    asesoriaId,
-  });
 });
 
 // Manejo de errores 404

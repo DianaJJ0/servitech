@@ -201,6 +201,7 @@ function calcularDuracionTexto(minutos) {
  */
 async function procesarPagoConFormulario() {
   if (pagoEnProceso) return;
+
   // Validar campos del formulario
   const nombre = document.getElementById("nombrePago").value.trim();
   const email = document.getElementById("emailPago").value.trim();
@@ -262,7 +263,7 @@ async function procesarPagoConFormulario() {
     localStorage.removeItem("asesoriaEnProceso");
 
     // Redirigir a la confirmación con los datos de la factura
-    window.location.href = `/confirmacionAsesoria.html?status=success&pagoId=${result.pagoId}&asesoriaId=${result.asesoriaId}&simulado=true`;
+    window.location.href = `/confirmacion-asesoria?status=success&pagoId=${result.pagoId}&asesoriaId=${result.asesoriaId}&simulado=true`;
   } catch (error) {
     mostrarError("Error al procesar el pago: " + error.message);
   } finally {

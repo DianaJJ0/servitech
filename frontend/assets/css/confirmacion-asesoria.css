@@ -1,645 +1,379 @@
-/* CONFIRMACIÓN DE ASESORÍA */
+/* ===========================
+   CONFIRMAR PAGO - SERVITECH
+   =========================== */
 
 .container {
-    max-width: 900px;
-    margin: 2rem auto;
-    padding: 0 1rem;
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 0 1rem;
 }
 
-.confirmacion-container {
-    margin-bottom: 3rem;
+.confirmacionCard {
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  box-shadow: var(--card-shadow);
+  padding: 3rem 2rem 2.5rem 2rem;
+  text-align: center;
+  border-top: 5px solid var(--accent-color);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border-light);
+  margin-bottom: 2.5rem;
 }
 
-/* Tarjetas de confirmación */
-.confirmacion-card {
-    background: var(--card-bg);
-    border-radius: var(--border-radius);
-    box-shadow: var(--card-shadow);
-    padding: 3rem 2rem;
-    text-align: center;
-    border-top: 5px solid var(--accent-color);
-    position: relative;
-    overflow: hidden;
-    border: 1px solid var(--border-light);
+.confirmacionCard.success {
+  border-top-color: var(--accent-color);
 }
 
-.confirmacion-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 100%;
-    background: linear-gradient(135deg, transparent 0%, rgba(58, 142, 255, 0.03) 100%);
-    pointer-events: none;
+.iconContainer {
+  margin-bottom: 2rem;
+}
+.iconContainer i {
+  font-size: 5rem;
+  color: var(--accent-color);
+  filter: drop-shadow(0 4px 8px var(--accent-color));
+  margin-bottom: 0.5rem;
 }
 
-.confirmacion-card.success {
-    border-top-color: #28a745;
+.confirmacionCard h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--text-color);
+  margin-bottom: 0.75rem;
 }
 
-.confirmacion-card.success::before {
-    background: linear-gradient(135deg, transparent 0%, rgba(40, 167, 69, 0.03) 100%);
+.mensajePrincipal {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  margin-bottom: 2.3rem;
+  line-height: 1.5;
 }
 
-.confirmacion-card.pending {
-    border-top-color: #ffc107;
+/* Factura/resumen */
+.facturaContainer {
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 1.5rem 1rem 1.2rem 1rem;
+  margin-bottom: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.confirmacion-card.pending::before {
-    background: linear-gradient(135deg, transparent 0%, rgba(255, 193, 7, 0.03) 100%);
+.facturaContainer h3 {
+  color: var(--accent-color);
+  font-weight: 600;
+  font-size: 1.13rem;
+  margin-bottom: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
 }
 
-.confirmacion-card.error {
-    border-top-color: #dc3545;
+.facturaGrid {
+  display: flex;
+  gap: 2.5rem;
+  justify-content: center;
+  width: 100%;
+  flex-wrap: wrap;
 }
 
-.confirmacion-card.error::before {
-    background: linear-gradient(135deg, transparent 0%, rgba(220, 53, 69, 0.03) 100%);
+.facturaSection {
+  min-width: 220px;
+  flex: 1 1 260px;
+  padding: 0.5rem 0.5rem 0.5rem 0.5rem;
+  text-align: left;
 }
 
-/* Iconos principales */
-.icon-container {
-    margin-bottom: 2rem;
-    position: relative;
-    z-index: 1;
+.facturaSection h4 {
+  color: var(--primary-color);
+  font-size: 0.98rem;
+  font-weight: 700;
+  margin-bottom: 0.7rem;
+  letter-spacing: 0.01em;
 }
 
-.icon-container i {
-    font-size: 5rem;
-    color: var(--accent-color);
-    filter: drop-shadow(0 4px 8px rgba(58, 142, 255, 0.3));
-    animation: iconPulse 2s ease-in-out infinite;
+.facturaSection ul {
+  padding-left: 1.2rem;
+  margin: 0 0 0.3rem 0;
+  list-style: none;
+}
+.facturaSection li {
+  color: var(--text-color);
+  font-size: 0.99rem;
+  margin-bottom: 0.15rem;
+  line-height: 1.4;
+}
+.facturaSection li strong {
+  color: var(--accent-color);
+  font-weight: 600;
 }
 
-.confirmacion-card.success .icon-container i {
-    color: #28a745;
-    filter: drop-shadow(0 4px 8px rgba(40, 167, 69, 0.3));
-}
-
-.confirmacion-card.pending .icon-container i {
-    color: #ffc107;
-    filter: drop-shadow(0 4px 8px rgba(255, 193, 7, 0.3));
-    animation: iconSpin 2s linear infinite;
-}
-
-.confirmacion-card.error .icon-container i {
-    color: #dc3545;
-    filter: drop-shadow(0 4px 8px rgba(220, 53, 69, 0.3));
-    animation: iconShake 0.5s ease-in-out;
-}
-
-@keyframes iconPulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-}
-
-@keyframes iconSpin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-@keyframes iconShake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    75% { transform: translateX(5px); }
-}
-
-/* Títulos y textos */
-.confirmacion-card h1 {
-    color: var(--text-color);
-    margin: 0 0 1rem 0;
-    font-size: 2.25rem;
-    font-weight: 700;
-    position: relative;
-    z-index: 1;
-}
-
-.mensaje-principal {
-    color: var(--text-secondary);
-    font-size: 1.15rem;
-    margin-bottom: 2.5rem;
-    line-height: 1.6;
-    position: relative;
-    z-index: 1;
+.facturaSection p {
+  color: var(--text-secondary);
+  font-size: 0.98rem;
+  margin: 0.25rem 0 0.4rem 0;
 }
 
 /* Pasos siguientes */
-.pasos-siguientes {
-    background: var(--input-bg);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    padding: 2.5rem;
-    margin: 2rem 0;
-    text-align: left;
-    position: relative;
-    z-index: 1;
+.pasosSiguientes {
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 2rem 1.2rem 1.5rem 1.2rem;
+  margin-bottom: 2rem;
+}
+.pasosSiguientes h3 {
+  color: var(--accent-color);
+  font-size: 1.17rem;
+  font-weight: 600;
+  margin-bottom: 1.3rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  justify-content: center;
 }
 
-.pasos-siguientes h3 {
-    color: var(--accent-color);
-    margin: 0 0 2rem 0;
-    text-align: center;
-    font-size: 1.4rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
+.pasoPago {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.2rem;
+  margin-bottom: 1.3rem;
+  background: var(--card-bg);
+  border-radius: 10px;
+  border: 1px solid var(--border-light);
+  box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+  padding: 1.1rem 1rem;
 }
 
-.paso {
-    display: flex;
-    align-items: flex-start;
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-    padding: 1.5rem;
-    background: var(--card-bg);
-    border-radius: var(--border-radius);
-    border: 1px solid var(--border-light);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: var(--transition);
+.pasoPago:last-child {
+  margin-bottom: 0;
 }
 
-.paso:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--hover-shadow);
+.pasoNumero {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--accent-color);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.08rem;
+  margin-right: 0.1rem;
 }
 
-.paso:last-child {
-    margin-bottom: 0;
+.pasoContenido h4 {
+  color: var(--text-color);
+  margin: 0 0 0.2rem 0;
+  font-size: 1.02rem;
+  font-weight: 600;
+}
+.pasoContenido p {
+  color: var(--text-secondary);
+  margin: 0;
+  font-size: 0.97rem;
 }
 
-.paso-numero {
-    background: linear-gradient(135deg, var(--accent-color) 0%, var(--primary-color) 100%);
-    color: white;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 1.1rem;
-    flex-shrink: 0;
-    box-shadow: 0 4px 12px rgba(58, 142, 255, 0.3);
+/* Info de pago simulado */
+.infoPagoSimulado {
+  background: var(--primary-color);
+  border: 2px solid #9c27b0;
+  border-radius: 12px;
+  padding: 1.1rem 1rem;
+  margin: 2rem 0 1.3rem 0;
+  text-align: center;
+}
+.simuladoBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--primary-color);
+  color: white;
+  padding: 0.4rem 1.1rem;
+  border-radius: 20px;
+  font-size: 0.93rem;
+  font-weight: 600;
+  margin-bottom: 0.6rem;
+}
+.infoPagoSimulado p {
+  color: var(--text-secondary);
+  margin: 0.3rem 0 0 0;
+  font-size: 0.95rem;
+  line-height: 1.45;
 }
 
-.paso-contenido h4 {
-    color: var(--text-color);
-    margin: 0 0 0.75rem 0;
-    font-size: 1.15rem;
-    font-weight: 600;
+/* Botones acción */
+.accionesPago {
+  display: flex;
+  gap: 1.1rem;
+  justify-content: center;
+  margin-top: 2.2rem;
+  flex-wrap: wrap;
 }
 
-.paso-contenido p {
-    color: var(--text-secondary);
-    margin: 0;
-    line-height: 1.6;
-    font-size: 0.95rem;
+.accionesPago .btn {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 1rem 2.2rem;
+  border-radius: var(--border-radius);
+  font-weight: 600;
+  font-size: 1rem;
+  border: none;
+  cursor: pointer;
+  min-width: 180px;
+  justify-content: center;
+  text-decoration: none;
+  transition: filter 0.15s, box-shadow 0.18s;
 }
 
-/* Indicador de carga */
-.loading-indicator {
-    margin: 3rem 0;
-    position: relative;
-    z-index: 1;
+.accionesPago .btn-primary {
+  background: var(--primary-color);
+  color: white;
+  box-shadow: var(--btn-shadow);
 }
-
-.spinner {
-    width: 60px;
-    height: 60px;
-    border: 4px solid rgba(58, 142, 255, 0.1);
-    border-top: 4px solid var(--accent-color);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 0 auto 1.5rem auto;
-    filter: drop-shadow(0 4px 8px rgba(58, 142, 255, 0.2));
+.accionesPago .btn-primary:hover { filter: brightness(1.11);}
+.accionesPago .btn-secondary {
+  background: var(--input-bg);
+  color: var(--accent-color);
+  border: 2px solid var(--border-color);
 }
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.loading-indicator p {
-    color: var(--text-secondary);
-    font-style: italic;
-    font-size: 1.1rem;
-}
-
-/* Detalles de error */
-.error-detalles {
-    background: var(--input-bg);
-    border: 1px solid rgba(220, 53, 69, 0.3);
-    border-radius: var(--border-radius);
-    padding: 2rem;
-    margin: 2rem 0;
-    text-align: left;
-    position: relative;
-    z-index: 1;
-}
-
-.error-detalles h4 {
-    color: #ff6b7a;
-    margin: 0 0 1.5rem 0;
-    font-size: 1.2rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.error-detalles h4::before {
-    content: '⚠️';
-    font-size: 1.1rem;
-}
-
-.error-detalles ul {
-    color: var(--text-secondary);
-    margin: 0;
-    padding-left: 1.5rem;
-}
-
-.error-detalles li {
-    margin-bottom: 0.75rem;
-    line-height: 1.5;
-}
-
-.error-detalles li strong {
-    color: var(--text-color);
-}
-
-/* Botones de acción */
-.acciones {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-    margin-top: 3rem;
-    flex-wrap: wrap;
-    position: relative;
-    z-index: 1;
-}
-
-.acciones .btn {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 1rem 2rem;
-    text-decoration: none;
-    border-radius: var(--border-radius);
-    font-weight: 600;
-    font-size: 1rem;
-    transition: var(--transition);
-    border: none;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-    min-width: 180px;
-    justify-content: center;
-}
-
-.acciones .btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-    transition: left 0.5s;
-}
-
-.acciones .btn:hover::before {
-    left: 100%;
-}
-
-.acciones .btn-primary {
-    background: linear-gradient(135deg, var(--accent-color) 0%, var(--primary-color) 100%);
-    color: white;
-    box-shadow: var(--btn-shadow);
-}
-
-.acciones .btn-primary:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(58, 142, 255, 0.4);
-}
-
-.acciones .btn-secondary {
-    background: var(--input-bg);
-    color: var(--text-color);
-    border: 2px solid var(--border-color);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.acciones .btn-secondary:hover {
-    background: var(--card-bg);
-    transform: translateY(-2px);
-    box-shadow: var(--hover-shadow);
-    border-color: var(--accent-color);
-}
+.accionesPago .btn-secondary:hover { filter: brightness(1.08); }
 
 /* Información adicional */
-.info-adicional {
-    background: var(--card-bg);
-    border-radius: var(--border-radius);
-    box-shadow: var(--card-shadow);
-    padding: 3rem;
-    border: 1px solid var(--border-light);
+.infoAdicionalPago {
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  box-shadow: var(--card-shadow);
+  padding: 2.2rem 1.2rem;
+  border: 1px solid var(--border-light);
+  margin-top: 2.2rem;
+}
+.infoGridPago {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 2.2rem;
 }
 
-.info-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 2.5rem;
+.infoItemPago {
+  text-align: center;
+  padding: 1.2rem;
+  background: var(--input-bg);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+  transition: box-shadow 0.16s, transform 0.12s;
 }
-
-.info-item {
-    text-align: center;
-    padding: 1.5rem;
-    background: var(--input-bg);
-    border-radius: var(--border-radius);
-    border: 1px solid var(--border-color);
-    transition: var(--transition);
+.infoItemPago:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--hover-shadow);
+  border-color: var(--accent-color);
 }
-
-.info-item:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--hover-shadow);
-    border-color: var(--accent-color);
+.infoItemPago i {
+  font-size: 2.1rem;
+  color: var(--accent-color);
+  margin-bottom: 1rem;
+  filter: drop-shadow(0 2px 6px rgba(58, 142, 255, 0.09));
 }
-
-.info-item i {
-    font-size: 3rem;
-    color: var(--accent-color);
-    margin-bottom: 1.5rem;
-    filter: drop-shadow(0 4px 8px rgba(58, 142, 255, 0.2));
+.infoItemPago h4 {
+  color: var(--text-color);
+  margin: 0 0 0.7rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
 }
-
-.info-item h4 {
-    color: var(--text-color);
-    margin: 0 0 1rem 0;
-    font-size: 1.2rem;
-    font-weight: 600;
-}
-
-.info-item p {
-    color: var(--text-secondary);
-    margin: 0;
-    line-height: 1.6;
-    font-size: 0.95rem;
-}
-
-/* Estados específicos */
-.confirmacion-card.success .paso-numero {
-    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
-}
-
-.confirmacion-card.pending .paso-numero {
-    background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
-    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
-}
-
-.confirmacion-card.error .acciones .btn-primary {
-    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-    box-shadow: 0 4px 16px rgba(220, 53, 69, 0.3);
-}
-
-/* Animaciones de entrada */
-.confirmacion-card {
-    animation: slideInUp 0.6s ease-out;
-}
-
-@keyframes slideInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.paso {
-    animation: fadeInLeft 0.6s ease-out;
-}
-
-@keyframes fadeInLeft {
-    from {
-        opacity: 0;
-        transform: translateX(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
+.infoItemPago p {
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+  font-size: 0.96rem;
 }
 
 /* Responsive */
-@media (max-width: 768px) {
-    .container {
-        padding: 0 0.5rem;
-        margin: 1rem auto;
-    }
-
-    .confirmacion-card {
-        padding: 2rem 1.5rem;
-    }
-
-    .confirmacion-card h1 {
-        font-size: 1.8rem;
-    }
-
-    .icon-container i {
-        font-size: 4rem;
-    }
-
-    .pasos-siguientes {
-        padding: 2rem 1.5rem;
-    }
-
-    .paso {
-        flex-direction: column;
-        text-align: center;
-        gap: 1rem;
-    }
-
-    .paso-numero {
-        align-self: center;
-        width: 40px;
-        height: 40px;
-        font-size: 1rem;
-    }
-
-    .acciones {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .acciones .btn {
-        width: 100%;
-        max-width: 320px;
-    }
-
-    .info-grid {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
-    }
-
-    .info-item {
-        padding: 1rem;
-    }
+@media (max-width: 900px) {
+  .facturaGrid { flex-direction: column; gap: 1.5rem; }
+  .facturaSection { min-width: 0; width: 100%; padding: 0.5rem 0.1rem; }
 }
-
-@media (max-width: 480px) {
-    .confirmacion-card {
-        padding: 1.5rem 1rem;
-    }
-
-    .confirmacion-card h1 {
-        font-size: 1.5rem;
-    }
-
-    .icon-container i {
-        font-size: 3rem;
-    }
-
-    .mensaje-principal {
-        font-size: 1rem;
-    }
-
-    .pasos-siguientes {
-        padding: 1.5rem 1rem;
-    }
-
-    .info-adicional {
-        padding: 2rem 1.5rem;
-    }
+@media (max-width: 700px) {
+  .container { padding: 0 0.3rem; }
+  .confirmacionCard { padding: 1.5rem 0.7rem 1.2rem 0.7rem; }
+  .facturaContainer { padding: 1rem 0.3rem 0.6rem 0.3rem; }
+  .pasosSiguientes { padding: 1.2rem 0.4rem 1rem 0.4rem; }
+  .infoAdicionalPago { padding: 1.2rem 0.3rem;}
 }
 
 /* Notificaciones */
 .notification-container {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 10000;
-    max-width: 400px;
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  max-width: 400px;
 }
-
 .notification {
-    margin-bottom: 12px;
-    padding: 16px 20px;
-    border-radius: var(--border-radius);
-    box-shadow: var(--card-shadow);
-    backdrop-filter: blur(10px);
-    border: 1px solid var(--border-light);
-    cursor: pointer;
+  margin-bottom: 12px;
+  padding: 16px 20px;
+  border-radius: var(--border-radius);
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--border-light);
+  cursor: pointer;
+  font-size: 1rem;
 }
-
 .notification-success {
-    background: rgba(40, 167, 69, 0.9);
-    color: white;
+  background: rgba(40, 167, 69, 0.92);
+  color: white;
 }
-
 .notification-error {
-    background: rgba(220, 53, 69, 0.9);
-    color: white;
+  background: rgba(220, 53, 69, 0.93);
+  color: white;
 }
-
 .notification-info {
-    background: rgba(58, 142, 255, 0.9);
-    color: white;
+  background: rgba(58, 142, 255, 0.93);
+  color: white;
 }
-
 .notification-warning {
-    background: rgba(255, 193, 7, 0.9);
-    color: #000;
+  background: rgba(255, 193, 7, 0.93);
+  color: #000;
 }
 
-/* Estados de conexión */
+/* Conexión online/offline */
 .conexion-estado {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    padding: 12px 20px;
-    border-radius: 25px;
-    background: var(--card-bg);
-    color: var(--text-color);
-    font-size: 0.9rem;
-    z-index: 9999;
-    display: none;
-    border: 1px solid var(--border-color);
-    box-shadow: var(--card-shadow);
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 12px 20px;
+  border-radius: 25px;
+  background: var(--card-bg);
+  color: var(--text-color);
+  font-size: 0.94rem;
+  z-index: 9999;
+  display: none;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--card-shadow);
 }
-
 .conexion-estado.online {
-    background: rgba(40, 167, 69, 0.9);
-    color: white;
+  background: rgba(40, 167, 69, 0.89);
+  color: white;
 }
-
 .conexion-estado.offline {
-    background: rgba(220, 53, 69, 0.9);
-    color: white;
-    display: block;
+  background: rgba(220, 53, 69, 0.89);
+  color: white;
+  display: block;
 }
 
 /* Accesibilidad */
 @media (prefers-reduced-motion: reduce) {
-    .spinner,
-    .confirmacion-card,
-    .paso,
-    .acciones .btn {
-        animation: none;
-    }
-
-    .acciones .btn:hover,
-    .info-item:hover,
-    .paso:hover {
-        transform: none;
-    }
-}
-
-/* Nuevos estilos para sistema simulado */
-.info-pago-simulado {
-  background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
-  border: 2px solid #9c27b0;
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin: 2rem 0;
-  text-align: center;
-}
-
-.simulado-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: linear-gradient(135deg, #9c27b0 0%, #673ab7 100%);
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-}
-
-.info-pago-simulado p {
-  color: var(--text-secondary);
-  margin: 0;
-  font-size: 0.95rem;
-  line-height: 1.5;
-}
-
-/* Mejoras responsive para nuevos elementos */
-@media (max-width: 768px) {
-  .info-pago-simulado {
-    padding: 1rem;
-    margin: 1.5rem 0;
+  .spinner,
+  .confirmacionCard,
+  .pasoPago,
+  .accionesPago .btn {
+      animation: none;
   }
-
-  .simulado-badge {
-    font-size: 0.85rem;
-    padding: 0.4rem 0.8rem;
+  .accionesPago .btn:hover,
+  .infoItemPago:hover,
+  .pasoPago:hover {
+      transform: none;
   }
 }
