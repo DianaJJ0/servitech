@@ -1,0 +1,33 @@
+#cookie-consent-banner {
+  position: fixed;
+  left: 1rem;
+  right: 1rem;
+  bottom: 1rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border-light);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  box-shadow: var(--card-shadow);
+  z-index: 2000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+#cookie-consent-banner .cc-inner {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+#cookie-consent-banner .cc-text {
+  color: var(--text-light);
+  flex: 1;
+}
+#cookie-consent-banner .cc-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+#cookie-consent-banner .btn {
+  font-size: 0.9rem;
+  padding: 0.5rem 0.9rem;
+}

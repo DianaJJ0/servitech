@@ -1,10 +1,10 @@
-// Copia del shared UMD para servir desde frontend/assets/js (igual que shared/validators.umd.js)
 (function (root, factory) {
   if (typeof exports === "object" && typeof module === "object")
     module.exports = factory();
   else if (typeof define === "function" && define.amd) define([], factory);
   else root.SharedValidators = factory();
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
+  // Copiado desde backend/validators/expertValidators.js
   const COLOMBIAN_BANKS = new Set([
     "banco de bogotá",
     "bancolombia",
