@@ -24,6 +24,7 @@ const pagoRoutes = require("./routes/pago.routes.js");
 const notificacionRoutes = require("./routes/notificacion.routes.js");
 const expertoRoutes = require("./routes/experto.routes.js");
 const asesoriaRoutes = require("./routes/asesoria.routes.js");
+
 // Conecta a la base de datos y muestra mensaje solo si hay error o éxito
 conectarDB();
 
@@ -170,9 +171,69 @@ app.use("/api/notificaciones", notificacionRoutes);
 app.use("/api/expertos", expertoRoutes);
 app.use("/api/asesorias", asesoriaRoutes);
 
-// Integración de rutas del frontend
-const frontendRouter = require("../frontend/server.js");
-app.use("/", frontendRouter);
+// Integración de rutas del frontend - CON MANEJO DE ERRORES
+try {
+  const frontendRouter = require("../frontend/server.js");
+  if (frontendRouter && typeof frontendRouter === "function") {
+    app.use("/", frontendRouter);
+  } else if (
+    frontendRouter &&
+    frontendRouter.router &&
+    typeof frontendRouter.router === "function"
+  ) {
+    app.use("/", frontendRouter.router);
+  } else {
+    console.warn("Frontend router no disponible, usando rutas mínimas");
+    // Rutas mínimas como fallback
+    app.get("/", (req, res) => {
+      res.render("index", { title: "ServiTech" });
+    });
+    app.get("/login", (req, res) => {
+      res.render("login", { title: "Iniciar Sesión - ServiTech" });
+    });
+    app.get("/registro", (req, res) => {
+      res.render("registro", { title: "Registro - ServiTech" });
+    });
+    app.get("/pasarela-pagos", (req, res) => {
+      res.render("pasarelaPagos", {
+        title: "Pago de Asesoría - ServiTech",
+        expertoSeleccionado: req.query.experto
+          ? JSON.parse(req.query.experto)
+          : null,
+        monto: req.query.monto || 20000,
+        duracion: req.query.duracion || 1,
+      });
+    });
+    app.get("/confirmacion-asesoria", (req, res) => {
+      res.render("confirmacionAsesoria", { title: "Confirmación - ServiTech" });
+    });
+  }
+} catch (frontendError) {
+  console.warn("Error cargando frontend router:", frontendError.message);
+  // Rutas mínimas como fallback
+  app.get("/", (req, res) => {
+    res.render("index", { title: "ServiTech" });
+  });
+  app.get("/login", (req, res) => {
+    res.render("login", { title: "Iniciar Sesión - ServiTech" });
+  });
+  app.get("/registro", (req, res) => {
+    res.render("registro", { title: "Registro - ServiTech" });
+  });
+  app.get("/pasarela-pagos", (req, res) => {
+    res.render("pasarelaPagos", {
+      title: "Pago de Asesoría - ServiTech",
+      expertoSeleccionado: req.query.experto
+        ? JSON.parse(req.query.experto)
+        : null,
+      monto: req.query.monto || 20000,
+      duracion: req.query.duracion || 1,
+    });
+  });
+  app.get("/confirmacion-asesoria", (req, res) => {
+    res.render("confirmacionAsesoria", { title: "Confirmación - ServiTech" });
+  });
+}
 
 // Rutas legales directas en backend (garantiza servicio en :5020)
 app.get("/terminos.html", (req, res) => {

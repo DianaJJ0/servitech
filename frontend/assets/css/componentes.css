@@ -1,6 +1,7 @@
 /* =========================
-  HEADER - IMPROVED DESIGN
+  HEADER
   ========================= */
+/* Asegurar que header sea visible en todas las páginas */
 .header {
   background-color: var(--background);
   backdrop-filter: blur(10px);
@@ -36,6 +37,7 @@
   height: auto;
   transition: var(--transition);
   object-fit: contain;
+  /* Conservar colores originales del logo - no aplicar filtros */
 }
 
 .logo:hover img {
@@ -772,13 +774,25 @@
   }
 }
 
+/* Forzar visibilidad del header en páginas específicas */
 body {
-  padding-top: 4.5rem;
+  padding-top: 4.5rem !important;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
 }
 
+/* Asegurar que main tome el espacio correcto */
 main {
   flex: 1;
+  min-height: calc(100vh - 4.5rem - 120px); /* Altura header + footer aproximado */
+}
+
+/* Contenedor general para páginas */
+.container {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: 1rem;
+  position: relative;
+  z-index: 1;
 }
