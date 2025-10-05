@@ -480,7 +480,6 @@ const setActivo = async (req, res) => {
       return res.status(400).json({ mensaje: "Se requiere el campo 'activo'" });
     }
 
-    // DEBUG: Log request metadata to diagnose why updates may not persist
     try {
       console.log("[setActivo] request params:", {
         params: req.params,
