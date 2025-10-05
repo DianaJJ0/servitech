@@ -343,6 +343,40 @@ router.get("/contacto.html", (req, res) => {
   res.render("contacto", { user: req.session.user || null });
 });
 
+// Páginas legales: Términos y Privacidad
+router.get("/terminos.html", (req, res) => {
+  try {
+    return res.render("terminos", { user: req.session.user || null });
+  } catch (e) {
+    console.warn(
+      "Error renderizando terminos:",
+      e && e.message ? e.message : e
+    );
+    return res.status(500).send("No se pudo cargar Términos y Condiciones");
+  }
+});
+
+router.get("/privacidad.html", (req, res) => {
+  try {
+    return res.render("privacidad", { user: req.session.user || null });
+  } catch (e) {
+    console.warn(
+      "Error renderizando privacidad:",
+      e && e.message ? e.message : e
+    );
+    return res.status(500).send("No se pudo cargar la Política de Privacidad");
+  }
+});
+
+router.get("/cookies.html", (req, res) => {
+  try {
+    return res.render("cookies", { user: req.session.user || null });
+  } catch (e) {
+    console.warn("Error renderizando cookies:", e && e.message ? e.message : e);
+    return res.status(500).send("No se pudo cargar la política de cookies");
+  }
+});
+
 // --- Perfil usuario: consulta backend si hay token ---
 router.get("/perfil", async (req, res) => {
   console.log(

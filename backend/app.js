@@ -174,6 +174,64 @@ app.use("/api/asesorias", asesoriaRoutes);
 const frontendRouter = require("../frontend/server.js");
 app.use("/", frontendRouter);
 
+// Rutas legales directas en backend (garantiza servicio en :5020)
+app.get("/terminos.html", (req, res) => {
+  try {
+    return res.render("terminos", { user: req.session?.user || null });
+  } catch (e) {
+    console.warn(
+      "[backend] Error renderizando terminos:",
+      e && e.message ? e.message : e
+    );
+    return res.status(500).send("No se pudo cargar Términos y Condiciones");
+  }
+});
+
+app.get("/privacidad.html", (req, res) => {
+  try {
+    return res.render("privacidad", { user: req.session?.user || null });
+  } catch (e) {
+    console.warn(
+      "[backend] Error renderizando privacidad:",
+      e && e.message ? e.message : e
+    );
+    return res.status(500).send("No se pudo cargar la Política de Privacidad");
+  }
+});
+
+app.get("/cookies.html", (req, res) => {
+  try {
+    return res.render("cookies", { user: req.session?.user || null });
+  } catch (e) {
+    console.warn(
+      "[backend] Error renderizando cookies:",
+      e && e.message ? e.message : e
+    );
+    return res.status(500).send("No se pudo cargar la política de cookies");
+  }
+});
+
+// Permite establecer la sesión del usuario si el cliente presenta un objeto usuario con token
+app.post("/set-session", (req, res) => {
+  try {
+    const usuario = req.body && req.body.usuario;
+    if (usuario && usuario.token) {
+      // Nota: en producción validar token con /api/usuarios/perfil antes de setear la sesión
+      req.session.user = usuario;
+      return res.json({ ok: true, user: req.session.user });
+    }
+    return res.status(400).json({ ok: false, mensaje: "Usuario no recibido" });
+  } catch (e) {
+    console.error(
+      "Error en backend /set-session:",
+      e && e.message ? e.message : e
+    );
+    return res
+      .status(500)
+      .json({ ok: false, mensaje: "Error al establecer sesión" });
+  }
+});
+
 // 404 controlado
 app.use((req, res) => {
   res.status(404).json({ error: "No encontrado" });
@@ -193,7 +251,6 @@ app.use((err, req, res, next) => {
         : err.message || "Internal Server Error",
   });
 });
-
 
 // Handlers globales para errores no capturados
 process.on("uncaughtException", (err) => {
