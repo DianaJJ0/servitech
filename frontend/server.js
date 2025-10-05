@@ -343,6 +343,40 @@ router.get("/contacto.html", (req, res) => {
   res.render("contacto", { user: req.session.user || null });
 });
 
+// Páginas legales: Términos y Privacidad
+router.get("/terminos.html", (req, res) => {
+  try {
+    return res.render("terminos", { user: req.session.user || null });
+  } catch (e) {
+    console.warn(
+      "Error renderizando terminos:",
+      e && e.message ? e.message : e
+    );
+    return res.status(500).send("No se pudo cargar Términos y Condiciones");
+  }
+});
+
+router.get("/privacidad.html", (req, res) => {
+  try {
+    return res.render("privacidad", { user: req.session.user || null });
+  } catch (e) {
+    console.warn(
+      "Error renderizando privacidad:",
+      e && e.message ? e.message : e
+    );
+    return res.status(500).send("No se pudo cargar la Política de Privacidad");
+  }
+});
+
+router.get("/cookies.html", (req, res) => {
+  try {
+    return res.render("cookies", { user: req.session.user || null });
+  } catch (e) {
+    console.warn("Error renderizando cookies:", e && e.message ? e.message : e);
+    return res.status(500).send("No se pudo cargar la política de cookies");
+  }
+});
+
 // --- Perfil usuario: consulta backend si hay token ---
 router.get("/perfil", async (req, res) => {
   console.log(
@@ -968,6 +1002,81 @@ router.get("/admin/adminExpertos", requireAdmin, async (req, res) => {
     API_KEY: typeof apiKey !== "undefined" ? apiKey : "",
   });
 });
+
+// Proxy seguro para acciones administrativas que requieren x-api-key
+// Estas rutas están protegidas por requireAdmin y ejecutan la petición al
+// backend desde el servidor, agregando la API_KEY del entorno.
+router.put(
+  "/admin/proxy/expertos/aprobar/:email",
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const email = req.params.email;
+      const backendUrl = `${BACKEND_URL}/api/expertos/aprobar/${encodeURIComponent(
+        email
+      )}`;
+      const headers = {
+        "Content-Type": "application/json",
+      };
+      if (process.env.API_KEY) headers["x-api-key"] = process.env.API_KEY;
+      if (req.session && req.session.user && req.session.user.token) {
+        headers["Authorization"] = `Bearer ${req.session.user.token}`;
+      }
+      const resp = await fetch(backendUrl, {
+        method: "PUT",
+        headers,
+      });
+      const bodyText = await resp.text();
+      let body = null;
+      try {
+        body = JSON.parse(bodyText);
+      } catch (e) {
+        body = { mensaje: bodyText };
+      }
+      return res.status(resp.status).json(body);
+    } catch (e) {
+      console.error("proxy aprobar error:", e && e.message);
+      return res.status(500).json({ error: "proxy_error", mensaje: e.message });
+    }
+  }
+);
+
+router.put(
+  "/admin/proxy/expertos/rechazar/:email",
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const email = req.params.email;
+      const motivo = req.body && req.body.motivo ? req.body.motivo : undefined;
+      const backendUrl = `${BACKEND_URL}/api/expertos/rechazar/${encodeURIComponent(
+        email
+      )}`;
+      const headers = {
+        "Content-Type": "application/json",
+      };
+      if (process.env.API_KEY) headers["x-api-key"] = process.env.API_KEY;
+      if (req.session && req.session.user && req.session.user.token) {
+        headers["Authorization"] = `Bearer ${req.session.user.token}`;
+      }
+      const resp = await fetch(backendUrl, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify({ motivo }),
+      });
+      const bodyText = await resp.text();
+      let body = null;
+      try {
+        body = JSON.parse(bodyText);
+      } catch (e) {
+        body = { mensaje: bodyText };
+      }
+      return res.status(resp.status).json(body);
+    } catch (e) {
+      console.error("proxy rechazar error:", e && e.message);
+      return res.status(500).json({ error: "proxy_error", mensaje: e.message });
+    }
+  }
+);
 
 // Endpoint temporal de depuración para inspeccionar sesión (solo admin)
 router.get("/admin/debug-session", requireAdmin, (req, res) => {

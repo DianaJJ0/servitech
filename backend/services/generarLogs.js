@@ -76,4 +76,15 @@ async function registrarEvento({
   }
 }
 
-module.exports = { registrarEvento };
+// Retrocompatibilidad: exportar una función principal que acepta (tipo, payload)
+// y mantener `registrarEvento` como miembro para llamadas que usan la forma
+// generarLogs.registrarEvento(...)
+module.exports = function (tipo, payload = {}) {
+  // Si el primer argumento es un objeto (llamada vieja con objeto), soportarlo
+  if (typeof tipo === "object" && tipo !== null && !payload) {
+    return module.exports.registrarEvento(tipo);
+  }
+  return module.exports.registrarEvento({ ...payload, tipo });
+};
+
+module.exports.registrarEvento = registrarEvento;

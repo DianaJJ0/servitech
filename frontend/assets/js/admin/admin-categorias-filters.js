@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", function () {
     setExpanded(!cur);
   });
 
-  // On resize adjust
+  // Ajustar al redimensionar
   var resizeTimeout;
   window.addEventListener("resize", function () {
     clearTimeout(resizeTimeout);
