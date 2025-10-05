@@ -165,62 +165,70 @@
               <div class="form-field-group">
                 <h4 class="form-subtitle">Información del banco</h4>
                 <div class="form-row cols-4">
+
                   <!-- Banco (selector con búsqueda) -->
                   <div class="form-field">
                     <label for="banco" class="form-label">Banco</label>
-                    <div class="select-wrapper">
-                      <select id="banco" name="banco" class="form-control" aria-describedby="banco-hint">
-                        <option value="">Selecciona</option>
-                        <option value="Bancolombia" <%=experto && experto.infoExperto &&
-                          experto.infoExperto.banco==='Bancolombia' ? 'selected' : '' %>>Bancolombia</option>
-                        <option value="Nequi" <%=experto && experto.infoExperto && experto.infoExperto.banco==='Nequi'
-                          ? 'selected' : '' %>>Nequi</option>
-                      </select>
-                      <i class="fas fa-chevron-down select-arrow" aria-hidden="true"></i>
+                    <% const bancoActual=experto && experto.infoExperto && experto.infoExperto.banco ?
+                      experto.infoExperto.banco : '' ; %>
+                      <div class="select-wrapper">
+                        <select id="banco" name="banco" class="form-control" aria-describedby="banco-hint">
+                          <option value="">Selecciona tu banco</option>
+                          <option value="Bancolombia" <%=bancoActual==='Bancolombia' ? 'selected' : '' %>>Bancolombia
+                          </option>
+                          <option value="Nequi" <%=bancoActual==='Nequi' ? 'selected' : '' %>>Nequi</option>
+                        </select>
+                        <i class="fas fa-chevron-down select-arrow" aria-hidden="true"></i>
+                      </div>
+                      <p class="form-hint" id="banco-hint">Selecciona el banco donde recibirás los pagos</p>
+                      <div class="mensaje-error" id="errorBanco"></div>
+                  </div>
+
+                  <!-- Tipo de cuenta -->
+                  <div class="form-field">
+                    <label for="tipo-cuenta" class="form-label">Tipo de cuenta</label>
+                    <% const tipoCuentaActual=experto && experto.infoExperto && experto.infoExperto.tipoCuenta ?
+                      experto.infoExperto.tipoCuenta : '' ; %>
+                      <div class="select-wrapper">
+                        <select id="tipo-cuenta" name="tipoCuenta" class="form-control"
+                          aria-describedby="tipo-cuenta-hint">
+                          <option value="" <%=!tipoCuentaActual ? 'selected' : '' %>>Selecciona</option>
+                          <option value="Ahorros" <%=tipoCuentaActual==='Ahorros' ? 'selected' : '' %>>Ahorros</option>
+                          <option value="Corriente" <%=tipoCuentaActual==='Corriente' ? 'selected' : '' %>>Corriente
+                          </option>
+                          <option value="Nequi" <%=tipoCuentaActual==='Nequi' ? 'selected' : '' %>>Nequi</option>
+                        </select>
+                        <i class="fas fa-chevron-down select-arrow" aria-hidden="true"></i>
+                      </div>
+                      <p id="tipo-cuenta-hint" class="form-hint">Tipo de cuenta bancaria</p>
+                      <div class="mensaje-error" id="errorTipoCuenta"></div>
+                  </div>
+
+                  <!-- Número de cuenta -->
+                  <div class="form-field">
+                    <label for="numeroCuenta" class="form-label">Número de cuenta</label>
+                    <div class="password-wrapper">
+                      <input type="text" id="numeroCuenta" name="numeroCuenta" placeholder="********" autocomplete="off"
+                        class="form-control" aria-describedby="numero-cuenta-hint" maxlength="34" inputmode="numeric"
+                        value="<%= experto && experto.infoExperto && experto.infoExperto.numeroCuenta ? experto.infoExperto.numeroCuenta : '' %>">
+                      <button type="button" id="toggleAccountNumber" class="btn-icon"
+                        aria-label="Mostrar/ocultar número de cuenta" aria-pressed="false">
+                        <i class="fas fa-eye" aria-hidden="true"></i>
+                      </button>
                     </div>
-                    <p class="form-hint" id="banco-hint">Selecciona el banco donde recibirás los pagos</p>
-                    <div class="mensaje-error" id="errorBanco"></div>
+                    <p id="numero-cuenta-hint" class="form-hint">
+                      <% if (bancoActual==='Nequi' ) { %>
+                        Número de celular asociado a Nequi (10 dígitos).
+                        <% } else if (bancoActual==='Bancolombia' ) { %>
+                          Número de cuenta. Para bancos colombianos: 6–14 dígitos.
+                          <% } else { %>
+                            Número de cuenta o identificación asociado a la cuenta. Para bancos colombianos: 6–14
+                            dígitos. Para cuentas internacionales: 15–34 caracteres alfanuméricos.
+                            <% } %>
+                    </p>
+                    <div class="mensaje-error" id="errorNumeroCuenta"></div>
                   </div>
 
-                  <!-- hint and error shown above inside the form-field; duplicate removed -->
-                </div>
-
-                <!-- Tipo de cuenta -->
-                <div class="form-field">
-                  <label for="tipo-cuenta" class="form-label">Tipo de cuenta</label>
-                  <div class="select-wrapper">
-                    <select id="tipo-cuenta" name="tipoCuenta" class="form-control" aria-describedby="tipo-cuenta-hint">
-                      <% const tipoCuentaActual=experto && experto.infoExperto && experto.infoExperto.tipoCuenta ?
-                        experto.infoExperto.tipoCuenta : '' ; %>
-                        <option value="" <%=!tipoCuentaActual ? 'selected' : '' %>>Selecciona</option>
-                        <option value="Ahorros" <%=tipoCuentaActual==='Ahorros' ? 'selected' : '' %>>Ahorros</option>
-                        <option value="Corriente" <%=tipoCuentaActual==='Corriente' ? 'selected' : '' %>>Corriente
-                        </option>
-                        <option value="Nequi" <%=tipoCuentaActual==='Nequi' ? 'selected' : '' %>>Nequi</option>
-                    </select>
-                    <i class="fas fa-chevron-down select-arrow" aria-hidden="true"></i>
-                  </div>
-                  <p id="tipo-cuenta-hint" class="form-hint">Tipo de cuenta bancaria</p>
-                  <div class="mensaje-error" id="errorTipoCuenta"></div>
-                </div>
-
-                <!-- Número de cuenta -->
-                <div class="form-field">
-                  <label for="numeroCuenta" class="form-label">Número de cuenta</label>
-                  <div class="password-wrapper">
-                    <!-- Este campo no es una contraseña; usar type="text" evita que el gestor de contraseñas aparezca -->
-                    <input type="text" id="numeroCuenta" name="numeroCuenta" placeholder="********" autocomplete="off"
-                      class="form-control" aria-describedby="numero-cuenta-hint" maxlength="34" inputmode="numeric"
-                      value="<%= experto && experto.infoExperto && experto.infoExperto.numeroCuenta ? experto.infoExperto.numeroCuenta : '' %>">
-                    <button type="button" id="toggleAccountNumber" class="btn-icon"
-                      aria-label="Mostrar/ocultar número de cuenta" aria-pressed="false">
-                      <i class="fas fa-eye" aria-hidden="true"></i>
-                    </button>
-                  </div>
-                  <p id="numero-cuenta-hint" class="form-hint">Número de cuenta o identificación asociado a la cuenta.
-                    Para bancos colombianos: 6–14 dígitos. Para cuentas internacionales: 15–34 caracteres
-                    alfanuméricos.</p>
-                  <div class="mensaje-error" id="errorNumeroCuenta"></div>
                 </div>
               </div>
             </div>

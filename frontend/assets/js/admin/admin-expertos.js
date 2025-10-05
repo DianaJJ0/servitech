@@ -60,6 +60,59 @@
     return (ctx || document).querySelector(sel);
   }
 
+  // Mitigación temprana para problemas de autofill/placeholder dentro del modal de ver perfil del experto.
+  // (movido desde un script inline en adminExpertos.ejs)
+  (function () {
+    try {
+      var m = document.getElementById("verPerfilExperto");
+      if (!m) return;
+      var email = m.querySelector && m.querySelector("#email");
+      if (!email) return;
+      try {
+        email.value = "";
+        email.setAttribute("autocomplete", "off");
+        email.setAttribute("autocorrect", "off");
+        email.setAttribute("autocapitalize", "off");
+        email.setAttribute("spellcheck", "false");
+        email.readOnly = true;
+        var sec =
+          getComputedStyle(document.documentElement).getPropertyValue(
+            "--admin-text-secondary"
+          ) || "#8892a6";
+        try {
+          email.style.setProperty("color", sec, "important");
+        } catch (e) {}
+        try {
+          email.style.setProperty("-webkit-text-fill-color", sec, "important");
+        } catch (e) {}
+        setTimeout(function () {
+          try {
+            email.readOnly = false;
+          } catch (e) {}
+        }, 80);
+      } catch (e) {}
+    } catch (e) {}
+  })();
+
+  // Inicializar datos del usuario autenticado de forma segura
+  // (movido desde un script inline en adminExpertos.ejs)
+  (function () {
+    try {
+      var raw =
+        (document.getElementById("current-user-data") &&
+          document.getElementById("current-user-data").textContent) ||
+        "{}";
+      window.currentUser = JSON.parse(raw);
+      window.authToken =
+        window.currentUser && window.currentUser.token
+          ? window.currentUser.token
+          : "";
+    } catch (e) {
+      window.currentUser = {};
+      window.authToken = "";
+    }
+  })();
+
   function $$(sel, ctx) {
     return Array.from((ctx || document).querySelectorAll(sel));
   }
@@ -136,6 +189,82 @@
         }, 80);
       } catch (e) {}
     } catch (e) {}
+  }
+
+  // UTILIDADES COMPARTIDAS ADICIONALES
+  function normalizeValue(v) {
+    if (v === undefined || v === null) return null;
+    if (typeof v === "object") {
+      return (
+        v.name || v.nombre || v.value || String(v.id || v._id || "") || null
+      );
+    }
+    return String(v);
+  }
+
+  function stripAccents(str) {
+    try {
+      return String(str)
+        .normalize("NFD")
+        .replace(/\p{Diacritic}/gu, "")
+        .toLowerCase()
+        .trim();
+    } catch (e) {
+      return String(str)
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim();
+    }
+  }
+
+  function setSelectValue(selectEl, val) {
+    if (!selectEl || val === null || val === undefined || val === "")
+      return false;
+    try {
+      selectEl.value = val;
+      if (String(selectEl.value) === String(val)) return true;
+
+      const normalizedVal = stripAccents(String(val));
+      const opt = Array.from(selectEl.options).find(
+        (o) => stripAccents(o.textContent || "") === normalizedVal
+      );
+      if (opt) {
+        selectEl.value = opt.value;
+        return true;
+      }
+
+      const opt2 = Array.from(selectEl.options).find((o) =>
+        stripAccents(o.textContent || "").includes(normalizedVal)
+      );
+      if (opt2) {
+        selectEl.value = opt2.value;
+        return true;
+      }
+    } catch (e) {}
+    return false;
+  }
+
+  function mapDocumentType(v) {
+    if (v === null || v === undefined) return v;
+    try {
+      var s = String(v || "").toLowerCase();
+      s = s
+        .normalize("NFD")
+        .replace(/\p{Diacritic}/gu, "")
+        .replace(/[^a-z0-9\s]/g, "")
+        .trim();
+    } catch (e) {
+      var s = String(v || "")
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, "")
+        .trim();
+    }
+    if (!s) return v;
+    if (s === "cc" || s === "c_c" || s.indexOf("cedula") >= 0) return "cedula";
+    if (s.indexOf("extranjer") >= 0 || s.indexOf("extran") >= 0)
+      return "extranjeria";
+    return v;
   }
 
   // Devuelve un array de nombres de categorías para un experto soportando
@@ -284,7 +413,9 @@
   function createExpertRow(expert, categoriesMap) {
     const id = getExpertField(expert, "id");
     const name = escapeHtml(getExpertField(expert, "name") || "Sin nombre");
-    const email = escapeHtml(getExpertField(expert, "email"));
+    // keep a raw email value for data attributes / API calls and an escaped one for display
+    const rawEmail = getExpertField(expert, "email") || "";
+    const email = escapeHtml(rawEmail);
     const status = getExpertField(expert, "status") || "inactive";
     const badgeClass = getStatusBadgeClass(status);
     const avatar =
@@ -342,8 +473,8 @@
           <button class="btn-outline btn-edit" data-id="${id}">Editar</button>
           ${
             status === "activo"
-              ? `<button class="btn-warning btn-inactivate" data-id="${id}">Inactivar</button>`
-              : `<button class="btn-success btn-activate" data-id="${id}">Activar</button>`
+              ? `<button class="btn-warning btn-inactivate" data-id="${id}" data-email="${rawEmail}">Inactivar</button>`
+              : `<button class="btn-success btn-activate" data-id="${id}" data-email="${rawEmail}">Activar</button>`
           }
         </div>
       `;
@@ -483,50 +614,169 @@
     const mount = root || document;
     const buttons = Array.from(mount.querySelectorAll(selector));
 
-    // binding count: ${buttons.length}
+    // cantidad de botones: ${buttons.length}
 
     buttons.forEach((btn) => {
       btn.addEventListener("click", function (e) {
-        e.preventDefault();
-        e.stopPropagation();
+      e.preventDefault();
+      e.stopPropagation();
 
-        const id = this.getAttribute("data-id");
-        // button clicked: ${selector}, id: ${id}
+      const id = this.getAttribute("data-id");
+      // botón pulsado: ${selector}, id: ${id}
 
-        if (!id) {
-          console.error("No data-id found on button", this);
-          return;
-        }
+      if (!id) {
+        console.error("No data-id found on button", this);
+        return;
+      }
 
+      // Pasar el elemento del botón pulsado como segundo argumento para que los manejadores puedan acceder a data-email de forma fiable
+      try {
+        handler(id, this);
+      } catch (err) {
+        // fallback para manejadores que solo aceptan un argumento
+        try {
         handler(id);
+        } catch (e) {
+        console.error("Handler invocation error", e);
+        }
+      }
       });
     });
+    }
+
+    async function toggleExpertStatus(id, newStatus, clickedButton) {
+    // Preferir el botón que se ha pulsado para leer data-email; si no, consultar el DOM
+    let btn = clickedButton;
+    if (!btn) {
+      // Intentar localizar específicamente un elemento button (evitar seleccionar el TR que también tiene data-id)
+      btn = document.querySelector(`button[data-id="${id}"]`);
+    }
+    // Si aún no se encuentra, intentar localizar la fila y luego el botón dentro de ella
+    if (!btn) {
+      const row = document.querySelector(`tr[data-id="${id}"]`);
+      if (row) {
+      btn = row.querySelector(`button[data-id="${id}"]`);
+      }
+    }
+
+    // Intentar múltiples atributos y alternativas para obtener el email
+    let email = null;
+    try {
+      if (btn) {
+        email = btn.getAttribute("data-email") || btn.dataset.email || null;
+      }
+    } catch (e) {
+      email = null;
+    }
+
+    if (!email) {
+      console.error(
+        "[admin-expertos] toggleExpertStatus: could not resolve email for id",
+        id,
+        "resolved element:",
+        btn || document.querySelector(`tr[data-id="${id}"]`)
+      );
+      alert("Error: No se pudo obtener el email del experto");
+      return;
+    }
+
+    const action = newStatus ? "activar" : "inactivar";
+    if (!confirm(`¿Estás seguro de que deseas ${action} este experto?`)) {
+      return;
+    }
+
+    try {
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
+
+      const response = await fetch(
+        `/api/expertos/${encodeURIComponent(email)}/activo`,
+        {
+          method: "PUT",
+          credentials: "same-origin",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${window.authToken || ""}`,
+          },
+          body: JSON.stringify({ activo: newStatus }),
+        }
+      );
+
+      let result = {};
+      try {
+        result = await response.json();
+      } catch (e) {
+        try {
+          const txt = await response.text();
+          result = { mensaje: txt };
+        } catch (ee) {
+          result = { mensaje: "HTTP " + response.status };
+        }
+      }
+
+      if (response.ok) {
+        const row = document.querySelector(
+          `table.admin-table--expertos tr[data-id="${id}"]`
+        );
+        if (row) {
+          const badge = row.querySelector(".badge");
+          const actionsCell = row.querySelector(".expertos-actions-cell");
+
+          const expert = result.experto;
+
+          if (badge) {
+            badge.className = `badge ${getStatusBadgeClass(expert.estado)}`;
+            badge.textContent = expert.estado;
+          }
+
+          if (actionsCell) {
+            const newButtons = `
+              <div class="action-buttons" role="group" aria-label="Acciones experto">
+                <button class="btn-outline btn-view" data-id="${id}">Ver</button>
+                <button class="btn-outline btn-edit" data-id="${id}">Editar</button>
+                ${
+                  expert.estado === "activo"
+                    ? `<button class="btn-warning btn-inactivate" data-id="${id}" data-email="${email}">Inactivar</button>`
+                    : `<button class="btn-success btn-activate" data-id="${id}" data-email="${email}">Activar</button>`
+                }
+              </div>
+            `;
+            actionsCell.innerHTML = newButtons;
+            bindRowActions(row.closest("table"));
+          }
+
+          row.setAttribute("data-status", expert.estado);
+        }
+
+        alert(
+          `Experto ${
+            action === "activar" ? "activado" : "inactivado"
+          } exitosamente`
+        );
+      } else {
+        const msg =
+          result && result.mensaje
+            ? result.mensaje
+            : "HTTP " + response.status + " " + response.statusText;
+        throw new Error(msg || `Error al ${action} experto`);
+      }
+    } catch (error) {
+      console.error(`Error al ${action} experto:`, error);
+      alert(`Error al ${action} experto: ` + error.message);
+      btn.disabled = false;
+      btn.innerHTML = action === "activar" ? "Activar" : "Inactivar";
+    }
   }
 
   function inactivateExpert(id) {
-    const row = document.querySelector(
-      `table.admin-table--expertos tr[data-id="${id}"]`
-    );
-    if (!row) return;
-
-    const badge = row.querySelector(".badge");
-    if (badge) {
-      badge.className = "badge badge--inactive";
-      badge.textContent = "inactivo";
-    }
+    // aceptar un parámetro opcional clickedButton (el botón pulsado) reenviado por el enlazador de eventos
+    const clickedButton = arguments.length > 1 ? arguments[1] : null;
+    toggleExpertStatus(id, false, clickedButton);
   }
 
   function activateExpert(id) {
-    const row = document.querySelector(
-      `table.admin-table--expertos tr[data-id="${id}"]`
-    );
-    if (!row) return;
-
-    const badge = row.querySelector(".badge");
-    if (badge) {
-      badge.className = "badge badge--active";
-      badge.textContent = "activo";
-    }
+    const clickedButton = arguments.length > 1 ? arguments[1] : null;
+    toggleExpertStatus(id, true, clickedButton);
   }
 
   async function approveExpert(id) {
@@ -546,23 +796,53 @@
       btn.disabled = true;
       btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Aprobando...';
 
-      const response = await fetch(
-        `/api/expertos/aprobar/${encodeURIComponent(email)}`,
-        {
-          method: "PUT",
-          credentials: "same-origin",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${window.authToken || ""}`,
-          },
-        }
-      );
+      // Construir headers y anexar API key si fue inyectada por el servidor para sesiones admin
+      const headers = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${window.authToken || ""}`,
+      };
+      if (typeof window !== "undefined" && window.API_KEY) {
+        headers["x-api-key"] = window.API_KEY;
+      }
+
+      // DEBUG: mostrar en consola qué headers se enviarán (ayuda para diagnosticar 403)
+      try {
+        console.debug(
+          "[admin-expertos] aprobar headers:",
+          headers,
+          "window.API_KEY:",
+          window.API_KEY
+        );
+      } catch (e) {}
+      // Si el servidor no inyectó window.API_KEY (por ejemplo sesión no-admin o prod),
+      // enviar la petición al proxy en el servidor que añadirá la API_KEY desde env.
+      let response;
+      if (typeof window !== "undefined" && window.API_KEY) {
+        response = await fetch(
+          `/api/expertos/aprobar/${encodeURIComponent(email)}`,
+          {
+            method: "PUT",
+            credentials: "same-origin",
+            headers,
+          }
+        );
+      } else {
+        // llamar al proxy en el servidor (requiere sesión admin activa)
+        response = await fetch(
+          `/admin/proxy/expertos/aprobar/${encodeURIComponent(email)}`,
+          {
+            method: "PUT",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      }
 
       let result = {};
       try {
         result = await response.json();
       } catch (e) {
-        // fallback: try text if JSON parsing fails
+        // fallback: intentar como texto si el parseo JSON falla
         try {
           const txt = await response.text();
           result = { mensaje: txt };
@@ -637,18 +917,52 @@
       btn.disabled = true;
       btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Rechazando...';
 
-      const response = await fetch(
-        `/api/expertos/rechazar/${encodeURIComponent(email)}`,
-        {
-          method: "PUT",
-          credentials: "same-origin",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${window.authToken || ""}`,
-          },
-          body: JSON.stringify({ motivo: motivo || "Sin motivo especificado" }),
-        }
-      );
+      // Construir headers y anexar API key si está disponible
+      const rheaders = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${window.authToken || ""}`,
+      };
+
+      if (typeof window !== "undefined" && window.API_KEY) {
+        rheaders["x-api-key"] = window.API_KEY;
+      }
+
+      // DEBUG: mostrar en consola qué headers se enviarán en rechazar
+      try {
+        console.debug(
+          "[admin-expertos] rechazar headers:",
+          rheaders,
+          "window.API_KEY:",
+          window.API_KEY
+        );
+      } catch (e) {}
+
+      let response;
+      if (typeof window !== "undefined" && window.API_KEY) {
+        response = await fetch(
+          `/api/expertos/rechazar/${encodeURIComponent(email)}`,
+          {
+            method: "PUT",
+            credentials: "same-origin",
+            headers: rheaders,
+            body: JSON.stringify({
+              motivo: motivo || "Sin motivo especificado",
+            }),
+          }
+        );
+      } else {
+        response = await fetch(
+          `/admin/proxy/expertos/rechazar/${encodeURIComponent(email)}`,
+          {
+            method: "PUT",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              motivo: motivo || "Sin motivo especificado",
+            }),
+          }
+        );
+      }
 
       const result = await response.json();
 
@@ -713,29 +1027,33 @@
     try {
       // Mapear campos según el tipo de modal
       if (type === "view") {
-        // Para el modal de ver
-        const nameField = $("#name_view");
-        const emailField = $("#email_view");
-        const precioField = $("#precio_view");
-        const bioField = $("#bio_view");
-        const statusField = $("#status_view");
+        // Para el modal de ver: buscar los inputs dentro del modal actual
+        const nameField =
+          modal.querySelector("#name") || modal.querySelector('[id*="name"]');
+        const emailField =
+          modal.querySelector("#email") || modal.querySelector('[id*="email"]');
+        const precioField =
+          modal.querySelector("#precio") ||
+          modal.querySelector('[id*="precio"]');
+        const bioField =
+          modal.querySelector("#bio") || modal.querySelector('[id*="bio"]');
+        const statusField =
+          modal.querySelector("#statusInput") ||
+          modal.querySelector("#status") ||
+          modal.querySelector('[id*="status"]');
 
-        // fields presence checked
-
+        // Rellenar valores (name/email/price/bio/status)
         if (nameField) nameField.value = getExpertField(expert, "name") || "";
         if (emailField)
           emailField.value = getExpertField(expert, "email") || "";
 
-        // Formatear precio
         const precio = getExpertField(expert, "price") || "";
         if (precioField) {
-          // Buscar precio en infoExperto si no está en el nivel superior
           const precioFromInfo =
             expert.infoExperto?.precioPorHora || expert.precioPorHora || precio;
           precioField.value = precioFromInfo || "";
         }
 
-        // Buscar bio en diferentes ubicaciones posibles
         const bio =
           getExpertField(expert, "bio") ||
           expert.infoExperto?.descripcion ||
@@ -743,10 +1061,79 @@
           "";
         if (bioField) bioField.value = bio;
 
-        // Estado
         const estado =
           getExpertField(expert, "status") || expert.estado || "inactivo";
-        if (statusField) statusField.value = estado;
+        if (statusField) {
+          try {
+            // si statusField es el hidden input original
+            if (statusField.tagName === "INPUT") {
+              statusField.value = estado;
+            } else {
+              const hidden =
+                statusField.querySelector('input[type="hidden"]') ||
+                modal.querySelector("#statusInput");
+              if (hidden) hidden.value = estado;
+            }
+          } catch (e) {}
+        }
+
+        // Actualizar display sólo lectura para estado (nuevo elemento)
+        try {
+          let statusDisplay = modal.querySelector("#status_display");
+          let statusHidden = modal.querySelector("#statusInput");
+
+          // si no existe el display, crear uno después del label asociado
+          if (!statusDisplay) {
+            try {
+              const label =
+                modal.querySelector('label[for="status_display"]') ||
+                modal.querySelector('label[for="statusInput"]');
+              statusDisplay = document.createElement("div");
+              statusDisplay.id = "status_display";
+              statusDisplay.className = "modal-readonly-field";
+              statusDisplay.setAttribute("aria-hidden", "false");
+              statusDisplay.style.display = "block";
+              statusDisplay.textContent = estado || "-";
+              if (label && label.parentNode)
+                label.parentNode.insertBefore(statusDisplay, label.nextSibling);
+              else modal.insertBefore(statusDisplay, modal.firstChild);
+            } catch (e) {}
+          }
+
+          if (statusDisplay) {
+            try {
+              statusDisplay.textContent = estado || "-";
+                // forzar el color primario para que los temas no lo oculten
+              const primary =
+                getComputedStyle(document.documentElement).getPropertyValue(
+                  "--admin-text-primary"
+                ) || "";
+              if (primary) {
+                statusDisplay.style.color = primary;
+                try {
+                  statusDisplay.style.setProperty(
+                    "-webkit-text-fill-color",
+                    primary,
+                    "important"
+                  );
+                } catch (e) {}
+              }
+              statusDisplay.style.display = "block";
+            } catch (e) {}
+          }
+
+            // asegurar que exista el input oculto y establecer su valor
+          if (!statusHidden) {
+            try {
+              statusHidden = document.createElement("input");
+              statusHidden.type = "hidden";
+              statusHidden.id = "statusInput";
+              statusHidden.name = "status";
+              modal.appendChild(statusHidden);
+            } catch (e) {}
+          }
+          if (statusHidden) statusHidden.value = estado || "";
+        } catch (e) {}
 
         // Hacer campos de solo lectura
         [nameField, emailField, precioField, bioField].forEach((field) => {
@@ -757,31 +1144,1031 @@
           }
         });
 
-        // El select de estado también debe ser disabled
-        if (statusField) {
-          statusField.disabled = true;
-          statusField.style.backgroundColor = "#f8f9fa";
-          statusField.style.cursor = "default";
-        }
-      } else {
-        // filling other modal fields
+        // categorias hidden dentro del modal
+        const categoriasHiddenView =
+          modal.querySelector("#categorias-values") ||
+          modal.querySelector('[id*="categorias-values"]');
+        try {
+          const cats =
+            (expert.infoExperto && expert.infoExperto.categorias) ||
+            expert.categorias ||
+            [];
+          const catIds = getCategoryIdsForExpert({ categorias: cats });
+          if (categoriasHiddenView)
+            categoriasHiddenView.value = Array.isArray(catIds)
+              ? catIds.join(",")
+              : catIds || "";
 
-        // Para otros modales (edit, etc.)
-        const nameField = $(`#name_${type}`);
-        const emailField = $(`#email_${type}`);
-        const precioField = $(`#precio_${type}`);
-        const bioField = $(`#bio_${type}`);
+          // Renderizar visualmente las categorías como 'chips' dentro del modal de ver
+          try {
+            const chipsContainer = modal.querySelector(".categorias-chips");
+            const optionsContainer = modal.querySelector(".categorias-options");
+            // Preferir resolver nombres a partir de los ids calculados (catIds)
+            const catsNames = Array.isArray(catIds)
+              ? catIds
+                  .map(function (id) {
+                    const k = String(id);
+                    return (
+                      (categoriesMap &&
+                        (categoriesMap[k] || categoriesMap[id])) ||
+                      String(id)
+                    );
+                  })
+                  .filter(Boolean)
+              : [];
+
+            if (chipsContainer) {
+              // limpiar contenido previo
+              chipsContainer.innerHTML = "";
+              if (!catsNames || catsNames.length === 0) {
+                // mostrar placeholder
+                const span = document.createElement("span");
+                span.className = "categorias-empty";
+                span.textContent = "No hay categorías seleccionadas";
+                chipsContainer.appendChild(span);
+              } else {
+                catsNames.forEach(function (name) {
+                  try {
+                    const chip = document.createElement("div");
+                    chip.className = "categoria-chip";
+                    chip.textContent = name;
+                    chipsContainer.appendChild(chip);
+                  } catch (e) {}
+                });
+              }
+            }
+
+            // Si existe el panel de opciones, marcar las opciones seleccionadas visualmente
+            if (optionsContainer && Array.isArray(catIds)) {
+              try {
+                Array.from(
+                  optionsContainer.querySelectorAll(".categoria-option")
+                ).forEach(function (optEl) {
+                  try {
+                    const id =
+                      optEl.getAttribute("data-id") ||
+                      optEl.getAttribute("data-value") ||
+                      optEl.dataset.id;
+                    if (
+                      id &&
+                      Array.from(catIds).map(String).includes(String(id))
+                    )
+                      optEl.classList.add("selected");
+                    else optEl.classList.remove("selected");
+                  } catch (e) {}
+                });
+              } catch (e) {}
+            }
+          } catch (e) {}
+        } catch (e) {}
+
+        // dias disponibles: setear hidden y marcar botones dentro del modal
+        try {
+          const dias = expert.infoExperto?.diasDisponibles || [];
+          const diasHiddenView = modal.querySelector("#diasDisponibles");
+          if (diasHiddenView)
+            diasHiddenView.value = Array.isArray(dias)
+              ? dias.join(",")
+              : dias || "";
+
+          if (Array.isArray(dias) && dias.length) {
+            dias.forEach(function (d) {
+              const btn = modal.querySelector(
+                `.day-button[data-day="${d.toLowerCase()}"]`
+              );
+              if (btn) {
+                // agregar estado activo visual aunque el botón esté deshabilitado
+                btn.classList.add("active");
+                try {
+                  btn.setAttribute("aria-pressed", "true");
+                } catch (e) {}
+              }
+            });
+            const display = modal.querySelector(".days-display");
+            if (display)
+              display.textContent = Array.isArray(dias)
+                ? dias.join(", ")
+                : dias || "";
+          }
+        } catch (e) {}
+
+        // bancarios dentro del modal de ver: resolver múltiples formas/paths y seleccionar por value o por texto
+        try {
+          // Debug: imprimir expert y paths relevantes para entender por qué faltan campos
+          try {
+            // diagnostic group removed in production build
+          } catch (e) {}
+          // En el modal de ver, usamos elementos de sólo lectura (display) y campos hidden
+          const bancoDisplay = modal.querySelector("#banco_display");
+          const bancoHidden = modal.querySelector("#banco_hidden_view");
+          const tipoCuentaDisplay = modal.querySelector("#tipoCuenta_display");
+          const tipoCuentaHidden = modal.querySelector(
+            "#tipoCuenta_hidden_view"
+          );
+          const numeroCuentaField = modal.querySelector("#numeroCuenta");
+          const titularField = modal.querySelector("#titular");
+          const tipoDocumentoDisplay = modal.querySelector(
+            "#tipoDocumento_display"
+          );
+          const tipoDocumentoHidden = modal.querySelector(
+            "#tipoDocumento_hidden_view"
+          );
+          const numeroDocumentoField = modal.querySelector("#numeroDocumento");
+          const telefonoField = modal.querySelector('input[type="tel"]');
+
+          // resolver posibles shapes
+          // Resolver valores bancarios/documento desde varias rutas posibles
+          const bancoRaw =
+            expert.infoExperto?.banco ||
+            expert.infoExperto?.bancoNombre ||
+            expert.infoExperto?.bank ||
+            expert.banco ||
+            expert.bank ||
+            null;
+
+          const tipoCuentaRaw =
+            expert.infoExperto?.tipoCuenta ||
+            expert.tipoCuenta ||
+            expert.infoExperto?.accountType ||
+            null;
+
+          const tipoDocumentoRaw =
+            expert.infoExperto?.tipoDocumento ||
+            expert.tipoDocumento ||
+            expert.infoExperto?.documentType ||
+            null;
+
+          const bancoVal = normalizeValue(bancoRaw) || "";
+          const tipoCuentaVal = normalizeValue(tipoCuentaRaw) || "";
+          const tipoDocumentoVal = normalizeValue(tipoDocumentoRaw) || "";
+
+          // Rellenar campos de sólo lectura (display) y hidden inputs
+          try {
+            if (bancoDisplay) {
+              bancoDisplay.textContent = bancoVal || "-";
+            }
+            if (bancoHidden) {
+              bancoHidden.value = bancoVal || "";
+            }
+          } catch (e) {}
+
+          try {
+            if (tipoCuentaDisplay) {
+              tipoCuentaDisplay.textContent = tipoCuentaVal || "-";
+            }
+            if (tipoCuentaHidden) {
+              tipoCuentaHidden.value = tipoCuentaVal || "";
+            }
+          } catch (e) {}
+
+          try {
+            if (tipoDocumentoDisplay) {
+                // mapear a canónico si es útil, pero mostrar el texto amigable
+              const mapped =
+                mapDocumentType(tipoDocumentoVal) || tipoDocumentoVal;
+              tipoDocumentoDisplay.textContent = mapped || "-";
+            }
+            if (tipoDocumentoHidden) {
+              tipoDocumentoHidden.value =
+                mapDocumentType(tipoDocumentoVal) || tipoDocumentoVal || "";
+            }
+          } catch (e) {}
+
+          try {
+            if (
+              numeroCuentaField &&
+              (expert.infoExperto?.numeroCuenta || expert.numeroCuenta)
+            )
+              numeroCuentaField.value =
+                expert.infoExperto?.numeroCuenta || expert.numeroCuenta;
+            if (titularField && (expert.infoExperto?.titular || expert.titular))
+              titularField.value =
+                expert.infoExperto?.titular || expert.titular;
+            if (
+              numeroDocumentoField &&
+              (expert.infoExperto?.numeroDocumento || expert.numeroDocumento)
+            )
+              numeroDocumentoField.value =
+                expert.infoExperto?.numeroDocumento || expert.numeroDocumento;
+            if (
+              telefonoField &&
+              (expert.infoExperto?.telefonoContacto || expert.telefono)
+            )
+              telefonoField.value =
+                expert.infoExperto?.telefonoContacto || expert.telefono;
+          } catch (e) {}
+        } catch (e) {}
+
+        // Asegurar visualización en modo 'view': crear / actualizar un elemento legible con el texto seleccionado
+        try {
+          function ensureReadonlyDisplayFor(selectEl) {
+            if (!selectEl) return;
+            var displayId = selectEl.id + "_display";
+            var txt = "";
+            try {
+              var opt = selectEl.options[selectEl.selectedIndex];
+              txt =
+                (opt && (opt.textContent || opt.innerText)) ||
+                selectEl.value ||
+                "";
+            } catch (e) {
+              txt = selectEl.value || "";
+            }
+            var existing = modal.querySelector("#" + displayId);
+            if (existing) {
+              existing.textContent = txt;
+              try {
+                existing.style.display = txt ? "block" : "none";
+              } catch (e) {}
+            } else {
+              var el = document.createElement("div");
+              el.id = displayId;
+              el.className = "modal-readonly-field";
+              el.style.marginTop = "6px";
+              el.style.color = "var(--admin-text-secondary)";
+              el.textContent = txt;
+                try {
+                // mostrar solo si hay texto, de lo contrario mantener oculto
+                el.style.display = txt ? "block" : "none";
+                selectEl.parentNode.insertBefore(el, selectEl.nextSibling);
+                } catch (e) {
+                // alternativa: anexar al cuerpo del modal
+                modal.appendChild(el);
+                }
+              }
+              }
+
+              ensureReadonlyDisplayFor(bancoField);
+              ensureReadonlyDisplayFor(tipoCuentaField);
+              ensureReadonlyDisplayFor(tipoDocumentoField);
+            } catch (e) {}
+            } else {
+            // rellenando otros campos del modal (editar, etc.)
+            // recordar id del experto en edición al abrir el modal de edición
+        try {
+          if (type === "edit") {
+            currentEditingExpertId = getExpertField(expert, "id");
+          }
+        } catch (e) {}
+
+        // Ayudante: intenta el selector dentro del modal actual primero, luego recurrir a selectores globales como fallback
+        function fieldSelector(base) {
+          const suff = `#${base}_${type}`;
+          // prefer modal-scoped selectors
+          try {
+            const elSuff = modal.querySelector(suff);
+            if (elSuff) return elSuff;
+            const elBase = modal.querySelector(`#${base}`);
+            if (elBase) return elBase;
+          } catch (e) {}
+
+          // fallback to global selectors for backwards compatibility
+          try {
+            const elSuffGlobal = document.querySelector(suff);
+            if (elSuffGlobal) return elSuffGlobal;
+            return document.querySelector(`#${base}`);
+          } catch (e) {
+            return null;
+          }
+        }
+
+        const nameField = fieldSelector("name");
+        const emailField = fieldSelector("email");
+        const precioField = fieldSelector("precio");
+        const bioField = fieldSelector("bio");
+        const statusField =
+          fieldSelector("statusInput") || fieldSelector("status");
+        const categoriasHidden = fieldSelector("categorias-values");
+        const diasHidden = fieldSelector("diasDisponibles");
+        const bancoField = fieldSelector("banco");
+        const tipoCuentaField = fieldSelector("tipoCuenta");
+        const numeroCuentaField = fieldSelector("numeroCuenta");
+        const titularField = fieldSelector("titular");
+        const tipoDocumentoField = fieldSelector("tipoDocumento");
+        const numeroDocumentoField = fieldSelector("numeroDocumento");
+        const telefonoField =
+          fieldSelector("telefonoContacto") ||
+          modal.querySelector('input[type="tel"]') ||
+          document.querySelector('input[type="tel"]');
 
         if (nameField) nameField.value = getExpertField(expert, "name") || "";
         if (emailField)
           emailField.value = getExpertField(expert, "email") || "";
-        if (precioField)
-          precioField.value = getExpertField(expert, "price") || "";
-        if (bioField) bioField.value = getExpertField(expert, "bio") || "";
-      }
 
-      // Move modal to document.body to avoid stacking context / overflow hiding issues
-      try {
+        // precio: preferir infoExperto.precioPorHora
+        const precioVal =
+          expert.infoExperto?.precioPorHora ||
+          getExpertField(expert, "price") ||
+          "";
+        if (precioField) precioField.value = precioVal;
+
+        // bio/descripcion
+        const bioVal =
+          expert.infoExperto?.descripcion ||
+          getExpertField(expert, "bio") ||
+          "";
+        if (bioField) bioField.value = bioVal;
+
+        // estado
+        const estadoVal =
+          expert.estado ||
+          (expert.infoExperto && expert.infoExperto.activo === false
+            ? "inactivo"
+            : "activo");
+        try {
+          if (statusField) {
+            // statusField puede ser un input oculto
+            if (
+              statusField.tagName === "INPUT" ||
+              statusField.tagName === "SELECT"
+            ) {
+              statusField.value = estadoVal;
+            } else {
+              // trigger de select personalizado
+              const hidden =
+          statusField.querySelector('input[type="hidden"]') ||
+          document.getElementById("statusInput");
+              if (hidden) hidden.value = estadoVal;
+            }
+          }
+        } catch (e) {}
+
+        // categorías: guardar ids en input hidden si está disponible
+        try {
+          const cats =
+            (expert.infoExperto && expert.infoExperto.categorias) ||
+            expert.categorias ||
+            [];
+          const catIds = getCategoryIdsForExpert({ categorias: cats });
+          if (categoriasHidden)
+            categoriasHidden.value = Array.isArray(catIds)
+              ? catIds.join(",")
+              : catIds || "";
+
+          // Asegurar que el modal tenga .categorias-options poblado y manejadores interactivos
+          try {
+            function ensureModalCategoriasOptions(modal) {
+              try {
+          const optionsContainer = modal.querySelector(
+            ".categorias-options"
+          );
+          const chipsContainer = modal.querySelector(".categorias-chips");
+          if (!optionsContainer) return;
+          // Si ya está poblado, no sobrescribir
+          if (
+            optionsContainer.children &&
+            optionsContainer.children.length
+          ) {
+            // ensure modal-scoped search is wired even if already populated
+            wireModalCategoriasSearch(modal);
+            return;
+          }
+
+          // Construir opciones desde el array global 'categorias' (fallback seguro)
+          optionsContainer.innerHTML = (categorias || [])
+            .map(function (cat) {
+              const id = String(cat.id || cat._id || "");
+              const name = escapeHtml(
+                cat.name || cat.nombre || "Sin nombre"
+              );
+              const icon = cat.icon
+                ? `<i class="fas ${escapeHtml(
+              cat.icon
+            )}" aria-hidden="true"></i>`
+                : "";
+              return `\n      <div class="categoria-option" data-id="${id}">\n        <div class="categoria-option-checkbox"></div>\n        ${icon}\n        <span>${name}</span>\n      </div>`;
+            })
+            .join("");
+
+          // Adjuntar manejadores de click para alternar selección y actualizar chips/input oculto
+          Array.from(
+            optionsContainer.querySelectorAll(".categoria-option")
+          ).forEach(function (optEl) {
+            optEl.addEventListener("click", function () {
+              try {
+                const id = optEl.getAttribute("data-id") || "";
+                const label =
+            (optEl.querySelector("span") &&
+              optEl.querySelector("span").textContent) ||
+            id;
+                const hidden =
+            modal.querySelector("#categorias-values_edit") ||
+            modal.querySelector("#categorias-values");
+
+                // alternar visual
+                const isSelected = optEl.classList.toggle("selected");
+
+                // actualizar chips (preservar orden de inserción: añadir nuevas selecciones al final)
+                if (isSelected) {
+            // evitar chip duplicado
+            try {
+              if (
+                chipsContainer &&
+                !chipsContainer.querySelector(
+                  `.categoria-chip[data-id="${id}"]`
+                )
+              ) {
+                const chip = document.createElement("div");
+                chip.className = "categoria-chip";
+                chip.dataset.id = id;
+                chip.innerHTML = `<span>${escapeHtml(
+                  label
+                )}</span><button type="button" class="categoria-chip-remove" aria-label="Remover categoría"><i class="fas fa-times"></i></button>`;
+                if (chipsContainer)
+                  chipsContainer.appendChild(chip);
+                // enlazar remover
+                const rem = chip.querySelector(
+                  ".categoria-chip-remove"
+                );
+                if (rem)
+                  rem.addEventListener("click", function (ev) {
+              try {
+                ev.stopPropagation();
+              } catch (e) {}
+              try {
+                optEl.classList.remove("selected");
+              } catch (e) {}
+              try {
+                chip.remove();
+              } catch (e) {}
+              updateHidden();
+                  });
+              }
+            } catch (e) {}
+                } else {
+            // eliminar chip si existe
+            try {
+              const existing =
+                chipsContainer &&
+                chipsContainer.querySelector(
+                  `.categoria-chip[data-id="${id}"]`
+                );
+              if (existing) existing.remove();
+            } catch (e) {}
+                }
+
+                function updateHidden() {
+            try {
+              const selected = Array.from(
+                optionsContainer.querySelectorAll(
+                  ".categoria-option.selected"
+                )
+              )
+                .map(function (o) {
+                  return o.getAttribute("data-id");
+                })
+                .filter(Boolean);
+              if (hidden) hidden.value = selected.join(",");
+            } catch (e) {}
+                }
+
+                updateHidden();
+              } catch (e) {}
+            });
+          });
+
+          // Enlazar el input de búsqueda del modal para filtrar opciones
+          wireModalCategoriasSearch(modal);
+              } catch (e) {}
+            }
+
+            function wireModalCategoriasSearch(modal) {
+              try {
+          const input = modal.querySelector("#categorias-input");
+          const optionsContainer = modal.querySelector(
+            ".categorias-options"
+          );
+          if (!input || !optionsContainer) return;
+          // anti-rebote
+          let t = null;
+          const handler = function (e) {
+            const term = stripAccents(
+              (e.target.value || "").toLowerCase()
+            );
+            Array.from(
+              optionsContainer.querySelectorAll(".categoria-option")
+            ).forEach(function (opt) {
+              try {
+                const text = stripAccents(
+            (opt.querySelector("span") &&
+              opt.querySelector("span").textContent) ||
+              ""
+                ).toLowerCase();
+                opt.style.display = text.includes(term) ? "flex" : "none";
+              } catch (err) {}
+            });
+          };
+          try {
+            input.removeEventListener(
+              "input",
+              input._modalCategoriasSearchHandler
+            );
+          } catch (e) {}
+          input._modalCategoriasSearchHandler = function (e) {
+            if (t) clearTimeout(t);
+            t = setTimeout(() => handler(e), 100);
+          };
+          input.addEventListener(
+            "input",
+            input._modalCategoriasSearchHandler
+          );
+              } catch (e) {}
+            }
+
+            ensureModalCategoriasOptions(modal);
+          } catch (e) {}
+
+          // Renderizar chips y marcar opciones dentro del modal de edición (ámbito modal)
+          try {
+            const chipsContainer = modal.querySelector(".categorias-chips");
+            const optionsContainer = modal.querySelector(".categorias-options");
+            if (chipsContainer) {
+              chipsContainer.innerHTML = "";
+              const catsNames = Array.isArray(catIds)
+          ? catIds
+              .map(function (id) {
+                const k = String(id);
+                return (
+            (categoriesMap &&
+              (categoriesMap[k] || categoriesMap[id])) ||
+            String(id)
+                );
+              })
+              .filter(Boolean)
+          : [];
+              if (!catsNames || catsNames.length === 0) {
+          const span = document.createElement("span");
+          span.className = "categorias-empty";
+          span.textContent = "No hay categorías seleccionadas";
+          chipsContainer.appendChild(span);
+              } else {
+          catsNames.forEach(function (name) {
+            try {
+              const chip = document.createElement("div");
+              chip.className = "categoria-chip";
+              chip.textContent = name;
+              chipsContainer.appendChild(chip);
+            } catch (e) {}
+          });
+              }
+            }
+
+            if (optionsContainer && Array.isArray(catIds)) {
+              try {
+          Array.from(
+            optionsContainer.querySelectorAll(".categoria-option")
+          ).forEach(function (optEl) {
+            try {
+              const id =
+                optEl.getAttribute("data-id") || optEl.dataset.id;
+              if (
+                id &&
+                Array.from(catIds).map(String).includes(String(id))
+              )
+                optEl.classList.add("selected");
+              else optEl.classList.remove("selected");
+            } catch (e) {}
+          });
+              } catch (e) {}
+            }
+
+            // También reflejar ids seleccionados en el input oculto del modal de edición (ámbito modal)
+            try {
+              const categoriasHiddenEdit = modal.querySelector(
+          "#categorias-values_edit"
+              );
+              if (categoriasHiddenEdit)
+          categoriasHiddenEdit.value = Array.isArray(catIds)
+            ? catIds.join(",")
+            : catIds || "";
+            } catch (e) {}
+          } catch (e) {}
+        } catch (e) {}
+
+        // días disponibles
+        try {
+          const dias = expert.infoExperto?.diasDisponibles || [];
+          if (diasHidden)
+            diasHidden.value = Array.isArray(dias)
+              ? dias.join(",")
+              : dias || "";
+          // también establecer hidden de ámbito modal para el modal de edición
+          try {
+            const diasHiddenEdit = modal.querySelector("#diasDisponibles_edit");
+            if (diasHiddenEdit)
+              diasHiddenEdit.value = Array.isArray(dias)
+          ? dias.join(",")
+          : dias || "";
+          } catch (e) {}
+          // actualizar botones de UI si están presentes (ámbito modal)
+          if (Array.isArray(dias) && dias.length) {
+            dias.forEach(function (d) {
+              const btn = modal.querySelector(
+          `.day-button[data-day="${d.toLowerCase()}"]`
+              );
+              if (btn) {
+          btn.classList.add("active");
+          try {
+            btn.setAttribute("aria-pressed", "true");
+          } catch (e) {}
+              }
+            });
+            const display = modal.querySelector(".days-display");
+            if (display) display.textContent = dias.join(", ");
+          } else {
+            const display = modal.querySelector(".days-display");
+            if (display) display.textContent = "Ningún día seleccionado";
+          }
+        } catch (e) {}
+
+        // bancarios
+        try {
+          // bancoField / tipoCuentaField pueden ser selects o inputs; usar setSelectValue para selects
+          const bancoVal =
+            expert.infoExperto?.banco || expert.banco || expert.bank || "";
+          const tipoCuentaVal =
+            expert.infoExperto?.tipoCuenta || expert.tipoCuenta || "";
+          try {
+            if (bancoField) {
+              if (bancoField.tagName === "SELECT")
+          setSelectValue(bancoField, bancoVal);
+              else bancoField.value = bancoVal;
+            }
+          } catch (e) {}
+          try {
+            if (tipoCuentaField) {
+              if (tipoCuentaField.tagName === "SELECT")
+          setSelectValue(tipoCuentaField, tipoCuentaVal);
+              else tipoCuentaField.value = tipoCuentaVal;
+            }
+          } catch (e) {}
+
+          // asegurar que inputs específicos del modal de edición (si existen) reciban valores
+          try {
+            const bancoEdit = modal.querySelector("#banco_edit");
+            if (bancoEdit) bancoEdit.value = bancoVal || "";
+          } catch (e) {}
+          try {
+            const tipoCuentaEdit = modal.querySelector("#tipoCuenta_edit");
+            if (tipoCuentaEdit) {
+              try {
+          tipoCuentaEdit.setAttribute(
+            "data-initial-value",
+            tipoCuentaVal || ""
+          );
+              } catch (e) {}
+              setSelectValue(tipoCuentaEdit, tipoCuentaVal || "");
+            }
+          } catch (e) {}
+          try {
+            const numeroCuentaEdit = modal.querySelector("#numeroCuenta_edit");
+            if (numeroCuentaEdit)
+              numeroCuentaEdit.value =
+          expert.infoExperto?.numeroCuenta || expert.numeroCuenta || "";
+          } catch (e) {}
+          try {
+            const titularEdit = modal.querySelector("#titular_edit");
+            if (titularEdit)
+              titularEdit.value =
+          expert.infoExperto?.titular || expert.titular || "";
+          } catch (e) {}
+          try {
+            const tipoDocumentoEdit = modal.querySelector(
+              "#tipoDocumento_edit"
+            );
+            if (tipoDocumentoEdit) {
+              try {
+          const rawDoc =
+            expert.infoExperto?.tipoDocumento ||
+            expert.tipoDocumento ||
+            "";
+          const mappedDoc = mapDocumentType(rawDoc) || rawDoc || "";
+          try {
+            tipoDocumentoEdit.setAttribute(
+              "data-initial-value",
+              mappedDoc
+            );
+          } catch (e) {}
+          setSelectValue(tipoDocumentoEdit, mappedDoc);
+              } catch (e) {}
+            }
+          } catch (e) {}
+          try {
+            const numeroDocumentoEdit = modal.querySelector(
+              "#numeroDocumento_edit"
+            );
+            if (numeroDocumentoEdit)
+              numeroDocumentoEdit.value =
+          expert.infoExperto?.numeroDocumento ||
+          expert.numeroDocumento ||
+          "";
+          } catch (e) {}
+          try {
+            const telefonoEdit = modal.querySelector("#telefonoContacto_edit");
+            if (telefonoEdit)
+              telefonoEdit.value =
+          expert.infoExperto?.telefonoContacto || expert.telefono || "";
+          } catch (e) {}
+        } catch (e) {}
+        try {
+          if (tipoCuentaField && expert.infoExperto?.tipoCuenta)
+            tipoCuentaField.value = expert.infoExperto.tipoCuenta;
+        } catch (e) {}
+        try {
+          if (numeroCuentaField && expert.infoExperto?.numeroCuenta)
+            numeroCuentaField.value = expert.infoExperto.numeroCuenta;
+        } catch (e) {}
+        try {
+          if (titularField && expert.infoExperto?.titular)
+            titularField.value = expert.infoExperto.titular;
+        } catch (e) {}
+        try {
+          if (tipoDocumentoField && expert.infoExperto?.tipoDocumento)
+            tipoDocumentoField.value = expert.infoExperto.tipoDocumento;
+        } catch (e) {}
+        try {
+          if (numeroDocumentoField && expert.infoExperto?.numeroDocumento)
+            numeroDocumentoField.value = expert.infoExperto.numeroDocumento;
+        } catch (e) {}
+        try {
+          if (telefonoField && expert.infoExperto?.telefonoContacto)
+            telefonoField.value = expert.infoExperto.telefonoContacto;
+        } catch (e) {}
+        // Asegurar que selects del modal de edición sean visibles (temas oscuros pueden ocultar texto)
+        try {
+          function ensureSelectVisible(selectEl) {
+            if (!selectEl) return;
+            try {
+              const primary =
+          getComputedStyle(document.documentElement).getPropertyValue(
+            "--admin-text-primary"
+          ) || "";
+              if (primary) {
+          try {
+            selectEl.style.setProperty("color", primary, "important");
+          } catch (e) {
+            selectEl.style.color = primary;
+          }
+              }
+              // asegurar fondo/transparencia para no tapar el texto
+              try {
+          selectEl.style.setProperty(
+            "background-color",
+            "transparent",
+            "important"
+          );
+              } catch (e) {
+          selectEl.style.backgroundColor = "transparent";
+              }
+
+              // crear un fallback display justo después del select con el texto amigable si el select aún no muestra texto
+              try {
+          const dispId = selectEl.id + "_display";
+          let disp = modal.querySelector("#" + dispId);
+          const opt = selectEl.options[selectEl.selectedIndex];
+          const txt =
+            (opt && (opt.textContent || opt.innerText)) ||
+            selectEl.value ||
+            "";
+          if (!disp) {
+            disp = document.createElement("div");
+            disp.id = dispId;
+            disp.className = "modal-readonly-field";
+            disp.style.marginTop = "6px";
+            disp.style.color =
+              getComputedStyle(document.documentElement).getPropertyValue(
+                "--admin-text-secondary"
+              ) || "";
+            try {
+              selectEl.parentNode.insertBefore(
+                disp,
+                selectEl.nextSibling
+              );
+            } catch (e) {
+              selectEl.parentNode.appendChild(disp);
+            }
+          }
+          disp.textContent = txt || "-";
+          disp.style.display = txt ? "block" : "none";
+              } catch (e) {}
+            } catch (e) {}
+          }
+
+          // Intentos en ámbito modal para ambos selects usados en edición
+          try {
+            ensureSelectVisible(modal.querySelector("#tipoCuenta_edit"));
+          } catch (e) {}
+          try {
+            ensureSelectVisible(modal.querySelector("#tipoDocumento_edit"));
+          } catch (e) {}
+
+          // Si los selects siguen siendo invisibles por CSS del tema, crear un reemplazo personalizado robusto
+          try {
+            function createSelectReplacement(modal, selectEl) {
+              if (!selectEl || !modal) return;
+              const id =
+          selectEl.id || (selectEl.name ? selectEl.name + "_sel" : null);
+              if (!id) return;
+              const replacementId = id + "_replacement";
+              // if already created, update text and return
+              // si ya fue creado, actualizar texto y retornar
+              let existing = modal.querySelector("#" + replacementId);
+              const buildText = () => {
+          try {
+            // prefer explicit initial value provided via data-initial-value
+            const initial =
+              selectEl.getAttribute &&
+              selectEl.getAttribute("data-initial-value");
+            if (initial) {
+              // try to match option by value first
+              let optMatch = Array.from(selectEl.options).find(function (
+                o
+              ) {
+                return String(o.value) === String(initial);
+              });
+              if (!optMatch) {
+                // try match by normalized text
+                optMatch = Array.from(selectEl.options).find(function (
+            o
+                ) {
+            return stripAccents(
+              o.textContent || o.innerText || ""
+            ).includes(stripAccents(initial));
+                });
+              }
+              if (optMatch)
+                return (
+            optMatch.textContent ||
+            optMatch.innerText ||
+            optMatch.value ||
+            initial
+                );
+            }
+            const opt = selectEl.options[selectEl.selectedIndex];
+            return (
+              (opt && (opt.textContent || opt.innerText)) ||
+              selectEl.value ||
+              ""
+            );
+          } catch (e) {
+            return selectEl.value || "";
+          }
+              };
+
+              if (existing) {
+          existing.querySelector(".replacement-value").textContent =
+            buildText() || "-";
+          return;
+              }
+
+              // crear contenedor
+              const wrap = document.createElement("div");
+              wrap.id = replacementId;
+              wrap.className = "select-replacement";
+              // estilos inline básicos para asegurar visibilidad incluso con reglas del tema
+              wrap.style.display = "inline-block";
+              wrap.style.minWidth = "220px";
+              wrap.style.padding = "8px 10px";
+              wrap.style.border = "1px solid var(--admin-border-color, #ccc)";
+              wrap.style.borderRadius = "6px";
+              wrap.style.background = "var(--admin-card-bg, #fff)";
+              wrap.style.color =
+          getComputedStyle(document.documentElement).getPropertyValue(
+            "--admin-text-primary"
+          ) || "#111";
+              wrap.style.cursor = "pointer";
+              wrap.style.position = "relative";
+
+              const span = document.createElement("span");
+              span.className = "replacement-value";
+              span.textContent = buildText() || "-";
+              wrap.appendChild(span);
+
+              const caret = document.createElement("span");
+              caret.className = "replacement-caret";
+              caret.innerHTML = "▾";
+              caret.style.float = "right";
+              caret.style.marginLeft = "8px";
+              wrap.appendChild(caret);
+
+              // construir panel de opciones
+              const panel = document.createElement("div");
+              panel.className = "replacement-panel";
+              panel.style.position = "absolute";
+              panel.style.left = "0";
+              panel.style.top = "calc(100% + 6px)";
+              panel.style.minWidth = "100%";
+              panel.style.maxHeight = "200px";
+              panel.style.overflow = "auto";
+              panel.style.border = "1px solid var(--admin-border-color, #ccc)";
+              panel.style.background = "var(--admin-card-bg, #fff)";
+              panel.style.boxShadow = "0 6px 18px rgba(0,0,0,0.12)";
+              panel.style.zIndex = "100000";
+              panel.style.display = "none";
+              panel.style.borderRadius = "6px";
+
+              Array.from(selectEl.options).forEach(function (o) {
+          const item = document.createElement("div");
+          item.className = "replacement-item";
+          item.dataset.value = o.value;
+          item.textContent = o.textContent || o.innerText || o.value;
+          item.style.padding = "8px 10px";
+          item.style.cursor = "pointer";
+          item.style.borderBottom = "1px solid rgba(0,0,0,0.04)";
+          item.addEventListener("click", function (ev) {
+            try {
+              const v = this.dataset.value;
+              // set native select and dispatch change
+              selectEl.value = v;
+              try {
+                selectEl.dispatchEvent(
+            new Event("change", { bubbles: true })
+                );
+              } catch (e) {}
+              span.textContent = this.textContent || v;
+              panel.style.display = "none";
+            } catch (e) {}
+          });
+          panel.appendChild(item);
+              });
+
+              wrap.appendChild(panel);
+
+              // interacciones
+              wrap.addEventListener("click", function (e) {
+          e.stopPropagation();
+          // toggle
+          panel.style.display =
+            panel.style.display === "block" ? "none" : "block";
+              });
+
+              // cerrar al clicar fuera
+              const docHandler = function (ev) {
+          if (!wrap.contains(ev.target)) panel.style.display = "none";
+              };
+              setTimeout(function () {
+          document.addEventListener("click", docHandler);
+              }, 10);
+
+              // colocar reemplazo justo después del select para preservar layout
+              try {
+          selectEl.parentNode.insertBefore(wrap, selectEl.nextSibling);
+              } catch (e) {
+          selectEl.parentNode.appendChild(wrap);
+              }
+
+              // mantener texto del reemplazo sincronizado si el select nativo cambia en otro lugar
+              selectEl.addEventListener("change", function () {
+          try {
+            const opt = selectEl.options[selectEl.selectedIndex];
+            span.textContent =
+              (opt && (opt.textContent || opt.innerText)) ||
+              selectEl.value ||
+              "-";
+          } catch (e) {}
+              });
+
+              // ocultar visualmente el select nativo pero conservarlo en el DOM para envío de formulario
+              try {
+          selectEl.style.display = "none";
+              } catch (e) {}
+
+              // accesibilidad: hacer el reemplazo enfocadle y role=listbox
+              try {
+          wrap.setAttribute("tabindex", "0");
+          wrap.setAttribute("role", "listbox");
+              } catch (e) {}
+
+              // cerrar panel con Escape cuando el reemplazo esté enfocado
+              wrap.addEventListener("keydown", function (ev) {
+          try {
+            if (ev.key === "Escape" || ev.key === "Esc") {
+              panel.style.display = "none";
+              wrap.blur();
+            }
+          } catch (e) {}
+              });
+            }
+
+            // Aplicar reemplazos para los selects problemáticos conocidos en el modal de edición
+            try {
+              createSelectReplacement(
+          modal,
+          modal.querySelector("#tipoCuenta_edit")
+              );
+            } catch (e) {}
+            try {
+              createSelectReplacement(
+          modal,
+          modal.querySelector("#tipoDocumento_edit")
+              );
+            } catch (e) {}
+          } catch (e) {}
+        } catch (e) {}
+            }
+
+            // Mover modal a document.body para evitar problemas de contexto de apilamiento / ocultamiento por overflow
+            try {
         if (
           modal &&
           modal.parentElement &&
@@ -792,33 +2179,118 @@
           modal._originalNextSibling = modal.nextSibling;
           document.body.appendChild(modal);
         }
-      } catch (e) {
+            } catch (e) {
         console.warn("Could not move modal to body:", e);
-      }
+            }
 
-      // about to show modal
+            // a punto de mostrar el modal
 
-      // Force visibility using inline styles to avoid CSS conflicts / stacking context issues
-      try {
+            // Forzar visibilidad usando estilos inline para evitar conflictos CSS / problemas de contexto de apilamiento
+            try {
         modal.style.display = "flex";
-        // make the modal cover the viewport and be above other contexts
+        // hacer que el modal cubra la ventana y esté por encima de otros contextos
         modal.style.position = "fixed";
         modal.style.top = "0";
         modal.style.left = "0";
         modal.style.right = "0";
         modal.style.bottom = "0";
         modal.style.zIndex = "99999";
-        // backdrop color (inline to ensure visibility)
+        // color del backdrop (inline para asegurar visibilidad)
         modal.style.backgroundColor =
           modal.style.backgroundColor || "rgba(0,0,0,0.45)";
 
         modal.classList.add("show", "modal-open", "is-open");
         document.body.classList.add("modal-open");
-      } catch (e) {
+            } catch (e) {
         console.warn("Unable to force inline modal styles:", e);
-      }
+            }
 
-      // modal visibility forced via inline styles
+            // Accesibilidad: enfocar el control principal de cierre dentro del modal si existe
+            try {
+        var focusCandidate =
+          modal.querySelector('[data-action="close-modal"]') ||
+          modal.querySelector(".modal-expert .btn-close") ||
+          modal.querySelector(".modal-expert__header .btn-close");
+        if (focusCandidate && typeof focusCandidate.focus === "function") {
+          // pequeño timeout para permitir que el navegador renderice y para lectores de pantalla
+          setTimeout(function () {
+            try {
+              focusCandidate.focus();
+            } catch (e) {}
+          }, 60);
+        }
+            } catch (e) {}
+
+            // Si este modal es solo de visualización, asegurar que los custom selects dentro sean totalmente no interactivos
+            try {
+        if (type === "view") {
+          Array.from(modal.querySelectorAll(".custom-select")).forEach(
+            function (cs) {
+              try {
+          cs.classList.add("disabled");
+          cs.setAttribute("aria-disabled", "true");
+            // eliminar del orden de tabulación
+            try {
+            cs.setAttribute("tabindex", "-1");
+            } catch (e) {}
+            // deshabilitar eventos de puntero en el trigger y opciones para que los clics no lo abran
+            var trigger = cs.querySelector(".custom-select__trigger");
+            if (trigger) {
+            trigger.style.pointerEvents = "none";
+            trigger.style.cursor = "default";
+            }
+            var opts = cs.querySelector(".custom-select__options");
+            if (opts) opts.style.pointerEvents = "none";
+            // también marcar los elementos de opción como aria-disabled
+            Array.from(
+            cs.querySelectorAll(
+              ".custom-select__options li, .custom-select__option"
+            )
+            ).forEach(function (li) {
+            try {
+              li.setAttribute("aria-disabled", "true");
+              li.style.pointerEvents = "none";
+            } catch (e) {}
+            });
+              } catch (e) {}
+            }
+            );
+
+            // Además, hacer que los botones de días dentro del modal de vista sean no interactivos
+            try {
+            Array.from(modal.querySelectorAll(".day-button")).forEach(function (
+              db
+            ) {
+              try {
+          // Deshabilitación nativa para botones
+          db.disabled = true;
+          db.classList.add("disabled");
+          db.setAttribute("aria-disabled", "true");
+          // eliminar del orden de tabulación
+          try {
+            db.setAttribute("tabindex", "-1");
+          } catch (e) {}
+          // prevenir interacciones de puntero
+          db.style.pointerEvents = "none";
+          db.style.cursor = "default";
+          // En caso de que haya listeners delegados, interceptar clicks en fase de captura
+          db.addEventListener(
+            "click",
+            function (ev) {
+              try {
+                ev.preventDefault();
+                ev.stopImmediatePropagation();
+              } catch (e) {}
+            },
+            true
+          );
+              } catch (e) {}
+            });
+          } catch (e) {}
+        }
+            } catch (e) {}
+
+            // visibilidad del modal forzada mediante estilos inline
     } catch (e) {
       console.error(`Error opening ${type} modal:`, e);
       alert(`Error al abrir modal: ${e.message}`);
@@ -884,6 +2356,7 @@
     const closeSelectors = [
       ".modal-expert .btn-close",
       '.modal-expert [data-dismiss="modal"]',
+      '.modal-expert [data-action="close-modal"]',
     ];
 
     closeSelectors.forEach((selector) => {
@@ -891,7 +2364,7 @@
         btn.addEventListener("click", function () {
           const modal = this.closest(".modal-expert");
           if (modal) {
-            // hide and remove inline forcing styles
+            // ocultar y eliminar estilos en línea forzados
             modal.style.display = "none";
             try {
               modal.style.position = null;
@@ -907,7 +2380,7 @@
               document.body.classList.remove("modal-open");
             } catch (e) {}
 
-            // If we moved the modal to body earlier, restore original position
+            // Si movimos el modal al body anteriormente, restaurar la posición original
             try {
               if (modal._originalParent) {
                 if (modal._originalNextSibling) {
@@ -929,7 +2402,7 @@
       });
     });
 
-    // Close on Escape key
+    // Cerrar con la tecla Escape
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape" || e.key === "Esc") {
         const openModal = document.querySelector(
@@ -989,6 +2462,8 @@
   let currentPage = 1;
   const pageSize = 10;
   let headerSearch = null;
+  // Id del experto actualmente en edición (si se abrió el modal de editar)
+  let currentEditingExpertId = null;
 
   // Inicializador principal que deja la UI lista: pobla filtros, renderiza filas y enlaza controles
   function init() {
@@ -1379,7 +2854,7 @@
   // ===== LISTO AL CARGAR EL DOM =====
   // Se añaden listeners para búsqueda en la cabecera, botón de filtros e inicialización de la UI
   document.addEventListener("DOMContentLoaded", function () {
-    // Defensive: ensure modals are hidden on initial load unless explicitly opened
+    // Por precaución: asegurar que los modales estén ocultos al cargar inicialmente a menos que se hayan abierto explícitamente
     try {
       document.querySelectorAll(".modal-expert").forEach(function (modal) {
         if (modal.classList.contains("is-open")) {
@@ -1408,19 +2883,7 @@
 
     // Diagnostic log: imprime datos iniciales para depuración en consola
     try {
-      console.groupCollapsed &&
-        console.groupCollapsed("admin-expertos: diagnóstico inicial");
-      console.log(
-        "allExperts (count):",
-        Array.isArray(allExperts) ? allExperts.length : typeof allExperts,
-        allExperts.slice ? allExperts.slice(0, 5) : allExperts
-      );
-      console.log(
-        "categorias (count):",
-        Object.keys(categoriesMap).length,
-        categoriesMap
-      );
-      console.groupEnd && console.groupEnd();
+      // initial diagnostics removed for cleaner console output
     } catch (e) {
       console.warn("admin-expertos diagnóstico: error al imprimir datos", e);
     }
@@ -1624,7 +3087,7 @@
               if (firstInput) firstInput.focus();
             } catch (e) {}
 
-            console.log("admin-expertos: expertModal mostrado");
+            // expert modal shown (log suppressed)
           } catch (e) {
             console.warn("showExpertModal error", e);
           }
@@ -1663,41 +3126,13 @@
     // ...existing code...
     initAddExpertButton();
 
-    // Handler para el formulario de agregar experto: valida, sube imagen y persiste via API
+    // Handler para formularios de experto (soporta múltiples modales con el mismo form id)
     function initExpertForm() {
       try {
-        const form = document.getElementById("expertForm");
-        const modal = document.getElementById("expertModal");
-        if (!form) return;
-
-        console.log("initExpertForm: initializing");
-        // El botón de submit está en el footer del modal (fuera del <form>),
-        // enlazamos ese botón para que dispare el submit del formulario.
-        try {
-          const footerSubmit =
-            modal &&
-            modal.querySelector('.modal-expert__footer button[type="submit"]');
-          if (footerSubmit) {
-            console.log(
-              "initExpertForm: found footer submit button, attaching click"
-            );
-            footerSubmit.addEventListener("click", function (ev) {
-              console.log("footer submit clicked");
-              try {
-                // Preferir requestSubmit para disparar listeners y validación nativa
-                if (typeof form.requestSubmit === "function") {
-                  form.requestSubmit();
-                } else {
-                  form.dispatchEvent(
-                    new Event("submit", { bubbles: true, cancelable: true })
-                  );
-                }
-              } catch (e) {
-                console.warn("footer submit click error", e);
-              }
-            });
-          }
-        } catch (e) {}
+        const forms = Array.from(
+          document.querySelectorAll("form#expertForm, form#expertForm_edit")
+        );
+        if (!forms.length) return;
 
         // helper: mostrar toast simple
         function showToast(msg, type = "success") {
@@ -1741,7 +3176,6 @@
             });
             if (!res.ok) throw new Error("upload failed: " + res.status);
             const json = await res.json();
-            // asumir { url: '...' }
             return json && (json.url || json.path || json.fileUrl)
               ? json.url || json.path || json.fileUrl
               : null;
@@ -1751,164 +3185,394 @@
           }
         }
 
-        form.addEventListener("submit", async function (ev) {
-          console.log("expertForm submit handler invoked");
-          ev.preventDefault();
+        // Adjuntar manejador de envío para cada instancia de formulario/modal
+        forms.forEach((form) => {
           try {
-            // Bloquear submit
-            const submitBtn = form.querySelector('button[type="submit"]');
-            if (submitBtn) {
-              submitBtn.disabled = true;
-              submitBtn.dataset.origText = submitBtn.textContent;
-              submitBtn.textContent = "Guardando...";
-            }
+            const modal = form.closest(".modal-expert");
 
-            // Leer campos básicos
-            const nameInput = form.querySelector("#name");
-            const emailInput = form.querySelector("#email");
-            const precioInput = form.querySelector("#precio");
-            const statusInput = form.querySelector("#statusInput");
-            const categoriasHidden = form.querySelector("#categorias-values");
-            const fileInput = form.querySelector("#profileImage");
-
-            const name = (nameInput?.value || "").trim();
-            const email = (emailInput?.value || "").trim();
-            const precio = Number(precioInput?.value || 0) || 0;
-            const status = (statusInput?.value || "active").trim();
-            const categoriasValues = (categoriasHidden?.value || "")
-              .split(",")
-              .filter(Boolean);
-
-            // Validación cliente
-            let hasError = false;
+            // enlazar el botón de enviar del pie de página dentro de este modal para activar el formulario correcto
             try {
-              // limpiar errores previos
-              [nameInput, emailInput, precioInput].forEach((i) => {
-                if (!i) return;
-                const errEl = document.getElementById(i.id + "-error");
-                if (errEl) errEl.style.display = "none";
-                i.classList.remove("input-error");
-              });
+              const footerSubmit =
+                modal &&
+                modal.querySelector(
+                  '.modal-expert__footer button[type="submit"]'
+                );
+              if (footerSubmit) {
+                footerSubmit.addEventListener("click", function () {
+                  try {
+                    if (typeof form.requestSubmit === "function")
+                      form.requestSubmit();
+                    else
+                      form.dispatchEvent(
+                        new Event("submit", { bubbles: true, cancelable: true })
+                      );
+                  } catch (e) {
+                    console.warn("footer submit click error", e);
+                  }
+                });
+              }
             } catch (e) {}
 
-            if (!name) {
-              const el = document.getElementById("name-error");
-              if (el) {
-                el.textContent = "El nombre es obligatorio.";
-                el.style.display = "block";
-              }
-              if (nameInput) nameInput.classList.add("input-error");
-              hasError = true;
-            }
-            if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
-              const el = document.getElementById("email-error");
-              if (el) {
-                el.textContent = "Email inválido.";
-                el.style.display = "block";
-              }
-              if (emailInput) emailInput.classList.add("input-error");
-              hasError = true;
-            }
-            if (!precio || precio <= 0) {
-              const el = document.getElementById("precio-error");
-              if (el) {
-                el.textContent = "Precio inválido.";
-                el.style.display = "block";
-              }
-              if (precioInput) precioInput.classList.add("input-error");
-              hasError = true;
-            }
-            if (!categoriasValues.length) {
-              const chips = document.getElementById("categorias-chips");
-              if (chips) chips.classList.add("error");
-              hasError = true;
-              // mostrar hint si existe
-              const err = document.querySelector(".categorias-error");
-              if (err) err.style.display = "block";
-            }
-
-            if (hasError) {
-              if (submitBtn) {
-                submitBtn.disabled = false;
-                submitBtn.textContent =
-                  submitBtn.dataset.origText || "Guardar experto";
-              }
-              return;
-            }
-
-            // Si hay archivo seleccionado, intentar subir primero
-            let avatarUrl = null;
-            try {
-              const file = fileInput && fileInput.files && fileInput.files[0];
-              if (file) {
-                avatarUrl = await uploadImage(file);
-              } else {
-                const avatarEl = document.getElementById("profilePreviewImage");
-                avatarUrl = avatarEl ? avatarEl.src : null;
-              }
-            } catch (e) {
-              console.warn("image upload fallback", e);
-            }
-
-            // Enviar al backend
-            try {
-              const payload = {
-                nombre: name,
-                email: email,
-                precio: precio,
-                estado: status,
-                categorias: categoriasValues,
-                avatar: avatarUrl || undefined,
-              };
-
-              const res = await fetch("/api/expertos", {
-                method: "POST",
-                credentials: "same-origin",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-              });
-
-              if (!res.ok) {
-                const json = await res.json().catch(() => ({}));
-                const msg = (json && json.message) || "Error al crear experto";
-                showToast(msg, "error");
-                throw new Error(msg);
-              }
-
-              const created = await res.json();
-
-              // Insertar en allExperts usando el objeto devuelto por el servidor
-              allExperts.unshift(created);
-              currentPage = 1;
-              applyFilters();
-
-              showToast("Experto creado correctamente", "success");
-
+            form.addEventListener("submit", async function (ev) {
+              ev.preventDefault();
               try {
-                if (modal) modal.style.display = "none";
-              } catch (e) {}
-              try {
-                form.reset();
-              } catch (e) {}
-            } catch (err) {
-              console.warn("error creating expert", err);
-            }
+                // determinar el botón de envío para este modal/formulario
+                const submitBtn =
+                  (modal &&
+                  modal.querySelector(
+                    '.modal-expert__footer button[type="submit"]'
+                  )) ||
+                  form.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                  submitBtn.disabled = true;
+                  submitBtn.dataset.origText = submitBtn.textContent;
+                  submitBtn.textContent = "Guardando...";
+                }
 
-            if (submitBtn) {
-              submitBtn.disabled = false;
-              submitBtn.textContent =
-                submitBtn.dataset.origText || "Guardar experto";
-            }
+                // selectores de campos con ámbito modal (soporta ids con sufijos _edit / _view)
+                const qs = (sel) => {
+                  try {
+                    return (
+                      (modal && modal.querySelector(sel)) ||
+                      form.querySelector(sel) ||
+                      null
+                    );
+                  } catch (e) {
+                    return null;
+                  }
+                };
+
+                const nameInput = qs("#name");
+                const emailInput = qs("#email");
+                const precioInput = qs("#precio");
+                const statusInput =
+                  qs("#statusInput") || qs('input[name="status"]');
+                const categoriasHidden =
+                  qs('[id*="categorias-values"]') ||
+                  qs('input[name="categorias"]');
+                const fileInput =
+                  qs("#profileImage") ||
+                  qs("#profileImage_edit") ||
+                  qs("#profileImage_view");
+                const tipoDocumentoEl =
+                  qs('[id*="tipoDocumento"]') || qs('[name="tipoDocumento"]');
+                const diasHidden =
+                  qs('[id*="diasDisponibles"]') ||
+                  qs('input[name="diasDisponibles"]');
+
+                const name = (nameInput?.value || "").trim();
+                const email = (emailInput?.value || "").trim();
+                const precio = Number(precioInput?.value || 0) || 0;
+                const status = (statusInput?.value || "active").trim();
+                // categorias: preferir input oculto, fallback a chips u opciones seleccionadas en el modal
+                let categoriasValues = (categoriasHidden?.value || "")
+                  .split(",")
+                  .filter(Boolean);
+                if (!categoriasValues.length) {
+                  try {
+                    // chips con data-id (preservar orden visual)
+                  const chips = Array.from(
+                    (modal &&
+                    modal.querySelectorAll(".categoria-chip[data-id]")) ||
+                    []
+                  );
+                  if (chips.length) {
+                    categoriasValues = chips
+                    .map((c) => c.dataset.id)
+                    .filter(Boolean);
+                  } else {
+                    // o buscar opciones seleccionadas en el panel de opciones
+                    const opts = Array.from(
+                    (modal &&
+                      modal.querySelectorAll(
+                      ".categoria-option.selected"
+                      )) ||
+                      []
+                    );
+                    if (opts.length)
+                    categoriasValues = opts
+                      .map((o) => o.getAttribute("data-id"))
+                      .filter(Boolean);
+                  }
+                  } catch (e) {}
+                }
+
+                // tipoCuenta: intentar select dentro del modal (ej. #tipoCuenta_edit) o usar como fallback el elemento de visualización
+                let tipoCuentaVal = "";
+                try {
+                  const tipoCuentaEl =
+                  (modal && modal.querySelector('[id*="tipoCuenta"]')) ||
+                  form.querySelector('[id*="tipoCuenta"]') ||
+                  form.querySelector('[name="tipoCuenta"]');
+                  if (tipoCuentaEl)
+                  tipoCuentaVal = (
+                  tipoCuentaEl.value ||
+                  tipoCuentaEl.textContent ||
+                  ""
+                  ).trim();
+                  // si existe un elemento de visualización (solo lectura), usar su texto
+                  if (!tipoCuentaVal) {
+                  const disp =
+                    modal && modal.querySelector("#tipoCuenta_display");
+                  if (disp && disp.textContent)
+                    tipoCuentaVal = disp.textContent.trim();
+                  }
+                } catch (e) {}
+
+                // tipoDocumento: preferir select/hidden dentro del modal, en caso contrario usar display como fallback
+                let tipoDocumentoVal = "";
+                try {
+                  if (tipoDocumentoEl)
+                  tipoDocumentoVal = (
+                    tipoDocumentoEl.value ||
+                    tipoDocumentoEl.textContent ||
+                    ""
+                  ).trim();
+                  if (!tipoDocumentoVal) {
+                  const disp =
+                    modal && modal.querySelector("#tipoDocumento_display");
+                  if (disp && disp.textContent)
+                    tipoDocumentoVal = disp.textContent.trim();
+                  }
+                } catch (e) {}
+
+                // diasDisponibles: preferir hidden, en caso contrario leer botones de días activos dentro del modal
+                let diasValues =
+                  diasHidden && diasHidden.value
+                    ? String(diasHidden.value).split(",").filter(Boolean)
+                    : [];
+                if (!diasValues.length) {
+                  try {
+                    const activeBtns = Array.from(
+                      (modal && modal.querySelectorAll(".day-button.active")) ||
+                        []
+                    );
+                    if (activeBtns.length)
+                      diasValues = activeBtns
+                        .map((b) => (b.getAttribute("data-day") || "").trim())
+                        .filter(Boolean);
+                  } catch (e) {}
+                }
+
+                // Validación cliente modal-scoped
+                let hasError = false;
+                try {
+                  [nameInput, emailInput, precioInput].forEach((i) => {
+                    if (!i) return;
+                    const errEl =
+                      (modal && modal.querySelector("#" + i.id + "-error")) ||
+                      document.getElementById(i.id + "-error");
+                    if (errEl) errEl.style.display = "none";
+                    i.classList.remove("input-error");
+                  });
+                } catch (e) {}
+
+                if (!name) {
+                  const el =
+                    (modal && modal.querySelector("#name-error")) ||
+                    document.getElementById("name-error");
+                  if (el) {
+                    el.textContent = "El nombre es obligatorio.";
+                    el.style.display = "block";
+                  }
+                  if (nameInput) nameInput.classList.add("input-error");
+                  hasError = true;
+                }
+                if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+                  const el =
+                    (modal && modal.querySelector("#email-error")) ||
+                    document.getElementById("email-error");
+                  if (el) {
+                    el.textContent = "Email inválido.";
+                    el.style.display = "block";
+                  }
+                  if (emailInput) emailInput.classList.add("input-error");
+                  hasError = true;
+                }
+                if (!precio || precio <= 0) {
+                  const el =
+                    (modal && modal.querySelector("#precio-error")) ||
+                    document.getElementById("precio-error");
+                  if (el) {
+                    el.textContent = "Precio inválido.";
+                    el.style.display = "block";
+                  }
+                  if (precioInput) precioInput.classList.add("input-error");
+                  hasError = true;
+                }
+
+                // categorias
+                if (!categoriasValues.length) {
+                  try {
+                    if (modal)
+                      modal
+                        .querySelector(".categorias-chips")
+                        ?.classList.add("error");
+                  } catch (e) {}
+                  hasError = true;
+                  const err =
+                    (modal && modal.querySelector(".categorias-error")) ||
+                    document.querySelector(".categorias-error");
+                  if (err) err.style.display = "block";
+                }
+
+                // tipoDocumento
+                if (!tipoDocumentoVal) {
+                    // intentar marcar el select si está presente
+                  try {
+                    if (tipoDocumentoEl && tipoDocumentoEl.classList)
+                      tipoDocumentoEl.classList.add("input-error");
+                  } catch (e) {}
+                  hasError = true;
+                }
+
+                // diasDisponibles
+                if (!diasValues.length) {
+                  try {
+                    if (modal)
+                      modal
+                        .querySelector(".days-display")
+                        ?.classList.add("input-error");
+                  } catch (e) {}
+                  hasError = true;
+                }
+
+                if (hasError) {
+                  if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent =
+                      submitBtn.dataset.origText || "Guardar experto";
+                  }
+                  return;
+                }
+
+                // subir avatar si está presente
+                let avatarUrl = null;
+                try {
+                  const file =
+                    fileInput && fileInput.files && fileInput.files[0];
+                  if (file) avatarUrl = await uploadImage(file);
+                  else {
+                    const avatarEl =
+                      modal && modal.querySelector("#profilePreviewImage");
+                    avatarUrl = avatarEl ? avatarEl.src : null;
+                  }
+                } catch (e) {
+                  console.warn("image upload fallback", e);
+                }
+
+                // Preparar payload
+                const payload = {
+                  nombre: name,
+                  email: email,
+                  precio: precio,
+                  estado: status,
+                  categorias: categoriasValues,
+                  tipoDocumento: tipoDocumentoVal,
+                  diasDisponibles: diasValues,
+                  avatar: avatarUrl || undefined,
+                };
+
+                // Decidir endpoint/método: editar vs crear
+                try {
+                  let res;
+                  if (
+                  modal &&
+                  modal.id === "editExpertModal" &&
+                  typeof currentEditingExpertId !== "undefined" &&
+                  currentEditingExpertId
+                  ) {
+                  // actualizar
+                    res = await fetch(
+                      "/api/expertos/" +
+                        encodeURIComponent(currentEditingExpertId),
+                      {
+                        method: "PUT",
+                        credentials: "same-origin",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload),
+                      }
+                    );
+                  } else {
+                    // crear
+                    res = await fetch("/api/expertos", {
+                      method: "POST",
+                      credentials: "same-origin",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify(payload),
+                    });
+                    }
+
+                    if (!res || !res.ok) {
+                    const json = await (res
+                      ? res.json().catch(() => ({}))
+                      : Promise.resolve({}));
+                    const msg =
+                      (json && (json.message || json.mensaje)) ||
+                      "Error al guardar cambios";
+                    showToast(msg, "error");
+                    throw new Error(msg);
+                    }
+
+                    const json = await res.json();
+                    // Actualizar lista local o refrescar
+                    try {
+                    if (modal && modal.id === "editExpertModal") {
+                      // reemplazar experto en allExperts si el id coincide
+                      const updated = json;
+                      const id = currentEditingExpertId;
+                      if (id && updated) {
+                        const idx = allExperts.findIndex(
+                          (e) => (e._id || e.id) == id
+                        );
+                        if (idx >= 0) allExperts[idx] = updated;
+                        applyFilters();
+                      }
+                      showToast("Cambios guardados", "success");
+                    } else {
+                      allExperts.unshift(json);
+                      currentPage = 1;
+                      applyFilters();
+                      showToast("Experto creado correctamente", "success");
+                    }
+                  } catch (e) {
+                    console.warn("post-save update error", e);
+                  }
+
+                  try {
+                    if (modal) modal.style.display = "none";
+                  } catch (e) {}
+                  try {
+                    form.reset();
+                  } catch (e) {}
+                } catch (err) {
+                  console.warn("error saving expert", err);
+                }
+
+                if (submitBtn) {
+                  submitBtn.disabled = false;
+                  submitBtn.textContent =
+                    submitBtn.dataset.origText || "Guardar experto";
+                }
+              } catch (e) {
+                console.warn("error al procesar expertForm submit", e);
+                try {
+                  const submitBtn =
+                    (modal &&
+                      modal.querySelector(
+                        '.modal-expert__footer button[type="submit"]'
+                      )) ||
+                    form.querySelector('button[type="submit"]');
+                  if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent =
+                      submitBtn.dataset.origText || "Guardar experto";
+                  }
+                } catch (ee) {}
+              }
+            });
           } catch (e) {
-            console.warn("error al procesar expertForm submit", e);
-            try {
-              const submitBtn = form.querySelector('button[type="submit"]');
-              if (submitBtn) {
-                submitBtn.disabled = false;
-                submitBtn.textContent =
-                  submitBtn.dataset.origText || "Guardar experto";
-              }
-            } catch (ee) {}
+            console.warn("initExpertForm: form attach error", e);
           }
         });
       } catch (e) {
@@ -2192,6 +3856,11 @@
     initProfileImagePreview();
     initAccountToggle();
 
+    // Inicializar handler para guardar cambios desde el modal de edición
+    try {
+      initEditModalSave();
+    } catch (e) {}
+
     // Inicializar custom selects (accesible, keyboard-friendly)
     function initCustomSelects() {
       const customSelects = document.querySelectorAll(".custom-select");
@@ -2287,7 +3956,7 @@
           }
         });
 
-        // close when clicking outside
+        // cerrar al hacer clic fuera
         document.addEventListener("click", function (ev) {
           if (!cs.contains(ev.target)) close();
         });
@@ -2331,29 +4000,505 @@
     }
 
     initUploadBoxFallback();
+    // Guardar cambios desde el modal de edición: envía PUT /api/expertos/perfil
+    function initEditModalSave() {
+      try {
+        const modal = document.getElementById("editExpertModal");
+        if (!modal) return;
+        const footerBtn = modal.querySelector(
+          ".modal-expert__footer .btn-primary"
+        );
+        if (!footerBtn) return;
+
+        footerBtn.addEventListener("click", async function (ev) {
+          ev.preventDefault();
+          const btn = this;
+          try {
+            btn.disabled = true;
+            if (!btn.dataset.origText) btn.dataset.origText = btn.textContent;
+            btn.textContent = "Guardando...";
+
+            const m = modal;
+            const descripcion = (m.querySelector("#bio")?.value || "").trim();
+            const precioPorHora =
+              Number(m.querySelector("#precio")?.value || 0) || 0;
+            const categoriasRaw =
+              m.querySelector("#categorias-values_edit")?.value || "";
+            let categorias = categoriasRaw
+              ? categoriasRaw
+                  .split(",")
+                  .map((s) => s.trim())
+                  .filter(Boolean)
+              : [];
+            const banco = (m.querySelector("#banco_edit")?.value || "").trim();
+            let tipoCuenta = (
+              m.querySelector("#tipoCuenta_edit")?.value || ""
+            ).trim();
+            const numeroCuenta = (
+              m.querySelector("#numeroCuenta_edit")?.value || ""
+            ).trim();
+            const titular = (
+              m.querySelector("#titular_edit")?.value || ""
+            ).trim();
+            let tipoDocumento = (
+              m.querySelector("#tipoDocumento_edit")?.value || ""
+            ).trim();
+            const numeroDocumento = (
+              m.querySelector("#numeroDocumento_edit")?.value || ""
+            ).trim();
+            const telefonoContacto = (
+              m.querySelector("#telefonoContacto_edit")?.value || ""
+            ).trim();
+            const diasRaw =
+              m.querySelector("#diasDisponibles_edit")?.value || "";
+            const diasArr = diasRaw
+              ? diasRaw
+                  .split(",")
+                  .map((s) => s.trim().toLowerCase())
+                  .filter(Boolean)
+              : [];
+            const dayMap = {
+              lunes: "Lunes",
+              martes: "Martes",
+              miercoles: "Miércoles",
+              jueves: "Jueves",
+              viernes: "Viernes",
+              sabado: "Sábado",
+              domingo: "Domingo",
+            };
+            let diasDisponibles = diasArr.map((d) => dayMap[d] || d);
+
+            // Fallbacks: si algunos campos quedaron vacíos, intentar leerlos desde
+            // el DOM visual del modal (chips, opciones seleccionadas, displays o inputs globales)
+            try {
+              // categorias: chips con data-id o .categoria-option.selected
+              if (!categorias || categorias.length === 0) {
+                try {
+                  const chips = Array.from(
+                    m.querySelectorAll(".categoria-chip[data-id]") || []
+                  );
+                  if (chips.length) {
+                    categorias = chips.map((c) => c.dataset.id).filter(Boolean);
+                  } else {
+                    const opts = Array.from(
+                      m.querySelectorAll(".categoria-option.selected") || []
+                    );
+                    if (opts.length)
+                      categorias = opts
+                        .map((o) => o.getAttribute("data-id"))
+                        .filter(Boolean);
+                  }
+                } catch (e) {}
+
+                // fallback final: comprobar hidden global sin sufijo
+                if (
+                  (!categorias || categorias.length === 0) &&
+                  document.getElementById("categorias-values")
+                ) {
+                  try {
+                    const g = (
+                      document.getElementById("categorias-values").value || ""
+                    ).trim();
+                    if (g)
+                      categorias = g
+                        .split(",")
+                        .map((s) => s.trim())
+                        .filter(Boolean);
+                  } catch (e) {}
+                }
+              }
+
+              // tipoCuenta: select o display
+              if (!tipoCuenta) {
+                try {
+                  const el =
+                    m.querySelector("#tipoCuenta_edit") ||
+                    m.querySelector('[id*="tipoCuenta"]') ||
+                    document.getElementById("tipoCuenta_edit") ||
+                    document.getElementById("tipoCuenta");
+                  if (el)
+                    tipoCuenta = (el.value || el.textContent || "").trim();
+                  if (!tipoCuenta) {
+                    const disp =
+                      m.querySelector("#tipoCuenta_display") ||
+                      document.getElementById("tipoCuenta_display");
+                    if (disp && disp.textContent)
+                      tipoCuenta = disp.textContent.trim();
+                  }
+                } catch (e) {}
+              }
+
+              // tipoDocumento: select o display
+              if (!tipoDocumento) {
+                try {
+                  const el =
+                    m.querySelector("#tipoDocumento_edit") ||
+                    m.querySelector('[id*="tipoDocumento"]') ||
+                    document.getElementById("tipoDocumento_edit") ||
+                    document.getElementById("tipoDocumento");
+                  if (el)
+                    tipoDocumento = (el.value || el.textContent || "").trim();
+                  if (!tipoDocumento) {
+                    const disp =
+                      m.querySelector("#tipoDocumento_display") ||
+                      document.getElementById("tipoDocumento_display");
+                    if (disp && disp.textContent)
+                      tipoDocumento = disp.textContent.trim();
+                  }
+                } catch (e) {}
+              }
+
+              // diasDisponibles: botones activos en el modal
+              if (!diasDisponibles || diasDisponibles.length === 0) {
+                try {
+                  const activeBtns = Array.from(
+                    m.querySelectorAll(".day-button.active") || []
+                  );
+                  if (activeBtns.length) {
+                    diasDisponibles = activeBtns
+                      .map((b) => (b.getAttribute("data-day") || "").trim())
+                      .filter(Boolean)
+                      .map((d) => dayMap[d] || d);
+                  } else {
+                    // fallback: hidden inputs global
+                    const raw = (
+                      m.querySelector("#diasDisponibles_edit")?.value ||
+                      m.querySelector("#diasDisponibles")?.value ||
+                      document.querySelector("#diasDisponibles_edit")?.value ||
+                      document.querySelector("#diasDisponibles")?.value ||
+                      ""
+                    ).trim();
+                    if (raw) {
+                      diasDisponibles = raw
+                        .split(",")
+                        .map((s) => dayMap[s.trim().toLowerCase()] || s.trim())
+                        .filter(Boolean);
+                    }
+                  }
+                } catch (e) {}
+              }
+            } catch (e) {}
+
+            // Validación cliente: campos requeridos según backend
+            const validationErrors = [];
+            function markCategoriasInvalid(show) {
+              try {
+                const chips = m.querySelector(".categorias-chips");
+                if (chips) chips.classList.toggle("error", !!show);
+                let errEl = m.querySelector(".categorias-error");
+                if (!errEl) {
+                  errEl = document.createElement("div");
+                  errEl.className = "categorias-error";
+                  errEl.textContent = "Seleccione al menos una categoría";
+                  if (chips && chips.parentNode)
+                    chips.parentNode.appendChild(errEl);
+                }
+                errEl.style.display = show ? "block" : "none";
+              } catch (e) {}
+            }
+
+            if (!Array.isArray(categorias) || categorias.length === 0) {
+              validationErrors.push("categorias");
+              markCategoriasInvalid(true);
+            } else {
+              markCategoriasInvalid(false);
+            }
+
+            // Otros campos mínimos: descripcion, precioPorHora > 0, banco, tipoCuenta, numeroCuenta, titular, tipoDocumento, numeroDocumento, diasDisponibles
+            if (!descripcion) validationErrors.push("descripcion");
+            if (!precioPorHora || precioPorHora <= 0)
+              validationErrors.push("precioPorHora");
+            if (!banco) validationErrors.push("banco");
+            if (!tipoCuenta) validationErrors.push("tipoCuenta");
+            if (!numeroCuenta) validationErrors.push("numeroCuenta");
+            if (!titular) validationErrors.push("titular");
+            if (!tipoDocumento) validationErrors.push("tipoDocumento");
+            if (!numeroDocumento) validationErrors.push("numeroDocumento");
+            if (
+              !diasDisponibles ||
+              !Array.isArray(diasDisponibles) ||
+              diasDisponibles.length === 0
+            )
+              validationErrors.push("diasDisponibles");
+
+            if (validationErrors.length) {
+              // Mostrar mensajes de error inline y evitar el envío
+              try {
+                const first = validationErrors[0];
+                // foco en primer campo relevante
+                switch (first) {
+                  case "categorias":
+                    try {
+                      m.querySelector("#categorias-input")?.focus();
+                    } catch (e) {}
+                    break;
+                  case "descripcion":
+                    try {
+                      m.querySelector("#bio")?.focus();
+                    } catch (e) {}
+                    break;
+                  case "precioPorHora":
+                    try {
+                      m.querySelector("#precio")?.focus();
+                    } catch (e) {}
+                    break;
+                  case "banco":
+                    try {
+                      m.querySelector("#banco_edit")?.focus();
+                    } catch (e) {}
+                    break;
+                  case "tipoCuenta":
+                    try {
+                      m.querySelector("#tipoCuenta_edit")?.focus();
+                    } catch (e) {}
+                    break;
+                  case "numeroCuenta":
+                    try {
+                      m.querySelector("#numeroCuenta_edit")?.focus();
+                    } catch (e) {}
+                    break;
+                  case "titular":
+                    try {
+                      m.querySelector("#titular_edit")?.focus();
+                    } catch (e) {}
+                    break;
+                  case "tipoDocumento":
+                    try {
+                      m.querySelector("#tipoDocumento_edit")?.focus();
+                    } catch (e) {}
+                    break;
+                  case "numeroDocumento":
+                    try {
+                      m.querySelector("#numeroDocumento_edit")?.focus();
+                    } catch (e) {}
+                    break;
+                  case "diasDisponibles":
+                    try {
+                      m.querySelector(
+                        ".days-selector .days-display"
+                      )?.scrollIntoView();
+                    } catch (e) {}
+                    break;
+                }
+              } catch (e) {}
+              alert(
+                "Faltan campos obligatorios: " + validationErrors.join(", ")
+              );
+              try {
+                btn.disabled = false;
+                btn.textContent =
+                  btn.dataset.origText || "Guardar cambios experto";
+              } catch (e) {}
+              return;
+            }
+
+            // Normalizar ciertos campos para coincidir con los enums/expectativas del backend
+            function normalizeBanco(val) {
+              if (!val) return val;
+              const s = String(val).toLowerCase();
+              if (s.indexOf("nequi") >= 0) return "Nequi";
+              if (s.indexOf("bancolombia") >= 0 || s.indexOf("banco") >= 0)
+              return "Bancolombia";
+              // fallback: capitalizar la primera letra
+              return String(val).charAt(0).toUpperCase() + String(val).slice(1);
+            }
+
+            function normalizeTipoCuenta(val) {
+              if (!val) return val;
+              const s = String(val).toLowerCase();
+              if (s.indexOf("ahorr") >= 0 || s === "ahorros") return "Ahorros";
+              if (s.indexOf("corr") >= 0 || s === "corriente")
+                return "Corriente";
+              if (s.indexOf("nequi") >= 0) return "Nequi";
+              return String(val).charAt(0).toUpperCase() + String(val).slice(1);
+            }
+
+            function normalizeTipoDocumento(val) {
+              if (!val) return val;
+              const s = String(val).toLowerCase();
+              if (s === "cc" || s.indexOf("cedul") >= 0) return "CC";
+              if (s === "ce" || s.indexOf("extran") >= 0) return "CE";
+              if (s.indexOf("nit") >= 0) return "NIT";
+              return String(val).toUpperCase();
+            }
+
+            const payload = {
+              descripcion,
+              precioPorHora,
+              categorias,
+              banco: normalizeBanco(banco),
+              tipoCuenta: normalizeTipoCuenta(tipoCuenta),
+              numeroCuenta,
+              titular,
+              tipoDocumento: normalizeTipoDocumento(tipoDocumento),
+              numeroDocumento,
+              telefonoContacto,
+              diasDisponibles,
+            };
+
+            // Depuración: registrar el payload para ayudar en la resolución de problemas de validación del backend
+            try {
+              console.debug("[admin-expertos] perfil payload", payload);
+            } catch (e) {}
+            const res = await fetch("/api/expertos/perfil", {
+              method: "PUT",
+              credentials: "same-origin",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${window.authToken || ""}`,
+              },
+              body: JSON.stringify(payload),
+            });
+
+            let json = {};
+            try {
+              json = await res.json();
+            } catch (e) {}
+
+            if (res.ok) {
+              try {
+                if (currentEditingExpertId) {
+                  const idx = allExperts.findIndex(
+                    (x) => getExpertField(x, "id") == currentEditingExpertId
+                  );
+                  if (idx >= 0) {
+                    allExperts[idx].infoExperto =
+                      allExperts[idx].infoExperto || {};
+                    allExperts[idx].infoExperto.descripcion =
+                      payload.descripcion;
+                    allExperts[idx].infoExperto.precioPorHora =
+                      payload.precioPorHora;
+                    allExperts[idx].infoExperto.categorias = payload.categorias;
+                    allExperts[idx].infoExperto.banco = payload.banco;
+                    allExperts[idx].infoExperto.tipoCuenta = payload.tipoCuenta;
+                    allExperts[idx].infoExperto.numeroCuenta =
+                      payload.numeroCuenta;
+                    allExperts[idx].infoExperto.titular = payload.titular;
+                    allExperts[idx].infoExperto.tipoDocumento =
+                      payload.tipoDocumento;
+                    allExperts[idx].infoExperto.numeroDocumento =
+                      payload.numeroDocumento;
+                    allExperts[idx].infoExperto.telefonoContacto =
+                      payload.telefonoContacto;
+                    allExperts[idx].infoExperto.diasDisponibles =
+                      payload.diasDisponibles;
+                    allExperts[idx].estado =
+                      (json && json.usuario && json.usuario.estado) ||
+                      "pendiente-verificacion";
+                  }
+                }
+              } catch (e) {
+                console.warn("Error actualizando cache local de expertos:", e);
+              }
+
+              try {
+                currentPage = 1;
+                applyFilters();
+              } catch (e) {}
+
+              alert(
+                json.mensaje ||
+                  "Perfil actualizado. Pendiente de verificación por admin."
+              );
+
+              try {
+                modal.style.display = "none";
+                modal.classList.remove("show", "modal-open", "is-open");
+                document.body.classList.remove("modal-open");
+              } catch (e) {}
+            } else {
+              const faltantes = (json && json.camposFaltantes) || [];
+              if (Array.isArray(faltantes) && faltantes.length) {
+                alert("Faltan campos obligatorios: " + faltantes.join(", "));
+              } else {
+                alert(
+                  (json && (json.mensaje || json.message)) ||
+                    "Error al actualizar perfil: " + res.status
+                );
+              }
+            }
+          } catch (err) {
+            console.error("Error guardando perfil de experto:", err);
+            alert("Error guardando perfil: " + (err.message || err));
+          } finally {
+            try {
+              btn.disabled = false;
+              btn.textContent =
+                btn.dataset.origText || "Guardar cambios experto";
+            } catch (e) {}
+          }
+        });
+      } catch (e) {
+        console.warn("initEditModalSave error", e);
+      }
+    }
     // ===== Comportamiento: selector de días y mostrar/ocultar número de cuenta (migrado desde EJS inline) =====
     try {
-      // Selector de días (botones con clase .day-button y display en .days-display)
-      const dayButtons = document.querySelectorAll(".day-button");
-      const daysDisplay = document.querySelector(".days-display");
+      // Selector de días: comportamiento modal-scoped
+      try {
+        const dayButtons = document.querySelectorAll(".day-button");
 
-      function updateDaysDisplay() {
-        const activeDays = Array.from(
-          document.querySelectorAll(".day-button.active")
-        ).map((btn) => btn.getAttribute("data-day"));
-        if (!daysDisplay) return;
-        daysDisplay.textContent =
-          activeDays.length === 0
-            ? "Ningún día seleccionado"
-            : activeDays.join(", ");
-      }
+        dayButtons.forEach((button) => {
+          button.addEventListener("click", function (ev) {
+            try {
+              // encontrar el modal padre (si existe), si no usar document
+              const modal = this.closest(".modal-expert") || document;
 
-      dayButtons.forEach((button) => {
-        button.addEventListener("click", function () {
-          this.classList.toggle("active");
-          updateDaysDisplay();
+              // si el botón está deshabilitado, no hacer nada
+              if (
+                this.disabled ||
+                this.getAttribute("aria-disabled") === "true"
+              ) {
+                try {
+                  ev.preventDefault();
+                  ev.stopPropagation();
+                } catch (e) {}
+                return;
+              }
+
+              // toggle visual en el propio botón
+              this.classList.toggle("active");
+              try {
+                this.setAttribute(
+                  "aria-pressed",
+                  this.classList.contains("active") ? "true" : "false"
+                );
+              } catch (e) {}
+
+              // calcular días activos dentro de este modal únicamente
+              const activeDays = Array.from(
+                modal.querySelectorAll(".day-button.active")
+              ).map((btn) => btn.getAttribute("data-day"));
+
+              // actualizar el display dentro del modal
+              const daysDisplay = modal.querySelector(".days-display");
+              if (daysDisplay) {
+                daysDisplay.textContent =
+                  activeDays.length === 0
+                    ? "Ningún día seleccionado"
+                    : activeDays.join(", ");
+              }
+
+              // actualizar el hidden input dentro del modal (preferir _edit si existe)
+              try {
+                const diasHiddenEdit = modal.querySelector(
+                  "#diasDisponibles_edit"
+                );
+                const diasHidden = modal.querySelector("#diasDisponibles");
+                const targetHidden = diasHiddenEdit || diasHidden;
+                if (targetHidden)
+                  targetHidden.value = Array.isArray(activeDays)
+                    ? activeDays.join(",")
+                    : activeDays || "";
+              } catch (e) {}
+            } catch (e) {
+              // fallo silencioso para no romper otras inicializaciones
+            }
+          });
         });
-      });
+      } catch (e) {
+        // ignore
+      }
 
       // Toggle visibilidad de número de cuenta (botón con clase .toggle-password y input #numeroCuenta)
       const togglePasswordBtns = document.querySelectorAll(".toggle-password");

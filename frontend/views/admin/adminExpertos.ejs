@@ -71,7 +71,6 @@
               </select>
             </div>
           </div>
-
           <div class="expertos-grid">
             <div class="table-container admin-table--expertos-container">
               <table class="admin-table admin-table--expertos">
@@ -183,11 +182,10 @@
       </main>
   </div>
 
-
-
   <!-- Script: toggle filtros expertos -->
   <script src="/assets/js/admin/admin-expertos-filters.js"></script>
   <script src="/assets/js/admin/admin-expertos-accessibility.js"></script>
+  <script src="/assets/js/admin/admin-expertos-actions.js"></script>
 
   <!-- Modal para agregar nuevo experto -->
   <div id="expertModal" class="modal-expert">
@@ -196,6 +194,247 @@
       <div class="modal-expert__header">
         <h2 class="modal-expert__title">
           <i class="fas fa-user-plus"></i> Agregar nuevo experto
+        </h2>
+        <button class="btn-close" aria-label="Cerrar modal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="modal-expert__body">
+        <form id="expertForm_edit">
+          <div class="modal-expert__grid">
+
+            <!-- Información básica -->
+            <div class="form-group">
+              <label class="modal-expert__label" for="name">
+                <i class="fas fa-user modal-expert__icon"></i>
+                Nombre completo
+              </label>
+              <input type="text" id="name" class="modal-expert__input" placeholder="Nombre y apellidos registrados" />
+            </div>
+
+            <!-- Email -->
+            <div class="form-group">
+              <label class="modal-expert__label" for="email">
+                <i class="fas fa-envelope modal-expert__icon"></i>
+                Email registrado
+              </label>
+              <input type="email" id="email" class="modal-expert__input" placeholder="Email de la cuenta" />
+            </div>
+
+            <!-- Precio por hora -->
+            <div class="form-group">
+              <label class="modal-expert__label" for="precio">
+                <i class="fas fa-money-bill-wave modal-expert__icon"></i>
+                Precio por hora (COP)
+                <span class="price-tooltip" title="Ejemplo recomendado: $30.000 - $200.000 COP">
+                  <i class="fas fa-info-circle"></i>
+                </span>
+              </label>
+              <div class="price-input-wrapper">
+                <input type="number" id="precio" class="modal-expert__input price-input" min="10000" step="100" required
+                  placeholder="Ej: 50000" />
+              </div>
+              <p class="modal-expert__hint">Tarifa por hora de asesoría (Recomendado: $30.000 - $200.000 COP)</p>
+            </div>
+
+            <!-- Días disponibles -->
+            <div class="form-group">
+              <label class="modal-expert__label">
+                <i class="fas fa-calendar-alt modal-expert__icon"></i>
+                Días disponibles
+              </label>
+              <div class="days-selector">
+                <div class="days-buttons">
+                  <button type="button" class="day-button" data-day="lunes" disabled aria-disabled="true">L</button>
+                  <button type="button" class="day-button" data-day="martes" disabled aria-disabled="true">M</button>
+                  <button type="button" class="day-button" data-day="miercoles" disabled aria-disabled="true">X</button>
+                  <button type="button" class="day-button" data-day="jueves" disabled aria-disabled="true">J</button>
+                  <button type="button" class="day-button" data-day="viernes" disabled aria-disabled="true">V</button>
+                  <button type="button" class="day-button" data-day="sabado" disabled aria-disabled="true">S</button>
+                  <button type="button" class="day-button" data-day="domingo" disabled aria-disabled="true">D</button>
+                </div>
+                <div class="days-display">Ningún día seleccionado</div>
+              </div>
+              <input type="hidden" id="diasDisponibles" name="diasDisponibles" />
+            </div>
+
+            <!-- Estado (custom select para control visual y accesibilidad) -->
+            <div class="form-group">
+              <label class="modal-expert__label" for="status_display">
+                <i class="fas fa-toggle-on modal-expert__icon"></i>
+                Estado
+              </label>
+              <!-- Sólo lectura: mostrar estado y mantener hidden input para lecturas programáticas -->
+              <div id="status_display" class="modal-readonly-field" aria-hidden="true">-</div>
+              <input type="hidden" id="statusInput" name="status" value="">
+              <small class="modal-expert__hint">Define si el experto puede recibir solicitudes</small>
+            </div>
+
+            <!-- Categorías -->
+            <div class="form-group full-width">
+              <label class="modal-expert__label" for="categorias-input">
+                <i class="fas fa-tags modal-expert__icon"></i>
+                Categorías *
+              </label>
+
+              <!-- Input de búsqueda -->
+              <div class="categorias-search-wrapper">
+                <input type="text" id="categorias-input" class="modal-expert__input" placeholder="Buscar categorías..."
+                  autocomplete="off">
+                <i class="fas fa-search categorias-search-icon"></i>
+              </div>
+
+              <!-- Chips de categorías seleccionadas -->
+              <div class="categorias-chips" id="categorias-chips">
+                <span class="categorias-empty">No hay categorías seleccionadas</span>
+              </div>
+
+              <!-- Lista de opciones -->
+              <div class="categorias-options" id="categorias-options">
+                <!-- Opciones se cargan dinámicamente -->
+              </div>
+
+              <!-- Campo hidden para el formulario -->
+              <input type="hidden" id="categorias-values" name="categorias">
+
+              <small class="modal-expert__hint">Selecciona las categorías del experto (mínimo 1)</small>
+            </div>
+
+            <!-- Biografía -->
+            <div class="form-group full-width">
+              <label class="modal-expert__label" for="bio">
+                <i class="fas fa-file-alt modal-expert__icon"></i>
+                Biografía profesional
+              </label>
+              <textarea id="bio" class="modal-expert__input modal-expert__textarea" rows="4"
+                placeholder="Descripción breve de experiencia y especialización"></textarea>
+            </div>
+
+            <!-- Datos bancarios -->
+            <div class="form-group full-width">
+              <div class="bank-section">
+                <h3 class="bank-title">
+                  Datos Bancarios para Pagos
+                </h3>
+                <p class="bank-subtitle">Información necesaria para recibir pagos por tus asesorías</p>
+
+                <div class="bank-grid">
+                  <div class="form-group">
+                    <label class="modal-expert__label" for="banco">
+                      <i class="fas fa-university modal-expert__icon"></i>
+                      Banco *
+                    </label>
+                    <!-- Campo sólo lectura: mostrar nombre del banco en vez de select -->
+                    <div id="banco_display" class="modal-readonly-field" aria-hidden="true">-</div>
+                    <input type="hidden" id="banco_hidden_view" name="banco">
+                  </div>
+
+                  <div class="form-group">
+                    <label class="modal-expert__label" for="tipoCuenta">
+                      <i class="fas fa-credit-card modal-expert__icon"></i>
+                      Tipo de cuenta *
+                    </label>
+                    <!-- Campo sólo lectura: mostrar tipo de cuenta como texto -->
+                    <div id="tipoCuenta_display" class="modal-readonly-field" aria-hidden="true">-</div>
+                    <input type="hidden" id="tipoCuenta_hidden_view" name="tipoCuenta">
+                  </div>
+
+                  <div class="form-group">
+                    <label class="modal-expert__label" for="numeroCuenta">
+                      <i class="fas fa-hashtag modal-expert__icon"></i>
+                      Número de cuenta *
+                    </label>
+                    <div class="account-input-wrapper">
+                      <input type="password" id="numeroCuenta" class="modal-expert__input account-input" required
+                        placeholder="Número de cuenta" />
+                      <button type="button" class="toggle-password" aria-label="Mostrar número de cuenta">
+                        <i class="fas fa-eye"></i>
+                      </button>
+                    </div>
+                    <small class="modal-expert__hint">Número completo de tu cuenta</small>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="modal-expert__label" for="titular">
+                      <i class="fas fa-user-tie modal-expert__icon"></i>
+                      Titular de la cuenta *
+                    </label>
+                    <input type="text" id="titular" class="modal-expert__input" required
+                      placeholder="Nombre completo del titular" />
+                    <small class="modal-expert__hint">Debe coincidir con el nombre en la cuenta</small>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="modal-expert__label" for="tipoDocumento">
+                      <i class="fas fa-id-card modal-expert__icon"></i>
+                      Tipo de documento *
+                    </label>
+                    <select id="tipoDocumento" class="modal-expert__input" required>
+                      <option value="">Selecciona el tipo</option>
+                      <option value="cedula">Cédula de Ciudadanía</option>
+                      <option value="extranjeria">Cédula de Extranjería</option>
+                    </select>
+                    <!-- Fallback display: en modo 'ver' mostramos el texto seleccionado si el select está oculto por estilos -->
+                    <div id="tipoDocumento_display" class="modal-readonly-field"
+                      style="margin-top:6px;color:var(--admin-text-secondary);display:none"></div>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="modal-expert__label" for="numeroDocumento">
+                      <i class="fas fa-fingerprint modal-expert__icon"></i>
+                      Número de documento *
+                    </label>
+                    <input type="text" id="numeroDocumento" class="modal-expert__input" required
+                      placeholder="Número de identificación" />
+                    <small class="modal-expert__hint">Documento del titular</small>
+                  </div>
+
+                  <div class="form-group full-width">
+                    <label class="modal-expert__label">
+                      <i class="fas fa-phone modal-expert__icon"></i>
+                      Teléfono de contacto
+                    </label>
+                    <div class="phone-fields">
+                      <input type="tel" class="modal-expert__input" placeholder="+57 300 123 4567" />
+
+                    </div>
+                    <small class="modal-expert__hint">Opcional: Teléfono para contacto sobre pagos</small>
+                  </div>
+                </div>
+
+                <div class="info-box">
+                  <div class="info-header">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Información importante sobre pagos</strong>
+                  </div>
+                  <ul class="info-list">
+                    <li><i class="fas fa-check"></i> Los pagos se procesan cada 15 días</li>
+                    <li><i class="fas fa-check"></i> Se requiere verificación de cuenta</li>
+                    <li><i class="fas fa-check"></i> Datos editables desde tu perfil</li>
+                    <li><i class="fas fa-check"></i> Seguridad garantizada</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-expert__footer">
+        <button class="btn btn-primary" type="button" data-action="close-modal" aria-label="Cerrar">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para ver perfil de experto -->
+  <div id="verPerfilExperto" class="modal-expert">
+    <div class="modal-expert__container">
+
+      <div class="modal-expert__header">
+        <h2 class="modal-expert__title">
+          <i class="fas fa-user-plus"></i> Ver perfil del experto
         </h2>
         <button class="btn-close" aria-label="Cerrar modal">
           <i class="fas fa-times"></i>
@@ -234,7 +473,224 @@
                 </span>
               </label>
               <div class="price-input-wrapper">
-                <span class="price-symbol">$</span>
+                <input type="number" id="precio" class="modal-expert__input price-input" min="10000" step="100" required
+                  placeholder="Ej: 50000" />
+              </div>
+              <p class="modal-expert__hint">Tarifa por hora de asesoría (Recomendado: $30.000 - $200.000 COP)</p>
+            </div>
+
+            <!-- Días disponibles -->
+            <div class="form-group">
+              <label class="modal-expert__label">
+                <i class="fas fa-calendar-alt modal-expert__icon"></i>
+                Días disponibles
+              </label>
+              <div class="days-selector">
+                <div class="days-buttons">
+                  <button type="button" class="day-button" data-day="lunes">L</button>
+                  <button type="button" class="day-button" data-day="martes">M</button>
+                  <button type="button" class="day-button" data-day="miercoles">X</button>
+                  <button type="button" class="day-button" data-day="jueves">J</button>
+                  <button type="button" class="day-button" data-day="viernes">V</button>
+                  <button type="button" class="day-button" data-day="sabado">S</button>
+                  <button type="button" class="day-button" data-day="domingo">D</button>
+                </div>
+                <div class="days-display">Ningún día seleccionado</div>
+              </div>
+              <input type="hidden" id="diasDisponibles_edit" name="diasDisponibles" />
+            </div>
+
+            <!-- Estado (custom select para control visual y accesibilidad) -->
+            <div class="form-group">
+              <label class="modal-expert__label" for="statusInput">
+                <i class="fas fa-toggle-on modal-expert__icon"></i>
+                Estado
+              </label>
+              <!-- Campo sólo-lectura (vista) para el estado; se mantiene un input hidden para lectura programática -->
+              <div id="status_display" class="modal-readonly-field" aria-hidden="true">-</div>
+              <input type="hidden" id="statusInput" name="status" value="">
+              <small class="modal-expert__hint">Define si el experto puede recibir solicitudes</small>
+            </div>
+
+            <!-- Categorías -->
+            <div class="form-group full-width">
+              <label class="modal-expert__label" for="categorias-input">
+                <i class="fas fa-tags modal-expert__icon"></i>
+                Categorías *
+              </label>
+
+              <!-- Input de búsqueda -->
+              <div class="categorias-search-wrapper">
+                <input type="text" id="categorias-input" class="modal-expert__input" placeholder="Buscar categorías..."
+                  autocomplete="off">
+                <i class="fas fa-search categorias-search-icon"></i>
+              </div>
+
+              <!-- Chips de categorías seleccionadas -->
+              <div class="categorias-chips" id="categorias-chips">
+                <span class="categorias-empty">No hay categorías seleccionadas</span>
+              </div>
+
+              <!-- Lista de opciones -->
+              <div class="categorias-options" id="categorias-options">
+                <!-- Opciones se cargan dinámicamente -->
+              </div>
+
+              <!-- Campo hidden para el formulario -->
+              <input type="hidden" id="categorias-values_edit" name="categorias">
+
+              <small class="modal-expert__hint">Selecciona las categorías del experto (mínimo 1)</small>
+            </div>
+
+            <!-- Biografía -->
+            <div class="form-group full-width">
+              <label class="modal-expert__label" for="bio">
+                <i class="fas fa-file-alt modal-expert__icon"></i>
+                Biografía profesional
+              </label>
+              <textarea id="bio" class="modal-expert__input modal-expert__textarea" rows="4"
+                placeholder="Descripción breve de experiencia y especialización"></textarea>
+            </div>
+
+            <!-- Datos bancarios -->
+            <div class="form-group full-width">
+              <div class="bank-section">
+                <h3 class="bank-title">
+                  <i class="fas fa-university"></i> Datos Bancarios para Pagos
+                </h3>
+                <p class="bank-subtitle">Información necesaria para recibir pagos por tus asesorías</p>
+
+                <div class="bank-grid">
+                  <div class="form-group">
+                    <label class="modal-expert__label" for="banco">
+                      Banco *
+                    </label>
+                    <div id="banco_display" class="modal-readonly-field" aria-hidden="true">-</div>
+                    <input type="hidden" id="banco_hidden_view" name="banco">
+                  </div>
+
+                  <div class="form-group">
+                    <label class="modal-expert__label" for="tipoCuenta">
+                      Tipo de cuenta *
+                    </label>
+                    <div id="tipoCuenta_display" class="modal-readonly-field" aria-hidden="true">-</div>
+                    <input type="hidden" id="tipoCuenta_hidden_view" name="tipoCuenta">
+                  </div>
+
+                  <div class="form-group">
+                    <label class="modal-expert__label" for="numeroCuenta">
+                      Número de cuenta *
+                    </label>
+                    <div class="account-input-wrapper">
+                      <input type="password" id="numeroCuenta" class="modal-expert__input account-input" required
+                        placeholder="Número de cuenta" readonly aria-readonly="true" />
+                      <button type="button" class="toggle-password" aria-label="Mostrar número de cuenta" disabled
+                        aria-hidden="true" style="display:none;">
+                        <i class="fas fa-eye"></i>
+                      </button>
+                    </div>
+                    <small class="modal-expert__hint">Número completo de tu cuenta</small>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="modal-expert__label" for="titular">
+                      Titular de la cuenta *
+                    </label>
+                    <input type="text" id="titular" class="modal-expert__input" required
+                      placeholder="Nombre completo del titular" readonly aria-readonly="true" />
+                    <small class="modal-expert__hint">Debe coincidir con el nombre en la cuenta</small>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="modal-expert__label" for="tipoDocumento">
+                      Tipo de documento *
+                    </label>
+                    <div id="tipoDocumento_display" class="modal-readonly-field" aria-hidden="true">-</div>
+                    <input type="hidden" id="tipoDocumento_hidden_view" name="tipoDocumento">
+                  </div>
+
+                  <div class="form-group">
+                    <label class="modal-expert__label" for="numeroDocumento">
+                      Número de documento *
+                    </label>
+                    <input type="text" id="numeroDocumento" class="modal-expert__input" required
+                      placeholder="Número de identificación" readonly aria-readonly="true" />
+                    <small class="modal-expert__hint">Documento del titular</small>
+                  </div>
+
+                  <div class="form-group full-width">
+                    <label class="modal-expert__label">
+                      <i class="fas fa-phone modal-expert__icon"></i>
+                      Teléfono de contacto
+                    </label>
+                    <div class="phone-fields">
+                      <input type="tel" class="modal-expert__input" placeholder="+57 300 123 4567" readonly
+                        aria-readonly="true" />
+
+                    </div>
+                    <small class="modal-expert__hint">Opcional: Teléfono para contacto sobre pagos</small>
+                  </div>
+                </div>
+
+                <!-- Caja de información eliminada según lo solicitado -->
+              </div>
+            </div>
+
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-expert__footer">
+        <button class="btn btn-primary" type="button" data-action="close-modal" aria-label="Cerrar">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para editar nuevo experto -->
+  <div id="editExpertModal" class="modal-expert">
+    <div class="modal-expert__container">
+
+      <div class="modal-expert__header">
+        <h2 class="modal-expert__title">
+          <i class="fas fa-user-plus"></i> Editar datos del experto
+        </h2>
+        <button class="btn-close" aria-label="Cerrar modal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="modal-expert__body">
+        <form id="expertForm">
+          <div class="modal-expert__grid">
+
+            <!-- Información básica -->
+            <div class="form-group">
+              <label class="modal-expert__label" for="name">
+                <i class="fas fa-user modal-expert__icon"></i>
+                Nombre completo
+              </label>
+              <input type="text" id="name" class="modal-expert__input" placeholder="Nombre y apellidos registrados" />
+            </div>
+
+            <!-- Email -->
+            <div class="form-group">
+              <label class="modal-expert__label" for="email">
+                <i class="fas fa-envelope modal-expert__icon"></i>
+                Email registrado
+              </label>
+              <input type="email" id="email" class="modal-expert__input" placeholder="Email de la cuenta" />
+            </div>
+
+            <!-- Precio por hora -->
+            <div class="form-group">
+              <label class="modal-expert__label" for="precio">
+                <i class="fas fa-money-bill-wave modal-expert__icon"></i>
+                Precio por hora (COP)
+                <span class="price-tooltip" title="Ejemplo recomendado: $30.000 - $200.000 COP">
+                  <i class="fas fa-info-circle"></i>
+                </span>
+              </label>
+              <div class="price-input-wrapper">
                 <input type="number" id="precio" class="modal-expert__input price-input" min="10000" step="100" required
                   placeholder="Ej: 50000" />
               </div>
@@ -287,31 +743,6 @@
               <small class="modal-expert__hint">Define si el experto puede recibir solicitudes</small>
             </div>
 
-            <!-- Imagen de perfil -->
-            <div class="form-group">
-              <label class="modal-expert__label">
-                <i class="fas fa-image modal-expert__icon"></i>
-                Imagen de perfil
-              </label>
-              <div class="upload-wrapper">
-                <label class="upload-box">
-                  <!-- id/name para que el JS central pueda referenciarlo y el formulario lo envíe -->
-                  <input type="file" id="profileImage" name="profileImage" class="file-input"
-                    accept="image/png, image/jpeg" data-max-size="2097152" aria-label="Seleccionar imagen de perfil" />
-                  <i class="fas fa-upload" aria-hidden="true"></i>
-                  <span>Seleccionar imagen (png, jpg) · Máx 2MB</span>
-                </label>
-                <div class="preview-container" id="profilePreviewContainer" aria-hidden="false" style="display:block">
-                  <button type="button" class="remove-preview" aria-label="Eliminar imagen" style="display:none">
-                    <i class="fas fa-times" aria-hidden="true"></i>
-                  </button>
-                  <!-- Colocamos un avatar por defecto; el JS puede reemplazarlo al seleccionar -->
-                  <img class="preview-image" id="profilePreviewImage" src="https://i.pravatar.cc/64"
-                    alt="Vista previa" />
-                </div>
-              </div>
-            </div>
-
             <!-- Categorías -->
             <div class="form-group full-width">
               <label class="modal-expert__label" for="categorias-input">
@@ -342,135 +773,6 @@
               <small class="modal-expert__hint">Selecciona las categorías del experto (mínimo 1)</small>
             </div>
 
-            <!-- Estilos específicos para el selector de categorías -->
-            <style>
-              /* Estilos para el selector de categorías */
-              .categorias-search-wrapper {
-                position: relative;
-                margin-bottom: 0.75rem;
-              }
-
-              .categorias-search-icon {
-                position: absolute;
-                right: 12px;
-                top: 50%;
-                transform: translateY(-50%);
-                color: var(--admin-text-secondary);
-              }
-
-              .categorias-chips {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 0.5rem;
-                min-height: 44px;
-                padding: 0.75rem;
-                background: var(--admin-hover-bg);
-                border-radius: 8px;
-                margin-bottom: 0.75rem;
-                align-items: center;
-              }
-
-              .categoria-chip {
-                display: inline-flex;
-                align-items: center;
-                gap: 0.5rem;
-                padding: 0.4rem 0.75rem;
-                background: var(--admin-accent-color);
-                color: white;
-                border-radius: 20px;
-                font-size: 0.85rem;
-                font-weight: 500;
-              }
-
-              .categoria-chip-remove {
-                background: none;
-                border: none;
-                color: white;
-                cursor: pointer;
-                padding: 0;
-                width: 16px;
-                height: 16px;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-              }
-
-              .categoria-chip-remove:hover {
-                background: rgba(255, 255, 255, 0.2);
-              }
-
-              .categorias-empty {
-                color: var(--admin-text-secondary);
-                font-style: italic;
-              }
-
-              .categorias-options {
-                max-height: 200px;
-                overflow-y: auto;
-                border: 1px solid var(--admin-border-color);
-                border-radius: 8px;
-                background: var(--admin-card-bg);
-              }
-
-              .categoria-option {
-                display: flex;
-                align-items: center;
-                gap: 0.75rem;
-                padding: 0.75rem 1rem;
-                cursor: pointer;
-                transition: background-color 0.2s;
-                border-bottom: 1px solid var(--admin-border-color);
-              }
-
-              .categoria-option:last-child {
-                border-bottom: none;
-              }
-
-              .categoria-option:hover {
-                background: var(--admin-hover-bg);
-              }
-
-              .categoria-option.selected {
-                background: rgba(58, 142, 255, 0.1);
-                color: var(--admin-accent-color);
-              }
-
-              .categoria-option-checkbox {
-                width: 18px;
-                height: 18px;
-                border: 2px solid var(--admin-border-color);
-                border-radius: 4px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-              }
-
-              .categoria-option.selected .categoria-option-checkbox {
-                background: var(--admin-accent-color);
-                border-color: var(--admin-accent-color);
-              }
-
-              .categoria-option.selected .categoria-option-checkbox::after {
-                content: "✓";
-                color: white;
-                font-size: 12px;
-                font-weight: bold;
-              }
-
-              /* Estados de validación */
-              .categorias-chips.error {
-                border: 1px solid #e53e3e;
-                background: rgba(229, 62, 62, 0.05);
-              }
-
-              .categorias-error {
-                color: #e53e3e;
-                font-size: 0.85rem;
-                margin-top: 0.5rem;
-                display: none;
-              }
-            </style>
 
             <!-- Biografía -->
             <div class="form-group full-width">
@@ -492,85 +794,80 @@
 
                 <div class="bank-grid">
                   <div class="form-group">
-                    <label class="modal-expert__label" for="banco">
+                    <label class="modal-expert__label" for="banco_edit">
                       <i class="fas fa-university modal-expert__icon"></i>
                       Banco *
                     </label>
-                    <select id="banco" class="modal-expert__input" required>
-                      <option value="">Selecciona tu banco</option>
-                      <option value="Bancolombia">Bancolombia</option>
-                      <option value="Banco de Bogotá">Banco de Bogotá</option>
-                      <!-- Más opciones -->
-                    </select>
+                    <!-- Editable banco field for edit modal -->
+                    <input type="text" id="banco_edit" name="banco" class="modal-expert__input"
+                      placeholder="Nombre del banco" />
                   </div>
 
                   <div class="form-group">
-                    <label class="modal-expert__label" for="tipoCuenta">
+                    <label class="modal-expert__label" for="tipoCuenta_edit">
                       <i class="fas fa-credit-card modal-expert__icon"></i>
                       Tipo de cuenta *
                     </label>
-                    <select id="tipoCuenta" class="modal-expert__input" required>
-                      <option value="">Selecciona el tipo</option>
-                      <option value="ahorros">Cuenta de Ahorros</option>
-                      <option value="corriente">Cuenta Corriente</option>
+                    <select id="tipoCuenta_edit" name="tipoCuenta" class="modal-expert__input">
+                      <option value="">-- Seleccionar tipo de cuenta --</option>
+                      <option value="ahorros">Ahorros</option>
+                      <option value="corriente">Corriente</option>
                     </select>
                   </div>
 
                   <div class="form-group">
-                    <label class="modal-expert__label" for="numeroCuenta">
+                    <label class="modal-expert__label" for="numeroCuenta_edit">
                       <i class="fas fa-hashtag modal-expert__icon"></i>
                       Número de cuenta *
                     </label>
                     <div class="account-input-wrapper">
-                      <input type="password" id="numeroCuenta" class="modal-expert__input account-input" required
-                        placeholder="Número de cuenta" />
-                      <button type="button" class="toggle-password" aria-label="Mostrar número de cuenta">
-                        <i class="fas fa-eye"></i>
-                      </button>
+                      <input type="text" id="numeroCuenta_edit" name="numeroCuenta"
+                        class="modal-expert__input account-input" required placeholder="Número de cuenta" />
                     </div>
                     <small class="modal-expert__hint">Número completo de tu cuenta</small>
                   </div>
 
                   <div class="form-group">
-                    <label class="modal-expert__label" for="titular">
+                    <label class="modal-expert__label" for="titular_edit">
                       <i class="fas fa-user-tie modal-expert__icon"></i>
                       Titular de la cuenta *
                     </label>
-                    <input type="text" id="titular" class="modal-expert__input" required
+                    <input type="text" id="titular_edit" name="titular" class="modal-expert__input" required
                       placeholder="Nombre completo del titular" />
                     <small class="modal-expert__hint">Debe coincidir con el nombre en la cuenta</small>
                   </div>
 
                   <div class="form-group">
-                    <label class="modal-expert__label" for="tipoDocumento">
+                    <label class="modal-expert__label" for="tipoDocumento_edit">
                       <i class="fas fa-id-card modal-expert__icon"></i>
                       Tipo de documento *
                     </label>
-                    <select id="tipoDocumento" class="modal-expert__input" required>
-                      <option value="">Selecciona el tipo</option>
-                      <option value="cedula">Cédula de Ciudadanía</option>
-                      <option value="extranjeria">Cédula de Extranjería</option>
+                    <select id="tipoDocumento_edit" name="tipoDocumento" class="modal-expert__input">
+                      <option value="">-- Seleccionar tipo de documento --</option>
+                      <option value="cedula">Cédula</option>
+                      <option value="extranjeria">Permiso de extranjería</option>
                     </select>
                   </div>
 
                   <div class="form-group">
-                    <label class="modal-expert__label" for="numeroDocumento">
+                    <label class="modal-expert__label" for="numeroDocumento_edit">
                       <i class="fas fa-fingerprint modal-expert__icon"></i>
                       Número de documento *
                     </label>
-                    <input type="text" id="numeroDocumento" class="modal-expert__input" required
-                      placeholder="Número de identificación" />
+                    <input type="text" id="numeroDocumento_edit" name="numeroDocumento" class="modal-expert__input"
+                      required placeholder="Número de identificación" />
                     <small class="modal-expert__hint">Documento del titular</small>
                   </div>
 
                   <div class="form-group full-width">
-                    <label class="modal-expert__label">
+                    <label class="modal-expert__label" for="telefonoContacto_edit">
                       <i class="fas fa-phone modal-expert__icon"></i>
                       Teléfono de contacto
                     </label>
                     <div class="phone-fields">
-                      <input type="tel" class="modal-expert__input" placeholder="+57 300 123 4567" />
-                      <input type="tel" class="modal-expert__input" placeholder="Confirmar número" />
+                      <input type="tel" id="telefonoContacto_edit" name="telefonoContacto" class="modal-expert__input"
+                        placeholder="+57 300 123 4567" />
+
                     </div>
                     <small class="modal-expert__hint">Opcional: Teléfono para contacto sobre pagos</small>
                   </div>
@@ -597,602 +894,7 @@
 
       <div class="modal-expert__footer">
         <button class="btn btn-outline" type="button">Cancelar</button>
-        <button class="btn btn-primary" type="submit">Guardar experto</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal para editar nuevo experto -->
-  <div id="editExpertModal" class="modal-expert">
-    <div class="modal-expert__container">
-      <div class="modal-expert__header">
-        <h2 class="modal-expert__title">Agregar nuevo experto</h2>
-        <button class="btn-close" aria-label="Cerrar"><i class="fas fa-times"></i></button>
-      </div>
-
-      <div class="modal-expert__body">
-        <form id="expertForm_edit">
-          <div class="modal-expert__grid">
-            <!-- Información básica -->
-            <div>
-              <label class="modal-expert__label" for="name">
-                <i class="fas fa-user modal-expert__icon" aria-hidden="true"></i>
-                Nombre completo
-              </label>
-              <input type="text" id="name_edit" placeholder="Nombre y apellidos registrados"
-                class="modal-expert__input" />
-            </div>
-
-            <div>
-              <label class="modal-expert__label" for="email">
-                <i class="fas fa-envelope modal-expert__icon" aria-hidden="true"></i>
-                Email registrado
-              </label>
-              <input type="email" id="email_edit" placeholder="Email de la cuenta" class="modal-expert__input" />
-            </div>
-
-            <!-- Precio por hora -->
-            <div>
-              <label for="precio" class="modal-expert__label">
-                <i class="fas fa-money-bill-wave modal-expert__icon" aria-hidden="true" title="Precio"></i>
-                Precio por hora (COP)
-                <span class="price-tooltip icon-tooltip" title="Ejemplo recomendado: $30.000 - $200.000 COP"
-                  style="margin-left:.5rem;">
-                  <i class="fas fa-info-circle"></i>
-                </span>
-              </label>
-
-              <div class="srv-price-input price-input">
-                <span class="srv-currency currency-symbol">$</span>
-                <input type="number" id="precio_edit" name="precio" min="10000" step="100" required
-                  placeholder="Ej: 50000" class="srv-input price-field" />
-              </div>
-              <p class="srv-note price-note">
-                Tarifa por hora de asesoría (Recomendado: $30.000 - $200.000 COP)
-                </small>
-              <div id="precio-feedback" class="srv-feedback price-feedback" aria-live="polite"></div>
-            </div>
-
-            <!-- Días disponibles -->
-            <div>
-              <label for="diasDisponibles" class="modal-expert__label">
-                <i class="fas fa-calendar-alt modal-expert__icon" aria-hidden="true"></i>
-                Días disponibles
-              </label>
-
-              <div class="srv-days-wrapper">
-                <div class="srv-days">
-                  <button type="button" class="srv-day" data-day="Lunes" aria-pressed="false">L</button>
-                  <button type="button" class="srv-day" data-day="Martes" aria-pressed="false">M</button>
-                  <button type="button" class="srv-day" data-day="Miércoles" aria-pressed="false">X</button>
-                  <button type="button" class="srv-day" data-day="Jueves" aria-pressed="false">J</button>
-                  <button type="button" class="srv-day" data-day="Viernes" aria-pressed="false">V</button>
-                  <button type="button" class="srv-day" data-day="Sábado" aria-pressed="false">S</button>
-                  <button type="button" class="srv-day" data-day="Domingo" aria-pressed="false">D</button>
-                </div>
-
-                <div class="srv-days-display">
-                  Ningún día seleccionado
-                </div>
-              </div>
-
-              <input type="hidden" id="diasDisponibles_edit" name="diasDisponibles" />
-            </div>
-
-            <!-- Estado -->
-            <div>
-              <label class="modal-expert__label" for="status">
-                <i class="fas fa-toggle-on modal-expert__icon" aria-hidden="true"></i>
-                Estado
-              </label>
-              <div class="input-with-icon">
-                <i class="fas fa-toggle-on" aria-hidden="true"></i>
-                <select id="status" class="modal-expert__input modal-expert__select" aria-label="Estado del experto">
-                  <option value="active">Activo</option>
-                  <option value="pending">Pendiente</option>
-                  <option value="inactive">Inactivo</option>
-                </select>
-                <i class="fas fa-chevron-down" aria-hidden="true"></i>
-              </div>
-              <small class="modal-expert__hint">Define si el experto puede recibir solicitudes</small>
-            </div>
-
-            <!-- Categorías -->
-            <div class="full-width">
-              <label class="modal-expert__label" for="categorias">
-                <i class="fas fa-tags modal-expert__icon" aria-hidden="true"></i>
-                Categorías
-              </label>
-              <select id="categorias_edit" class="modal-expert__input modal-expert__select-categorias" multiple size="4"
-                aria-label="Categorías">
-                <!-- opciones añadidas dinámicamente desde categorias-data -->
-              </select>
-
-              <!-- Choices visual fixes moved to admin-expertos.js -->
-              <small class="modal-expert__hint">Selecciona una o varias categorías (Ctrl/Cmd+click)</small>
-            </div>
-
-            <!-- Biografía -->
-            <div class="full-width">
-              <label class="modal-expert__label" for="bio">
-                <i class="fas fa-file-alt modal-expert__icon" aria-hidden="true"></i>
-                Biografía profesional
-              </label>
-              <textarea id="bio_edit" rows="4" placeholder="Descripción breve de experiencia y especialización"
-                class="modal-expert__input modal-expert__textarea"></textarea>
-            </div>
-
-            <!-- Imagen de perfil -->
-            <div>
-              <label class="modal-expert__label" for="profileImage">
-                <i class="fas fa-image modal-expert__icon" aria-hidden="true"></i>
-                Imagen de perfil
-              </label>
-
-              <div class="modal-expert__upload-wrapper">
-                <label for="profileImage_edit" class="modal-expert__upload-box" role="button" aria-haspopup="dialog">
-                  <input type="file" id="profileImage_edit" class="modal-expert__file-input"
-                    aria-label="Seleccionar imagen de perfil" accept="image/*" />
-                  <i class="fas fa-upload" aria-hidden="true"></i>
-                  <span id="uploadLabel_edit">Seleccionar imagen (png, jpg) · Máx 2MB</span>
-                </label>
-
-                <div id="profilePreview_edit" aria-hidden="true" role="img" aria-label="Vista previa de imagen">
-                  <button id="removeProfileBtn_edit" type="button" title="Eliminar imagen" aria-label="Eliminar imagen"
-                    style="display:none;">
-                    <i class="fas fa-times"></i>
-                  </button>
-                  <img src="" alt="Preview" />
-                </div>
-
-                <div class="upload-meta" id="uploadMeta_edit" aria-live="polite" style="display:none;"></div>
-                <div class="upload-error" id="profileImageError_edit" role="alert" style="display:none;"></div>
-              </div>
-            </div>
-
-            <!-- Datos bancarios - Sección completa -->
-            <div class="full-width">
-              <div class="bank-section">
-                <h3 class="bank-title">
-                  <i class="fas fa-university"></i> Datos Bancarios para Pagos
-                </h3>
-                <p class="bank-sub">Información necesaria para recibir pagos por tus asesorías</p>
-
-                <div class="bank-grid">
-                  <div>
-                    <label class="modal-expert__label" for="banco">
-                      <i class="fas fa-university modal-expert__icon" aria-hidden="true"></i>
-                      Banco *
-                    </label>
-                    <select id="banco_edit" name="banco" required class="modal-expert__input">
-                      <option value="">Selecciona tu banco</option>
-                      <option value="Banco de Bogotá">Banco de Bogotá</option>
-                      <option value="Bancolombia">Bancolombia</option>
-                      <option value="Banco Popular">Banco Popular</option>
-                      <option value="Banco AV Villas">Banco AV Villas</option>
-                      <option value="Banco Caja Social">Banco Caja Social</option>
-                      <option value="Banco de Occidente">Banco de Occidente</option>
-                      <option value="Banco GNB Sudameris">Banco GNB Sudameris</option>
-                      <option value="Banco Itaú">Banco Itaú</option>
-                      <option value="Banco Pichincha">Banco Pichincha</option>
-                      <option value="Banco Santander">Banco Santander</option>
-                      <option value="Banco Scotiabank Colpatria">Banco Scotiabank Colpatria</option>
-                      <option value="Davivienda">Davivienda</option>
-                      <option value="Banco Agrario">Banco Agrario</option>
-                      <option value="Banco Falabella">Banco Falabella</option>
-                      <option value="Banco Finandina">Banco Finandina</option>
-                      <option value="Banco W">Banco W</option>
-                      <option value="Banco Serfinanza">Banco Serfinanza</option>
-                      <option value="Banco Cooperativo Coopcentral">Banco Cooperativo Coopcentral</option>
-                      <option value="Banco BBVA">Banco BBVA</option>
-                      <option value="Nequi">Nequi</option>
-                      <option value="Daviplata">Daviplata</option>
-                      <option value="Movii">Movii</option>
-                      <option value="Banco de Vivienda">Banco de Vivienda</option>
-                      <option value="Banco ProCredit">Banco ProCredit</option>
-                      <option value="Banco Multibank">Banco Multibank</option>
-                      <option value="Banco Coopcentral">Banco Coopcentral</option>
-                      <option value="Banco Credifinanciera">Banco Credifinanciera</option>
-                      <option value="Banco Mundo Mujer">Banco Mundo Mujer</option>
-                      <option value="Banco Ripley">Banco Ripley</option>
-                      <option value="Banco CrediScotia">Banco CrediScotia</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label class="modal-expert__label" for="tipoCuenta">
-                      <i class="fas fa-credit-card modal-expert__icon" aria-hidden="true"></i>
-                      Tipo de cuenta *
-                    </label>
-                    <select id="tipoCuenta_edit" name="tipoCuenta" required class="modal-expert__input">
-                      <option value="">Selecciona el tipo</option>
-                      <option value="Cuenta de Ahorros">Cuenta de Ahorros</option>
-                      <option value="Cuenta Corriente">Cuenta Corriente</option>
-                      <option value="Cuenta de Nómina">Cuenta de Nómina</option>
-                      <option value="Cuenta Digital">Cuenta Digital</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label class="modal-expert__label" for="numeroCuenta">
-                      <i class="fas fa-hashtag modal-expert__icon" aria-hidden="true"></i>
-                      Número de cuenta *
-                    </label>
-                    <div class="acct-wrap">
-                      <input type="password" id="numeroCuenta_edit" name="numeroCuenta" required
-                        placeholder="Número de cuenta" pattern="[0-9\-]*" title="Solo números y guiones"
-                        class="acct-input">
-                      <button type="button" id="toggleAccountNumber" class="acct-toggle"
-                        aria-label="Mostrar número de cuenta">
-                        <i class="fas fa-eye"></i>
-                      </button>
-                      <small class="modal-expert__hint">Número completo de tu cuenta</small>
-                    </div>
-
-                    <div>
-                      <label class="modal-expert__label" for="titular">
-                        <i class="fas fa-user-tie modal-expert__icon" aria-hidden="true"></i>
-                        Titular de la cuenta *
-                      </label>
-                      <input type="text" id="titular_edit" name="titular" required
-                        placeholder="Nombre completo del titular" class="modal-expert__input">
-                      <small class="modal-expert__hint">Debe coincidir con el nombre en la cuenta</small>
-                    </div>
-
-                    <div>
-                      <label class="modal-expert__label" for="tipoDocumento">
-                        <i class="fas fa-id-card modal-expert__icon" aria-hidden="true"></i>
-                        Tipo de documento *
-                      </label>
-                      <select id="tipoDocumento_edit" name="tipoDocumento" required class="modal-expert__input">
-                        <option value="">Selecciona el tipo</option>
-                        <option value="Cédula de Ciudadanía">Cédula de Ciudadanía</option>
-                        <option value="Cédula de Extranjería">Cédula de Extranjería</option>
-                        <option value="Pasaporte">Pasaporte</option>
-                        <option value="NIT">NIT (Persona Jurídica)</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label class="modal-expert__label" for="numeroDocumento">
-                        <i class="fas fa-fingerprint modal-expert__icon" aria-hidden="true"></i>
-                        Número de documento *
-                      </label>
-                      <input type="text" id="numeroDocumento_edit" name="numeroDocumento" required
-                        placeholder="Número de identificación" pattern="[0-9\-]*" class="modal-expert__input">
-                      <small class="modal-expert__hint">Documento del titular</small>
-                    </div>
-
-                    <div class="full-width">
-                      <label class="modal-expert__label" for="telefonoContacto">
-                        <i class="fas fa-phone modal-expert__icon" aria-hidden="true"></i>
-                        Teléfono de contacto
-                      </label>
-                      <input type="tel" id="telefonoContacto_edit" name="telefonoContacto"
-                        placeholder="+57 300 123 4567" class="modal-expert__input">
-                      <small class="modal-expert__hint">Opcional: Teléfono para contacto sobre pagos</small>
-                    </div>
-                  </div>
-
-                  <div class="info-box info-sm">
-                    <div class="info-header">
-                      <i class="fas fa-info-circle"></i>
-                      <strong>Información importante sobre pagos</strong>
-                    </div>
-                    <ul class="info-list">
-                      <li><i class="fas fa-check"></i> Los pagos se procesan cada 15 días</li>
-                      <li><i class="fas fa-check"></i> Se requiere verificación de cuenta</li>
-                      <li><i class="fas fa-check"></i> Datos editables desde tu perfil</li>
-                      <li><i class="fas fa-check"></i> Seguridad garantizada</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div>
-        </form>
-      </div>
-
-      <div class="modal-expert__footer">
-        <button class="btn-outline" data-dismiss="modal" type="button">Cancelar</button>
-        <button type="button" class="btn-primary" id="saveExpert_edit">Guardar experto</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal para ver perfil de experto (solo lectura) -->
-  <div id="verPerfilExperto" class="modal-expert">
-    <div class="modal-expert__container">
-      <div class="modal-expert__header">
-        <h2 class="modal-expert__title">Ver perfil de experto</h2>
-        <button class="btn-close" aria-label="Cerrar"><i class="fas fa-times"></i></button>
-      </div>
-
-      <div class="modal-expert__body">
-        <form id="expertForm_view">
-          <div class="modal-expert__grid">
-            <!-- Información básica -->
-            <div>
-              <label class="modal-expert__label" for="name">
-                <i class="fas fa-user modal-expert__icon" aria-hidden="true"></i>
-                Nombre completo
-              </label>
-              <input type="text" id="name_view" placeholder="Nombre y apellidos registrados"
-                class="modal-expert__input" />
-            </div>
-
-            <div>
-              <label class="modal-expert__label" for="email">
-                <i class="fas fa-envelope modal-expert__icon" aria-hidden="true"></i>
-                Email registrado
-              </label>
-              <input type="email" id="email_view" placeholder="Email de la cuenta" class="modal-expert__input" />
-            </div>
-
-            <!-- Precio por hora -->
-            <div>
-              <label for="precio" class="modal-expert__label">
-                <i class="fas fa-money-bill-wave modal-expert__icon" aria-hidden="true" title="Precio"></i>
-                Precio por hora (COP)
-                <span class="price-tooltip icon-tooltip" title="Ejemplo recomendado: $30.000 - $200.000 COP"
-                  style="margin-left:.5rem;">
-                  <i class="fas fa-info-circle"></i>
-                </span>
-              </label>
-
-              <div class="srv-price-input price-input">
-                <span class="srv-currency currency-symbol">$</span>
-                <input type="number" id="precio_view" name="precio" min="10000" step="100" required
-                  placeholder="Ej: 50000" class="srv-input price-field" />
-              </div>
-              <p class="srv-note price-note">
-                Tarifa por hora de asesoría (Recomendado: $30.000 - $200.000 COP)
-                </small>
-              <div id="precio-feedback" class="srv-feedback price-feedback" aria-live="polite"></div>
-            </div>
-
-            <!-- Días disponibles -->
-            <div>
-              <label for="diasDisponibles" class="modal-expert__label">
-                <i class="fas fa-calendar-alt modal-expert__icon" aria-hidden="true"></i>
-                Días disponibles
-              </label>
-
-              <div class="srv-days-wrapper">
-                <div class="srv-days">
-                  <button type="button" class="srv-day" data-day="Lunes" aria-pressed="false">L</button>
-                  <button type="button" class="srv-day" data-day="Martes" aria-pressed="false">M</button>
-                  <button type="button" class="srv-day" data-day="Miércoles" aria-pressed="false">X</button>
-                  <button type="button" class="srv-day" data-day="Jueves" aria-pressed="false">J</button>
-                  <button type="button" class="srv-day" data-day="Viernes" aria-pressed="false">V</button>
-                  <button type="button" class="srv-day" data-day="Sábado" aria-pressed="false">S</button>
-                  <button type="button" class="srv-day" data-day="Domingo" aria-pressed="false">D</button>
-                </div>
-
-                <div class="srv-days-display">
-                  Ningún día seleccionado
-                </div>
-              </div>
-
-              <input type="hidden" id="diasDisponibles_view" name="diasDisponibles" />
-            </div>
-
-            <!-- Estado -->
-            <div>
-              <label class="modal-expert__label" for="status_view">
-                <i class="fas fa-toggle-on modal-expert__icon" aria-hidden="true"></i>
-                Estado
-              </label>
-              <div class="input-with-icon">
-                <i class="fas fa-toggle-on" aria-hidden="true"></i>
-                <select id="status_view" class="modal-expert__input modal-expert__select"
-                  aria-label="Estado del experto" disabled>
-                  <option value="activo">Activo</option>
-                  <option value="pendiente-verificacion">Pendiente de verificación</option>
-                  <option value="inactivo">Inactivo</option>
-                </select>
-                <i class="fas fa-chevron-down" aria-hidden="true"></i>
-              </div>
-              <small class="modal-expert__hint">Estado actual del experto</small>
-            </div>
-
-            <!-- Categorías -->
-            <div class="full-width">
-              <label class="modal-expert__label" for="categorias">
-                <i class="fas fa-tags modal-expert__icon" aria-hidden="true"></i>
-                Categorías
-              </label>
-              <select id="categorias_view" class="modal-expert__input modal-expert__select-categorias" multiple size="4"
-                aria-label="Categorías">
-                <!-- opciones añadidas dinámicamente desde categorias-data -->
-              </select>
-
-              <!-- Choices visual fixes moved to /assets/js/admin/admin-expertos.js -->
-              <small class="modal-expert__hint">Selecciona una o varias categorías (Ctrl/Cmd+click)</small>
-            </div>
-
-            <!-- Biografía -->
-            <div class="full-width">
-              <label class="modal-expert__label" for="bio">
-                <i class="fas fa-file-alt modal-expert__icon" aria-hidden="true"></i>
-                Biografía profesional
-              </label>
-              <textarea id="bio_view" rows="4" placeholder="Descripción breve de experiencia y especialización"
-                class="modal-expert__input modal-expert__textarea"></textarea>
-            </div>
-
-            <!-- Imagen de perfil -->
-            <div>
-              <label class="modal-expert__label" for="profileImage">
-                <i class="fas fa-image modal-expert__icon" aria-hidden="true"></i>
-                Imagen de perfil
-              </label>
-
-              <div class="modal-expert__upload-wrapper">
-                <label for="profileImage_view" class="modal-expert__upload-box" role="button" aria-haspopup="dialog">
-                  <input type="file" id="profileImage_view" class="modal-expert__file-input"
-                    aria-label="Seleccionar imagen de perfil" accept="image/*" />
-                  <i class="fas fa-upload" aria-hidden="true"></i>
-                  <span id="uploadLabel_view">Seleccionar imagen (png, jpg) · Máx 2MB</span>
-                </label>
-
-                <div id="profilePreview_view" aria-hidden="true" role="img" aria-label="Vista previa de imagen">
-                  <button id="removeProfileBtn_view" type="button" title="Eliminar imagen" aria-label="Eliminar imagen"
-                    style="display:none;">
-                    <i class="fas fa-times"></i>
-                  </button>
-                  <img src="" alt="Preview" />
-                </div>
-
-                <div class="upload-meta" id="uploadMeta_view" aria-live="polite" style="display:none;"></div>
-                <div class="upload-error" id="profileImageError_view" role="alert" style="display:none;"></div>
-              </div>
-            </div>
-
-            <!-- Datos bancarios - Sección completa -->
-            <div class="full-width">
-              <div class="bank-section">
-                <h3 class="bank-title">
-                  <i class="fas fa-university"></i> Datos Bancarios para Pagos
-                </h3>
-                <p class="bank-sub">Información necesaria para recibir pagos por tus asesorías</p>
-
-                <div class="bank-grid">
-                  <div>
-                    <label class="modal-expert__label" for="banco">
-                      <i class="fas fa-university modal-expert__icon" aria-hidden="true"></i>
-                      Banco *
-                    </label>
-                    <select id="banco_view" name="banco" required class="modal-expert__input">
-                      <option value="">Selecciona tu banco</option>
-                      <option value="Banco de Bogotá">Banco de Bogotá</option>
-                      <option value="Bancolombia">Bancolombia</option>
-                      <option value="Banco Popular">Banco Popular</option>
-                      <option value="Banco AV Villas">Banco AV Villas</option>
-                      <option value="Banco Caja Social">Banco Caja Social</option>
-                      <option value="Banco de Occidente">Banco de Occidente</option>
-                      <option value="Banco GNB Sudameris">Banco GNB Sudameris</option>
-                      <option value="Banco Itaú">Banco Itaú</option>
-                      <option value="Banco Pichincha">Banco Pichincha</option>
-                      <option value="Banco Santander">Banco Santander</option>
-                      <option value="Banco Scotiabank Colpatria">Banco Scotiabank Colpatria</option>
-                      <option value="Davivienda">Davivienda</option>
-                      <option value="Banco Agrario">Banco Agrario</option>
-                      <option value="Banco Falabella">Banco Falabella</option>
-                      <option value="Banco Finandina">Banco Finandina</option>
-                      <option value="Banco W">Banco W</option>
-                      <option value="Banco Serfinanza">Banco Serfinanza</option>
-                      <option value="Banco Cooperativo Coopcentral">Banco Cooperativo Coopcentral</option>
-                      <option value="Banco BBVA">Banco BBVA</option>
-                      <option value="Nequi">Nequi</option>
-                      <option value="Daviplata">Daviplata</option>
-                      <option value="Movii">Movii</option>
-                      <option value="Banco de Vivienda">Banco de Vivienda</option>
-                      <option value="Banco ProCredit">Banco ProCredit</option>
-                      <option value="Banco Multibank">Banco Multibank</option>
-                      <option value="Banco Coopcentral">Banco Coopcentral</option>
-                      <option value="Banco Credifinanciera">Banco Credifinanciera</option>
-                      <option value="Banco Mundo Mujer">Banco Mundo Mujer</option>
-                      <option value="Banco Ripley">Banco Ripley</option>
-                      <option value="Banco CrediScotia">Banco CrediScotia</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label class="modal-expert__label" for="tipoCuenta">
-                      <i class="fas fa-credit-card modal-expert__icon" aria-hidden="true"></i>
-                      Tipo de cuenta *
-                    </label>
-                    <select id="tipoCuenta_view" name="tipoCuenta" required class="modal-expert__input">
-                      <option value="">Selecciona el tipo</option>
-                      <option value="Cuenta de Ahorros">Cuenta de Ahorros</option>
-                      <option value="Cuenta Corriente">Cuenta Corriente</option>
-                      <option value="Cuenta de Nómina">Cuenta de Nómina</option>
-                      <option value="Cuenta Digital">Cuenta Digital</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label class="modal-expert__label" for="numeroCuenta">
-                      <i class="fas fa-hashtag modal-expert__icon" aria-hidden="true"></i>
-                      Número de cuenta *
-                    </label>
-                    <div class="acct-wrap">
-                      <input type="password" id="numeroCuenta_view" name="numeroCuenta" required
-                        placeholder="Número de cuenta" pattern="[0-9\-]*" title="Solo números y guiones"
-                        class="acct-input">
-                      <button type="button" id="toggleAccountNumber" class="acct-toggle"
-                        aria-label="Mostrar número de cuenta">
-                        <i class="fas fa-eye"></i>
-                      </button>
-                      <small class="modal-expert__hint">Número completo de tu cuenta</small>
-                    </div>
-
-                    <div>
-                      <label class="modal-expert__label" for="titular">
-                        <i class="fas fa-user-tie modal-expert__icon" aria-hidden="true"></i>
-                        Titular de la cuenta *
-                      </label>
-                      <input type="text" id="titular_view" name="titular" required
-                        placeholder="Nombre completo del titular" class="modal-expert__input">
-                      <small class="modal-expert__hint">Debe coincidir con el nombre en la cuenta</small>
-                    </div>
-
-                    <div>
-                      <label class="modal-expert__label" for="tipoDocumento">
-                        <i class="fas fa-id-card modal-expert__icon" aria-hidden="true"></i>
-                        Tipo de documento *
-                      </label>
-                      <select id="tipoDocumento_view" name="tipoDocumento" required class="modal-expert__input">
-                        <option value="">Selecciona el tipo</option>
-                        <option value="Cédula de Ciudadanía">Cédula de Ciudadanía</option>
-                        <option value="Cédula de Extranjería">Cédula de Extranjería</option>
-                        <option value="Pasaporte">Pasaporte</option>
-                        <option value="NIT">NIT (Persona Jurídica)</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label class="modal-expert__label" for="numeroDocumento">
-                        <i class="fas fa-fingerprint modal-expert__icon" aria-hidden="true"></i>
-                        Número de documento *
-                      </label>
-                      <input type="text" id="numeroDocumento_view" name="numeroDocumento" required
-                        placeholder="Número de identificación" pattern="[0-9\-]*" class="modal-expert__input">
-                      <small class="modal-expert__hint">Documento del titular</small>
-                    </div>
-
-                    <div class="full-width">
-                      <label class="modal-expert__label" for="telefonoContacto">
-                        <i class="fas fa-phone modal-expert__icon" aria-hidden="true"></i>
-                        Teléfono de contacto
-                      </label>
-                      <input type="tel" id="telefonoContacto_view" name="telefonoContacto"
-                        placeholder="+57 300 123 4567" class="modal-expert__input">
-                      <small class="modal-expert__hint">Opcional: Teléfono para contacto sobre pagos</small>
-                    </div>
-                  </div>
-
-                  <div class="info-box info-sm">
-                    <div class="info-header">
-                      <i class="fas fa-info-circle"></i>
-                      <strong>Información importante sobre pagos</strong>
-                    </div>
-                    <ul class="info-list">
-                      <li><i class="fas fa-check"></i> Los pagos se procesan cada 15 días</li>
-                      <li><i class="fas fa-check"></i> Se requiere verificación de cuenta</li>
-                      <li><i class="fas fa-check"></i> Datos editables desde tu perfil</li>
-                      <li><i class="fas fa-check"></i> Seguridad garantizada</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div>
-        </form>
-      </div>
-
-      <div class="modal-expert__footer">
-        <button class="btn-outline" data-dismiss="modal" type="button">Cancelar</button>
-        <button type="button" class="btn-primary" id="saveExpert_view">Guardar experto</button>
+        <button class="btn btn-primary" type="submit" form="expertForm_edit">Guardar cambios experto</button>
       </div>
     </div>
   </div>
@@ -1224,53 +926,14 @@
       </div>
     </div>
   </div>
-
-  <script>
-    // Early mitigation for autofill/placeholder issues inside the view expert modal.
-    (function () {
-      try {
-        var m = document.getElementById('verPerfilExperto');
-        if (!m) return;
-        var email = m.querySelector && m.querySelector('#email');
-        if (!email) return;
-        try {
-          email.value = '';
-          email.setAttribute('autocomplete', 'off');
-          email.setAttribute('autocorrect', 'off');
-          email.setAttribute('autocapitalize', 'off');
-          email.setAttribute('spellcheck', 'false');
-          email.readOnly = true;
-          var sec = getComputedStyle(document.documentElement).getPropertyValue('--admin-text-secondary') || '#8892a6';
-          try { email.style.setProperty('color', sec, 'important'); } catch (e) { }
-          try { email.style.setProperty('-webkit-text-fill-color', sec, 'important'); } catch (e) { }
-          setTimeout(function () { try { email.readOnly = false; } catch (e) { } }, 80);
-        } catch (e) { }
-      } catch (e) { }
-    })();
-  </script>
-
+  <!-- Datos iniciales para el script -->
   <script id="initial-expertos" type="application/json"><%- JSON.stringify(initialExpertos || []) %></script>
   <script id="categorias-data" type="application/json"><%- JSON.stringify(categorias || []) %></script>
   <script id="current-user-data" type="application/json"><%- JSON.stringify(user || {}) %></script>
-  <script>
-    // Inicializar datos del usuario autenticado de forma segura
-    (function () {
-      try {
-        var raw = document.getElementById('current-user-data').textContent || '{}';
-        window.currentUser = JSON.parse(raw);
-        window.authToken = (window.currentUser && window.currentUser.token) ? window.currentUser.token : '';
-      } catch (e) {
-        window.currentUser = {};
-        window.authToken = '';
-      }
-    })();
-  </script>
 
   <script src="/assets/js/admin/admin-common.js"></script>
   <script src="/assets/js/admin/admin-expertos.js"></script>
   <script src="/assets/js/admin/admin-expertos.bootstrap.js"></script>
-
-
 
 </body>
 

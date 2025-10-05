@@ -215,4 +215,13 @@ router.put(
   (req, res, next) => expertoController.rechazarExperto(req, res, next)
 );
 
+// Cambiar activo/inactivo (admin)
+router.put(
+  "/:email/activo",
+  // Allow browser session-authenticated admins to toggle activo without requiring the API key header.
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("admin"),
+  (req, res, next) => expertoController.setActivo(req, res, next)
+);
+
 module.exports = router;

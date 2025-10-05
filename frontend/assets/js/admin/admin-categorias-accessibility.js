@@ -4,11 +4,11 @@ document.addEventListener("DOMContentLoaded", function () {
     root = root || document;
     const btns = root.querySelectorAll(".action-buttons .btn-icon");
     btns.forEach((b) => {
-      // If the button already has a title/aria-label, skip
+      // Si el botón ya tiene título/aria-label, omitir
       const hasTitle = b.getAttribute("title");
       const hasAria = b.getAttribute("aria-label");
       if (!hasTitle && !hasAria) {
-        // Guess role by icon class
+        // Adivinar rol por la clase del icono
         const icon = b.querySelector("i");
         let label = "Acción";
         if (icon) {
@@ -25,10 +25,10 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Enhance existing rows
+  // Mejorar las filas existentes
   enhanceButtons(document);
 
-  // Observe tbody for dynamically added rows and enhance new buttons
+  // Observar el tbody para filas agregadas dinámicamente y mejorar los nuevos botones
   const tbody = document.querySelector(
     ".categorias-grid__tabla .admin-table tbody"
   );
