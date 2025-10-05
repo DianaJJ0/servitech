@@ -509,6 +509,8 @@ document.addEventListener("DOMContentLoaded", function () {
   const errorOtherBank = document.getElementById("errorOtherBank");
 
   function abrirCerrarBanco(force) {
+    if (!bankTrigger || !bankOptionsContainer) return;
+
     const root = bankTrigger?.closest(".bank-selector");
     const expanded = root?.getAttribute("aria-expanded") === "true";
     const willOpen = force === undefined ? !expanded : force;
@@ -589,15 +591,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function seleccionarBanco(valor, labelMostrada) {
     bancoHidden.value = valor;
-    selectedBankNameSpan.textContent =
-      labelMostrada || valor || "Selecciona tu banco";
+    if (selectedBankNameSpan) {
+      selectedBankNameSpan.textContent =
+        labelMostrada || valor || "Selecciona tu banco";
+    }
     if (valor === "Other") {
-      otherBankWrapper.style.display = "block";
-      otherBankInput.focus();
+      if (otherBankWrapper) otherBankWrapper.style.display = "block";
+      if (otherBankInput) otherBankInput.focus();
     } else {
-      otherBankWrapper.style.display = "none";
-      otherBankInput.value = "";
-      errorOtherBank.textContent = "";
+      if (otherBankWrapper) otherBankWrapper.style.display = "none";
+      if (otherBankInput) otherBankInput.value = "";
+      if (errorOtherBank) errorOtherBank.textContent = "";
     }
     marcarOpcionSeleccionada(valor);
     validarBanco();
@@ -644,38 +648,49 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  if (bancoHidden.value) {
-    const pre = bancoHidden.value.trim();
-    const bancosPredef = [
-      "Bancolombia",
-      "Davivienda",
-      "BBVA",
-      "Banco de Bogotá",
-      "Banco Popular",
-      "Scotiabank",
-      "Colpatria",
-      "Banco AV Villas",
-      "Bancoomeva",
-      "Nequi",
-      "Daviplata",
-    ];
-    const match = bankOptionsList?.querySelector(
-      `.bank-option[data-value="${CSS.escape(pre)}"]`
-    );
-    if (match) {
-      const label = match.querySelector(".bank-name")?.textContent || pre;
-      selectedBankNameSpan.textContent = label;
-      marcarOpcionSeleccionada(pre);
-    } else if (pre) {
-      bancoHidden.value = "Other";
-      selectedBankNameSpan.textContent = "Otro (Especificar)";
-      otherBankWrapper.style.display = "block";
-      otherBankInput.value = pre;
+  // Inicialización del valor de banco al cargar:
+  // - Si existe el UI personalizado (bankOptionsList), sincronizamos su estado visual.
+  // - Si NO existe (usamos <select> nativo), NO modificamos el valor elegido.
+  if (bancoHidden && bancoHidden.value) {
+    const pre = (bancoHidden.value || "").trim();
+    if (bankOptionsList) {
+      const match = bankOptionsList.querySelector(
+        `.bank-option[data-value="${CSS.escape(pre)}"]`
+      );
+      if (match) {
+        const label = match.querySelector(".bank-name")?.textContent || pre;
+        if (selectedBankNameSpan) selectedBankNameSpan.textContent = label;
+        marcarOpcionSeleccionada(pre);
+      } else if (pre) {
+        // Solo aplicamos la lógica de "Other" cuando hay UI personalizado activo.
+        bancoHidden.value = "Other";
+        if (selectedBankNameSpan)
+          selectedBankNameSpan.textContent = "Otro (Especificar)";
+        if (otherBankWrapper) otherBankWrapper.style.display = "block";
+        if (otherBankInput) otherBankInput.value = pre;
+      }
+    } else {
+      // Select nativo: mantener el valor existente sin alterarlo.
+      // Si hay errores previos, actualizarlos según corresponda.
+      if (errorBanco)
+        errorBanco.textContent = pre ? "" : "Selecciona tu banco.";
     }
   }
 
   validarBanco();
   // FIN selector de banco
+  // Si estamos usando <select> nativo para banco, validamos al cambiar
+  const nativeBankSelect = document.getElementById("banco");
+  if (nativeBankSelect && nativeBankSelect.tagName === "SELECT") {
+    nativeBankSelect.addEventListener("change", () => {
+      if (errorBanco)
+        errorBanco.textContent = nativeBankSelect.value
+          ? ""
+          : "Selecciona tu banco.";
+      // Actualizar hint de número de cuenta cuando cambia el banco
+      updateNumeroCuentaHint();
+    });
+  }
   const tipoCuenta = form.tipoCuenta;
   tipoCuenta.addEventListener("change", function () {
     if (!tipoCuenta.value) {
@@ -690,6 +705,24 @@ document.addEventListener("DOMContentLoaded", function () {
   const numeroCuenta = form.numeroCuenta;
   // Validación y saneamiento para número de cuenta: solo dígitos 10-34
   const bankSelectEl = document.getElementById("banco") || bancoHidden;
+  const numeroCuentaHintEl = document.getElementById("numero-cuenta-hint");
+
+  function updateNumeroCuentaHint() {
+    if (!numeroCuentaHintEl) return;
+    const bankVal = (bankSelectEl && bankSelectEl.value) || "";
+    if (bankVal === "Nequi") {
+      numeroCuentaHintEl.textContent =
+        "Número de celular asociado a Nequi (10 dígitos).";
+    } else if (bankVal === "Bancolombia") {
+      numeroCuentaHintEl.textContent =
+        "Número de cuenta. Para bancos colombianos: 6–14 dígitos.";
+    } else {
+      numeroCuentaHintEl.textContent =
+        "Número de cuenta o identificación asociado a la cuenta. Para bancos colombianos: 6–14 dígitos. Para cuentas internacionales: 15–34 caracteres alfanuméricos.";
+    }
+  }
+  // Inicializar hint acorde al banco actual
+  updateNumeroCuentaHint();
 
   numeroCuenta.addEventListener("keydown", function (e) {
     const allowed = [
@@ -753,11 +786,67 @@ document.addEventListener("DOMContentLoaded", function () {
           numeroCuenta.classList.remove("invalid");
         }
       } else {
-        // Fallback: solo dígitos 10-34
+        // Fallback: Nequi => 10 dígitos; Bancolombia => 6-14 dígitos; otros => 10-34 dígitos
+        const bankVal = (bankSelectEl && bankSelectEl.value) || "";
         const cleaned = (numeroCuenta.value || "")
           .replace(/\D/g, "")
           .slice(0, 34);
         if (numeroCuenta.value !== cleaned) numeroCuenta.value = cleaned;
+        if (bankVal === "Nequi") {
+          if (cleaned.length !== 10) {
+            document.getElementById("errorNumeroCuenta").textContent =
+              "Para Nequi, ingresa 10 dígitos (tu número de celular).";
+            numeroCuenta.classList.add("invalid");
+          } else {
+            document.getElementById("errorNumeroCuenta").textContent = "";
+            numeroCuenta.classList.remove("invalid");
+          }
+        } else if (bankVal === "Bancolombia") {
+          if (cleaned.length < 6 || cleaned.length > 14) {
+            document.getElementById("errorNumeroCuenta").textContent =
+              "Solo números, 6-14 dígitos.";
+            numeroCuenta.classList.add("invalid");
+          } else {
+            document.getElementById("errorNumeroCuenta").textContent = "";
+            numeroCuenta.classList.remove("invalid");
+          }
+        } else {
+          if (!cleaned || cleaned.length < 10 || cleaned.length > 34) {
+            document.getElementById("errorNumeroCuenta").textContent =
+              "Solo números, 10-34 dígitos.";
+            numeroCuenta.classList.add("invalid");
+          } else {
+            document.getElementById("errorNumeroCuenta").textContent = "";
+            numeroCuenta.classList.remove("invalid");
+          }
+        }
+      }
+    } catch (e) {
+      // fallback local (mismo criterio del bloque principal)
+      const bankVal = (bankSelectEl && bankSelectEl.value) || "";
+      const cleaned = (numeroCuenta.value || "")
+        .replace(/\D/g, "")
+        .slice(0, 34);
+      if (numeroCuenta.value !== cleaned) numeroCuenta.value = cleaned;
+      if (bankVal === "Nequi") {
+        if (cleaned.length !== 10) {
+          document.getElementById("errorNumeroCuenta").textContent =
+            "Para Nequi, ingresa 10 dígitos (tu número de celular).";
+          numeroCuenta.classList.add("invalid");
+        } else {
+          document.getElementById("errorNumeroCuenta").textContent = "";
+          numeroCuenta.classList.remove("invalid");
+        }
+      } else if (bankVal === "Bancolombia") {
+        if (cleaned.length < 6 || cleaned.length > 14) {
+          document.getElementById("errorNumeroCuenta").textContent =
+            "Solo números, 6-14 dígitos.";
+          numeroCuenta.classList.add("invalid");
+        } else {
+          document.getElementById("errorNumeroCuenta").textContent = "";
+          numeroCuenta.classList.remove("invalid");
+        }
+      } else {
         if (!cleaned || cleaned.length < 10 || cleaned.length > 34) {
           document.getElementById("errorNumeroCuenta").textContent =
             "Solo números, 10-34 dígitos.";
@@ -766,20 +855,6 @@ document.addEventListener("DOMContentLoaded", function () {
           document.getElementById("errorNumeroCuenta").textContent = "";
           numeroCuenta.classList.remove("invalid");
         }
-      }
-    } catch (e) {
-      // fallback local
-      const cleaned = (numeroCuenta.value || "")
-        .replace(/\D/g, "")
-        .slice(0, 34);
-      if (numeroCuenta.value !== cleaned) numeroCuenta.value = cleaned;
-      if (!cleaned || cleaned.length < 10 || cleaned.length > 34) {
-        document.getElementById("errorNumeroCuenta").textContent =
-          "Solo números, 10-34 dígitos.";
-        numeroCuenta.classList.add("invalid");
-      } else {
-        document.getElementById("errorNumeroCuenta").textContent = "";
-        numeroCuenta.classList.remove("invalid");
       }
     }
   });
