@@ -696,7 +696,7 @@ router.get("/expertos/:email/calendario", async (req, res) => {
   }
 });
 
-// Ruta: confirmación de asesoría (ACTUALIZADA CON VALIDACIONES)
+// Ruta: confirmación de asesoría 
 router.get("/confirmacion-asesoria", (req, res) => {
   const status = req.query.status || "unknown";
   const pagoId = req.query.pagoId || null;
@@ -724,33 +724,61 @@ router.get("/confirmacion-asesoria", (req, res) => {
   });
 });
 
-// Ruta: pasarela de pagos (ACTUALIZADA CON VALIDACIONES)
+// Ruta: pasarela de pagos
 router.get("/pasarela-pagos", (req, res) => {
-  const expertoSeleccionado = req.query.experto
-    ? (() => {
-        try {
-          return JSON.parse(req.query.experto);
-        } catch (e) {
-          console.warn("Error parseando experto seleccionado:", e);
-          return null;
-        }
-      })()
-    : null;
+  console.log("GET /pasarela-pagos - Query params:", req.query);
 
-  const monto = req.query.monto ? parseInt(req.query.monto) : null;
-  const duracion = req.query.duracion ? parseInt(req.query.duracion) : null;
-
-  // Validaciones básicas
-  if (monto && monto < 1000) {
-    console.warn("Monto inválido en pasarela de pagos:", monto);
+  // Validar que el usuario esté autenticado
+  if (!req.session.user || !req.session.user.token) {
+    console.log("Usuario no autenticado, redirigiendo a login");
+    return res.redirect("/login.html?next=" + encodeURIComponent("/pasarela-pagos?" + new URLSearchParams(req.query).toString()));
   }
 
-  if (duracion && ![60, 90, 120, 180].includes(duracion)) {
-    console.warn("Duración inválida en pasarela de pagos:", duracion);
+  let expertoSeleccionado = null;
+  let monto = null;
+  let duracion = null;
+
+  // Procesar experto seleccionado de forma segura
+  if (req.query.experto) {
+    try {
+      expertoSeleccionado = JSON.parse(req.query.experto);
+      console.log("Experto seleccionado parseado:", expertoSeleccionado);
+    } catch (e) {
+      console.warn("Error parseando experto seleccionado:", e);
+      expertoSeleccionado = null;
+    }
   }
+
+  // Procesar monto de forma segura
+  if (req.query.monto) {
+    const montoTemp = parseInt(req.query.monto);
+    if (!isNaN(montoTemp) && montoTemp >= 1000) {
+      monto = montoTemp;
+    } else {
+      console.warn("Monto inválido en pasarela de pagos:", req.query.monto);
+      monto = 20000; // valor por defecto
+    }
+  } else {
+    monto = 20000; // valor por defecto
+  }
+
+  // Procesar duración de forma segura
+  if (req.query.duracion) {
+    const duracionTemp = parseFloat(req.query.duracion);
+    if (!isNaN(duracionTemp) && [1, 1.5, 2, 3].includes(duracionTemp)) {
+      duracion = duracionTemp;
+    } else {
+      console.warn("Duración inválida en pasarela de pagos:", req.query.duracion);
+      duracion = 1; // valor por defecto
+    }
+  } else {
+    duracion = 1; // valor por defecto
+  }
+
+  console.log("Datos procesados para pasarela:", { expertoSeleccionado, monto, duracion });
 
   res.render("pasarelaPagos", {
-    user: req.session.user || null,
+    user: req.session.user,
     expertoSeleccionado,
     monto,
     duracion,

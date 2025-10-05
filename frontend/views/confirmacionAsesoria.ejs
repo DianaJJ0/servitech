@@ -4,234 +4,239 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Confirmación de Asesoría - ServiTech</title>
+  <title>
+    <% if (typeof status !=='undefined' && status==='success' ) { %>
+      ¡Asesoría Confirmada! - ServiTech
+      <% } else if (typeof status !=='undefined' && status==='pending' ) { %>
+        Procesando Solicitud - ServiTech
+        <% } else { %>
+          Confirmación de Asesoría - ServiTech
+          <% } %>
+  </title>
+
+  <!-- Estilos CSS -->
   <link rel="stylesheet" href="/assets/css/base.css">
+  <link rel="stylesheet" href="/assets/css/componentes.css">
   <link rel="stylesheet" href="/assets/css/confirmacion-asesoria.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <meta name="description" content="Confirmación de tu asesoría técnica en ServiTech">
+
+  <!-- Font Awesome para iconos -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Meta tags -->
+  <meta name="description" content="Confirmación de tu asesoría técnica en ServiTech - Sistema de pagos simulados">
   <meta name="robots" content="noindex, nofollow">
 </head>
 
 <body>
-  <!-- Header -->
   <%- include('componentes/header') %>
 
-    <div class="container">
-      <div class="confirmacion-container">
+    <main class="main-content">
+      <div class="container">
+        <section class="confirmacion-container">
 
-        <!-- Validación de estado -->
-        <% if (!status || typeof status==='undefined' ) { %>
-          <!-- Estado no definido - mostrar error -->
-          <div class="confirmacion-card error">
-            <div class="icon-container">
-              <i class="fas fa-question-circle"></i>
-            </div>
-            <h1>Estado de pago no definido</h1>
-            <p class="mensaje-principal">
-              No se pudo determinar el estado de tu pago. Por favor verifica la información o contacta a soporte.
-            </p>
-            <div class="acciones">
-              <a href="/misAsesorias.html" class="btn btn-primary">
-                <i class="fas fa-calendar-check"></i>
-                Ver mis asesorías
-              </a>
-              <a href="/contacto.html" class="btn btn-secondary">
-                <i class="fas fa-headset"></i>
-                Contactar soporte
-              </a>
-            </div>
-          </div>
-
-          <% } else if (status==='success' ) { %>
-            <!-- Estado de éxito -->
-            <div class="confirmacion-card success">
+          <!-- Validación de estado -->
+          <% if (!status || typeof status==='undefined' ) { %>
+            <!-- Estado no definido - mostrar error -->
+            <div class="confirmacion-card error">
               <div class="icon-container">
-                <i class="fas fa-check-circle"></i>
+                <i class="fas fa-question-circle"></i>
               </div>
-              <h1>¡Asesoría agendada exitosamente!</h1>
+              <h1>Estado de solicitud no definido</h1>
               <p class="mensaje-principal">
-                Tu pago ha sido procesado correctamente y la solicitud de asesoría ha sido enviada al experto.
-                El pago está retenido de forma segura hasta que se complete la asesoría.
+                No se pudo determinar el estado de tu solicitud. Por favor verifica la información o contacta a soporte
+                técnico.
               </p>
-
-              <div class="pasos-siguientes">
-                <h3><i class="fas fa-route"></i> ¿Qué sigue ahora?</h3>
-
-                <div class="paso">
-                  <div class="paso-numero">1</div>
-                  <div class="paso-contenido">
-                    <h4>Experto revisa tu solicitud</h4>
-                    <p>El experto tiene hasta 24 horas para aceptar o rechazar tu solicitud de asesoría.
-                      Recibirá todos los detalles que proporcionaste.</p>
-                  </div>
-                </div>
-
-                <div class="paso">
-                  <div class="paso-numero">2</div>
-                  <div class="paso-contenido">
-                    <h4>Recibe notificación inmediata</h4>
-                    <p>Te enviaremos un correo electrónico tan pronto como el experto responda.
-                      También puedes revisar el estado en tu panel de asesorías.</p>
-                  </div>
-                </div>
-
-                <div class="paso">
-                  <div class="paso-numero">3</div>
-                  <div class="paso-contenido">
-                    <h4>Coordina y realiza la asesoría</h4>
-                    <p>Si es aceptada, recibirás los datos de contacto del experto para coordinar
-                      los detalles finales de la videollamada.</p>
-                  </div>
-                </div>
-              </div>
-
               <div class="acciones">
                 <a href="/misAsesorias.html" class="btn btn-primary">
                   <i class="fas fa-calendar-check"></i>
                   Ver mis asesorías
                 </a>
-                <a href="/expertos.html" class="btn btn-secondary">
-                  <i class="fas fa-search"></i>
-                  Buscar más expertos
+                <a href="/contacto.html" class="btn btn-secondary">
+                  <i class="fas fa-headset"></i>
+                  Contactar soporte
                 </a>
               </div>
             </div>
 
-            <% } else if (status==='pending' ) { %>
-              <!-- Estado pendiente -->
-              <div class="confirmacion-card pending">
+            <% } else if (status==='success' ) { %>
+              <!-- Estado de éxito -->
+              <div class="confirmacion-card success">
                 <div class="icon-container">
-                  <i class="fas fa-clock"></i>
+                  <i class="fas fa-check-circle"></i>
                 </div>
-                <h1>Procesando tu pago</h1>
+                <h1>¡Asesoría agendada exitosamente!</h1>
                 <p class="mensaje-principal">
-                  Tu pago está siendo verificado por MercadoPago. Este proceso puede tomar unos minutos.
-                  Mantén esta página abierta o regresa en unos momentos.
+                  Tu pago simulado ha sido procesado correctamente y la solicitud de asesoría ha sido enviada al
+                  experto.
+                  El dinero simulado está retenido de forma segura hasta que se complete la asesoría.
                 </p>
 
-                <div class="loading-indicator">
-                  <div class="spinner"></div>
-                  <p>Verificando estado del pago...</p>
-                </div>
-
                 <div class="pasos-siguientes">
-                  <h3><i class="fas fa-info-circle"></i> Información importante</h3>
+                  <h3><i class="fas fa-route"></i> ¿Qué sigue ahora?</h3>
 
                   <div class="paso">
                     <div class="paso-numero">1</div>
                     <div class="paso-contenido">
-                      <h4>Tiempo de procesamiento</h4>
-                      <p>Los pagos con MercadoPago suelen procesarse en menos de 5 minutos.
-                        Algunos métodos de pago pueden tardar un poco más.</p>
+                      <h4>Experto revisa tu solicitud</h4>
+                      <p>El experto tiene hasta 24 horas para aceptar o rechazar tu solicitud de asesoría.
+                        Recibirá todos los detalles que proporcionaste y podrá revisar tu perfil.</p>
                     </div>
                   </div>
 
                   <div class="paso">
                     <div class="paso-numero">2</div>
                     <div class="paso-contenido">
-                      <h4>Notificación automática</h4>
-                      <p>Recibirás un correo cuando el pago sea confirmado.
-                        La página se actualizará automáticamente.</p>
+                      <h4>Recibe notificación inmediata</h4>
+                      <p>Te enviaremos un correo electrónico tan pronto como el experto responda.
+                        También puedes revisar el estado en tiempo real desde tu panel de asesorías.</p>
+                    </div>
+                  </div>
+
+                  <div class="paso">
+                    <div class="paso-numero">3</div>
+                    <div class="paso-contenido">
+                      <h4>Coordina y realiza la asesoría</h4>
+                      <p>Si es aceptada, recibirás los datos de contacto del experto para coordinar
+                        los detalles finales de la videollamada y preparar la sesión.</p>
                     </div>
                   </div>
                 </div>
 
+                <div class="info-pago-simulado">
+                  <div class="simulado-badge">
+                    <i class="fas fa-flask"></i>
+                    <strong>Pago Simulado</strong>
+                  </div>
+                  <p>Este es un sistema de demostración. No se procesó dinero real, pero la asesoría se creará
+                    normalmente y recibirás todas las notificaciones correspondientes.</p>
+                </div>
+
                 <div class="acciones">
-                  <button onclick="verificarEstadoPago()" class="btn btn-primary">
-                    <i class="fas fa-sync-alt"></i>
-                    Verificar estado
-                  </button>
-                  <a href="/misAsesorias.html" class="btn btn-secondary">
-                    <i class="fas fa-calendar-alt"></i>
+                  <a href="/misAsesorias.html" class="btn btn-primary">
+                    <i class="fas fa-calendar-check"></i>
                     Ver mis asesorías
+                  </a>
+                  <a href="/expertos.html" class="btn btn-secondary">
+                    <i class="fas fa-search"></i>
+                    Buscar más expertos
                   </a>
                 </div>
               </div>
 
-              <% } else if (status==='failure' || status==='error' ) { %>
-                <!-- Estado de error o fallo -->
-                <div class="confirmacion-card error">
+              <% } else if (status==='pending' ) { %>
+                <!-- Estado pendiente -->
+                <div class="confirmacion-card pending">
                   <div class="icon-container">
-                    <i class="fas fa-exclamation-triangle"></i>
+                    <i class="fas fa-clock"></i>
                   </div>
-                  <h1>No se pudo procesar tu solicitud</h1>
+                  <h1>Procesando tu solicitud</h1>
                   <p class="mensaje-principal">
-                    Ocurrió un problema al procesar tu pago o solicitud de asesoría.
-                    No te preocupes, no se realizó ningún cargo a tu cuenta.
+                    Tu solicitud de asesoría está siendo procesada. En el sistema simulado, esto debería completarse
+                    rápidamente.
+                    Si ves este mensaje por más de unos segundos, puedes actualizar la página.
                   </p>
 
-                  <div class="error-detalles">
-                    <h4>Posibles causas del problema</h4>
-                    <ul>
-                      <li><strong>Problema con el pago:</strong> El método de pago seleccionado puede haber tenido
-                        inconvenientes temporales</li>
-                      <li><strong>Sesión expirada:</strong> Tu sesión pudo haber expirado durante el proceso</li>
-                      <li><strong>Horario no disponible:</strong> El horario seleccionado pudo ser tomado por otro
-                        cliente</li>
-                      <li><strong>Error de conexión:</strong> Problemas temporales de conectividad con nuestros
-                        servicios</li>
-                      <li><strong>Datos incompletos:</strong> Algunos datos requeridos pueden estar faltando</li>
-                    </ul>
+                  <div class="loading-indicator">
+                    <div class="spinner"></div>
+                    <p>Finalizando proceso...</p>
                   </div>
 
                   <div class="pasos-siguientes">
-                    <h3><i class="fas fa-lightbulb"></i> ¿Qué puedes hacer?</h3>
+                    <h3><i class="fas fa-info-circle"></i> Información del proceso</h3>
 
                     <div class="paso">
                       <div class="paso-numero">1</div>
                       <div class="paso-contenido">
-                        <h4>Verificar tu conexión</h4>
-                        <p>Asegúrate de tener una conexión estable a internet y que tu navegador
-                          tenga habilitado JavaScript.</p>
+                        <h4>Validación de datos</h4>
+                        <p>Estamos validando todos los datos de tu solicitud y verificando
+                          la disponibilidad del experto en el horario seleccionado.</p>
                       </div>
                     </div>
 
                     <div class="paso">
                       <div class="paso-numero">2</div>
                       <div class="paso-contenido">
-                        <h4>Intentar nuevamente</h4>
-                        <p>Regresa al calendario del experto y selecciona nuevamente la fecha y hora
-                          deseada. El problema puede haber sido temporal.</p>
-                      </div>
-                    </div>
-
-                    <div class="paso">
-                      <div class="paso-numero">3</div>
-                      <div class="paso-contenido">
-                        <h4>Contactar soporte si persiste</h4>
-                        <p>Si el problema continúa, nuestro equipo de soporte puede ayudarte
-                          a completar tu solicitud de asesoría.</p>
+                        <h4>Creación de asesoría</h4>
+                        <p>Se está creando el registro de tu asesoría en el sistema
+                          y preparando las notificaciones para el experto.</p>
                       </div>
                     </div>
                   </div>
 
                   <div class="acciones">
-                    <a href="javascript:history.back()" class="btn btn-primary">
-                      <i class="fas fa-redo"></i>
-                      Intentar nuevamente
-                    </a>
-                    <a href="/contacto.html" class="btn btn-secondary">
-                      <i class="fas fa-headset"></i>
-                      Contactar soporte
+                    <button onclick="window.location.reload()" class="btn btn-primary">
+                      <i class="fas fa-sync-alt"></i>
+                      Actualizar página
+                    </button>
+                    <a href="/misAsesorias.html" class="btn btn-secondary">
+                      <i class="fas fa-calendar-alt"></i>
+                      Ver mis asesorías
                     </a>
                   </div>
                 </div>
 
-                <% } else { %>
-                  <!-- Estado desconocido -->
+                <% } else if (status==='failure' || status==='error' ) { %>
+                  <!-- Estado de error o fallo -->
                   <div class="confirmacion-card error">
                     <div class="icon-container">
-                      <i class="fas fa-question-circle"></i>
+                      <i class="fas fa-exclamation-triangle"></i>
                     </div>
-                    <h1>Estado desconocido</h1>
+                    <h1>No se pudo procesar tu solicitud</h1>
                     <p class="mensaje-principal">
-                      Se recibió un estado no reconocido: "<%= status %>".
-                        Por favor contacta a soporte técnico con esta información.
+                      Ocurrió un problema al procesar tu solicitud de asesoría.
+                      No te preocupes, no se realizó ningún cargo ya que usamos un sistema de pagos simulado.
                     </p>
+
+                    <div class="error-detalles">
+                      <h4>Posibles causas del problema</h4>
+                      <ul>
+                        <li><strong>Datos incompletos:</strong> Algunos campos requeridos pueden estar faltando o ser
+                          inválidos</li>
+                        <li><strong>Horario no disponible:</strong> El horario seleccionado pudo ser tomado por otro
+                          cliente</li>
+                        <li><strong>Sesión expirada:</strong> Tu sesión pudo haber expirado durante el proceso</li>
+                        <li><strong>Error de conectividad:</strong> Problemas temporales de conexión con nuestros
+                          servicios</li>
+                        <li><strong>Validación fallida:</strong> Los datos de la asesoría no pasaron las validaciones
+                          del sistema</li>
+                      </ul>
+                    </div>
+
+                    <div class="pasos-siguientes">
+                      <h3><i class="fas fa-lightbulb"></i> ¿Qué puedes hacer?</h3>
+
+                      <div class="paso">
+                        <div class="paso-numero">1</div>
+                        <div class="paso-contenido">
+                          <h4>Verificar tu sesión</h4>
+                          <p>Asegúrate de estar correctamente logueado y que tu sesión no haya expirado.
+                            Si es necesario, inicia sesión nuevamente.</p>
+                        </div>
+                      </div>
+
+                      <div class="paso">
+                        <div class="paso-numero">2</div>
+                        <div class="paso-contenido">
+                          <h4>Intentar nuevamente</h4>
+                          <p>Regresa al calendario del experto y selecciona nuevamente la fecha y hora.
+                            Asegúrate de completar todos los campos requeridos.</p>
+                        </div>
+                      </div>
+
+                      <div class="paso">
+                        <div class="paso-numero">3</div>
+                        <div class="paso-contenido">
+                          <h4>Contactar soporte si persiste</h4>
+                          <p>Si el problema continúa, nuestro equipo de soporte puede ayudarte
+                            a identificar y resolver el inconveniente.</p>
+                        </div>
+                      </div>
+                    </div>
+
                     <div class="acciones">
-                      <a href="/misAsesorias.html" class="btn btn-primary">
-                        <i class="fas fa-calendar-check"></i>
-                        Ver mis asesorías
+                      <a href="javascript:history.back()" class="btn btn-primary">
+                        <i class="fas fa-redo"></i>
+                        Intentar nuevamente
                       </a>
                       <a href="/contacto.html" class="btn btn-secondary">
                         <i class="fas fa-headset"></i>
@@ -239,95 +244,185 @@
                       </a>
                     </div>
                   </div>
-                  <% } %>
+
+                  <% } else { %>
+                    <!-- Estado desconocido -->
+                    <div class="confirmacion-card error">
+                      <div class="icon-container">
+                        <i class="fas fa-question-circle"></i>
+                      </div>
+                      <h1>Estado no reconocido</h1>
+                      <p class="mensaje-principal">
+                        Se recibió un estado no reconocido: "<%= status %>".
+                          Por favor contacta a soporte técnico con esta información para resolver el inconveniente.
+                      </p>
+
+                      <div class="error-detalles">
+                        <h4>Información técnica</h4>
+                        <ul>
+                          <li><strong>Estado recibido:</strong>
+                            <%= status %>
+                          </li>
+                          <li><strong>Página:</strong> Confirmación de asesoría</li>
+                          <li><strong>Timestamp:</strong>
+                            <%= new Date().toISOString() %>
+                          </li>
+                        </ul>
+                      </div>
+
+                      <div class="acciones">
+                        <a href="/misAsesorias.html" class="btn btn-primary">
+                          <i class="fas fa-calendar-check"></i>
+                          Ver mis asesorías
+                        </a>
+                        <a href="/contacto.html" class="btn btn-secondary">
+                          <i class="fas fa-headset"></i>
+                          Contactar soporte
+                        </a>
+                      </div>
+                    </div>
+                    <% } %>
+
+        </section>
+
+        <!-- Información adicional de valor -->
+        <section class="info-adicional">
+          <div class="info-grid">
+            <article class="info-item">
+              <i class="fas fa-shield-alt"></i>
+              <h4>Sistema Seguro</h4>
+              <p>Aunque uses pagos simulados, tu información está protegida con tecnología de encriptación.
+                En producción, tu dinero estaría 100% seguro.</p>
+            </article>
+
+            <article class="info-item">
+              <i class="fas fa-undo-alt"></i>
+              <h4>Proceso Transparente</h4>
+              <p>El sistema simulado replica exactamente el comportamiento real.
+                Si el experto rechaza tu solicitud, recibirías un reembolso completo.</p>
+            </article>
+
+            <article class="info-item">
+              <i class="fas fa-headset"></i>
+              <h4>Soporte Especializado</h4>
+              <p>Nuestro equipo de atención al cliente está disponible para resolver
+                cualquier duda sobre el proceso o ayudarte con problemas técnicos.</p>
+            </article>
+          </div>
+        </section>
       </div>
+    </main>
 
-      <!-- Información adicional de valor -->
-      <div class="info-adicional">
-        <div class="info-grid">
-          <div class="info-item">
-            <i class="fas fa-shield-alt"></i>
-            <h4>Pago 100% seguro</h4>
-            <p>Tu dinero está protegido con tecnología de encriptación de última generación.
-              Solo se libera al experto cuando confirmes que la asesoría fue exitosa.</p>
-          </div>
-
-          <div class="info-item">
-            <i class="fas fa-undo-alt"></i>
-            <h4>Reembolso garantizado</h4>
-            <p>Si el experto rechaza tu solicitud o surge algún inconveniente,
-              recibirás el reembolso completo en un máximo de 3-5 días hábiles.</p>
-          </div>
-
-          <div class="info-item">
-            <i class="fas fa-headset"></i>
-            <h4>Soporte especializado</h4>
-            <p>Nuestro equipo de atención al cliente está disponible para resolver
-              cualquier duda o inconveniente que puedas tener.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Footer -->
     <%- include('componentes/footer') %>
 
       <!-- Datos para JavaScript -->
       <script type="application/json" id="pageStatus"><%- JSON.stringify(status) %></script>
       <script type="application/json" id="pageData"><%- JSON.stringify({
-      pagoId: typeof pagoId !== 'undefined' ? pagoId : null,
-      paymentId: typeof paymentId !== 'undefined' ? paymentId : null,
-      preferenceId: typeof preferenceId !== 'undefined' ? preferenceId : null,
-      asesoriaId: typeof asesoriaId !== 'undefined' ? asesoriaId : null,
-      hasUser: !!(user)
-    }) %></script>
+    pagoId: typeof pagoId !== 'undefined' ? pagoId : null,
+    paymentId: typeof paymentId !== 'undefined' ? paymentId : null,
+    preferenceId: typeof preferenceId !== 'undefined' ? preferenceId : null,
+    asesoriaId: typeof asesoriaId !== 'undefined' ? asesoriaId : null,
+    simulado: true,
+    hasUser: !!(user)
+  }) %></script>
 
-      <!-- JavaScript -->
+      <!-- Scripts JavaScript -->
       <script src="/assets/js/common.js"></script>
       <script src="/assets/js/confirmacionAsesoria.js"></script>
 
       <!-- Estado de conexión -->
       <div id="conexionEstado" class="conexion-estado offline" style="display: none;">
-        <i class="fas fa-wifi"></i> <span>Sin conexión</span>
+        <i class="fas fa-wifi-slash"></i> <span>Sin conexión</span>
       </div>
 
       <script>
         // Validaciones globales de la página
         document.addEventListener('DOMContentLoaded', function () {
-          // Validar que el usuario esté autenticado para ciertas acciones
-          const pageData = JSON.parse(document.getElementById('pageData').textContent);
+          console.log('Validaciones globales de confirmación iniciadas');
 
+          const pageData = JSON.parse(document.getElementById('pageData').textContent);
+          const pageStatus = JSON.parse(document.getElementById('pageStatus').textContent);
+
+          // Validar autenticación para ciertas acciones
           if (!pageData.hasUser) {
             console.warn('Usuario no autenticado en página de confirmación');
 
-            // Deshabilitar algunos enlaces que requieren autenticación
+            // Deshabilitar enlaces que requieren autenticación
             const enlacesMisAsesorias = document.querySelectorAll('a[href*="misAsesorias"]');
             enlacesMisAsesorias.forEach(enlace => {
               enlace.addEventListener('click', function (e) {
                 e.preventDefault();
                 alert('Debes iniciar sesión para ver tus asesorías');
-                window.location.href = '/login.html?next=' + encodeURIComponent('/misAsesorias.html');
+                window.location.href = '/login?next=' + encodeURIComponent('/misAsesorias.html');
               });
             });
           }
 
-          // Validar parámetros de la URL para detectar problemas
+          // Validar parámetros de la URL
           const urlParams = new URLSearchParams(window.location.search);
-          const status = urlParams.get('status');
-          const pagoId = urlParams.get('pagoId');
+          const urlStatus = urlParams.get('status');
+          const urlPagoId = urlParams.get('pagoId');
+          const simulado = urlParams.get('simulado');
 
-          if (status === 'success' && !pagoId) {
+          if (urlStatus === 'success' && !urlPagoId) {
             console.warn('Estado exitoso pero sin pagoId en URL');
           }
 
-          if (status === 'failure') {
+          if (simulado === 'true') {
+            console.log('Confirmación de pago simulado detectada');
+          }
+
+          // Limpiar localStorage en caso de fallo
+          if (['failure', 'error'].includes(urlStatus)) {
             console.log('Pago falló, limpiando datos temporales...');
-            // Limpiar localStorage en caso de fallo
-            ['asesoriaEnProceso', 'preferenceId', 'pagoId'].forEach(key => {
+            const keysToClean = [
+              'asesoriaEnProceso',
+              'preferenceId',
+              'pagoId',
+              'simulacionId',
+              'expertoSeleccionado'
+            ];
+
+            keysToClean.forEach(key => {
               if (localStorage.getItem(key)) {
                 localStorage.removeItem(key);
+                console.log('Limpiado:', key);
               }
             });
+          }
+
+          // Validar que los datos de la página sean consistentes
+          if (pageStatus && !['success', 'pending', 'failure', 'error'].includes(pageStatus)) {
+            console.warn('Estado de página no reconocido:', pageStatus);
+          }
+
+          console.log('Validaciones globales completadas', {
+            pageStatus,
+            pageData,
+            urlParams: Object.fromEntries(urlParams)
+          });
+        });
+
+        // Manejo de errores globales específicos de esta página
+        window.addEventListener('error', function (event) {
+          console.error('Error en confirmación:', event.error);
+
+          // Registrar errores críticos
+          if (event.error && event.error.message) {
+            try {
+              fetch('/api/analytics/error', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  page: 'confirmacion-asesoria',
+                  error: event.error.message,
+                  stack: event.error.stack,
+                  timestamp: new Date().toISOString()
+                })
+              }).catch(e => console.warn('No se pudo reportar error:', e));
+            } catch (e) {
+              console.warn('Error reportando error:', e);
+            }
           }
         });
       </script>

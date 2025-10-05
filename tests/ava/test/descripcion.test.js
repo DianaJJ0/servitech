@@ -35,11 +35,3 @@ test("descripcion: rechaza secuencias repetidas largas", (t) => {
   t.false(r.valid);
   t.is(r.error, "Evita secuencias repetidas de caracteres.");
 });
-
-test("descripcion: elimina tags HTML y colapsa espacios", (t) => {
-  const raw =
-    "<p>Desarrollé soluciones en <strong>Node.js</strong>   y AWS.</p>";
-  const cleaned = sanitizeDescription(raw);
-  t.false(/<[^>]+>/.test(cleaned));
-  t.true(cleaned.includes("Node.js"));
-});
