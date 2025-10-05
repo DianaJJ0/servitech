@@ -403,6 +403,30 @@
   flex-shrink: 0;
 }
 
+/* Styles for the select replacement used inside admin modals when native selects
+   are hidden by theme CSS. These ensure a readable, accessible fallback. */
+.select-replacement {
+  display: inline-block;
+  vertical-align: middle;
+  box-sizing: border-box;
+}
+.select-replacement .replacement-value {
+  display: inline-block;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.select-replacement .replacement-caret {
+  opacity: 0.85;
+}
+.select-replacement .replacement-panel .replacement-item:hover {
+  background: var(--admin-hover-bg);
+}
+.select-replacement .replacement-panel .replacement-item {
+  color: var(--admin-text-primary);
+}
+
 .experto-info {
   display: flex;
   flex-direction: column;
@@ -736,6 +760,7 @@
   line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 1;
+  line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
   margin: 0;
@@ -1740,6 +1765,26 @@ div.modal-expert.is-open,
   box-sizing: border-box !important;
 }
 
+/* Fix: asegurar que selects dentro de modales muestren texto en temas oscuros
+   Algunos archivos usan -webkit-text-fill-color: transparent en ciertos contextos;
+   aquí forzamos color y -webkit-text-fill-color visibles para selects y opciones
+   dentro de modales admin (alto especificidad y !important para sobreescribir). */
+select.modal-expert__input,
+select.modal-expert__select,
+.modal-expert__container select {
+  color: var(--admin-text-primary) !important;
+  -webkit-text-fill-color: var(--admin-text-primary) !important;
+  opacity: 1 !important;
+  background-color: var(--admin-card-bg) !important;
+}
+
+/* Opciones nativas deben ser legibles igualmente */
+select.modal-expert__input option,
+.modal-expert__container select option {
+  color: var(--admin-text-primary) !important;
+  background-color: var(--admin-card-bg) !important;
+}
+
 .modal-expert__input:focus,
 .modal-expert__select:focus,
 .modal-expert__textarea:focus {
@@ -1768,6 +1813,16 @@ div.modal-expert.is-open,
   border-top: 1px solid var(--admin-border-color) !important;
   background: var(--admin-card-bg) !important;
   flex-shrink: 0 !important;
+}
+
+/* Estilo para displays fallback dentro de modales (texto legible cuando el select no muestra el label) */
+.modal-readonly-field {
+  padding: 0.55rem 0.75rem;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--admin-text-primary);
+  font-size: 0.95rem;
+  line-height: 1.3;
 }
 
 /* Botones del modal */
