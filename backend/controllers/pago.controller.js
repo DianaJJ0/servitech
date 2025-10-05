@@ -105,6 +105,7 @@ const crearPagoSimulado = async (req, res) => {
       fechaHoraInicio,
       duracionMinutos,
       monto,
+      datosPago, // NUEVO: datos del formulario de pago
     } = req.body;
 
     console.log("=== CREAR PAGO SIMULADO ===");
@@ -115,6 +116,7 @@ const crearPagoSimulado = async (req, res) => {
       fechaHoraInicio,
       duracionMinutos,
       monto,
+      datosPago,
     });
 
     // Validaciones básicas
@@ -129,6 +131,26 @@ const crearPagoSimulado = async (req, res) => {
       return res.status(400).json({
         mensaje: "Todos los campos son requeridos",
       });
+    }
+
+    // Validar datos del formulario de pago (NUEVO)
+    if (
+      !datosPago ||
+      !datosPago.nombre ||
+      !datosPago.email ||
+      !datosPago.cedula
+    ) {
+      return res.status(400).json({
+        mensaje: "Faltan los datos básicos de pago (nombre, email, cédula).",
+      });
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(datosPago.email)) {
+      return res
+        .status(400)
+        .json({ mensaje: "Correo electrónico de pago inválido." });
+    }
+    if (!/^[0-9]{5,15}$/.test(datosPago.cedula)) {
+      return res.status(400).json({ mensaje: "Cédula/NIT inválido." });
     }
 
     if (monto < 1000) {
@@ -205,7 +227,7 @@ const crearPagoSimulado = async (req, res) => {
       });
     }
 
-    // Crear pago simulado
+    // Crear pago simulado (se guardan los datos de pago en metadatos)
     const nuevoPago = new Pago({
       clienteId: req.usuario.email,
       expertoId: expertoEmail,
@@ -222,6 +244,12 @@ const crearPagoSimulado = async (req, res) => {
         clienteNombre: `${req.usuario.nombre} ${req.usuario.apellido}`,
         simulado: true,
         fechaProcesamiento: new Date(),
+        datosPago: {
+          nombre: datosPago.nombre,
+          email: datosPago.email,
+          cedula: datosPago.cedula,
+          telefono: datosPago.telefono || "",
+        },
       },
     });
 
