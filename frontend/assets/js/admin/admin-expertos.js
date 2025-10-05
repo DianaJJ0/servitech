@@ -342,8 +342,8 @@
           <button class="btn-outline btn-edit" data-id="${id}">Editar</button>
           ${
             status === "activo"
-              ? `<button class="btn-warning btn-inactivate" data-id="${id}">Inactivar</button>`
-              : `<button class="btn-success btn-activate" data-id="${id}">Activar</button>`
+              ? `<button class="btn-warning btn-inactivate" data-id="${id}" data-email="${email}">Inactivar</button>`
+              : `<button class="btn-success btn-activate" data-id="${id}" data-email="${email}">Activar</button>`
           }
         </div>
       `;
@@ -498,35 +498,154 @@
           return;
         }
 
-        handler(id);
+        // Pass the clicked button element as a second argument so handlers can access data-email reliably
+        try {
+          handler(id, this);
+        } catch (err) {
+          // fallback for handlers that only accept one argument
+          try {
+            handler(id);
+          } catch (e) {
+            console.error("Handler invocation error", e);
+          }
+        }
       });
     });
   }
 
-  function inactivateExpert(id) {
-    const row = document.querySelector(
-      `table.admin-table--expertos tr[data-id="${id}"]`
-    );
-    if (!row) return;
+  async function toggleExpertStatus(id, newStatus, clickedButton) {
+    // Prefer the actual clicked button to read data-email; fall back to querying the DOM
+    let btn = clickedButton;
+    if (!btn) {
+      // Try to find a button element specifically (avoid selecting the TR which also has data-id)
+      btn = document.querySelector(`button[data-id="${id}"]`);
+    }
+    // If still not found, try to locate the row and then the button inside it
+    if (!btn) {
+      const row = document.querySelector(`tr[data-id="${id}"]`);
+      if (row) {
+        btn = row.querySelector(`button[data-id="${id}"]`);
+      }
+    }
 
-    const badge = row.querySelector(".badge");
-    if (badge) {
-      badge.className = "badge badge--inactive";
-      badge.textContent = "inactivo";
+    // Try multiple attributes and fallbacks to obtain email
+    let email = null;
+    try {
+      if (btn) {
+        email = btn.getAttribute("data-email") || btn.dataset.email || null;
+      }
+    } catch (e) {
+      email = null;
+    }
+
+    if (!email) {
+      console.error(
+        "[admin-expertos] toggleExpertStatus: could not resolve email for id",
+        id,
+        "resolved element:",
+        btn || document.querySelector(`tr[data-id="${id}"]`)
+      );
+      alert("Error: No se pudo obtener el email del experto");
+      return;
+    }
+
+    const action = newStatus ? "activar" : "inactivar";
+    if (!confirm(`¿Estás seguro de que deseas ${action} este experto?`)) {
+      return;
+    }
+
+    try {
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
+
+      const response = await fetch(
+        `/api/expertos/${encodeURIComponent(email)}/activo`,
+        {
+          method: "PUT",
+          credentials: "same-origin",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${window.authToken || ""}`,
+          },
+          body: JSON.stringify({ activo: newStatus }),
+        }
+      );
+
+      let result = {};
+      try {
+        result = await response.json();
+      } catch (e) {
+        try {
+          const txt = await response.text();
+          result = { mensaje: txt };
+        } catch (ee) {
+          result = { mensaje: "HTTP " + response.status };
+        }
+      }
+
+      if (response.ok) {
+        const row = document.querySelector(
+          `table.admin-table--expertos tr[data-id="${id}"]`
+        );
+        if (row) {
+          const badge = row.querySelector(".badge");
+          const actionsCell = row.querySelector(".expertos-actions-cell");
+
+          const expert = result.experto;
+
+          if (badge) {
+            badge.className = `badge ${getStatusBadgeClass(expert.estado)}`;
+            badge.textContent = expert.estado;
+          }
+
+          if (actionsCell) {
+            const newButtons = `
+              <div class="action-buttons" role="group" aria-label="Acciones experto">
+                <button class="btn-outline btn-view" data-id="${id}">Ver</button>
+                <button class="btn-outline btn-edit" data-id="${id}">Editar</button>
+                ${
+                  expert.estado === "activo"
+                    ? `<button class="btn-warning btn-inactivate" data-id="${id}" data-email="${email}">Inactivar</button>`
+                    : `<button class="btn-success btn-activate" data-id="${id}" data-email="${email}">Activar</button>`
+                }
+              </div>
+            `;
+            actionsCell.innerHTML = newButtons;
+            bindRowActions(row.closest("table"));
+          }
+
+          row.setAttribute("data-status", expert.estado);
+        }
+
+        alert(
+          `Experto ${
+            action === "activar" ? "activado" : "inactivado"
+          } exitosamente`
+        );
+      } else {
+        const msg =
+          result && result.mensaje
+            ? result.mensaje
+            : "HTTP " + response.status + " " + response.statusText;
+        throw new Error(msg || `Error al ${action} experto`);
+      }
+    } catch (error) {
+      console.error(`Error al ${action} experto:`, error);
+      alert(`Error al ${action} experto: ` + error.message);
+      btn.disabled = false;
+      btn.innerHTML = action === "activar" ? "Activar" : "Inactivar";
     }
   }
 
-  function activateExpert(id) {
-    const row = document.querySelector(
-      `table.admin-table--expertos tr[data-id="${id}"]`
-    );
-    if (!row) return;
+  function inactivateExpert(id) {
+    // accept an optional clickedButton forwarded by the event binder
+    const clickedButton = arguments.length > 1 ? arguments[1] : null;
+    toggleExpertStatus(id, false, clickedButton);
+  }
 
-    const badge = row.querySelector(".badge");
-    if (badge) {
-      badge.className = "badge badge--active";
-      badge.textContent = "activo";
-    }
+  function activateExpert(id) {
+    const clickedButton = arguments.length > 1 ? arguments[1] : null;
+    toggleExpertStatus(id, true, clickedButton);
   }
 
   async function approveExpert(id) {

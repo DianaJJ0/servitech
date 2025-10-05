@@ -39,6 +39,28 @@ const autenticar = async (req, res, next) => {
       return next();
     }
 
+    // Autenticación por sesión (cuando la UI del frontend usa sesiones)
+    try {
+      if (req.session && req.session.user && req.session.user.email) {
+        const usuarioSession = await Usuario.findOne({
+          email: req.session.user.email,
+        }).select("-passwordHash");
+        if (usuarioSession) {
+          if (usuarioSession.estado === "inactivo") {
+            return res.status(401).json({
+              mensaje: "Cuenta desactivada",
+              error: "ACCOUNT_INACTIVE",
+            });
+          }
+          req.usuario = usuarioSession;
+          return next();
+        }
+      }
+    } catch (e) {
+      // si falla la validación por sesión, continuar con método JWT
+      console.warn("auth.middleware: session auth error", e && e.message);
+    }
+
     // Para rutas protegidas, validar Authorization: Bearer <token>
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {

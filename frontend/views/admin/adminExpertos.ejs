@@ -71,7 +71,6 @@
               </select>
             </div>
           </div>
-
           <div class="expertos-grid">
             <div class="table-container admin-table--expertos-container">
               <table class="admin-table admin-table--expertos">
@@ -183,11 +182,10 @@
       </main>
   </div>
 
-
-
   <!-- Script: toggle filtros expertos -->
   <script src="/assets/js/admin/admin-expertos-filters.js"></script>
   <script src="/assets/js/admin/admin-expertos-accessibility.js"></script>
+  <script src="/assets/js/admin/admin-expertos-actions.js"></script>
 
   <!-- Modal para agregar nuevo experto -->
   <div id="expertModal" class="modal-expert">
@@ -1252,6 +1250,7 @@
   <script id="initial-expertos" type="application/json"><%- JSON.stringify(initialExpertos || []) %></script>
   <script id="categorias-data" type="application/json"><%- JSON.stringify(categorias || []) %></script>
   <script id="current-user-data" type="application/json"><%- JSON.stringify(user || {}) %></script>
+
   <script>
     // Inicializar datos del usuario autenticado de forma segura
     (function () {

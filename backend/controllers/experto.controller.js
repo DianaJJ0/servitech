@@ -467,10 +467,120 @@ const rechazarExperto = async (req, res) => {
   }
 };
 
+/**
+ * Cambia el estado activo/inactivo del perfil de experto (admin)
+ * PUT /api/expertos/:email/activo
+ */
+const setActivo = async (req, res) => {
+  try {
+    const { email } = req.params;
+    const { activo } = req.body;
+
+    if (typeof activo === "undefined") {
+      return res.status(400).json({ mensaje: "Se requiere el campo 'activo'" });
+    }
+
+    // DEBUG: Log request metadata to diagnose why updates may not persist
+    try {
+      console.log("[setActivo] request params:", {
+        params: req.params,
+        body: req.body,
+      });
+      console.log("[setActivo] headers x-api-key:", req.headers["x-api-key"]);
+      console.log("[setActivo] cookie:", req.headers.cookie);
+      console.log(
+        "[setActivo] session user:",
+        req.session && req.session.user ? req.session.user.email : null
+      );
+      console.log(
+        "[setActivo] req.usuario:",
+        req.usuario && req.usuario.email ? req.usuario.email : null
+      );
+    } catch (logErr) {
+      console.warn(
+        "[setActivo] error logging request metadata:",
+        logErr && logErr.message
+      );
+    }
+
+    // aceptar como parámetro email o user id (ObjectId)
+    let experto;
+    if (mongoose.isValidObjectId(email)) {
+      experto = await Usuario.findById(email);
+    } else {
+      experto = await Usuario.findOne({ email });
+    }
+    if (experto && (!experto.roles || !experto.roles.includes("experto"))) {
+      experto = null;
+    }
+    if (!experto) {
+      return res.status(404).json({ mensaje: "Experto no encontrado" });
+    }
+
+    // Actualizar el campo infoExperto.activo si existe, y el campo estado general
+    experto.infoExperto = experto.infoExperto || {};
+    experto.infoExperto.activo = !!activo;
+    experto.estado = activo ? "activo" : "inactivo";
+
+    // DEBUG: log before save
+    try {
+      console.log("[setActivo] experto before save:", {
+        _id: experto._id && experto._id.toString(),
+        email: experto.email,
+        estado: experto.estado,
+        infoExperto_activo: experto.infoExperto.activo,
+      });
+    } catch (logErr) {
+      console.warn(
+        "[setActivo] error logging before save:",
+        logErr && logErr.message
+      );
+    }
+
+    const saved = await experto.save();
+
+    // DEBUG: log after save
+    try {
+      console.log("[setActivo] experto saved:", {
+        _id: saved._id && saved._id.toString(),
+        email: saved.email,
+        estado: saved.estado,
+        infoExperto_activo: saved.infoExperto && saved.infoExperto.activo,
+      });
+    } catch (logErr) {
+      console.warn(
+        "[setActivo] error logging after save:",
+        logErr && logErr.message
+      );
+    }
+
+    try {
+      await generarLogs("experto", {
+        action: activo ? "activar" : "inactivar",
+        expertEmail: email,
+        adminEmail: req.usuario?.email,
+        timestamp: new Date(),
+      });
+    } catch (logErr) {
+      console.warn("Error al generar log (no crítico):", logErr.message);
+    }
+
+    return res
+      .status(200)
+      .json({ mensaje: "Estado actualizado", experto: saved });
+  } catch (err) {
+    console.error("setActivo error:", err);
+    return res
+      .status(500)
+      .json({ error: "Error interno", mensaje: err.message });
+  }
+};
+
 module.exports = {
   listarExpertos,
   obtenerPerfilExperto,
   actualizarPerfilExperto,
   aprobarExperto,
   rechazarExperto,
+  setActivo,
 };
