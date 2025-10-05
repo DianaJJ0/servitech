@@ -403,8 +403,9 @@
   flex-shrink: 0;
 }
 
-/* Styles for the select replacement used inside admin modals when native selects
-   are hidden by theme CSS. These ensure a readable, accessible fallback. */
+/* Estilos para el reemplazo del select usado dentro de los modales del admin
+  cuando los selects nativos están ocultos por el CSS del tema. Esto asegura
+  un fallback legible y accesible. */
 .select-replacement {
   display: inline-block;
   vertical-align: middle;
@@ -1923,4 +1924,131 @@ select.modal-expert__input option,
     min-width: 36px !important;
     padding: 0.4rem !important;
   }
+}
+
+/* Estilos para el selector de categorías */
+.categorias-search-wrapper {
+  position: relative;
+  margin-bottom: 0.75rem;
+}
+
+.categorias-search-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--admin-text-secondary);
+}
+
+.categorias-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0.75rem;
+  background: var(--admin-hover-bg);
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+  align-items: center;
+}
+
+.categoria-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  background: var(--admin-accent-color);
+  color: white;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.categoria-chip-remove {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.categoria-chip-remove:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.categorias-empty {
+  color: var(--admin-text-secondary);
+  font-style: italic;
+}
+
+.categorias-options {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--admin-border-color);
+  border-radius: 8px;
+  background: var(--admin-card-bg);
+}
+
+.categoria-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border-bottom: 1px solid var(--admin-border-color);
+}
+
+.categoria-option:last-child {
+  border-bottom: none;
+}
+
+.categoria-option:hover {
+  background: var(--admin-hover-bg);
+}
+
+.categoria-option.selected {
+  background: rgba(58, 142, 255, 0.1);
+  color: var(--admin-accent-color);
+}
+
+.categoria-option-checkbox {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--admin-border-color);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.categoria-option.selected .categoria-option-checkbox {
+  background: var(--admin-accent-color);
+  border-color: var(--admin-accent-color);
+}
+
+.categoria-option.selected .categoria-option-checkbox::after {
+  content: "✓";
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* Estados de validación */
+.categorias-chips.error {
+  border: 1px solid #e53e3e;
+  background: rgba(229, 62, 62, 0.05);
+}
+
+.categorias-error {
+  color: #e53e3e;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+  display: none;
 }

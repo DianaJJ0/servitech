@@ -38,16 +38,36 @@ try {
 } catch (error) {
   console.error("Error de configuración de email:", error.message);
 }
+// Sólo crear transporter si la configuración de email es válida
+let transporter;
+let _emailConfigured = true;
+try {
+  validarConfiguracionEmail();
+} catch (error) {
+  _emailConfigured = false;
+  console.error("Error de configuración de email:", error.message);
+}
 
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST,
-  port: parseInt(process.env.EMAIL_PORT),
-  secure: true,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS.trim(),
-  },
-});
+if (_emailConfigured) {
+  transporter = nodemailer.createTransport({
+    host: process.env.EMAIL_HOST,
+    port: parseInt(process.env.EMAIL_PORT, 10),
+    secure: true,
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS.trim(),
+    },
+  });
+} else {
+  // Fallback: transporter que informa que el servicio no está configurado
+  transporter = {
+    sendMail: async () => {
+      throw new Error(
+        "Email service not configured. Set EMAIL_HOST/EMAIL_PORT/EMAIL_USER/EMAIL_PASS in backend/.env"
+      );
+    },
+  };
+}
 
 /**
  * Envía un correo electrónico personalizado. Si no se da nombre/apellido, usa un saludo genérico.

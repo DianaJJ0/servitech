@@ -21,7 +21,7 @@ try {
         try {
           var parsedCats = JSON.parse(cnode.textContent);
           if (Array.isArray(parsedCats)) {
-            // If backend already provided normalized objects (id/name), use as-is.
+            // Si el backend ya proporcionó objetos normalizados (id/nombre), úsalos tal cual.
             if (
               parsedCats.length > 0 &&
               parsedCats[0].id &&
@@ -29,7 +29,7 @@ try {
             ) {
               window._adminCategorias = parsedCats;
             } else {
-              // legacy fallback: map older shapes into normalized minimal form
+                // compatibilidad con versiones anteriores: mapear formatos antiguos a una forma mínima normalizada
               var normalized = parsedCats.map(function (c) {
                 return {
                   id: String(c._id || c.id || c.value || ""),
