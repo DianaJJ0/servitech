@@ -14,10 +14,19 @@
       <!-- Navegación de enlaces legales y ayuda -->
       <nav class="footer-links">
         <ul class="footer-links-list">
-          <li><a href="/terminos.html" class="footer-link">Términos</a></li> <!-- Enlace a términos -->
-          <li><a href="/privacidad.html" class="footer-link">Privacidad</a></li> <!-- Enlace a privacidad -->
+          <li><a href="/terminos.html" class="footer-link">Términos</a></li>
+          <li><a href="/privacidad.html" class="footer-link">Privacidad</a></li>
+          <li><a href="http://localhost:5020/cookies.html" class="footer-link" data-ensure-session="true">Cookies</a>
+          </li>
         </ul>
       </nav>
+      <!-- Analítica condicional: configurar GA_MEASUREMENT_ID en analytics-config.js -->
+      <script src="/assets/js/analytics-config.js" defer></script>
+      <script src="/assets/js/analytics-loader.js" defer></script>
+      <!-- Cargador de consentimiento de cookies -->
+      <script src="/assets/js/cookie-consent.js" defer></script>
+      <script src="/assets/js/ensure-session-redirect.js" defer></script>
+      <link rel="stylesheet" href="/assets/css/cookie-consent.css">
 
       <!-- Sección de redes sociales -->
       <div class="social-links" aria-label="Redes sociales">

@@ -52,12 +52,21 @@ function validateNumeroCuentaByBank(banco, numero) {
   if (!numero || !String(numero).trim())
     return { valid: false, message: "Número de cuenta requerido." };
   const s = String(numero).trim();
+  // Caso especial: Nequi -> exactamente 10 dígitos (número de celular)
+  if (banco && /nequi/i.test(String(banco))) {
+    if (!/^\d{10}$/.test(s))
+      return {
+        valid: false,
+        message: "Para Nequi, ingresa 10 dígitos (tu número de celular).",
+      };
+    return { valid: true };
+  }
   if (isColombianBankName(banco)) {
-    if (!/^\d{3,14}$/.test(s))
+    if (!/^\d{6,14}$/.test(s))
       return {
         valid: false,
         message:
-          "Para bancos nacionales el número de cuenta debe contener solo dígitos (3 a 14 caracteres).",
+          "Para bancos nacionales el número de cuenta debe contener solo dígitos (6 a 14 caracteres).",
       };
     return { valid: true };
   }
@@ -70,8 +79,7 @@ function validateNumeroCuentaByBank(banco, numero) {
   if (!/^[A-Za-z0-9]{15,34}$/.test(s))
     return {
       valid: false,
-      message:
-        "Para bancos internacionales/Other, el número de cuenta debe ser alfanumérico (15 a 34 caracteres).",
+      message: "Número de cuenta inválido.",
     };
   return { valid: true };
 }

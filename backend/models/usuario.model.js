@@ -87,6 +87,7 @@ const expertoSubSchema = new Schema({
   },
   telefonoContacto: { type: String, trim: true },
   diasDisponibles: [{ type: String, trim: true }],
+  activo: { type: Boolean, default: true },
 });
 
 /**
