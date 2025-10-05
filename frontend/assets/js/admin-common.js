@@ -1,4 +1,4 @@
-// Admin common helpers (CSRF exposure and form injection)
+// Utilidades comunes de administración (exposición de CSRF e inyección en formularios)
 (function () {
   function injectCsrf(token) {
     if (!token) return;
@@ -21,7 +21,7 @@
     });
   }
 
-  // Provide a safe initializer for server-side to call via JSON injection
+  // Proporcionar un inicializador seguro para que el servidor lo invoque mediante inyección JSON
   window.__adminCommon = {
     initCsrf: injectCsrf
   };

@@ -1,4 +1,4 @@
-// Toggle de filtros para la página de Expertos (adaptado de admin-categorias-filters.js)
+// Alternar filtros para la página de Expertos (adaptado de admin-categorias-filters.js)
 (function () {
   "use strict";
 
@@ -20,7 +20,7 @@
     } else {
       panel.style.maxHeight = "0px";
       panel.style.opacity = "0";
-      // small timeout to allow animation before hiding completely
+      // pequeño retardo para permitir la animación antes de ocultar por completo
       setTimeout(function () {
         if (!expanded) panel.style.display = "none";
       }, 200);
