@@ -58,7 +58,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const cat = categoriasCache.find((x) => String(x.id) === String(catId));
 
         if (!cat) {
-          // Fallback to reading from table if not in cache
+            // Alternativa: leer desde la tabla si no se encuentra en caché
           console.warn(
             `Categoría con ID ${catId} no encontrada en caché. Leyendo de la tabla.`
           );
@@ -77,7 +77,7 @@ document.addEventListener("DOMContentLoaded", function () {
           modalVer.querySelector("#verDescripcionCategoria").value =
             "Descripción no disponible en caché.";
         } else {
-          // Populate from cache object
+            // Poblar desde el objeto en caché
           modalVer.querySelector("#verNombreCategoria").value = cat.name || "";
           modalVer.querySelector("#verSlugCategoria").value = cat.slug || "";
           modalVer.querySelector("#verPadreCategoria").value =
