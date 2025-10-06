@@ -46,8 +46,10 @@
           </div>
           <div class="logs-filtros">
             <form id="logsFilterForm" class="logs-filtros__form">
+
               <div class="logs-filtros__group">
                 <label for="tipoAccion" class="logs-filtros__label">Tipo de acción</label>
+
                 <select id="tipoAccion" class="logs-filtros__select">
                   <option value="">Todas</option>
                   <option value="asesoria">Asesoría</option>
@@ -56,20 +58,26 @@
                   <option value="eliminacion">Eliminación</option>
                   <option value="error">Error</option>
                 </select>
+
               </div>
+
               <div class="logs-filtros__group">
                 <label for="usuario" class="logs-filtros__label">Usuario</label>
                 <input type="text" id="usuario" class="logs-filtros__input" placeholder="Nombre o email" />
               </div>
+
               <div class="logs-filtros__group">
                 <label for="fecha" class="logs-filtros__label">Fecha</label>
                 <input type="date" id="fecha" class="logs-filtros__input" />
               </div>
+
               <button class="btn-primary logs-filtros__btn" type="submit">
                 <i class="fas fa-filter"></i> <span>Filtrar</span>
               </button>
+
             </form>
           </div>
+
           <div class="table-container logs-table__wrapper">
             <table class="admin-table logs-table">
               <thead>
