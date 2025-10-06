@@ -148,7 +148,7 @@ const listarExpertos = async (req, res) => {
       Usuario.countDocuments(filtro),
       Usuario.find(filtro)
         .populate("infoExperto.categorias", "nombre")
-        .select("nombre apellido email infoExperto calificacionPromedio estado")
+        .select("nombre apellido email avatarUrl infoExperto calificacionPromedio estado")
         .sort({ createdAt: -1 })
         .skip((page - 1) * limit)
         .limit(limit),
