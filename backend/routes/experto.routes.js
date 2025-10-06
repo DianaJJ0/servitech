@@ -224,4 +224,11 @@ router.put(
   (req, res, next) => expertoController.setActivo(req, res, next)
 );
 
+router.put(
+  "/admin/:id",
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("admin"),
+  expertoController.adminActualizarPerfilExperto
+);
+
 module.exports = router;
