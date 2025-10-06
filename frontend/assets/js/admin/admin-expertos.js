@@ -1295,7 +1295,7 @@
           const titularField = modal.querySelector("#titular");
           const numeroDocumentoField = modal.querySelector("#numeroDocumento");
           const telefonoField = modal.querySelector('input[type="tel"]');
-          
+
           // Función para crear o encontrar elemento de visualización
           function getOrCreateDisplayElement(fieldId, labelText) {
             let display = modal.querySelector("#" + fieldId + "_display");
@@ -1310,18 +1310,26 @@
                 display.style.color = "var(--admin-text-secondary)";
                 display.style.fontSize = "14px";
                 display.style.padding = "8px 12px";
-                display.style.backgroundColor = "var(--admin-input-bg, #f8f9fa)";
-                display.style.border = "1px solid var(--admin-border-color, #e0e0e0)";
+                display.style.backgroundColor =
+                  "var(--admin-input-bg, #f8f9fa)";
+                display.style.border =
+                  "1px solid var(--admin-border-color, #e0e0e0)";
                 display.style.borderRadius = "4px";
                 label.parentNode.appendChild(display);
               }
             }
             return display;
           }
-          
+
           const bancoDisplay = getOrCreateDisplayElement("banco", "Banco");
-          const tipoCuentaDisplay = getOrCreateDisplayElement("tipoCuenta", "Tipo de cuenta");
-          const tipoDocumentoDisplay = getOrCreateDisplayElement("tipoDocumento", "Tipo de documento");
+          const tipoCuentaDisplay = getOrCreateDisplayElement(
+            "tipoCuenta",
+            "Tipo de cuenta"
+          );
+          const tipoDocumentoDisplay = getOrCreateDisplayElement(
+            "tipoDocumento",
+            "Tipo de documento"
+          );
 
           // resolver posibles shapes
           // Resolver valores bancarios/documento desde varias rutas posibles
@@ -1352,19 +1360,20 @@
             bancoRaw,
             tipoCuentaRaw,
             tipoDocumentoRaw,
-            infoExperto: expert.infoExperto
+            infoExperto: expert.infoExperto,
           });
 
           const bancoVal = normalizeValue(bancoRaw) || "";
           let tipoCuentaVal = normalizeValue(tipoCuentaRaw) || "";
           let tipoDocumentoVal = normalizeValue(tipoDocumentoRaw) || "";
-          
+
           // Mapear valores a texto legible
           if (tipoCuentaVal === "ahorros") tipoCuentaVal = "Ahorros";
           else if (tipoCuentaVal === "corriente") tipoCuentaVal = "Corriente";
-          
+
           if (tipoDocumentoVal === "cedula") tipoDocumentoVal = "Cédula";
-          else if (tipoDocumentoVal === "extranjeria") tipoDocumentoVal = "Cédula de Extranjería";
+          else if (tipoDocumentoVal === "extranjeria")
+            tipoDocumentoVal = "Cédula de Extranjería";
 
           // Rellenar campos de sólo lectura (display) y hidden inputs
           try {
@@ -1379,7 +1388,8 @@
 
           try {
             if (tipoCuentaDisplay) {
-              tipoCuentaDisplay.textContent = tipoCuentaVal || "No especificado";
+              tipoCuentaDisplay.textContent =
+                tipoCuentaVal || "No especificado";
               tipoCuentaDisplay.style.display = "block";
             }
             if (tipoCuentaHidden) {
@@ -1389,7 +1399,8 @@
 
           try {
             if (tipoDocumentoDisplay) {
-              tipoDocumentoDisplay.textContent = tipoDocumentoVal || "No especificado";
+              tipoDocumentoDisplay.textContent =
+                tipoDocumentoVal || "No especificado";
               tipoDocumentoDisplay.style.display = "block";
             }
             if (tipoDocumentoHidden) {
