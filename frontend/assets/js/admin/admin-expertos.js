@@ -376,7 +376,7 @@
       bio: ["bio", "descripcion"],
       categories: ["categorias", "categoriasIds"],
       status: ["estado", "status"],
-      avatar: ["avatar", "profileImage", "avatarUrl"],
+      avatar: ["avatarUrl", "avatar", "profileImage"],
       sessions: ["sesiones", "sessions"],
       createdAt: ["createdAt", "registro", "created_at"],
     };
@@ -440,8 +440,36 @@
     const email = escapeHtml(rawEmail);
     const status = getExpertField(expert, "status") || "inactive";
     const badgeClass = getStatusBadgeClass(status);
-    const avatar =
-      getExpertField(expert, "avatar") || "/assets/img/default-avatar.png";
+
+    // Mejorar manejo de avatar con sincronización desde localStorage
+    let avatar = getExpertField(expert, "avatar");
+
+    // Verificar si hay datos actualizados en localStorage para este usuario
+    try {
+      const currentUser = JSON.parse(localStorage.getItem("usuario") || "{}");
+      if (currentUser.email === rawEmail && currentUser.avatarUrl) {
+        avatar = currentUser.avatarUrl;
+      }
+    } catch (e) {
+      // Continuar con avatar original si hay error en localStorage
+    }
+
+    if (
+      !avatar ||
+      avatar === "/assets/img/default-avatar.png" ||
+      avatar.includes("ui-avatars.com/api/?name=User")
+    ) {
+      // Generar avatar con iniciales basado en el nombre del usuario
+      const initials = name
+        .split(" ")
+        .map((word) => word.charAt(0))
+        .join("")
+        .toUpperCase()
+        .substring(0, 2);
+      avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+        initials
+      )}&background=4f46e5&color=ffffff&size=40`;
+    }
 
     // Obtener nombres de categorías de forma robusta
     var cats = getCategoryNamesForExpert(expert, categoriesMap)
@@ -4415,6 +4443,44 @@
     } catch (e) {
       console.warn("initNameInputRestrictions failed", e);
     }
+
+    // Funcionalidad para sincronizar avatares actualizados desde la página de perfil
+    try {
+      // Detectar cambios en localStorage para actualizar avatares en tiempo real
+      let lastUserData = localStorage.getItem("usuario");
+
+      // Función para refrescar la vista si el avatar del usuario actual cambió
+      function checkUserAvatarUpdate() {
+        try {
+          const currentUserData = localStorage.getItem("usuario");
+          if (currentUserData && currentUserData !== lastUserData) {
+            const currentUser = JSON.parse(currentUserData);
+            const lastUser = lastUserData ? JSON.parse(lastUserData) : {};
+
+            // Si el avatar cambió, refrescar la vista
+            if (currentUser.avatarUrl !== lastUser.avatarUrl) {
+              console.log(
+                "[admin-expertos] Avatar actualizado, refrescando vista..."
+              );
+              applyFilters(); // Esto re-renderiza la tabla con los nuevos datos
+            }
+
+            lastUserData = currentUserData;
+          }
+        } catch (e) {
+          console.warn("Error verificando actualización de avatar:", e);
+        }
+      }
+
+      // Verificar cambios cada 2 segundos
+      setInterval(checkUserAvatarUpdate, 2000);
+
+      // También verificar cuando la ventana recupera el foco (usuario regresa de otra pestaña)
+      window.addEventListener("focus", checkUserAvatarUpdate);
+    } catch (e) {
+      console.warn("Error configurando sincronización de avatar:", e);
+    }
+
     init();
   });
 })();

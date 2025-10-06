@@ -58,19 +58,30 @@
             </div>
           </div>
 
-          <!-- Filtros de Estado -->
-          <div class="admin-filters" style="margin-bottom: 1rem;">
-            <div class="filter-group">
-              <label for="estadoFilter" style="font-weight: 500; margin-right: 0.5rem;">Estado:</label>
-              <select id="estadoFilter" class="filter-select"
-                style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
-                <option value="all">Todos los estados</option>
-                <option value="activo">Activos</option>
-                <option value="pendiente-verificacion">Pendientes de verificación</option>
-                <option value="inactivo">Inactivos</option>
-              </select>
+
+
+          <!-- Filtros de Estado (clases ajustadas para CSS global) -->
+          <div class="admin-controls admin-filters">
+            <div class="admin-controls__row admin-filter">
+              <label for="estadoFilter" class="admin-label admin-label--small">Estado:</label>
+              <div class="admin-select-wrapper">
+                <select id="estadoFilter" class="admin-select admin-select--medium" aria-label="Filtrar por estado">
+                  <option value="all">Todos los estados</option>
+                  <option value="activo">Activos</option>
+                  <option value="pendiente-verificacion">Pendientes de verificación</option>
+                  <option value="inactivo">Inactivos</option>
+                </select>
+              </div>
+            </div>
+            <div class="admin-controls__row admin-filter">
+              <label for="filtroTexto" class="admin-label admin-label--small">Buscar:</label>
+              <div class="admin-input-wrapper">
+                <input type="search" id="filtroTexto" class="admin-input admin-input--medium" placeholder="Nombre, email..."
+                  aria-label="Buscar por nombre o correo" data-filter="texto" />
+              </div>
             </div>
           </div>
+
           <div class="expertos-grid">
             <div class="table-container admin-table--expertos-container">
               <table class="admin-table admin-table--expertos">
