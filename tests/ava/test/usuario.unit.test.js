@@ -2,13 +2,13 @@
 // Prueba unitaria: matchPassword y virtual password del modelo Usuario
 
 import test from "ava";
-import bcrypt from "bcryptjs";
+import bcrypt from "bcryptjs"; //instalar con npm i bcryptjs
 
 // Importamos el modelo desde el repo principal.
 // Usamos import() dinámico para evitar problemas con ES Modules en AVA y CommonJS
 // (backend/models/usuario.model.js es un ES Module, AVA corre en CommonJS)
 const usuarioModule = await import("../../../backend/models/usuario.model.js");
-const Usuario = usuarioModule.default || usuarioModule;
+const Usuario = usuarioModule.default || usuarioModule; // Soporte para export default o module.exports para poder correr con AVA
 
 test("matchPassword: compara hash con contraseña en texto plano", async (t) => {
   const hashed = bcrypt.hashSync("secret123", 10);
@@ -20,8 +20,8 @@ test("matchPassword: compara hash con contraseña en texto plano", async (t) => 
   });
 
   const ok = await u.matchPassword("secret123");
-  t.true(ok, "La contraseña debe coincidir con el hash");
-});
+  t.true(ok, "La contraseña debe coincidir con el hash"); // significa que la comparación fue exitosa
+}); 
 
 test("virtual password setter crea passwordHash y matchPassword valida", async (t) => {
   const u = new Usuario({

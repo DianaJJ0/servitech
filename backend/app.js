@@ -204,9 +204,6 @@ try {
         duracion: req.query.duracion || 1,
       });
     });
-    app.get("/confirmacion-asesoria", (req, res) => {
-      res.render("confirmacionAsesoria", { title: "Confirmación - ServiTech" });
-    });
   }
 } catch (frontendError) {
   console.warn("Error cargando frontend router:", frontendError.message);
@@ -229,9 +226,6 @@ try {
       monto: req.query.monto || 20000,
       duracion: req.query.duracion || 1,
     });
-  });
-  app.get("/confirmacion-asesoria", (req, res) => {
-    res.render("confirmacionAsesoria", { title: "Confirmación - ServiTech" });
   });
 }
 
