@@ -212,7 +212,7 @@
     } catch (e) {
       return String(str)
         .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[̀-ͯ]/g, "")
         .toLowerCase()
         .trim();
     }
@@ -243,6 +243,28 @@
       }
     } catch (e) {}
     return false;
+  }
+
+  function isElementVisible(el) {
+    try {
+      if (!el) return false;
+      const cs = getComputedStyle(el);
+      if (!cs) return true;
+      if (
+        cs.display === "none" ||
+        cs.visibility === "hidden" ||
+        cs.opacity === "0"
+      )
+        return false;
+      try {
+        const rects = el.getClientRects();
+        return rects && rects.length > 0;
+      } catch (e) {
+        return true;
+      }
+    } catch (e) {
+      return true;
+    }
   }
 
   function mapDocumentType(v) {
@@ -433,7 +455,9 @@
         const namesFromMap = ids
           .map((id) => {
             const k = String(id);
-            return (categoriesMap && categoriesMap[k]) || null;
+            return (
+              (categoriesMap && (categoriesMap[k] || categoriesMap[id])) || null
+            );
           })
           .filter(Boolean)
           .map((n) => escapeHtml(n));
@@ -618,33 +642,33 @@
 
     buttons.forEach((btn) => {
       btn.addEventListener("click", function (e) {
-      e.preventDefault();
-      e.stopPropagation();
+        e.preventDefault();
+        e.stopPropagation();
 
-      const id = this.getAttribute("data-id");
-      // botón pulsado: ${selector}, id: ${id}
+        const id = this.getAttribute("data-id");
+        // botón pulsado: ${selector}, id: ${id}
 
-      if (!id) {
-        console.error("No data-id found on button", this);
-        return;
-      }
-
-      // Pasar el elemento del botón pulsado como segundo argumento para que los manejadores puedan acceder a data-email de forma fiable
-      try {
-        handler(id, this);
-      } catch (err) {
-        // fallback para manejadores que solo aceptan un argumento
-        try {
-        handler(id);
-        } catch (e) {
-        console.error("Handler invocation error", e);
+        if (!id) {
+          console.error("No data-id found on button", this);
+          return;
         }
-      }
+
+        // Pasar el elemento del botón pulsado como segundo argumento para que los manejadores puedan acceder a data-email de forma fiable
+        try {
+          handler(id, this);
+        } catch (err) {
+          // fallback para manejadores que solo aceptan un argumento
+          try {
+            handler(id);
+          } catch (e) {
+            console.error("Handler invocation error", e);
+          }
+        }
       });
     });
-    }
+  }
 
-    async function toggleExpertStatus(id, newStatus, clickedButton) {
+  async function toggleExpertStatus(id, newStatus, clickedButton) {
     // Preferir el botón que se ha pulsado para leer data-email; si no, consultar el DOM
     let btn = clickedButton;
     if (!btn) {
@@ -655,7 +679,7 @@
     if (!btn) {
       const row = document.querySelector(`tr[data-id="${id}"]`);
       if (row) {
-      btn = row.querySelector(`button[data-id="${id}"]`);
+        btn = row.querySelector(`button[data-id="${id}"]`);
       }
     }
 
@@ -1103,7 +1127,7 @@
           if (statusDisplay) {
             try {
               statusDisplay.textContent = estado || "-";
-                // forzar el color primario para que los temas no lo oculten
+              // forzar el color primario para que los temas no lo oculten
               const primary =
                 getComputedStyle(document.documentElement).getPropertyValue(
                   "--admin-text-primary"
@@ -1122,7 +1146,7 @@
             } catch (e) {}
           }
 
-            // asegurar que exista el input oculto y establecer su valor
+          // asegurar que exista el input oculto y establecer su valor
           if (!statusHidden) {
             try {
               statusHidden = document.createElement("input");
@@ -1259,22 +1283,53 @@
             // diagnostic group removed in production build
           } catch (e) {}
           // En el modal de ver, usamos elementos de sólo lectura (display) y campos hidden
-          const bancoDisplay = modal.querySelector("#banco_display");
+          // Crear elementos de visualización dinámicamente si no existen
           const bancoHidden = modal.querySelector("#banco_hidden_view");
-          const tipoCuentaDisplay = modal.querySelector("#tipoCuenta_display");
           const tipoCuentaHidden = modal.querySelector(
             "#tipoCuenta_hidden_view"
-          );
-          const numeroCuentaField = modal.querySelector("#numeroCuenta");
-          const titularField = modal.querySelector("#titular");
-          const tipoDocumentoDisplay = modal.querySelector(
-            "#tipoDocumento_display"
           );
           const tipoDocumentoHidden = modal.querySelector(
             "#tipoDocumento_hidden_view"
           );
+          const numeroCuentaField = modal.querySelector("#numeroCuenta");
+          const titularField = modal.querySelector("#titular");
           const numeroDocumentoField = modal.querySelector("#numeroDocumento");
           const telefonoField = modal.querySelector('input[type="tel"]');
+
+          // Función para crear o encontrar elemento de visualización
+          function getOrCreateDisplayElement(fieldId, labelText) {
+            let display = modal.querySelector("#" + fieldId + "_display");
+            if (!display) {
+              // Buscar el label padre para insertar después
+              const label = modal.querySelector(`label[for="${fieldId}"]`);
+              if (label && label.parentNode) {
+                display = document.createElement("div");
+                display.id = fieldId + "_display";
+                display.className = "modal-readonly-field";
+                display.style.marginTop = "6px";
+                display.style.color = "var(--admin-text-secondary)";
+                display.style.fontSize = "14px";
+                display.style.padding = "8px 12px";
+                display.style.backgroundColor =
+                  "var(--admin-input-bg, #f8f9fa)";
+                display.style.border =
+                  "1px solid var(--admin-border-color, #e0e0e0)";
+                display.style.borderRadius = "4px";
+                label.parentNode.appendChild(display);
+              }
+            }
+            return display;
+          }
+
+          const bancoDisplay = getOrCreateDisplayElement("banco", "Banco");
+          const tipoCuentaDisplay = getOrCreateDisplayElement(
+            "tipoCuenta",
+            "Tipo de cuenta"
+          );
+          const tipoDocumentoDisplay = getOrCreateDisplayElement(
+            "tipoDocumento",
+            "Tipo de documento"
+          );
 
           // resolver posibles shapes
           // Resolver valores bancarios/documento desde varias rutas posibles
@@ -1298,14 +1353,33 @@
             expert.infoExperto?.documentType ||
             null;
 
+          // Debug temporal: ver qué datos bancarios tenemos
+          console.log("[DEBUG] Banking data for expert:", {
+            expertId: expert._id || expert.id,
+            expertEmail: expert.email,
+            bancoRaw,
+            tipoCuentaRaw,
+            tipoDocumentoRaw,
+            infoExperto: expert.infoExperto,
+          });
+
           const bancoVal = normalizeValue(bancoRaw) || "";
-          const tipoCuentaVal = normalizeValue(tipoCuentaRaw) || "";
-          const tipoDocumentoVal = normalizeValue(tipoDocumentoRaw) || "";
+          let tipoCuentaVal = normalizeValue(tipoCuentaRaw) || "";
+          let tipoDocumentoVal = normalizeValue(tipoDocumentoRaw) || "";
+
+          // Mapear valores a texto legible
+          if (tipoCuentaVal === "ahorros") tipoCuentaVal = "Ahorros";
+          else if (tipoCuentaVal === "corriente") tipoCuentaVal = "Corriente";
+
+          if (tipoDocumentoVal === "cedula") tipoDocumentoVal = "Cédula";
+          else if (tipoDocumentoVal === "extranjeria")
+            tipoDocumentoVal = "Cédula de Extranjería";
 
           // Rellenar campos de sólo lectura (display) y hidden inputs
           try {
             if (bancoDisplay) {
-              bancoDisplay.textContent = bancoVal || "-";
+              bancoDisplay.textContent = bancoVal || "No especificado";
+              bancoDisplay.style.display = "block";
             }
             if (bancoHidden) {
               bancoHidden.value = bancoVal || "";
@@ -1314,23 +1388,23 @@
 
           try {
             if (tipoCuentaDisplay) {
-              tipoCuentaDisplay.textContent = tipoCuentaVal || "-";
+              tipoCuentaDisplay.textContent =
+                tipoCuentaVal || "No especificado";
+              tipoCuentaDisplay.style.display = "block";
             }
             if (tipoCuentaHidden) {
-              tipoCuentaHidden.value = tipoCuentaVal || "";
+              tipoCuentaHidden.value = tipoCuentaRaw || "";
             }
           } catch (e) {}
 
           try {
             if (tipoDocumentoDisplay) {
-                // mapear a canónico si es útil, pero mostrar el texto amigable
-              const mapped =
-                mapDocumentType(tipoDocumentoVal) || tipoDocumentoVal;
-              tipoDocumentoDisplay.textContent = mapped || "-";
+              tipoDocumentoDisplay.textContent =
+                tipoDocumentoVal || "No especificado";
+              tipoDocumentoDisplay.style.display = "block";
             }
             if (tipoDocumentoHidden) {
-              tipoDocumentoHidden.value =
-                mapDocumentType(tipoDocumentoVal) || tipoDocumentoVal || "";
+              tipoDocumentoHidden.value = tipoDocumentoRaw || "";
             }
           } catch (e) {}
 
@@ -1375,9 +1449,17 @@
               txt = selectEl.value || "";
             }
             var existing = modal.querySelector("#" + displayId);
+            // Si existe, actualizar texto. Mostrar el display SOLO cuando el select nativo
+            // no esté visible (p. ej. ha sido ocultado por temas CSS). Esto evita duplicados.
+            var selectVisible = isElementVisible(selectEl);
+
             if (existing) {
               existing.textContent = txt;
               try {
+                // forzar sólo un modo visible: ocultar siempre el select en modo vista
+                try {
+                  selectEl.style.display = "none";
+                } catch (e) {}
                 existing.style.display = txt ? "block" : "none";
               } catch (e) {}
             } else {
@@ -1387,24 +1469,28 @@
               el.style.marginTop = "6px";
               el.style.color = "var(--admin-text-secondary)";
               el.textContent = txt;
+              try {
+                // ocultar siempre el select en modo vista y mostrar el texto
                 try {
-                // mostrar solo si hay texto, de lo contrario mantener oculto
+                  selectEl.style.display = "none";
+                } catch (e) {}
                 el.style.display = txt ? "block" : "none";
                 selectEl.parentNode.insertBefore(el, selectEl.nextSibling);
-                } catch (e) {
+              } catch (e) {
                 // alternativa: anexar al cuerpo del modal
                 modal.appendChild(el);
-                }
               }
-              }
+            }
+          }
 
-              ensureReadonlyDisplayFor(bancoField);
-              ensureReadonlyDisplayFor(tipoCuentaField);
-              ensureReadonlyDisplayFor(tipoDocumentoField);
-            } catch (e) {}
-            } else {
-            // rellenando otros campos del modal (editar, etc.)
-            // recordar id del experto en edición al abrir el modal de edición
+          // En modal de vista, sólo crear display si el select no es visible para evitar duplicados
+          ensureReadonlyDisplayFor(bancoField);
+          ensureReadonlyDisplayFor(tipoCuentaField);
+          ensureReadonlyDisplayFor(tipoDocumentoField);
+        } catch (e) {}
+      } else {
+        // rellenando otros campos del modal (editar, etc.)
+        // recordar id del experto en edición al abrir el modal de edición
         try {
           if (type === "edit") {
             currentEditingExpertId = getExpertField(expert, "id");
@@ -1486,8 +1572,8 @@
             } else {
               // trigger de select personalizado
               const hidden =
-          statusField.querySelector('input[type="hidden"]') ||
-          document.getElementById("statusInput");
+                statusField.querySelector('input[type="hidden"]') ||
+                document.getElementById("statusInput");
               if (hidden) hidden.value = estadoVal;
             }
           }
@@ -1509,169 +1595,169 @@
           try {
             function ensureModalCategoriasOptions(modal) {
               try {
-          const optionsContainer = modal.querySelector(
-            ".categorias-options"
-          );
-          const chipsContainer = modal.querySelector(".categorias-chips");
-          if (!optionsContainer) return;
-          // Si ya está poblado, no sobrescribir
-          if (
-            optionsContainer.children &&
-            optionsContainer.children.length
-          ) {
-            // ensure modal-scoped search is wired even if already populated
-            wireModalCategoriasSearch(modal);
-            return;
-          }
-
-          // Construir opciones desde el array global 'categorias' (fallback seguro)
-          optionsContainer.innerHTML = (categorias || [])
-            .map(function (cat) {
-              const id = String(cat.id || cat._id || "");
-              const name = escapeHtml(
-                cat.name || cat.nombre || "Sin nombre"
-              );
-              const icon = cat.icon
-                ? `<i class="fas ${escapeHtml(
-              cat.icon
-            )}" aria-hidden="true"></i>`
-                : "";
-              return `\n      <div class="categoria-option" data-id="${id}">\n        <div class="categoria-option-checkbox"></div>\n        ${icon}\n        <span>${name}</span>\n      </div>`;
-            })
-            .join("");
-
-          // Adjuntar manejadores de click para alternar selección y actualizar chips/input oculto
-          Array.from(
-            optionsContainer.querySelectorAll(".categoria-option")
-          ).forEach(function (optEl) {
-            optEl.addEventListener("click", function () {
-              try {
-                const id = optEl.getAttribute("data-id") || "";
-                const label =
-            (optEl.querySelector("span") &&
-              optEl.querySelector("span").textContent) ||
-            id;
-                const hidden =
-            modal.querySelector("#categorias-values_edit") ||
-            modal.querySelector("#categorias-values");
-
-                // alternar visual
-                const isSelected = optEl.classList.toggle("selected");
-
-                // actualizar chips (preservar orden de inserción: añadir nuevas selecciones al final)
-                if (isSelected) {
-            // evitar chip duplicado
-            try {
-              if (
-                chipsContainer &&
-                !chipsContainer.querySelector(
-                  `.categoria-chip[data-id="${id}"]`
-                )
-              ) {
-                const chip = document.createElement("div");
-                chip.className = "categoria-chip";
-                chip.dataset.id = id;
-                chip.innerHTML = `<span>${escapeHtml(
-                  label
-                )}</span><button type="button" class="categoria-chip-remove" aria-label="Remover categoría"><i class="fas fa-times"></i></button>`;
-                if (chipsContainer)
-                  chipsContainer.appendChild(chip);
-                // enlazar remover
-                const rem = chip.querySelector(
-                  ".categoria-chip-remove"
+                const optionsContainer = modal.querySelector(
+                  ".categorias-options"
                 );
-                if (rem)
-                  rem.addEventListener("click", function (ev) {
-              try {
-                ev.stopPropagation();
-              } catch (e) {}
-              try {
-                optEl.classList.remove("selected");
-              } catch (e) {}
-              try {
-                chip.remove();
-              } catch (e) {}
-              updateHidden();
+                const chipsContainer = modal.querySelector(".categorias-chips");
+                if (!optionsContainer) return;
+                // Si ya está poblado, no sobrescribir
+                if (
+                  optionsContainer.children &&
+                  optionsContainer.children.length
+                ) {
+                  // ensure modal-scoped search is wired even if already populated
+                  wireModalCategoriasSearch(modal);
+                  return;
+                }
+
+                // Construir opciones desde el array global 'categorias' (fallback seguro)
+                optionsContainer.innerHTML = (categorias || [])
+                  .map(function (cat) {
+                    const id = String(cat.id || cat._id || "");
+                    const name = escapeHtml(
+                      cat.name || cat.nombre || "Sin nombre"
+                    );
+                    const icon = cat.icon
+                      ? `<i class="fas ${escapeHtml(
+                          cat.icon
+                        )}" aria-hidden="true"></i>`
+                      : "";
+                    return `\n      <div class="categoria-option" data-id="${id}">\n        <div class="categoria-option-checkbox"></div>\n        ${icon}\n        <span>${name}</span>\n      </div>`;
+                  })
+                  .join("");
+
+                // Adjuntar manejadores de click para alternar selección y actualizar chips/input oculto
+                Array.from(
+                  optionsContainer.querySelectorAll(".categoria-option")
+                ).forEach(function (optEl) {
+                  optEl.addEventListener("click", function () {
+                    try {
+                      const id = optEl.getAttribute("data-id") || "";
+                      const label =
+                        (optEl.querySelector("span") &&
+                          optEl.querySelector("span").textContent) ||
+                        id;
+                      const hidden =
+                        modal.querySelector("#categorias-values_edit") ||
+                        modal.querySelector("#categorias-values");
+
+                      // alternar visual
+                      const isSelected = optEl.classList.toggle("selected");
+
+                      // actualizar chips (preservar orden de inserción: añadir nuevas selecciones al final)
+                      if (isSelected) {
+                        // evitar chip duplicado
+                        try {
+                          if (
+                            chipsContainer &&
+                            !chipsContainer.querySelector(
+                              `.categoria-chip[data-id="${id}"]`
+                            )
+                          ) {
+                            const chip = document.createElement("div");
+                            chip.className = "categoria-chip";
+                            chip.dataset.id = id;
+                            chip.innerHTML = `<span>${escapeHtml(
+                              label
+                            )}</span><button type="button" class="categoria-chip-remove" aria-label="Remover categoría"><i class="fas fa-times"></i></button>`;
+                            if (chipsContainer)
+                              chipsContainer.appendChild(chip);
+                            // enlazar remover
+                            const rem = chip.querySelector(
+                              ".categoria-chip-remove"
+                            );
+                            if (rem)
+                              rem.addEventListener("click", function (ev) {
+                                try {
+                                  ev.stopPropagation();
+                                } catch (e) {}
+                                try {
+                                  optEl.classList.remove("selected");
+                                } catch (e) {}
+                                try {
+                                  chip.remove();
+                                } catch (e) {}
+                                updateHidden();
+                              });
+                          }
+                        } catch (e) {}
+                      } else {
+                        // eliminar chip si existe
+                        try {
+                          const existing =
+                            chipsContainer &&
+                            chipsContainer.querySelector(
+                              `.categoria-chip[data-id="${id}"]`
+                            );
+                          if (existing) existing.remove();
+                        } catch (e) {}
+                      }
+
+                      function updateHidden() {
+                        try {
+                          const selected = Array.from(
+                            optionsContainer.querySelectorAll(
+                              ".categoria-option.selected"
+                            )
+                          )
+                            .map(function (o) {
+                              return o.getAttribute("data-id");
+                            })
+                            .filter(Boolean);
+                          if (hidden) hidden.value = selected.join(",");
+                        } catch (e) {}
+                      }
+
+                      updateHidden();
+                    } catch (e) {}
                   });
-              }
-            } catch (e) {}
-                } else {
-            // eliminar chip si existe
-            try {
-              const existing =
-                chipsContainer &&
-                chipsContainer.querySelector(
-                  `.categoria-chip[data-id="${id}"]`
-                );
-              if (existing) existing.remove();
-            } catch (e) {}
-                }
+                });
 
-                function updateHidden() {
-            try {
-              const selected = Array.from(
-                optionsContainer.querySelectorAll(
-                  ".categoria-option.selected"
-                )
-              )
-                .map(function (o) {
-                  return o.getAttribute("data-id");
-                })
-                .filter(Boolean);
-              if (hidden) hidden.value = selected.join(",");
-            } catch (e) {}
-                }
-
-                updateHidden();
-              } catch (e) {}
-            });
-          });
-
-          // Enlazar el input de búsqueda del modal para filtrar opciones
-          wireModalCategoriasSearch(modal);
+                // Enlazar el input de búsqueda del modal para filtrar opciones
+                wireModalCategoriasSearch(modal);
               } catch (e) {}
             }
 
             function wireModalCategoriasSearch(modal) {
               try {
-          const input = modal.querySelector("#categorias-input");
-          const optionsContainer = modal.querySelector(
-            ".categorias-options"
-          );
-          if (!input || !optionsContainer) return;
-          // anti-rebote
-          let t = null;
-          const handler = function (e) {
-            const term = stripAccents(
-              (e.target.value || "").toLowerCase()
-            );
-            Array.from(
-              optionsContainer.querySelectorAll(".categoria-option")
-            ).forEach(function (opt) {
-              try {
-                const text = stripAccents(
-            (opt.querySelector("span") &&
-              opt.querySelector("span").textContent) ||
-              ""
-                ).toLowerCase();
-                opt.style.display = text.includes(term) ? "flex" : "none";
-              } catch (err) {}
-            });
-          };
-          try {
-            input.removeEventListener(
-              "input",
-              input._modalCategoriasSearchHandler
-            );
-          } catch (e) {}
-          input._modalCategoriasSearchHandler = function (e) {
-            if (t) clearTimeout(t);
-            t = setTimeout(() => handler(e), 100);
-          };
-          input.addEventListener(
-            "input",
-            input._modalCategoriasSearchHandler
-          );
+                const input = modal.querySelector("#categorias-input");
+                const optionsContainer = modal.querySelector(
+                  ".categorias-options"
+                );
+                if (!input || !optionsContainer) return;
+                // anti-rebote
+                let t = null;
+                const handler = function (e) {
+                  const term = stripAccents(
+                    (e.target.value || "").toLowerCase()
+                  );
+                  Array.from(
+                    optionsContainer.querySelectorAll(".categoria-option")
+                  ).forEach(function (opt) {
+                    try {
+                      const text = stripAccents(
+                        (opt.querySelector("span") &&
+                          opt.querySelector("span").textContent) ||
+                          ""
+                      ).toLowerCase();
+                      opt.style.display = text.includes(term) ? "flex" : "none";
+                    } catch (err) {}
+                  });
+                };
+                try {
+                  input.removeEventListener(
+                    "input",
+                    input._modalCategoriasSearchHandler
+                  );
+                } catch (e) {}
+                input._modalCategoriasSearchHandler = function (e) {
+                  if (t) clearTimeout(t);
+                  t = setTimeout(() => handler(e), 100);
+                };
+                input.addEventListener(
+                  "input",
+                  input._modalCategoriasSearchHandler
+                );
               } catch (e) {}
             }
 
@@ -1685,62 +1771,62 @@
             if (chipsContainer) {
               chipsContainer.innerHTML = "";
               const catsNames = Array.isArray(catIds)
-          ? catIds
-              .map(function (id) {
-                const k = String(id);
-                return (
-            (categoriesMap &&
-              (categoriesMap[k] || categoriesMap[id])) ||
-            String(id)
-                );
-              })
-              .filter(Boolean)
-          : [];
+                ? catIds
+                    .map(function (id) {
+                      const k = String(id);
+                      return (
+                        (categoriesMap &&
+                          (categoriesMap[k] || categoriesMap[id])) ||
+                        String(id)
+                      );
+                    })
+                    .filter(Boolean)
+                : [];
               if (!catsNames || catsNames.length === 0) {
-          const span = document.createElement("span");
-          span.className = "categorias-empty";
-          span.textContent = "No hay categorías seleccionadas";
-          chipsContainer.appendChild(span);
+                const span = document.createElement("span");
+                span.className = "categorias-empty";
+                span.textContent = "No hay categorías seleccionadas";
+                chipsContainer.appendChild(span);
               } else {
-          catsNames.forEach(function (name) {
-            try {
-              const chip = document.createElement("div");
-              chip.className = "categoria-chip";
-              chip.textContent = name;
-              chipsContainer.appendChild(chip);
-            } catch (e) {}
-          });
+                catsNames.forEach(function (name) {
+                  try {
+                    const chip = document.createElement("div");
+                    chip.className = "categoria-chip";
+                    chip.textContent = name;
+                    chipsContainer.appendChild(chip);
+                  } catch (e) {}
+                });
               }
             }
 
             if (optionsContainer && Array.isArray(catIds)) {
               try {
-          Array.from(
-            optionsContainer.querySelectorAll(".categoria-option")
-          ).forEach(function (optEl) {
-            try {
-              const id =
-                optEl.getAttribute("data-id") || optEl.dataset.id;
-              if (
-                id &&
-                Array.from(catIds).map(String).includes(String(id))
-              )
-                optEl.classList.add("selected");
-              else optEl.classList.remove("selected");
-            } catch (e) {}
-          });
+                Array.from(
+                  optionsContainer.querySelectorAll(".categoria-option")
+                ).forEach(function (optEl) {
+                  try {
+                    const id =
+                      optEl.getAttribute("data-id") || optEl.dataset.id;
+                    if (
+                      id &&
+                      Array.from(catIds).map(String).includes(String(id))
+                    )
+                      optEl.classList.add("selected");
+                    else optEl.classList.remove("selected");
+                  } catch (e) {}
+                });
               } catch (e) {}
             }
 
             // También reflejar ids seleccionados en el input oculto del modal de edición (ámbito modal)
             try {
               const categoriasHiddenEdit = modal.querySelector(
-          "#categorias-values_edit"
+                "#categorias-values_edit"
               );
               if (categoriasHiddenEdit)
-          categoriasHiddenEdit.value = Array.isArray(catIds)
-            ? catIds.join(",")
-            : catIds || "";
+                categoriasHiddenEdit.value = Array.isArray(catIds)
+                  ? catIds.join(",")
+                  : catIds || "";
             } catch (e) {}
           } catch (e) {}
         } catch (e) {}
@@ -1757,20 +1843,20 @@
             const diasHiddenEdit = modal.querySelector("#diasDisponibles_edit");
             if (diasHiddenEdit)
               diasHiddenEdit.value = Array.isArray(dias)
-          ? dias.join(",")
-          : dias || "";
+                ? dias.join(",")
+                : dias || "";
           } catch (e) {}
           // actualizar botones de UI si están presentes (ámbito modal)
           if (Array.isArray(dias) && dias.length) {
             dias.forEach(function (d) {
               const btn = modal.querySelector(
-          `.day-button[data-day="${d.toLowerCase()}"]`
+                `.day-button[data-day="${d.toLowerCase()}"]`
               );
               if (btn) {
-          btn.classList.add("active");
-          try {
-            btn.setAttribute("aria-pressed", "true");
-          } catch (e) {}
+                btn.classList.add("active");
+                try {
+                  btn.setAttribute("aria-pressed", "true");
+                } catch (e) {}
               }
             });
             const display = modal.querySelector(".days-display");
@@ -1791,14 +1877,14 @@
           try {
             if (bancoField) {
               if (bancoField.tagName === "SELECT")
-          setSelectValue(bancoField, bancoVal);
+                setSelectValue(bancoField, bancoVal);
               else bancoField.value = bancoVal;
             }
           } catch (e) {}
           try {
             if (tipoCuentaField) {
               if (tipoCuentaField.tagName === "SELECT")
-          setSelectValue(tipoCuentaField, tipoCuentaVal);
+                setSelectValue(tipoCuentaField, tipoCuentaVal);
               else tipoCuentaField.value = tipoCuentaVal;
             }
           } catch (e) {}
@@ -1812,10 +1898,10 @@
             const tipoCuentaEdit = modal.querySelector("#tipoCuenta_edit");
             if (tipoCuentaEdit) {
               try {
-          tipoCuentaEdit.setAttribute(
-            "data-initial-value",
-            tipoCuentaVal || ""
-          );
+                tipoCuentaEdit.setAttribute(
+                  "data-initial-value",
+                  tipoCuentaVal || ""
+                );
               } catch (e) {}
               setSelectValue(tipoCuentaEdit, tipoCuentaVal || "");
             }
@@ -1824,13 +1910,13 @@
             const numeroCuentaEdit = modal.querySelector("#numeroCuenta_edit");
             if (numeroCuentaEdit)
               numeroCuentaEdit.value =
-          expert.infoExperto?.numeroCuenta || expert.numeroCuenta || "";
+                expert.infoExperto?.numeroCuenta || expert.numeroCuenta || "";
           } catch (e) {}
           try {
             const titularEdit = modal.querySelector("#titular_edit");
             if (titularEdit)
               titularEdit.value =
-          expert.infoExperto?.titular || expert.titular || "";
+                expert.infoExperto?.titular || expert.titular || "";
           } catch (e) {}
           try {
             const tipoDocumentoEdit = modal.querySelector(
@@ -1838,18 +1924,18 @@
             );
             if (tipoDocumentoEdit) {
               try {
-          const rawDoc =
-            expert.infoExperto?.tipoDocumento ||
-            expert.tipoDocumento ||
-            "";
-          const mappedDoc = mapDocumentType(rawDoc) || rawDoc || "";
-          try {
-            tipoDocumentoEdit.setAttribute(
-              "data-initial-value",
-              mappedDoc
-            );
-          } catch (e) {}
-          setSelectValue(tipoDocumentoEdit, mappedDoc);
+                const rawDoc =
+                  expert.infoExperto?.tipoDocumento ||
+                  expert.tipoDocumento ||
+                  "";
+                const mappedDoc = mapDocumentType(rawDoc) || rawDoc || "";
+                try {
+                  tipoDocumentoEdit.setAttribute(
+                    "data-initial-value",
+                    mappedDoc
+                  );
+                } catch (e) {}
+                setSelectValue(tipoDocumentoEdit, mappedDoc);
               } catch (e) {}
             }
           } catch (e) {}
@@ -1859,15 +1945,15 @@
             );
             if (numeroDocumentoEdit)
               numeroDocumentoEdit.value =
-          expert.infoExperto?.numeroDocumento ||
-          expert.numeroDocumento ||
-          "";
+                expert.infoExperto?.numeroDocumento ||
+                expert.numeroDocumento ||
+                "";
           } catch (e) {}
           try {
             const telefonoEdit = modal.querySelector("#telefonoContacto_edit");
             if (telefonoEdit)
               telefonoEdit.value =
-          expert.infoExperto?.telefonoContacto || expert.telefono || "";
+                expert.infoExperto?.telefonoContacto || expert.telefono || "";
           } catch (e) {}
         } catch (e) {}
         try {
@@ -1900,66 +1986,101 @@
             if (!selectEl) return;
             try {
               const primary =
-          getComputedStyle(document.documentElement).getPropertyValue(
-            "--admin-text-primary"
-          ) || "";
+                getComputedStyle(document.documentElement).getPropertyValue(
+                  "--admin-text-primary"
+                ) || "";
               if (primary) {
-          try {
-            selectEl.style.setProperty("color", primary, "important");
-          } catch (e) {
-            selectEl.style.color = primary;
-          }
+                try {
+                  selectEl.style.setProperty("color", primary, "important");
+                } catch (e) {
+                  selectEl.style.color = primary;
+                }
               }
               // asegurar fondo/transparencia para no tapar el texto
               try {
-          selectEl.style.setProperty(
-            "background-color",
-            "transparent",
-            "important"
-          );
+                selectEl.style.setProperty(
+                  "background-color",
+                  "transparent",
+                  "important"
+                );
               } catch (e) {
-          selectEl.style.backgroundColor = "transparent";
+                selectEl.style.backgroundColor = "transparent";
               }
 
               // crear un fallback display justo después del select con el texto amigable si el select aún no muestra texto
               try {
-          const dispId = selectEl.id + "_display";
-          let disp = modal.querySelector("#" + dispId);
-          const opt = selectEl.options[selectEl.selectedIndex];
-          const txt =
-            (opt && (opt.textContent || opt.innerText)) ||
-            selectEl.value ||
-            "";
-          if (!disp) {
-            disp = document.createElement("div");
-            disp.id = dispId;
-            disp.className = "modal-readonly-field";
-            disp.style.marginTop = "6px";
-            disp.style.color =
-              getComputedStyle(document.documentElement).getPropertyValue(
-                "--admin-text-secondary"
-              ) || "";
-            try {
-              selectEl.parentNode.insertBefore(
-                disp,
-                selectEl.nextSibling
-              );
-            } catch (e) {
-              selectEl.parentNode.appendChild(disp);
-            }
-          }
-          disp.textContent = txt || "-";
-          disp.style.display = txt ? "block" : "none";
+                const dispId = selectEl.id + "_display";
+                let disp = modal.querySelector("#" + dispId);
+                const opt = selectEl.options[selectEl.selectedIndex];
+                const txt =
+                  (opt && (opt.textContent || opt.innerText)) ||
+                  selectEl.value ||
+                  "";
+
+                // Determinar si el select nativo está visible en el layout
+                let selectVisible = isElementVisible(selectEl);
+
+                // Si el select es visible, eliminar/ocultar cualquier display fallback para evitar duplicados
+                if (selectVisible) {
+                  if (disp)
+                    try {
+                      disp.style.display = "none";
+                    } catch (e) {}
+                  // Asegurar que el select nativo esté interactivo
+                  try {
+                    selectEl.style.position = null;
+                    selectEl.style.opacity = null;
+                    selectEl.style.pointerEvents = null;
+                    selectEl.style.display = null;
+                  } catch (e) {}
+                  return;
+                }
+
+                // Si el select no es visible, crear o actualizar el display fallback
+                if (!disp) {
+                  disp = document.createElement("div");
+                  disp.id = dispId;
+                  disp.className = "modal-readonly-field";
+                  disp.style.marginTop = "6px";
+                  disp.style.color =
+                    getComputedStyle(document.documentElement).getPropertyValue(
+                      "--admin-text-secondary"
+                    ) || "";
+                  try {
+                    selectEl.parentNode.insertBefore(
+                      disp,
+                      selectEl.nextSibling
+                    );
+                  } catch (e) {
+                    selectEl.parentNode.appendChild(disp);
+                  }
+                }
+
+                disp.textContent = txt || "-";
+                disp.style.display = txt ? "block" : "none";
+
+                // Ocultar el select original para evitar duplicación visual
+                try {
+                  selectEl.style.position = "absolute";
+                  selectEl.style.opacity = "0";
+                  selectEl.style.pointerEvents = "none";
+                  selectEl.style.width = "1px";
+                } catch (e) {}
               } catch (e) {}
             } catch (e) {}
           }
 
-          // Intentos en ámbito modal para ambos selects usados en edición
+          // Edit mode: no crear fallbacks _display para selects; usaremos sólo el reemplazo robusto (_replacement)
+          // Limpiar cualquier _display residual antes de construir el reemplazo
           try {
-            ensureSelectVisible(modal.querySelector("#tipoCuenta_edit"));
-          } catch (e) {}
-          try {
-            ensureSelectVisible(modal.querySelector("#tipoDocumento_edit"));
+            ["#tipoCuenta_edit", "#tipoDocumento_edit"].forEach(function (sel) {
+              try {
+                var s = modal.querySelector(sel);
+                if (!s) return;
+                var disp = modal.querySelector("#" + s.id + "_display");
+                if (disp) disp.remove();
+              } catch (e) {}
+            });
           } catch (e) {}
 
           // Si los selects siguen siendo invisibles por CSS del tema, crear un reemplazo personalizado robusto
@@ -1967,58 +2088,58 @@
             function createSelectReplacement(modal, selectEl) {
               if (!selectEl || !modal) return;
               const id =
-          selectEl.id || (selectEl.name ? selectEl.name + "_sel" : null);
+                selectEl.id || (selectEl.name ? selectEl.name + "_sel" : null);
               if (!id) return;
               const replacementId = id + "_replacement";
               // if already created, update text and return
               // si ya fue creado, actualizar texto y retornar
               let existing = modal.querySelector("#" + replacementId);
               const buildText = () => {
-          try {
-            // prefer explicit initial value provided via data-initial-value
-            const initial =
-              selectEl.getAttribute &&
-              selectEl.getAttribute("data-initial-value");
-            if (initial) {
-              // try to match option by value first
-              let optMatch = Array.from(selectEl.options).find(function (
-                o
-              ) {
-                return String(o.value) === String(initial);
-              });
-              if (!optMatch) {
-                // try match by normalized text
-                optMatch = Array.from(selectEl.options).find(function (
-            o
-                ) {
-            return stripAccents(
-              o.textContent || o.innerText || ""
-            ).includes(stripAccents(initial));
-                });
-              }
-              if (optMatch)
-                return (
-            optMatch.textContent ||
-            optMatch.innerText ||
-            optMatch.value ||
-            initial
-                );
-            }
-            const opt = selectEl.options[selectEl.selectedIndex];
-            return (
-              (opt && (opt.textContent || opt.innerText)) ||
-              selectEl.value ||
-              ""
-            );
-          } catch (e) {
-            return selectEl.value || "";
-          }
+                try {
+                  // prefer explicit initial value provided via data-initial-value
+                  const initial =
+                    selectEl.getAttribute &&
+                    selectEl.getAttribute("data-initial-value");
+                  if (initial) {
+                    // try to match option by value first
+                    let optMatch = Array.from(selectEl.options).find(function (
+                      o
+                    ) {
+                      return String(o.value) === String(initial);
+                    });
+                    if (!optMatch) {
+                      // try match by normalized text
+                      optMatch = Array.from(selectEl.options).find(function (
+                        o
+                      ) {
+                        return stripAccents(
+                          o.textContent || o.innerText || ""
+                        ).includes(stripAccents(initial));
+                      });
+                    }
+                    if (optMatch)
+                      return (
+                        optMatch.textContent ||
+                        optMatch.innerText ||
+                        optMatch.value ||
+                        initial
+                      );
+                  }
+                  const opt = selectEl.options[selectEl.selectedIndex];
+                  return (
+                    (opt && (opt.textContent || opt.innerText)) ||
+                    selectEl.value ||
+                    ""
+                  );
+                } catch (e) {
+                  return selectEl.value || "";
+                }
               };
 
               if (existing) {
-          existing.querySelector(".replacement-value").textContent =
-            buildText() || "-";
-          return;
+                existing.querySelector(".replacement-value").textContent =
+                  buildText() || "-";
+                return;
               }
 
               // crear contenedor
@@ -2033,9 +2154,9 @@
               wrap.style.borderRadius = "6px";
               wrap.style.background = "var(--admin-card-bg, #fff)";
               wrap.style.color =
-          getComputedStyle(document.documentElement).getPropertyValue(
-            "--admin-text-primary"
-          ) || "#111";
+                getComputedStyle(document.documentElement).getPropertyValue(
+                  "--admin-text-primary"
+                ) || "#111";
               wrap.style.cursor = "pointer";
               wrap.style.position = "relative";
 
@@ -2068,107 +2189,116 @@
               panel.style.borderRadius = "6px";
 
               Array.from(selectEl.options).forEach(function (o) {
-          const item = document.createElement("div");
-          item.className = "replacement-item";
-          item.dataset.value = o.value;
-          item.textContent = o.textContent || o.innerText || o.value;
-          item.style.padding = "8px 10px";
-          item.style.cursor = "pointer";
-          item.style.borderBottom = "1px solid rgba(0,0,0,0.04)";
-          item.addEventListener("click", function (ev) {
-            try {
-              const v = this.dataset.value;
-              // set native select and dispatch change
-              selectEl.value = v;
-              try {
-                selectEl.dispatchEvent(
-            new Event("change", { bubbles: true })
-                );
-              } catch (e) {}
-              span.textContent = this.textContent || v;
-              panel.style.display = "none";
-            } catch (e) {}
-          });
-          panel.appendChild(item);
+                const item = document.createElement("div");
+                item.className = "replacement-item";
+                item.dataset.value = o.value;
+                item.textContent = o.textContent || o.innerText || o.value;
+                item.style.padding = "8px 10px";
+                item.style.cursor = "pointer";
+                item.style.borderBottom = "1px solid rgba(0,0,0,0.04)";
+                item.addEventListener("click", function (ev) {
+                  try {
+                    const v = this.dataset.value;
+                    // set native select and dispatch change
+                    selectEl.value = v;
+                    try {
+                      selectEl.dispatchEvent(
+                        new Event("change", { bubbles: true })
+                      );
+                    } catch (e) {}
+                    span.textContent = this.textContent || v;
+                    panel.style.display = "none";
+                  } catch (e) {}
+                });
+                panel.appendChild(item);
               });
 
               wrap.appendChild(panel);
 
               // interacciones
               wrap.addEventListener("click", function (e) {
-          e.stopPropagation();
-          // toggle
-          panel.style.display =
-            panel.style.display === "block" ? "none" : "block";
+                e.stopPropagation();
+                // toggle
+                panel.style.display =
+                  panel.style.display === "block" ? "none" : "block";
               });
 
               // cerrar al clicar fuera
               const docHandler = function (ev) {
-          if (!wrap.contains(ev.target)) panel.style.display = "none";
+                if (!wrap.contains(ev.target)) panel.style.display = "none";
               };
               setTimeout(function () {
-          document.addEventListener("click", docHandler);
+                document.addEventListener("click", docHandler);
               }, 10);
 
               // colocar reemplazo justo después del select para preservar layout
               try {
-          selectEl.parentNode.insertBefore(wrap, selectEl.nextSibling);
+                // eliminar cualquier display fallback residuo (id*_display)
+                try {
+                  const disp = modal.querySelector(
+                    "#" + (selectEl.id || "") + "_display"
+                  );
+                  if (disp) disp.remove();
+                } catch (e) {}
+                selectEl.parentNode.insertBefore(wrap, selectEl.nextSibling);
               } catch (e) {
-          selectEl.parentNode.appendChild(wrap);
+                selectEl.parentNode.appendChild(wrap);
               }
 
               // mantener texto del reemplazo sincronizado si el select nativo cambia en otro lugar
               selectEl.addEventListener("change", function () {
-          try {
-            const opt = selectEl.options[selectEl.selectedIndex];
-            span.textContent =
-              (opt && (opt.textContent || opt.innerText)) ||
-              selectEl.value ||
-              "-";
-          } catch (e) {}
+                try {
+                  const opt = selectEl.options[selectEl.selectedIndex];
+                  span.textContent =
+                    (opt && (opt.textContent || opt.innerText)) ||
+                    selectEl.value ||
+                    "-";
+                } catch (e) {}
               });
 
               // ocultar visualmente el select nativo pero conservarlo en el DOM para envío de formulario
               try {
-          selectEl.style.display = "none";
+                selectEl.style.display = "none";
               } catch (e) {}
 
               // accesibilidad: hacer el reemplazo enfocadle y role=listbox
               try {
-          wrap.setAttribute("tabindex", "0");
-          wrap.setAttribute("role", "listbox");
+                wrap.setAttribute("tabindex", "0");
+                wrap.setAttribute("role", "listbox");
               } catch (e) {}
 
               // cerrar panel con Escape cuando el reemplazo esté enfocado
               wrap.addEventListener("keydown", function (ev) {
-          try {
-            if (ev.key === "Escape" || ev.key === "Esc") {
-              panel.style.display = "none";
-              wrap.blur();
-            }
-          } catch (e) {}
+                try {
+                  if (ev.key === "Escape" || ev.key === "Esc") {
+                    panel.style.display = "none";
+                    wrap.blur();
+                  }
+                } catch (e) {}
               });
             }
 
             // Aplicar reemplazos para los selects problemáticos conocidos en el modal de edición
             try {
               createSelectReplacement(
-          modal,
-          modal.querySelector("#tipoCuenta_edit")
+                modal,
+                modal.querySelector("#tipoCuenta_edit") ||
+                  modal.querySelector("#tipoCuenta")
               );
             } catch (e) {}
             try {
               createSelectReplacement(
-          modal,
-          modal.querySelector("#tipoDocumento_edit")
+                modal,
+                modal.querySelector("#tipoDocumento_edit") ||
+                  modal.querySelector("#tipoDocumento")
               );
             } catch (e) {}
           } catch (e) {}
         } catch (e) {}
-            }
+      }
 
-            // Mover modal a document.body para evitar problemas de contexto de apilamiento / ocultamiento por overflow
-            try {
+      // Mover modal a document.body para evitar problemas de contexto de apilamiento / ocultamiento por overflow
+      try {
         if (
           modal &&
           modal.parentElement &&
@@ -2179,14 +2309,33 @@
           modal._originalNextSibling = modal.nextSibling;
           document.body.appendChild(modal);
         }
-            } catch (e) {
+      } catch (e) {
         console.warn("Could not move modal to body:", e);
-            }
+      }
 
-            // a punto de mostrar el modal
+      // a punto de mostrar el modal
 
-            // Forzar visibilidad usando estilos inline para evitar conflictos CSS / problemas de contexto de apilamiento
+      // Limpiar displays fallback duplicados si los selects nativos están visibles
+      try {
+        Array.from(modal.querySelectorAll('[id$="_display"]')).forEach(
+          function (d) {
             try {
+              // obtener el posible select relacionado
+              var selId = d.id.replace(/_display$/, "");
+              var sel =
+                modal.querySelector("#" + selId) ||
+                document.querySelector("#" + selId);
+              if (sel && isElementVisible(sel)) {
+                // si el select es visible, eliminar el display fallback
+                d.remove();
+              }
+            } catch (e) {}
+          }
+        );
+      } catch (e) {}
+
+      // Forzar visibilidad usando estilos inline para evitar conflictos CSS / problemas de contexto de apilamiento
+      try {
         modal.style.display = "flex";
         // hacer que el modal cubra la ventana y esté por encima de otros contextos
         modal.style.position = "fixed";
@@ -2201,12 +2350,12 @@
 
         modal.classList.add("show", "modal-open", "is-open");
         document.body.classList.add("modal-open");
-            } catch (e) {
+      } catch (e) {
         console.warn("Unable to force inline modal styles:", e);
-            }
+      }
 
-            // Accesibilidad: enfocar el control principal de cierre dentro del modal si existe
-            try {
+      // Accesibilidad: enfocar el control principal de cierre dentro del modal si existe
+      try {
         var focusCandidate =
           modal.querySelector('[data-action="close-modal"]') ||
           modal.querySelector(".modal-expert .btn-close") ||
@@ -2219,78 +2368,78 @@
             } catch (e) {}
           }, 60);
         }
-            } catch (e) {}
+      } catch (e) {}
 
-            // Si este modal es solo de visualización, asegurar que los custom selects dentro sean totalmente no interactivos
-            try {
+      // Si este modal es solo de visualización, asegurar que los custom selects dentro sean totalmente no interactivos
+      try {
         if (type === "view") {
           Array.from(modal.querySelectorAll(".custom-select")).forEach(
             function (cs) {
               try {
-          cs.classList.add("disabled");
-          cs.setAttribute("aria-disabled", "true");
-            // eliminar del orden de tabulación
-            try {
-            cs.setAttribute("tabindex", "-1");
-            } catch (e) {}
-            // deshabilitar eventos de puntero en el trigger y opciones para que los clics no lo abran
-            var trigger = cs.querySelector(".custom-select__trigger");
-            if (trigger) {
-            trigger.style.pointerEvents = "none";
-            trigger.style.cursor = "default";
-            }
-            var opts = cs.querySelector(".custom-select__options");
-            if (opts) opts.style.pointerEvents = "none";
-            // también marcar los elementos de opción como aria-disabled
-            Array.from(
-            cs.querySelectorAll(
-              ".custom-select__options li, .custom-select__option"
-            )
-            ).forEach(function (li) {
-            try {
-              li.setAttribute("aria-disabled", "true");
-              li.style.pointerEvents = "none";
-            } catch (e) {}
-            });
+                cs.classList.add("disabled");
+                cs.setAttribute("aria-disabled", "true");
+                // eliminar del orden de tabulación
+                try {
+                  cs.setAttribute("tabindex", "-1");
+                } catch (e) {}
+                // deshabilitar eventos de puntero en el trigger y opciones para que los clics no lo abran
+                var trigger = cs.querySelector(".custom-select__trigger");
+                if (trigger) {
+                  trigger.style.pointerEvents = "none";
+                  trigger.style.cursor = "default";
+                }
+                var opts = cs.querySelector(".custom-select__options");
+                if (opts) opts.style.pointerEvents = "none";
+                // también marcar los elementos de opción como aria-disabled
+                Array.from(
+                  cs.querySelectorAll(
+                    ".custom-select__options li, .custom-select__option"
+                  )
+                ).forEach(function (li) {
+                  try {
+                    li.setAttribute("aria-disabled", "true");
+                    li.style.pointerEvents = "none";
+                  } catch (e) {}
+                });
               } catch (e) {}
             }
-            );
+          );
 
-            // Además, hacer que los botones de días dentro del modal de vista sean no interactivos
-            try {
+          // Además, hacer que los botones de días dentro del modal de vista sean no interactivos
+          try {
             Array.from(modal.querySelectorAll(".day-button")).forEach(function (
               db
             ) {
               try {
-          // Deshabilitación nativa para botones
-          db.disabled = true;
-          db.classList.add("disabled");
-          db.setAttribute("aria-disabled", "true");
-          // eliminar del orden de tabulación
-          try {
-            db.setAttribute("tabindex", "-1");
-          } catch (e) {}
-          // prevenir interacciones de puntero
-          db.style.pointerEvents = "none";
-          db.style.cursor = "default";
-          // En caso de que haya listeners delegados, interceptar clicks en fase de captura
-          db.addEventListener(
-            "click",
-            function (ev) {
-              try {
-                ev.preventDefault();
-                ev.stopImmediatePropagation();
-              } catch (e) {}
-            },
-            true
-          );
+                // Deshabilitación nativa para botones
+                db.disabled = true;
+                db.classList.add("disabled");
+                db.setAttribute("aria-disabled", "true");
+                // eliminar del orden de tabulación
+                try {
+                  db.setAttribute("tabindex", "-1");
+                } catch (e) {}
+                // prevenir interacciones de puntero
+                db.style.pointerEvents = "none";
+                db.style.cursor = "default";
+                // En caso de que haya listeners delegados, interceptar clicks en fase de captura
+                db.addEventListener(
+                  "click",
+                  function (ev) {
+                    try {
+                      ev.preventDefault();
+                      ev.stopImmediatePropagation();
+                    } catch (e) {}
+                  },
+                  true
+                );
               } catch (e) {}
             });
           } catch (e) {}
         }
-            } catch (e) {}
+      } catch (e) {}
 
-            // visibilidad del modal forzada mediante estilos inline
+      // visibilidad del modal forzada mediante estilos inline
     } catch (e) {
       console.error(`Error opening ${type} modal:`, e);
       alert(`Error al abrir modal: ${e.message}`);
@@ -2495,9 +2644,6 @@
       // Inicializaciones auxiliares
       try {
         initModalClose();
-      } catch (e) {}
-      try {
-        initExpertForm();
       } catch (e) {}
 
       // Enlazar cambios de filtros
@@ -2736,11 +2882,10 @@
           (cat) =>
             `\n      <div class="categoria-option" data-id="${String(
               cat.id || cat._id || ""
-            )}">\n        <div class="categoria-option-checkbox"></div>\n        ${
-              cat.icon
-                ? `<i class="fas ${cat.icon}" aria-hidden="true"></i>`
-                : ""
-            }\n        <span>${String(
+            )}">
+        <div class="categoria-option-checkbox"></div>\n        ${
+          cat.icon ? `<i class="fas ${cat.icon}" aria-hidden="true"></i>` : ""
+        }\n        <span>${String(
               cat.name || cat.nombre || "Sin nombre"
             )}</span>\n      </div>\n    `
         )
@@ -2813,7 +2958,10 @@
         .map((id) => {
           const name =
             (this._optionsById && this._optionsById[id]) || "Categoría";
-          return `\n        <div class="categoria-chip" data-id="${id}">\n          <span>${name}</span>\n          <button type="button" class="categoria-chip-remove" aria-label="Remover categoría">\n            <i class="fas fa-times"></i>\n          </button>\n        </div>\n      `;
+          return `\n        <div class="categoria-chip" data-id="${id}">\n          <span>${name}</span>\n          <button type="button" class="categoria-chip-remove" aria-label="Remover categoría">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>\n      `;
         })
         .join("");
 
@@ -3219,9 +3367,9 @@
                 // determinar el botón de envío para este modal/formulario
                 const submitBtn =
                   (modal &&
-                  modal.querySelector(
-                    '.modal-expert__footer button[type="submit"]'
-                  )) ||
+                    modal.querySelector(
+                      '.modal-expert__footer button[type="submit"]'
+                    )) ||
                   form.querySelector('button[type="submit"]');
                 if (submitBtn) {
                   submitBtn.disabled = true;
@@ -3271,69 +3419,56 @@
                 if (!categoriasValues.length) {
                   try {
                     // chips con data-id (preservar orden visual)
-                  const chips = Array.from(
-                    (modal &&
-                    modal.querySelectorAll(".categoria-chip[data-id]")) ||
-                    []
-                  );
-                  if (chips.length) {
-                    categoriasValues = chips
-                    .map((c) => c.dataset.id)
-                    .filter(Boolean);
-                  } else {
-                    // o buscar opciones seleccionadas en el panel de opciones
-                    const opts = Array.from(
-                    (modal &&
-                      modal.querySelectorAll(
-                      ".categoria-option.selected"
-                      )) ||
-                      []
+                    const chips = Array.from(
+                      (modal &&
+                        modal.querySelectorAll(".categoria-chip[data-id]")) ||
+                        []
                     );
-                    if (opts.length)
-                    categoriasValues = opts
-                      .map((o) => o.getAttribute("data-id"))
-                      .filter(Boolean);
-                  }
+                    if (chips.length) {
+                      categoriasValues = chips
+                        .map((c) => c.dataset.id)
+                        .filter(Boolean);
+                    } else {
+                      // o buscar opciones seleccionadas en el panel de opciones
+                      const opts = Array.from(
+                        (modal &&
+                          modal.querySelectorAll(
+                            ".categoria-option.selected"
+                          )) ||
+                          []
+                      );
+                      if (opts.length)
+                        categoriasValues = opts
+                          .map((o) => o.getAttribute("data-id"))
+                          .filter(Boolean);
+                    }
                   } catch (e) {}
                 }
 
-                // tipoCuenta: intentar select dentro del modal (ej. #tipoCuenta_edit) o usar como fallback el elemento de visualización
+                // tipoCuenta: tomar del select dentro del modal (ej. #tipoCuenta_edit)
                 let tipoCuentaVal = "";
                 try {
                   const tipoCuentaEl =
-                  (modal && modal.querySelector('[id*="tipoCuenta"]')) ||
-                  form.querySelector('[id*="tipoCuenta"]') ||
-                  form.querySelector('[name="tipoCuenta"]');
+                    (modal && modal.querySelector('[id*="tipoCuenta"]')) ||
+                    form.querySelector('[id*="tipoCuenta"]') ||
+                    form.querySelector('[name="tipoCuenta"]');
                   if (tipoCuentaEl)
-                  tipoCuentaVal = (
-                  tipoCuentaEl.value ||
-                  tipoCuentaEl.textContent ||
-                  ""
-                  ).trim();
-                  // si existe un elemento de visualización (solo lectura), usar su texto
-                  if (!tipoCuentaVal) {
-                  const disp =
-                    modal && modal.querySelector("#tipoCuenta_display");
-                  if (disp && disp.textContent)
-                    tipoCuentaVal = disp.textContent.trim();
-                  }
+                    tipoCuentaVal = (
+                      tipoCuentaEl.value ||
+                      tipoCuentaEl.textContent ||
+                      ""
+                    ).trim();
                 } catch (e) {}
 
-                // tipoDocumento: preferir select/hidden dentro del modal, en caso contrario usar display como fallback
+                // tipoDocumento: preferir select/hidden dentro del modal
                 let tipoDocumentoVal = "";
                 try {
                   if (tipoDocumentoEl)
-                  tipoDocumentoVal = (
-                    tipoDocumentoEl.value ||
-                    tipoDocumentoEl.textContent ||
-                    ""
-                  ).trim();
-                  if (!tipoDocumentoVal) {
-                  const disp =
-                    modal && modal.querySelector("#tipoDocumento_display");
-                  if (disp && disp.textContent)
-                    tipoDocumentoVal = disp.textContent.trim();
-                  }
+                    tipoDocumentoVal = (
+                      tipoDocumentoEl.value ||
+                      tipoDocumentoEl.textContent ||
+                      ""
+                    ).trim();
                 } catch (e) {}
 
                 // diasDisponibles: preferir hidden, en caso contrario leer botones de días activos dentro del modal
@@ -3418,7 +3553,7 @@
 
                 // tipoDocumento
                 if (!tipoDocumentoVal) {
-                    // intentar marcar el select si está presente
+                  // intentar marcar el select si está presente
                   try {
                     if (tipoDocumentoEl && tipoDocumentoEl.classList)
                       tipoDocumentoEl.classList.add("input-error");
@@ -3464,11 +3599,21 @@
                 // Preparar payload
                 const payload = {
                   nombre: name,
+                  apellido: qs("#apellido_edit")?.value || undefined,
                   email: email,
-                  precio: precio,
+                  precioPorHora: precio,
                   estado: status,
                   categorias: categoriasValues,
+                  descripcion: qs("#bio")?.value || undefined,
+                  banco: qs("#banco_edit")?.value || undefined,
+                  tipoCuenta: qs("#tipoCuenta_edit")?.value || undefined,
+                  numeroCuenta: qs("#numeroCuenta_edit")?.value || undefined,
+                  titular: qs("#titular_edit")?.value || undefined,
                   tipoDocumento: tipoDocumentoVal,
+                  numeroDocumento:
+                    qs("#numeroDocumento_edit")?.value || undefined,
+                  telefonoContacto:
+                    qs("#telefonoContacto_edit")?.value || undefined,
                   diasDisponibles: diasValues,
                   avatar: avatarUrl || undefined,
                 };
@@ -3477,12 +3622,12 @@
                 try {
                   let res;
                   if (
-                  modal &&
-                  modal.id === "editExpertModal" &&
-                  typeof currentEditingExpertId !== "undefined" &&
-                  currentEditingExpertId
+                    modal &&
+                    modal.id === "editExpertModal" &&
+                    typeof currentEditingExpertId !== "undefined" &&
+                    currentEditingExpertId
                   ) {
-                  // actualizar
+                    // actualizar
                     res = await fetch(
                       "/api/expertos/" +
                         encodeURIComponent(currentEditingExpertId),
@@ -3501,9 +3646,9 @@
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify(payload),
                     });
-                    }
+                  }
 
-                    if (!res || !res.ok) {
+                  if (!res || !res.ok) {
                     const json = await (res
                       ? res.json().catch(() => ({}))
                       : Promise.resolve({}));
@@ -3512,11 +3657,11 @@
                       "Error al guardar cambios";
                     showToast(msg, "error");
                     throw new Error(msg);
-                    }
+                  }
 
-                    const json = await res.json();
-                    // Actualizar lista local o refrescar
-                    try {
+                  const json = await res.json();
+                  // Actualizar lista local o refrescar
+                  try {
                     if (modal && modal.id === "editExpertModal") {
                       // reemplazar experto en allExperts si el id coincide
                       const updated = json;
@@ -4019,11 +4164,23 @@
             btn.textContent = "Guardando...";
 
             const m = modal;
+            const nombreCompleto = (
+              m.querySelector("#name")?.value || ""
+            ).trim();
+            const email = (m.querySelector("#email")?.value || "").trim();
+            const estado = (
+              m.querySelector("#statusInput")?.value || ""
+            ).trim();
+
+            const nombreParts = nombreCompleto.split(" ");
+            const nombre = nombreParts.shift() || "";
+            const apellido = nombreParts.join(" ") || "";
+
             const descripcion = (m.querySelector("#bio")?.value || "").trim();
             const precioPorHora =
               Number(m.querySelector("#precio")?.value || 0) || 0;
             const categoriasRaw =
-              m.querySelector("#categorias-values_edit")?.value || "";
+              m.querySelector("#categorias-values")?.value || "";
             let categorias = categoriasRaw
               ? categoriasRaw
                   .split(",")
@@ -4049,8 +4206,7 @@
             const telefonoContacto = (
               m.querySelector("#telefonoContacto_edit")?.value || ""
             ).trim();
-            const diasRaw =
-              m.querySelector("#diasDisponibles_edit")?.value || "";
+            const diasRaw = m.querySelector("#diasDisponibles")?.value || "";
             const diasArr = diasRaw
               ? diasRaw
                   .split(",")
@@ -4068,287 +4224,46 @@
             };
             let diasDisponibles = diasArr.map((d) => dayMap[d] || d);
 
-            // Fallbacks: si algunos campos quedaron vacíos, intentar leerlos desde
-            // el DOM visual del modal (chips, opciones seleccionadas, displays o inputs globales)
-            try {
-              // categorias: chips con data-id o .categoria-option.selected
-              if (!categorias || categorias.length === 0) {
-                try {
-                  const chips = Array.from(
-                    m.querySelectorAll(".categoria-chip[data-id]") || []
-                  );
-                  if (chips.length) {
-                    categorias = chips.map((c) => c.dataset.id).filter(Boolean);
-                  } else {
-                    const opts = Array.from(
-                      m.querySelectorAll(".categoria-option.selected") || []
-                    );
-                    if (opts.length)
-                      categorias = opts
-                        .map((o) => o.getAttribute("data-id"))
-                        .filter(Boolean);
-                  }
-                } catch (e) {}
-
-                // fallback final: comprobar hidden global sin sufijo
-                if (
-                  (!categorias || categorias.length === 0) &&
-                  document.getElementById("categorias-values")
-                ) {
-                  try {
-                    const g = (
-                      document.getElementById("categorias-values").value || ""
-                    ).trim();
-                    if (g)
-                      categorias = g
-                        .split(",")
-                        .map((s) => s.trim())
-                        .filter(Boolean);
-                  } catch (e) {}
-                }
-              }
-
-              // tipoCuenta: select o display
-              if (!tipoCuenta) {
-                try {
-                  const el =
-                    m.querySelector("#tipoCuenta_edit") ||
-                    m.querySelector('[id*="tipoCuenta"]') ||
-                    document.getElementById("tipoCuenta_edit") ||
-                    document.getElementById("tipoCuenta");
-                  if (el)
-                    tipoCuenta = (el.value || el.textContent || "").trim();
-                  if (!tipoCuenta) {
-                    const disp =
-                      m.querySelector("#tipoCuenta_display") ||
-                      document.getElementById("tipoCuenta_display");
-                    if (disp && disp.textContent)
-                      tipoCuenta = disp.textContent.trim();
-                  }
-                } catch (e) {}
-              }
-
-              // tipoDocumento: select o display
-              if (!tipoDocumento) {
-                try {
-                  const el =
-                    m.querySelector("#tipoDocumento_edit") ||
-                    m.querySelector('[id*="tipoDocumento"]') ||
-                    document.getElementById("tipoDocumento_edit") ||
-                    document.getElementById("tipoDocumento");
-                  if (el)
-                    tipoDocumento = (el.value || el.textContent || "").trim();
-                  if (!tipoDocumento) {
-                    const disp =
-                      m.querySelector("#tipoDocumento_display") ||
-                      document.getElementById("tipoDocumento_display");
-                    if (disp && disp.textContent)
-                      tipoDocumento = disp.textContent.trim();
-                  }
-                } catch (e) {}
-              }
-
-              // diasDisponibles: botones activos en el modal
-              if (!diasDisponibles || diasDisponibles.length === 0) {
-                try {
-                  const activeBtns = Array.from(
-                    m.querySelectorAll(".day-button.active") || []
-                  );
-                  if (activeBtns.length) {
-                    diasDisponibles = activeBtns
-                      .map((b) => (b.getAttribute("data-day") || "").trim())
-                      .filter(Boolean)
-                      .map((d) => dayMap[d] || d);
-                  } else {
-                    // fallback: hidden inputs global
-                    const raw = (
-                      m.querySelector("#diasDisponibles_edit")?.value ||
-                      m.querySelector("#diasDisponibles")?.value ||
-                      document.querySelector("#diasDisponibles_edit")?.value ||
-                      document.querySelector("#diasDisponibles")?.value ||
-                      ""
-                    ).trim();
-                    if (raw) {
-                      diasDisponibles = raw
-                        .split(",")
-                        .map((s) => dayMap[s.trim().toLowerCase()] || s.trim())
-                        .filter(Boolean);
-                    }
-                  }
-                } catch (e) {}
-              }
-            } catch (e) {}
-
-            // Validación cliente: campos requeridos según backend
-            const validationErrors = [];
-            function markCategoriasInvalid(show) {
-              try {
-                const chips = m.querySelector(".categorias-chips");
-                if (chips) chips.classList.toggle("error", !!show);
-                let errEl = m.querySelector(".categorias-error");
-                if (!errEl) {
-                  errEl = document.createElement("div");
-                  errEl.className = "categorias-error";
-                  errEl.textContent = "Seleccione al menos una categoría";
-                  if (chips && chips.parentNode)
-                    chips.parentNode.appendChild(errEl);
-                }
-                errEl.style.display = show ? "block" : "none";
-              } catch (e) {}
-            }
-
-            if (!Array.isArray(categorias) || categorias.length === 0) {
-              validationErrors.push("categorias");
-              markCategoriasInvalid(true);
-            } else {
-              markCategoriasInvalid(false);
-            }
-
-            // Otros campos mínimos: descripcion, precioPorHora > 0, banco, tipoCuenta, numeroCuenta, titular, tipoDocumento, numeroDocumento, diasDisponibles
-            if (!descripcion) validationErrors.push("descripcion");
-            if (!precioPorHora || precioPorHora <= 0)
-              validationErrors.push("precioPorHora");
-            if (!banco) validationErrors.push("banco");
-            if (!tipoCuenta) validationErrors.push("tipoCuenta");
-            if (!numeroCuenta) validationErrors.push("numeroCuenta");
-            if (!titular) validationErrors.push("titular");
-            if (!tipoDocumento) validationErrors.push("tipoDocumento");
-            if (!numeroDocumento) validationErrors.push("numeroDocumento");
-            if (
-              !diasDisponibles ||
-              !Array.isArray(diasDisponibles) ||
-              diasDisponibles.length === 0
-            )
-              validationErrors.push("diasDisponibles");
-
-            if (validationErrors.length) {
-              // Mostrar mensajes de error inline y evitar el envío
-              try {
-                const first = validationErrors[0];
-                // foco en primer campo relevante
-                switch (first) {
-                  case "categorias":
-                    try {
-                      m.querySelector("#categorias-input")?.focus();
-                    } catch (e) {}
-                    break;
-                  case "descripcion":
-                    try {
-                      m.querySelector("#bio")?.focus();
-                    } catch (e) {}
-                    break;
-                  case "precioPorHora":
-                    try {
-                      m.querySelector("#precio")?.focus();
-                    } catch (e) {}
-                    break;
-                  case "banco":
-                    try {
-                      m.querySelector("#banco_edit")?.focus();
-                    } catch (e) {}
-                    break;
-                  case "tipoCuenta":
-                    try {
-                      m.querySelector("#tipoCuenta_edit")?.focus();
-                    } catch (e) {}
-                    break;
-                  case "numeroCuenta":
-                    try {
-                      m.querySelector("#numeroCuenta_edit")?.focus();
-                    } catch (e) {}
-                    break;
-                  case "titular":
-                    try {
-                      m.querySelector("#titular_edit")?.focus();
-                    } catch (e) {}
-                    break;
-                  case "tipoDocumento":
-                    try {
-                      m.querySelector("#tipoDocumento_edit")?.focus();
-                    } catch (e) {}
-                    break;
-                  case "numeroDocumento":
-                    try {
-                      m.querySelector("#numeroDocumento_edit")?.focus();
-                    } catch (e) {}
-                    break;
-                  case "diasDisponibles":
-                    try {
-                      m.querySelector(
-                        ".days-selector .days-display"
-                      )?.scrollIntoView();
-                    } catch (e) {}
-                    break;
-                }
-              } catch (e) {}
-              alert(
-                "Faltan campos obligatorios: " + validationErrors.join(", ")
-              );
-              try {
-                btn.disabled = false;
-                btn.textContent =
-                  btn.dataset.origText || "Guardar cambios experto";
-              } catch (e) {}
-              return;
-            }
-
-            // Normalizar ciertos campos para coincidir con los enums/expectativas del backend
-            function normalizeBanco(val) {
-              if (!val) return val;
-              const s = String(val).toLowerCase();
-              if (s.indexOf("nequi") >= 0) return "Nequi";
-              if (s.indexOf("bancolombia") >= 0 || s.indexOf("banco") >= 0)
-              return "Bancolombia";
-              // fallback: capitalizar la primera letra
-              return String(val).charAt(0).toUpperCase() + String(val).slice(1);
-            }
-
-            function normalizeTipoCuenta(val) {
-              if (!val) return val;
-              const s = String(val).toLowerCase();
-              if (s.indexOf("ahorr") >= 0 || s === "ahorros") return "Ahorros";
-              if (s.indexOf("corr") >= 0 || s === "corriente")
-                return "Corriente";
-              if (s.indexOf("nequi") >= 0) return "Nequi";
-              return String(val).charAt(0).toUpperCase() + String(val).slice(1);
-            }
-
-            function normalizeTipoDocumento(val) {
-              if (!val) return val;
-              const s = String(val).toLowerCase();
-              if (s === "cc" || s.indexOf("cedul") >= 0) return "CC";
-              if (s === "ce" || s.indexOf("extran") >= 0) return "CE";
-              if (s.indexOf("nit") >= 0) return "NIT";
-              return String(val).toUpperCase();
-            }
+            // Fallbacks...
 
             const payload = {
+              nombre,
+              apellido,
+              email,
+              estado,
               descripcion,
               precioPorHora,
               categorias,
-              banco: normalizeBanco(banco),
-              tipoCuenta: normalizeTipoCuenta(tipoCuenta),
+              banco,
+              tipoCuenta,
               numeroCuenta,
               titular,
-              tipoDocumento: normalizeTipoDocumento(tipoDocumento),
+              tipoDocumento,
               numeroDocumento,
               telefonoContacto,
               diasDisponibles,
             };
 
-            // Depuración: registrar el payload para ayudar en la resolución de problemas de validación del backend
-            try {
-              console.debug("[admin-expertos] perfil payload", payload);
-            } catch (e) {}
-            const res = await fetch("/api/expertos/perfil", {
-              method: "PUT",
-              credentials: "same-origin",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${window.authToken || ""}`,
-              },
-              body: JSON.stringify(payload),
-            });
+            if (!currentEditingExpertId) {
+              alert("Error: No se ha identificado al experto para editar.");
+              btn.disabled = false;
+              btn.textContent =
+                btn.dataset.origText || "Guardar cambios experto";
+              return;
+            }
+
+            const res = await fetch(
+              `/api/expertos/admin/${currentEditingExpertId}`,
+              {
+                method: "PUT",
+                credentials: "same-origin",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${window.authToken || ""}`,
+                },
+                body: JSON.stringify(payload),
+              }
+            );
 
             let json = {};
             try {
@@ -4362,29 +4277,7 @@
                     (x) => getExpertField(x, "id") == currentEditingExpertId
                   );
                   if (idx >= 0) {
-                    allExperts[idx].infoExperto =
-                      allExperts[idx].infoExperto || {};
-                    allExperts[idx].infoExperto.descripcion =
-                      payload.descripcion;
-                    allExperts[idx].infoExperto.precioPorHora =
-                      payload.precioPorHora;
-                    allExperts[idx].infoExperto.categorias = payload.categorias;
-                    allExperts[idx].infoExperto.banco = payload.banco;
-                    allExperts[idx].infoExperto.tipoCuenta = payload.tipoCuenta;
-                    allExperts[idx].infoExperto.numeroCuenta =
-                      payload.numeroCuenta;
-                    allExperts[idx].infoExperto.titular = payload.titular;
-                    allExperts[idx].infoExperto.tipoDocumento =
-                      payload.tipoDocumento;
-                    allExperts[idx].infoExperto.numeroDocumento =
-                      payload.numeroDocumento;
-                    allExperts[idx].infoExperto.telefonoContacto =
-                      payload.telefonoContacto;
-                    allExperts[idx].infoExperto.diasDisponibles =
-                      payload.diasDisponibles;
-                    allExperts[idx].estado =
-                      (json && json.usuario && json.usuario.estado) ||
-                      "pendiente-verificacion";
+                    allExperts[idx] = json.usuario;
                   }
                 }
               } catch (e) {
@@ -4396,10 +4289,7 @@
                 applyFilters();
               } catch (e) {}
 
-              alert(
-                json.mensaje ||
-                  "Perfil actualizado. Pendiente de verificación por admin."
-              );
+              alert(json.mensaje || "Perfil actualizado correctamente.");
 
               try {
                 modal.style.display = "none";
@@ -4407,15 +4297,10 @@
                 document.body.classList.remove("modal-open");
               } catch (e) {}
             } else {
-              const faltantes = (json && json.camposFaltantes) || [];
-              if (Array.isArray(faltantes) && faltantes.length) {
-                alert("Faltan campos obligatorios: " + faltantes.join(", "));
-              } else {
-                alert(
-                  (json && (json.mensaje || json.message)) ||
-                    "Error al actualizar perfil: " + res.status
-                );
-              }
+              alert(
+                (json && (json.mensaje || json.message)) ||
+                  "Error al actualizar perfil: " + res.status
+              );
             }
           } catch (err) {
             console.error("Error guardando perfil de experto:", err);

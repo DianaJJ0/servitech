@@ -575,6 +575,83 @@ const setActivo = async (req, res) => {
   }
 };
 
+
+const adminActualizarPerfilExperto = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ mensaje: "ID de experto no válido." });
+    }
+
+    const {
+      nombre,
+      apellido,
+      email,
+      descripcion,
+      precioPorHora,
+      categorias,
+      banco,
+      tipoCuenta,
+      numeroCuenta,
+      titular,
+      tipoDocumento,
+      numeroDocumento,
+      telefonoContacto,
+      diasDisponibles,
+      estado,
+    } = req.body;
+
+    const usuario = await Usuario.findById(id);
+    if (!usuario) {
+      return res.status(404).json({ mensaje: "Usuario no encontrado." });
+    }
+
+    // Actualizar campos básicos del usuario si se proporcionan
+    if (nombre) usuario.nombre = nombre;
+    if (apellido) usuario.apellido = apellido;
+    if (email) usuario.email = email;
+
+    // Actualizar información de experto
+    usuario.infoExperto = {
+      ...(usuario.infoExperto || {}),
+      descripcion,
+      precioPorHora,
+      categorias,
+      banco,
+      tipoCuenta,
+      numeroCuenta,
+      titular,
+      tipoDocumento,
+      numeroDocumento,
+      telefonoContacto,
+      diasDisponibles,
+    };
+
+    // El admin puede cambiar el estado directamente
+    if (estado) {
+      usuario.estado = estado;
+    }
+
+    // Asegurarse de que el rol 'experto' esté presente
+    if (!usuario.roles.includes("experto")) {
+      usuario.roles.push("experto");
+    }
+
+    await usuario.save();
+
+    res.status(200).json({
+      mensaje: "Perfil de experto actualizado por el administrador.",
+      usuario,
+    });
+  } catch (err) {
+    console.error("adminActualizarPerfilExperto error:", err);
+    res.status(500).json({
+      mensaje: "Error interno del servidor al actualizar.",
+      error: err.message,
+    });
+  }
+};
+
 module.exports = {
   listarExpertos,
   obtenerPerfilExperto,
@@ -582,4 +659,5 @@ module.exports = {
   aprobarExperto,
   rechazarExperto,
   setActivo,
+  adminActualizarPerfilExperto,
 };
