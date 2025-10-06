@@ -201,7 +201,7 @@
       </div>
 
       <div class="modal-expert__body">
-        <form id="expertForm_edit">
+        <form id="addExpertForm">
           <div class="modal-expert__grid">
 
             <!-- Información básica -->
@@ -265,8 +265,7 @@
                 <i class="fas fa-toggle-on modal-expert__icon"></i>
                 Estado
               </label>
-              <!-- Sólo lectura: mostrar estado y mantener hidden input para lecturas programáticas -->
-              <div id="status_display" class="modal-readonly-field" aria-hidden="true">-</div>
+              <!-- Estado: readonly display is created/managed by JS when needed -->
               <input type="hidden" id="statusInput" name="status" value="">
               <small class="modal-expert__hint">Define si el experto puede recibir solicitudes</small>
             </div>
@@ -325,8 +324,7 @@
                       <i class="fas fa-university modal-expert__icon"></i>
                       Banco *
                     </label>
-                    <!-- Campo sólo lectura: mostrar nombre del banco en vez de select -->
-                    <div id="banco_display" class="modal-readonly-field" aria-hidden="true">-</div>
+                    <!-- Banco: readonly display is created/managed by JS when needed -->
                     <input type="hidden" id="banco_hidden_view" name="banco">
                   </div>
 
@@ -335,8 +333,7 @@
                       <i class="fas fa-credit-card modal-expert__icon"></i>
                       Tipo de cuenta *
                     </label>
-                    <!-- Campo sólo lectura: mostrar tipo de cuenta como texto -->
-                    <div id="tipoCuenta_display" class="modal-readonly-field" aria-hidden="true">-</div>
+                    <!-- Tipo de cuenta: readonly display is created/managed by JS when needed -->
                     <input type="hidden" id="tipoCuenta_hidden_view" name="tipoCuenta">
                   </div>
 
@@ -375,9 +372,7 @@
                       <option value="cedula">Cédula de Ciudadanía</option>
                       <option value="extranjeria">Cédula de Extranjería</option>
                     </select>
-                    <!-- Fallback display: en modo 'ver' mostramos el texto seleccionado si el select está oculto por estilos -->
-                    <div id="tipoDocumento_display" class="modal-readonly-field"
-                      style="margin-top:6px;color:var(--admin-text-secondary);display:none"></div>
+                    <!-- Tipo de documento: readonly display is created/managed by JS when needed -->
                   </div>
 
                   <div class="form-group">
@@ -432,6 +427,7 @@
   <div id="verPerfilExperto" class="modal-expert">
     <div class="modal-expert__container">
 
+      <!-- Modal header -->
       <div class="modal-expert__header">
         <h2 class="modal-expert__title">
           <i class="fas fa-user-plus"></i> Ver perfil del experto
@@ -442,7 +438,7 @@
       </div>
 
       <div class="modal-expert__body">
-        <form id="expertForm">
+        <form id="viewExpertForm">
           <div class="modal-expert__grid">
 
             <!-- Información básica -->
@@ -506,8 +502,7 @@
                 <i class="fas fa-toggle-on modal-expert__icon"></i>
                 Estado
               </label>
-              <!-- Campo sólo-lectura (vista) para el estado; se mantiene un input hidden para lectura programática -->
-              <div id="status_display" class="modal-readonly-field" aria-hidden="true">-</div>
+              <!-- Estado: readonly display is created/managed by JS when needed -->
               <input type="hidden" id="statusInput" name="status" value="">
               <small class="modal-expert__hint">Define si el experto puede recibir solicitudes</small>
             </div>
@@ -565,7 +560,7 @@
                     <label class="modal-expert__label" for="banco">
                       Banco *
                     </label>
-                    <div id="banco_display" class="modal-readonly-field" aria-hidden="true">-</div>
+                    <!-- Banco: readonly display is created/managed by JS when needed -->
                     <input type="hidden" id="banco_hidden_view" name="banco">
                   </div>
 
@@ -573,7 +568,7 @@
                     <label class="modal-expert__label" for="tipoCuenta">
                       Tipo de cuenta *
                     </label>
-                    <div id="tipoCuenta_display" class="modal-readonly-field" aria-hidden="true">-</div>
+                    <!-- Tipo de cuenta: readonly display is created/managed by JS when needed -->
                     <input type="hidden" id="tipoCuenta_hidden_view" name="tipoCuenta">
                   </div>
 
@@ -605,7 +600,7 @@
                     <label class="modal-expert__label" for="tipoDocumento">
                       Tipo de documento *
                     </label>
-                    <div id="tipoDocumento_display" class="modal-readonly-field" aria-hidden="true">-</div>
+                    <!-- Tipo de documento: readonly display is created/managed by JS when needed -->
                     <input type="hidden" id="tipoDocumento_hidden_view" name="tipoDocumento">
                   </div>
 
@@ -650,9 +645,10 @@
   <div id="editExpertModal" class="modal-expert">
     <div class="modal-expert__container">
 
+      <!-- Modal header -->
       <div class="modal-expert__header">
         <h2 class="modal-expert__title">
-          <i class="fas fa-user-plus"></i> Editar datos del experto
+          <i class="fas fa-user-plus"></i> Editar perfil del experto
         </h2>
         <button class="btn-close" aria-label="Cerrar modal">
           <i class="fas fa-times"></i>
@@ -660,7 +656,7 @@
       </div>
 
       <div class="modal-expert__body">
-        <form id="expertForm">
+        <form id="editExpertForm">
           <div class="modal-expert__grid">
 
             <!-- Información básica -->
@@ -799,8 +795,11 @@
                       Banco *
                     </label>
                     <!-- Editable banco field for edit modal -->
-                    <input type="text" id="banco_edit" name="banco" class="modal-expert__input"
-                      placeholder="Nombre del banco" />
+                    <select id="banco_edit" name="banco" class="modal-expert__input">
+                      <option value="">-- Seleccionar banco --</option>
+                      <option value="Bancolombia">Bancolombia</option>
+                      <option value="Nequi">Nequi</option>
+                    </select>
                   </div>
 
                   <div class="form-group">
@@ -810,8 +809,9 @@
                     </label>
                     <select id="tipoCuenta_edit" name="tipoCuenta" class="modal-expert__input">
                       <option value="">-- Seleccionar tipo de cuenta --</option>
-                      <option value="ahorros">Ahorros</option>
-                      <option value="corriente">Corriente</option>
+                      <option value="Ahorros">Ahorros</option>
+                      <option value="Corriente">Corriente</option>
+                      <option value="Nequi">Nequi</option>
                     </select>
                   </div>
 
@@ -844,8 +844,9 @@
                     </label>
                     <select id="tipoDocumento_edit" name="tipoDocumento" class="modal-expert__input">
                       <option value="">-- Seleccionar tipo de documento --</option>
-                      <option value="cedula">Cédula</option>
-                      <option value="extranjeria">Permiso de extranjería</option>
+                      <option value="CC">Cédula</option>
+                      <option value="CE">Permiso de extranjería</option>
+                      <option value="NIT">NIT</option>
                     </select>
                   </div>
 
@@ -893,8 +894,8 @@
       </div>
 
       <div class="modal-expert__footer">
-        <button class="btn btn-outline" type="button">Cancelar</button>
-        <button class="btn btn-primary" type="submit" form="expertForm_edit">Guardar cambios experto</button>
+        <button class="btn btn-outline" type="button" data-action="close-modal">Cancelar</button>
+        <button class="btn btn-primary" type="submit" form="editExpertForm">Guardar cambios experto</button>
       </div>
     </div>
   </div>
