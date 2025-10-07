@@ -148,9 +148,7 @@ const listarExpertos = async (req, res) => {
       Usuario.countDocuments(filtro),
       Usuario.find(filtro)
         .populate("infoExperto.categorias", "nombre")
-        .select(
-          "nombre apellido email avatarUrl infoExperto calificacionPromedio estado"
-        )
+        .select("nombre apellido email infoExperto calificacionPromedio estado")
         .sort({ createdAt: -1 })
         .skip((page - 1) * limit)
         .limit(limit),
@@ -482,7 +480,6 @@ const setActivo = async (req, res) => {
       return res.status(400).json({ mensaje: "Se requiere el campo 'activo'" });
     }
 
-    // DEBUG: Log request metadata to diagnose why updates may not persist
     try {
       console.log("[setActivo] request params:", {
         params: req.params,
@@ -654,6 +651,106 @@ const adminActualizarPerfilExperto = async (req, res) => {
   }
 };
 
+// Crear perfil de experto para un usuario existente (administrador)
+const adminCrearExperto = async (req, res) => {
+  try {
+    const {
+      nombre,
+      apellido,
+      email,
+      descripcion,
+      precioPorHora,
+      categorias,
+      banco,
+      tipoCuenta,
+      numeroCuenta,
+      titular,
+      tipoDocumento,
+      numeroDocumento,
+      telefonoContacto,
+      diasDisponibles,
+      estado,
+      avatar,
+    } = req.body;
+
+    if (!email || !email.trim()) {
+      return res.status(400).json({ mensaje: "Email es requerido." });
+    }
+
+    // Buscar usuario existente
+    const usuario = await Usuario.findOne({
+      email: String(email).trim().toLowerCase(),
+    });
+    if (!usuario) {
+      return res
+        .status(404)
+        .json({ mensaje: "Usuario no encontrado. Crea primero el usuario." });
+    }
+
+    if (usuario.roles && usuario.roles.includes("experto")) {
+      return res
+        .status(409)
+        .json({ mensaje: "El usuario ya tiene el rol de experto." });
+    }
+
+    // Actualizar campos básicos si se proporcionan
+    if (nombre) usuario.nombre = nombre;
+    if (apellido) usuario.apellido = apellido;
+    if (avatar) usuario.avatar = avatar;
+
+    // Construir infoExperto
+    usuario.infoExperto = {
+      descripcion: descripcion || usuario.infoExperto?.descripcion,
+      precioPorHora: precioPorHora || usuario.infoExperto?.precioPorHora,
+      categorias: categorias || usuario.infoExperto?.categorias || [],
+      banco: banco || usuario.infoExperto?.banco,
+      tipoCuenta: tipoCuenta || usuario.infoExperto?.tipoCuenta,
+      numeroCuenta: numeroCuenta || usuario.infoExperto?.numeroCuenta,
+      titular: titular || usuario.infoExperto?.titular,
+      tipoDocumento: tipoDocumento || usuario.infoExperto?.tipoDocumento,
+      numeroDocumento: numeroDocumento || usuario.infoExperto?.numeroDocumento,
+      telefonoContacto:
+        telefonoContacto || usuario.infoExperto?.telefonoContacto,
+      diasDisponibles:
+        diasDisponibles || usuario.infoExperto?.diasDisponibles || [],
+      activo: true,
+    };
+
+    // Añadir rol experto
+    usuario.roles = Array.isArray(usuario.roles) ? usuario.roles : [];
+    if (!usuario.roles.includes("experto")) usuario.roles.push("experto");
+
+    // Estado por defecto: activo
+    usuario.estado = estado || "activo";
+
+    await usuario.save();
+
+    try {
+      await generarLogs("experto", {
+        action: "crear_por_admin",
+        expertEmail: usuario.email,
+        adminEmail: req.usuario?.email,
+        timestamp: new Date(),
+      });
+    } catch (e) {
+      console.warn("Error generando log (no crítico):", e && e.message);
+    }
+
+    // Return sanitized user
+    const out = usuario.toObject ? usuario.toObject() : usuario;
+    delete out.passwordHash;
+    delete out.passwordResetToken;
+    delete out.passwordResetExpires;
+
+    return res.status(201).json(out);
+  } catch (err) {
+    console.error("adminCrearExperto error:", err);
+    return res
+      .status(500)
+      .json({ mensaje: "Error interno al crear experto", error: err.message });
+  }
+};
+
 module.exports = {
   listarExpertos,
   obtenerPerfilExperto,
@@ -662,4 +759,5 @@ module.exports = {
   rechazarExperto,
   setActivo,
   adminActualizarPerfilExperto,
+  adminCrearExperto,
 };

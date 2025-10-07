@@ -534,4 +534,73 @@ router.get(
   asesoriaController.obtenerAsesoriaPorId
 );
 
+/**
+ * @swagger
+ * /api/asesorias/experto/{expertoEmail}:
+ *   get:
+ *     summary: Obtener asesorías de un experto
+ *     description: Obtiene las asesorías confirmadas de un experto específico para mostrar disponibilidad
+ *     tags: [Asesorías]
+ *     parameters:
+ *       - in: path
+ *         name: expertoEmail
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Email del experto
+ *         example: "experto@ejemplo.com"
+ *       - in: query
+ *         name: mes
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 12
+ *         description: Mes a consultar (1-12)
+ *         example: 12
+ *       - in: query
+ *         name: año
+ *         schema:
+ *           type: integer
+ *         description: Año a consultar
+ *         example: 2024
+ *     responses:
+ *       200:
+ *         description: Lista de asesorías del experto
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 expertoEmail:
+ *                   type: string
+ *                   example: "experto@ejemplo.com"
+ *                 asesorias:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                       titulo:
+ *                         type: string
+ *                       fechaHoraInicio:
+ *                         type: string
+ *                         format: date-time
+ *                       fechaHoraFin:
+ *                         type: string
+ *                         format: date-time
+ *                       duracionMinutos:
+ *                         type: integer
+ *                       estado:
+ *                         type: string
+ *                 total:
+ *                   type: integer
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.get(
+  "/experto/:expertoEmail",
+  asesoriaController.obtenerAsesoriasPorExperto
+);
+
 module.exports = router;

@@ -1184,6 +1184,65 @@ Puedes programar una nueva asesoría cuando desees a través de ServiTech.`,
   }
 }
 
+/**
+ * Obtener asesorías de un experto específico (para calendario)
+ * @function obtenerAsesoriasPorExperto
+ * @description Obtiene las asesorías confirmadas de un experto para mostrar disponibilidad
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Promise<Object>} Lista de asesorías del experto
+ */
+const obtenerAsesoriasPorExperto = async (req, res) => {
+  try {
+    const expertoEmail = decodeURIComponent(req.params.expertoEmail);
+    const { mes, año } = req.query;
+
+    console.log("=== OBTENER ASESORÍAS POR EXPERTO ===");
+    console.log("Experto email:", expertoEmail);
+    console.log("Filtros:", { mes, año });
+
+    // Construir filtros de fecha si se proporcionan
+    let filtroFecha = {};
+    if (mes && año) {
+      const inicioMes = new Date(parseInt(año), parseInt(mes) - 1, 1);
+      const finMes = new Date(parseInt(año), parseInt(mes), 0, 23, 59, 59);
+      filtroFecha = {
+        fechaHoraInicio: {
+          $gte: inicioMes,
+          $lte: finMes
+        }
+      };
+    }
+
+    // Filtros para asesorías
+    const filtros = {
+      "experto.email": expertoEmail,
+      estado: { $in: ["confirmada", "en-progreso"] }, // Solo asesorías confirmadas
+      ...filtroFecha
+    };
+
+    // Obtener asesorías
+    const asesorias = await Asesoria.find(filtros)
+      .select('fechaHoraInicio fechaHoraFin duracionMinutos titulo estado cliente')
+      .sort({ fechaHoraInicio: 1 });
+
+    console.log(`Encontradas ${asesorias.length} asesorías para ${expertoEmail}`);
+
+    res.json({
+      expertoEmail: expertoEmail,
+      asesorias: asesorias,
+      total: asesorias.length
+    });
+
+  } catch (error) {
+    console.error("Error obteniendo asesorías por experto:", error);
+    res.status(500).json({
+      mensaje: "Error interno obteniendo asesorías del experto",
+      error: error.message,
+    });
+  }
+};
+
 
 
 module.exports = {
@@ -1194,6 +1253,7 @@ module.exports = {
   finalizarAsesoria,
   cancelarAsesoria,
   obtenerAsesoriaPorId,
+  obtenerAsesoriasPorExperto,
   enviarNotificacionesAceptacion,
   enviarNotificacionesRechazo,
   enviarNotificacionesFinalizacion,
