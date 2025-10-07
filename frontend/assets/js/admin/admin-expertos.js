@@ -713,18 +713,38 @@
       btn.disabled = true;
       btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
 
-      const response = await fetch(
-        `/api/expertos/${encodeURIComponent(email)}/activo`,
-        {
-          method: "PUT",
-          credentials: "same-origin",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${window.authToken || ""}`,
-          },
-          body: JSON.stringify({ activo: newStatus }),
-        }
-      );
+      // Construir headers
+      const headers = { "Content-Type": "application/json" };
+      if (typeof window !== "undefined" && window.API_KEY) {
+        headers["x-api-key"] = window.API_KEY;
+        headers["Authorization"] = `Bearer ${window.authToken || ""}`;
+      } else {
+        // si no hay API_KEY en cliente, usaremos proxy server-side
+        // proxy usará la sesión admin para inyectar la API_KEY
+      }
+
+      let response;
+      if (typeof window !== "undefined" && window.API_KEY) {
+        response = await fetch(
+          `/api/expertos/${encodeURIComponent(email)}/activo`,
+          {
+            method: "PUT",
+            credentials: "same-origin",
+            headers,
+            body: JSON.stringify({ activo: newStatus }),
+          }
+        );
+      } else {
+        response = await fetch(
+          `/admin/proxy/expertos/${encodeURIComponent(email)}/activo`,
+          {
+            method: "PUT",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ activo: newStatus }),
+          }
+        );
+      }
 
       let result = {};
       try {
@@ -2405,7 +2425,10 @@
             }
           );
 
-          // Además, hacer que los botones de días dentro del modal de vista sean no interactivos
+          // Para el modo 'view' mostramos los días pero NO permitimos que el
+          // usuario los modifique desde este modal. Deshabilitamos los
+          // botones y prevenimos clicks (captura) para evitar que listeners
+          // delegados o accidentalmente enlazados cambien su estado.
           try {
             Array.from(modal.querySelectorAll(".day-button")).forEach(function (
               db
@@ -2422,7 +2445,7 @@
                 // prevenir interacciones de puntero
                 db.style.pointerEvents = "none";
                 db.style.cursor = "default";
-                // En caso de que haya listeners delegados, interceptar clicks en fase de captura
+                // Interceptar clicks en fase de captura para bloquear delegados
                 db.addEventListener(
                   "click",
                   function (ev) {
@@ -2546,6 +2569,23 @@
             } catch (e) {
               console.warn("Could not restore modal original parent:", e);
             }
+
+            // Limpiar contenido del modal para evitar que valores persistan entre aperturas
+            try {
+              if (typeof clearModalInputs === "function") {
+                clearModalInputs(modal);
+              }
+              // limpieza agresiva específica para el modal de creación
+              try {
+                if (
+                  modal &&
+                  modal.id === "expertModal" &&
+                  typeof clearAddExpertModal === "function"
+                ) {
+                  clearAddExpertModal(modal);
+                }
+              } catch (e) {}
+            } catch (e) {}
           }
         });
       });
@@ -2592,6 +2632,19 @@
               e
             );
           }
+          // Limpiar contenido del modal para evitar que valores persistan entre aperturas
+          try {
+            clearModalInputs(openModal);
+            try {
+              if (
+                openModal &&
+                openModal.id === "expertModal" &&
+                typeof clearAddExpertModal === "function"
+              ) {
+                clearAddExpertModal(openModal);
+              }
+            } catch (e) {}
+          } catch (e) {}
         }
       }
     });
@@ -3002,6 +3055,189 @@
   // ===== LISTO AL CARGAR EL DOM =====
   // Se añaden listeners para búsqueda en la cabecera, botón de filtros e inicialización de la UI
   document.addEventListener("DOMContentLoaded", function () {
+    // Helper global para limpiar inputs y estado visual dentro de un modal
+    function clearModalInputs(modal) {
+      if (!modal) return;
+      try {
+        Array.from(modal.querySelectorAll("form")).forEach(function (f) {
+          try {
+            if (typeof f.reset === "function") f.reset();
+          } catch (e) {}
+        });
+        Array.from(
+          modal.querySelectorAll(".field-error, .field-status")
+        ).forEach(function (el) {
+          try {
+            el.parentNode && el.parentNode.removeChild(el);
+          } catch (e) {}
+        });
+        Array.from(modal.querySelectorAll(".input-error")).forEach(function (
+          el
+        ) {
+          try {
+            el.classList.remove("input-error");
+          } catch (e) {}
+        });
+        Array.from(modal.querySelectorAll('[aria-invalid="true"]')).forEach(
+          function (el) {
+            try {
+              el.removeAttribute("aria-invalid");
+            } catch (e) {}
+          }
+        );
+        Array.from(modal.querySelectorAll(".day-button.active")).forEach(
+          function (b) {
+            try {
+              b.classList.remove("active");
+              try {
+                b.setAttribute("aria-pressed", "false");
+              } catch (e) {}
+            } catch (e) {}
+          }
+        );
+        Array.from(
+          modal.querySelectorAll('input[id*="diasDisponibles"]')
+        ).forEach(function (h) {
+          try {
+            h.value = "";
+          } catch (e) {}
+        });
+        try {
+          var defaultAvatar = "/uploads/avatar_1757538342469.jpg";
+          Array.from(
+            modal.querySelectorAll(
+              'img[id^="profilePreview"], .preview-container img'
+            )
+          ).forEach(function (img) {
+            try {
+              if (img) img.src = defaultAvatar;
+            } catch (e) {}
+          });
+        } catch (e) {}
+        Array.from(modal.querySelectorAll('[id$="_display"]')).forEach(
+          function (d) {
+            try {
+              d.style.display = "none";
+            } catch (e) {}
+          }
+        );
+      } catch (e) {
+        console.warn("clearModalInputs error", e);
+      }
+    }
+
+    // Limpieza específica para el modal 'Agregar nuevo experto' (agresiva)
+    function clearAddExpertModal(modal) {
+      if (!modal) return;
+      try {
+        // campos simples
+        [
+          "name",
+          "email",
+          "precio",
+          "bio",
+          "numeroCuenta",
+          "titular",
+          "numeroDocumento",
+        ].forEach(function (id) {
+          try {
+            var el = modal.querySelector("#" + id);
+            if (!el) return;
+            if (
+              el.tagName === "INPUT" ||
+              el.tagName === "TEXTAREA" ||
+              el.tagName === "SELECT"
+            ) {
+              el.value = "";
+              try {
+                if (el.options) el.selectedIndex = 0;
+              } catch (e) {}
+            }
+          } catch (e) {}
+        });
+
+        // bancos / tipos
+        try {
+          var b = modal.querySelector("#banco_hidden_view");
+          if (b) b.value = "";
+          var t = modal.querySelector("#tipoCuenta_hidden_view");
+          if (t) t.value = "";
+        } catch (e) {}
+
+        // categorias: limpiar chips y hidden
+        try {
+          var chips = modal.querySelector("#categorias-chips");
+          if (chips)
+            chips.innerHTML =
+              '<span class="categorias-empty">No hay categorías seleccionadas</span>';
+          var catsHidden = modal.querySelector("#categorias-values");
+          if (catsHidden) catsHidden.value = "";
+        } catch (e) {}
+
+        // dias
+        try {
+          var daysDisplay = modal.querySelector(".days-display");
+          if (daysDisplay) daysDisplay.textContent = "Ningún día seleccionado";
+          Array.from(modal.querySelectorAll(".day-button.active")).forEach(
+            function (b) {
+              try {
+                b.classList.remove("active");
+                b.setAttribute("aria-pressed", "false");
+              } catch (e) {}
+            }
+          );
+          Array.from(
+            modal.querySelectorAll('input[id*="diasDisponibles"]')
+          ).forEach(function (h) {
+            try {
+              h.value = "";
+            } catch (e) {}
+          });
+        } catch (e) {}
+
+        // previews / file inputs
+        try {
+          Array.from(modal.querySelectorAll('input[type="file"]')).forEach(
+            function (fi) {
+              try {
+                fi.value = "";
+              } catch (e) {}
+            }
+          );
+          Array.from(
+            modal.querySelectorAll(
+              'img[id^="profilePreview"], .preview-container img'
+            )
+          ).forEach(function (img) {
+            try {
+              img.src = "/uploads/avatar_1757538342469.jpg";
+            } catch (e) {}
+          });
+        } catch (e) {}
+
+        // limpiar errores y estados
+        try {
+          Array.from(
+            modal.querySelectorAll(".field-error, .field-status")
+          ).forEach(function (el) {
+            try {
+              el.remove();
+            } catch (e) {}
+          });
+        } catch (e) {}
+        try {
+          Array.from(modal.querySelectorAll(".input-error")).forEach(function (
+            el
+          ) {
+            try {
+              el.classList.remove("input-error");
+            } catch (e) {}
+          });
+        } catch (e) {}
+      } catch (e) {
+        console.warn("clearAddExpertModal error", e);
+      }
+    }
     // Por precaución: asegurar que los modales estén ocultos al cargar inicialmente a menos que se hayan abierto explícitamente
     try {
       document.querySelectorAll(".modal-expert").forEach(function (modal) {
@@ -3197,6 +3433,17 @@
 
         function showExpertModal(modalEl) {
           try {
+            // Asegurar limpieza previa para evitar que queden valores entre aperturas
+            try {
+              if (modalEl && modalEl.id === "expertModal") {
+                if (typeof clearAddExpertModal === "function")
+                  clearAddExpertModal(modalEl);
+                try {
+                  var f = modalEl.querySelector("form");
+                  if (f && typeof f.reset === "function") f.reset();
+                } catch (e) {}
+              }
+            } catch (e) {}
             if (!modalEl) return;
             // Move modal to document.body to avoid stacking context / overflow hiding issues
             try {
@@ -3233,6 +3480,129 @@
                 'input[type="text"], input:not([type]), textarea'
               );
               if (firstInput) firstInput.focus();
+            } catch (e) {}
+
+            // Evitar que el autofill del navegador vuelva a rellenar los campos
+            try {
+              const nameInput = modalEl.querySelector("#name");
+              const emailInput = modalEl.querySelector("#email");
+              [nameInput, emailInput].forEach(function (inp) {
+                try {
+                  if (!inp) return;
+                  // borrar valor y deshabilitar atributos de autocompletado
+                  try {
+                    inp.value = "";
+                  } catch (e) {}
+                  try {
+                    inp.setAttribute("autocomplete", "off");
+                  } catch (e) {}
+                  try {
+                    inp.setAttribute("autocorrect", "off");
+                  } catch (e) {}
+                  try {
+                    inp.setAttribute("autocapitalize", "off");
+                  } catch (e) {}
+                  try {
+                    inp.setAttribute("spellcheck", "false");
+                  } catch (e) {}
+                  // truco: marcar como readonly brevemente para bloquear autofill en algunos navegadores
+                  try {
+                    inp.readOnly = true;
+                  } catch (e) {}
+                  try {
+                    setTimeout(function () {
+                      inp.readOnly = false;
+                    }, 80);
+                  } catch (e) {}
+                } catch (e) {}
+              });
+              // Repetir una limpieza breve después para contrarrestar rellenados tardíos
+              try {
+                setTimeout(function () {
+                  try {
+                    const n = modalEl.querySelector("#name");
+                    const em = modalEl.querySelector("#email");
+                    if (n && (n.value || "").trim() === "")
+                      try {
+                        n.value = "";
+                      } catch (e) {}
+                    if (em && (em.value || "").trim() === "")
+                      try {
+                        em.value = "";
+                      } catch (e) {}
+                  } catch (e) {}
+                }, 160);
+              } catch (e) {}
+            } catch (e) {}
+
+            // Asegurar que los botones de días dentro del modal estén activados y enlazados
+            try {
+              const dayButtonsInModal = Array.from(
+                modalEl.querySelectorAll(".day-button")
+              );
+              dayButtonsInModal.forEach(function (btn) {
+                try {
+                  // Revertir cualquier deshabilitación previa
+                  btn.disabled = false;
+                  btn.removeAttribute("aria-disabled");
+                  try {
+                    btn.removeAttribute("tabindex");
+                  } catch (e) {}
+                  btn.style.pointerEvents = "auto";
+                  btn.style.cursor = "pointer";
+
+                  // Evitar múltiples bindings
+                  if (!btn.dataset._dayHandlerBound) {
+                    btn.addEventListener("click", function (ev) {
+                      try {
+                        // si está deshabilitado por otro motivo, no hacer nada
+                        if (
+                          btn.disabled ||
+                          btn.getAttribute("aria-disabled") === "true"
+                        ) {
+                          ev.preventDefault();
+                          ev.stopPropagation();
+                          return;
+                        }
+                        const modal =
+                          btn.closest(".modal-expert") || modalEl || document;
+                        btn.classList.toggle("active");
+                        try {
+                          btn.setAttribute(
+                            "aria-pressed",
+                            btn.classList.contains("active") ? "true" : "false"
+                          );
+                        } catch (e) {}
+
+                        const activeDays = Array.from(
+                          modal.querySelectorAll(".day-button.active")
+                        ).map((b) => b.getAttribute("data-day"));
+                        const daysDisplay =
+                          modal.querySelector(".days-display");
+                        if (daysDisplay)
+                          daysDisplay.textContent =
+                            activeDays.length === 0
+                              ? "Ningún día seleccionado"
+                              : activeDays.join(", ");
+
+                        try {
+                          const diasHiddenEdit = modal.querySelector(
+                            "#diasDisponibles_edit"
+                          );
+                          const diasHidden =
+                            modal.querySelector("#diasDisponibles");
+                          const targetHidden = diasHiddenEdit || diasHidden;
+                          if (targetHidden)
+                            targetHidden.value = Array.isArray(activeDays)
+                              ? activeDays.join(",")
+                              : activeDays || "";
+                        } catch (e) {}
+                      } catch (e) {}
+                    });
+                    btn.dataset._dayHandlerBound = "true";
+                  }
+                } catch (e) {}
+              });
             } catch (e) {}
 
             // expert modal shown (log suppressed)
@@ -3596,20 +3966,53 @@
                   console.warn("image upload fallback", e);
                 }
 
+                // Mapeos para cumplir enums del backend
+                function _mapEstado(v) {
+                  if (!v) return undefined;
+                  const s = String(v).toLowerCase();
+                  if (s === "active" || s === "activo") return "activo";
+                  if (s === "pending" || s === "pendiente")
+                    return "pendiente-verificacion";
+                  if (s === "inactive" || s === "inactivo") return "inactivo";
+                  return v;
+                }
+                function _mapTipoCuenta(v) {
+                  if (!v) return undefined;
+                  const s = String(v).toLowerCase();
+                  if (s === "ahorros") return "Ahorros";
+                  if (s === "corriente") return "Corriente";
+                  if (s === "nequi") return "Nequi";
+                  return v;
+                }
+                function _mapTipoDocumento(v) {
+                  if (!v) return undefined;
+                  const s = String(v).toLowerCase();
+                  if (s === "cedula" || s === "cc") return "CC";
+                  if (s === "extranjeria" || s === "ce") return "CE";
+                  if (s === "nit") return "NIT";
+                  return v;
+                }
+
+                const mappedEstado = _mapEstado(status);
+                const mappedTipoCuenta = _mapTipoCuenta(
+                  qs("#tipoCuenta_edit")?.value
+                );
+                const mappedTipoDocumento = _mapTipoDocumento(tipoDocumentoVal);
+
                 // Preparar payload
                 const payload = {
                   nombre: name,
                   apellido: qs("#apellido_edit")?.value || undefined,
                   email: email,
                   precioPorHora: precio,
-                  estado: status,
+                  estado: mappedEstado,
                   categorias: categoriasValues,
                   descripcion: qs("#bio")?.value || undefined,
                   banco: qs("#banco_edit")?.value || undefined,
-                  tipoCuenta: qs("#tipoCuenta_edit")?.value || undefined,
+                  tipoCuenta: mappedTipoCuenta,
                   numeroCuenta: qs("#numeroCuenta_edit")?.value || undefined,
                   titular: qs("#titular_edit")?.value || undefined,
-                  tipoDocumento: tipoDocumentoVal,
+                  tipoDocumento: mappedTipoDocumento,
                   numeroDocumento:
                     qs("#numeroDocumento_edit")?.value || undefined,
                   telefonoContacto:
@@ -3628,22 +4031,45 @@
                     currentEditingExpertId
                   ) {
                     // actualizar
+                    // construir headers reutilizables y añadir x-api-key si está expuesta
+                    try {
+                      var _headers = { "Content-Type": "application/json" };
+                      if (typeof window !== "undefined" && window.API_KEY)
+                        _headers["x-api-key"] = window.API_KEY;
+                      if (typeof window !== "undefined" && window.authToken)
+                        _headers["Authorization"] =
+                          "Bearer " + window.authToken;
+                    } catch (e) {
+                      var _headers = { "Content-Type": "application/json" };
+                    }
+                    // enviar al proxy del frontend que inyecta x-api-key desde el servidor
                     res = await fetch(
-                      "/api/expertos/" +
+                      "/admin/proxy/expertos/" +
                         encodeURIComponent(currentEditingExpertId),
                       {
                         method: "PUT",
                         credentials: "same-origin",
-                        headers: { "Content-Type": "application/json" },
+                        headers: _headers,
                         body: JSON.stringify(payload),
                       }
                     );
                   } else {
                     // crear
-                    res = await fetch("/api/expertos", {
+                    try {
+                      var _headers2 = { "Content-Type": "application/json" };
+                      if (typeof window !== "undefined" && window.API_KEY)
+                        _headers2["x-api-key"] = window.API_KEY;
+                      if (typeof window !== "undefined" && window.authToken)
+                        _headers2["Authorization"] =
+                          "Bearer " + window.authToken;
+                    } catch (e) {
+                      var _headers2 = { "Content-Type": "application/json" };
+                    }
+                    // usar proxy seguro en el servidor frontend
+                    res = await fetch("/admin/proxy/expertos", {
                       method: "POST",
                       credentials: "same-origin",
-                      headers: { "Content-Type": "application/json" },
+                      headers: _headers2,
                       body: JSON.stringify(payload),
                     });
                   }
@@ -3724,6 +4150,508 @@
         console.warn("initExpertForm error", e);
       }
     }
+
+    // Handler específico para el formulario de "Agregar nuevo experto" (id addExpertForm)
+    // Valida que el email exista como usuario activo llamando a GET /api/usuarios/buscar?email=
+    // Si el usuario no existe, muestra error y evita la creación.
+    function initAddExpertFormValidator() {
+      try {
+        const form = document.getElementById("addExpertForm");
+        if (!form) return;
+
+        form.addEventListener("submit", async function (ev) {
+          ev.preventDefault();
+          try {
+            const submitBtn =
+              form.querySelector('button[type="submit"]') || null;
+            if (submitBtn) {
+              submitBtn.disabled = true;
+              submitBtn.dataset.origText = submitBtn.textContent || "";
+              submitBtn.textContent = "Verificando...";
+            }
+
+            // Obtener campos mínimos
+            const emailEl = form.querySelector("#email");
+            const nameEl = form.querySelector("#name");
+            const precioEl = form.querySelector("#precio");
+
+            const email = emailEl ? (emailEl.value || "").trim() : "";
+            const name = nameEl ? (nameEl.value || "").trim() : "";
+            const precio = precioEl ? Number(precioEl.value) : 0;
+
+            // Limpieza de errores previos
+            try {
+              form
+                .querySelectorAll(".input-error")
+                .forEach((i) => i.classList.remove("input-error"));
+              const errs = form.querySelectorAll(".field-error");
+              errs.forEach((e) => e.parentNode && e.parentNode.removeChild(e));
+            } catch (e) {}
+
+            if (!name) {
+              const err = document.createElement("div");
+              err.className = "field-error";
+              err.style.color = "#e53e3e";
+              err.textContent = "El nombre es obligatorio.";
+              nameEl && nameEl.parentNode && nameEl.parentNode.appendChild(err);
+              if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent =
+                  submitBtn.dataset.origText || "Guardar experto";
+              }
+              return;
+            }
+
+            if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+              const err = document.createElement("div");
+              err.className = "field-error";
+              err.style.color = "#e53e3e";
+              err.textContent = "Email inválido.";
+              emailEl &&
+                emailEl.parentNode &&
+                emailEl.parentNode.appendChild(err);
+              if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent =
+                  submitBtn.dataset.origText || "Guardar experto";
+              }
+              return;
+            }
+
+            // Verificar existencia del usuario por email
+            let exists = false;
+            try {
+              const resp = await fetch(
+                "/api/usuarios/buscar?email=" + encodeURIComponent(email),
+                {
+                  method: "GET",
+                  credentials: "same-origin",
+                  headers: { Accept: "application/json" },
+                }
+              );
+              if (resp && resp.ok) {
+                exists = true;
+              } else {
+                // 404 o error -> no existe
+                exists = false;
+              }
+            } catch (e) {
+              exists = false;
+            }
+
+            if (!exists) {
+              const err = document.createElement("div");
+              err.className = "field-error";
+              err.style.color = "#e53e3e";
+              err.textContent =
+                "El correo no está registrado como usuario activo. Crea primero el usuario en Administrar Usuarios.";
+              emailEl &&
+                emailEl.parentNode &&
+                emailEl.parentNode.appendChild(err);
+              if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent =
+                  submitBtn.dataset.origText || "Guardar experto";
+              }
+              return;
+            }
+
+            // Si existe, construir payload similar al handler general y enviarlo
+            // Reusar algunos campos del formulario
+            // Mapear valores del formulario al formato esperado por el backend
+            function mapEstado(v) {
+              if (!v) return undefined;
+              const s = String(v).toLowerCase();
+              if (s === "active" || s === "activo") return "activo";
+              if (s === "pending" || s === "pendiente")
+                return "pendiente-verificacion";
+              if (s === "inactive" || s === "inactivo") return "inactivo";
+              return v;
+            }
+
+            function mapTipoCuenta(v) {
+              if (!v) return undefined;
+              const s = String(v).toLowerCase();
+              if (s === "ahorros") return "Ahorros";
+              if (s === "corriente") return "Corriente";
+              if (s === "nequi") return "Nequi";
+              return v;
+            }
+
+            function mapTipoDocumento(v) {
+              if (!v) return undefined;
+              const s = String(v).toLowerCase();
+              if (s === "cedula" || s === "cc") return "CC";
+              if (s === "extranjeria" || s === "ce") return "CE";
+              if (s === "nit") return "NIT";
+              return v;
+            }
+
+            const rawEstado = form.querySelector("#statusInput")
+              ? form.querySelector("#statusInput").value
+              : undefined;
+
+            const mappedEstado = mapEstado(rawEstado);
+
+            const rawTipoCuenta = form.querySelector("#tipoCuenta_hidden_view")
+              ? form.querySelector("#tipoCuenta_hidden_view").value
+              : undefined;
+            const mappedTipoCuenta = mapTipoCuenta(rawTipoCuenta);
+
+            const rawTipoDocumento = form.querySelector("#tipoDocumento")
+              ? form.querySelector("#tipoDocumento").value
+              : undefined;
+            const mappedTipoDocumento = mapTipoDocumento(rawTipoDocumento);
+
+            const payload = {
+              nombre: name,
+              apellido: form.querySelector("#apellido")
+                ? form.querySelector("#apellido").value
+                : undefined,
+              email: email,
+              precioPorHora: precio || undefined,
+              estado: mappedEstado,
+              categorias: form.querySelector("#categorias-values")
+                ? (form.querySelector("#categorias-values").value || "")
+                    .split(",")
+                    .filter(Boolean)
+                : [],
+              descripcion: form.querySelector("#bio")
+                ? form.querySelector("#bio").value
+                : undefined,
+              banco: form.querySelector("#banco_hidden_view")
+                ? form.querySelector("#banco_hidden_view").value
+                : undefined,
+              tipoCuenta: mappedTipoCuenta,
+              numeroCuenta: form.querySelector("#numeroCuenta")
+                ? form.querySelector("#numeroCuenta").value
+                : undefined,
+              titular: form.querySelector("#titular")
+                ? form.querySelector("#titular").value
+                : undefined,
+              tipoDocumento: mappedTipoDocumento,
+              numeroDocumento: form.querySelector("#numeroDocumento")
+                ? form.querySelector("#numeroDocumento").value
+                : undefined,
+              telefonoContacto: form.querySelector("#telefonoContacto")
+                ? form.querySelector("#telefonoContacto").value
+                : undefined,
+              diasDisponibles: form.querySelector("#diasDisponibles")
+                ? (form.querySelector("#diasDisponibles").value || "")
+                    .split(",")
+                    .filter(Boolean)
+                : [],
+              avatar: null,
+            };
+
+            // POST a /api/expertos
+            try {
+              let res;
+              if (typeof window !== "undefined" && window.API_KEY) {
+                res = await fetch("/api/expertos", {
+                  method: "POST",
+                  credentials: "same-origin",
+                  headers: {
+                    "Content-Type": "application/json",
+                    "x-api-key": window.API_KEY,
+                    Authorization: `Bearer ${window.authToken || ""}`,
+                  },
+                  body: JSON.stringify(payload),
+                });
+              } else {
+                res = await fetch("/admin/proxy/expertos", {
+                  method: "POST",
+                  credentials: "same-origin",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(payload),
+                });
+              }
+              if (!res || !res.ok) {
+                const json = await (res
+                  ? res.json().catch(() => ({}))
+                  : Promise.resolve({}));
+                const msg =
+                  (json && (json.message || json.mensaje)) ||
+                  "Error al crear experto";
+                const err = document.createElement("div");
+                err.className = "field-error";
+                err.style.color = "#e53e3e";
+                err.textContent = msg;
+                form.appendChild(err);
+                if (submitBtn) {
+                  submitBtn.disabled = false;
+                  submitBtn.textContent =
+                    submitBtn.dataset.origText || "Guardar experto";
+                }
+                return;
+              }
+
+              const created = await res.json();
+              // Se agregó correctamente: cerrar modal y resetear
+              try {
+                const modal = document.getElementById("expertModal");
+                if (modal) modal.style.display = "none";
+              } catch (e) {}
+              try {
+                form.reset();
+              } catch (e) {}
+              // Agregar al listado local si existe la variable allExperts
+              try {
+                if (window.allExperts && Array.isArray(window.allExperts)) {
+                  window.allExperts.unshift(created);
+                }
+              } catch (e) {}
+            } catch (e) {
+              const err = document.createElement("div");
+              err.className = "field-error";
+              err.style.color = "#e53e3e";
+              err.textContent = "Error de red al crear el experto.";
+              form.appendChild(err);
+            }
+
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.textContent =
+                submitBtn.dataset.origText || "Guardar experto";
+            }
+          } catch (e) {
+            console.warn("addExpertForm submit error", e);
+          }
+        });
+      } catch (e) {
+        console.warn("initAddExpertFormValidator error", e);
+      }
+    }
+
+    initAddExpertFormValidator();
+
+    // Añadir verificación onBlur en el campo email para mejor UX
+    function initEmailBlurCheck() {
+      try {
+        const form = document.getElementById("addExpertForm");
+        if (!form) return;
+        const emailEl = form.querySelector("#email");
+        if (!emailEl) return;
+
+        let timer = null;
+        const debounce = (fn, wait) => {
+          return function () {
+            const ctx = this,
+              args = arguments;
+            clearTimeout(timer);
+            timer = setTimeout(() => fn.apply(ctx, args), wait);
+          };
+        };
+
+        async function checkEmailAndPopulate() {
+          try {
+            // limpiar mensajes previos (.field-error y .field-status) para evitar duplicados
+            try {
+              if (emailEl && emailEl.parentNode) {
+                const prevErr =
+                  emailEl.parentNode.querySelector(".field-error");
+                if (prevErr)
+                  prevErr.parentNode && prevErr.parentNode.removeChild(prevErr);
+                const prevStatus =
+                  emailEl.parentNode.querySelector(".field-status");
+                if (prevStatus)
+                  prevStatus.parentNode &&
+                    prevStatus.parentNode.removeChild(prevStatus);
+              }
+            } catch (e) {}
+
+            const email = (emailEl.value || "").trim();
+            if (!email || !/^\S+@\S+\.\S+$/.test(email)) return;
+
+            // Indicar verificación breve (reusar elemento si ya existe)
+            let statusEl = null;
+            try {
+              if (emailEl && emailEl.parentNode) {
+                statusEl = emailEl.parentNode.querySelector(".field-status");
+              }
+            } catch (e) {}
+            if (!statusEl) {
+              statusEl = document.createElement("div");
+              statusEl.className = "field-status";
+              statusEl.style.color = "#666";
+              statusEl.style.fontSize = "0.9em";
+            }
+            try {
+              statusEl.textContent = "Verificando correo...";
+              emailEl.parentNode && emailEl.parentNode.appendChild(statusEl);
+            } catch (e) {}
+
+            try {
+              const resp = await fetch(
+                "/api/usuarios/buscar?email=" + encodeURIComponent(email),
+                {
+                  method: "GET",
+                  credentials: "same-origin",
+                  headers: { Accept: "application/json" },
+                }
+              );
+
+              // eliminar status previo (siempre que exista) antes de mostrar resultado
+              try {
+                if (statusEl && statusEl.parentNode)
+                  statusEl.parentNode.removeChild(statusEl);
+                else if (emailEl && emailEl.parentNode) {
+                  const tmp = emailEl.parentNode.querySelector(".field-status");
+                  if (tmp) tmp.parentNode && tmp.parentNode.removeChild(tmp);
+                }
+              } catch (e) {}
+
+              if (resp && resp.ok) {
+                // usuario existe: autocompletar campos si están vacíos
+                const json = await resp.json().catch(() => ({}));
+                const nombre = json.nombre || json.name || "";
+                const apellido = json.apellido || json.lastName || "";
+                const avatar = json.avatarUrl || json.avatar || null;
+
+                try {
+                  const nameEl = form.querySelector("#name");
+                  if (nameEl && (!nameEl.value || nameEl.value.trim() === "")) {
+                    nameEl.value = (
+                      nombre + (apellido ? " " + apellido : "")
+                    ).trim();
+                    // Disparar evento input para que los validadores y handlers locales
+                    // detecten el cambio y oculten mensajes de error (p. ej. "El nombre no puede estar vacío.")
+                    try {
+                      nameEl.dispatchEvent(
+                        new Event("input", { bubbles: true })
+                      );
+                      nameEl.removeAttribute("aria-invalid");
+                      nameEl.classList.remove("input-error");
+                      const nameErr =
+                        (form && form.querySelector("#name-error")) ||
+                        document.getElementById("name-error");
+                      if (nameErr) nameErr.style.display = "none";
+                    } catch (e) {}
+                  }
+                  const apellidoEl = form.querySelector("#apellido");
+                  if (
+                    apellidoEl &&
+                    (!apellidoEl.value || apellidoEl.value.trim() === "")
+                  ) {
+                    apellidoEl.value = apellido;
+                    try {
+                      apellidoEl.dispatchEvent(
+                        new Event("input", { bubbles: true })
+                      );
+                      apellidoEl.removeAttribute("aria-invalid");
+                      apellidoEl.classList.remove("input-error");
+                      const apeErr =
+                        (form && form.querySelector("#apellido-error")) ||
+                        document.getElementById("apellido-error");
+                      if (apeErr) apeErr.style.display = "none";
+                    } catch (e) {}
+                  }
+                  // preview avatar si existe
+                  try {
+                    const preview = document.getElementById(
+                      "profilePreviewImage"
+                    );
+                    if (preview && avatar) preview.src = avatar;
+                  } catch (e) {}
+                } catch (e) {}
+
+                // mostrar indicación positiva temporal (reusar o crear)
+                let ok = null;
+                try {
+                  ok =
+                    emailEl.parentNode &&
+                    emailEl.parentNode.querySelector(".field-status");
+                } catch (e) {}
+                if (!ok) {
+                  ok = document.createElement("div");
+                  ok.className = "field-status";
+                  ok.style.color = "#2f855a";
+                  ok.style.fontSize = "0.9em";
+                }
+                try {
+                  ok.textContent = "Usuario encontrado.";
+                  emailEl.parentNode && emailEl.parentNode.appendChild(ok);
+                  setTimeout(() => {
+                    try {
+                      ok.parentNode && ok.parentNode.removeChild(ok);
+                    } catch (e) {}
+                  }, 2500);
+                } catch (e) {}
+                return;
+              }
+
+              if (resp && resp.status === 404) {
+                // mostrar error 404 (eliminar anteriores antes)
+                try {
+                  if (emailEl && emailEl.parentNode) {
+                    const prev =
+                      emailEl.parentNode.querySelector(".field-error");
+                    if (prev)
+                      prev.parentNode && prev.parentNode.removeChild(prev);
+                  }
+                } catch (e) {}
+                const err = document.createElement("div");
+                err.className = "field-error";
+                err.style.color = "#e53e3e";
+                err.textContent = "No existe un usuario activo con ese correo.";
+                emailEl &&
+                  emailEl.parentNode &&
+                  emailEl.parentNode.appendChild(err);
+                return;
+              }
+
+              // otros códigos de error
+              // otros códigos de error
+              try {
+                if (emailEl && emailEl.parentNode) {
+                  const prev = emailEl.parentNode.querySelector(".field-error");
+                  if (prev)
+                    prev.parentNode && prev.parentNode.removeChild(prev);
+                }
+              } catch (e) {}
+              const err = document.createElement("div");
+              err.className = "field-error";
+              err.style.color = "#e53e3e";
+              err.textContent =
+                "Error al verificar el correo. Intenta de nuevo.";
+              emailEl &&
+                emailEl.parentNode &&
+                emailEl.parentNode.appendChild(err);
+            } catch (e) {
+              try {
+                if (statusEl && statusEl.parentNode)
+                  statusEl.parentNode.removeChild(statusEl);
+                else if (emailEl && emailEl.parentNode) {
+                  const tmp = emailEl.parentNode.querySelector(".field-status");
+                  if (tmp) tmp.parentNode && tmp.parentNode.removeChild(tmp);
+                }
+              } catch (ee) {}
+              const err = document.createElement("div");
+              err.className = "field-error";
+              err.style.color = "#e53e3e";
+              err.textContent =
+                "Error de red al verificar. Comprueba tu conexión.";
+              emailEl &&
+                emailEl.parentNode &&
+                emailEl.parentNode.appendChild(err);
+            }
+          } catch (e) {
+            console.warn("checkEmailAndPopulate error", e);
+          }
+        }
+
+        const handler = debounce(checkEmailAndPopulate, 400);
+        emailEl.addEventListener("blur", handler);
+        // también verificar si el usuario pega el email y sale rápido
+        emailEl.addEventListener("paste", function () {
+          setTimeout(handler, 250);
+        });
+      } catch (e) {
+        console.warn("initEmailBlurCheck error", e);
+      }
+    }
+
+    initEmailBlurCheck();
 
     // Inicializar selector de categorías (migrated from inline EJS)
     try {
@@ -4224,21 +5152,52 @@
             };
             let diasDisponibles = diasArr.map((d) => dayMap[d] || d);
 
+            // Normalizar/mapeos para cumplir con los enums esperados por el backend
+            function mapEstado(v) {
+              if (!v) return undefined;
+              const s = String(v).toLowerCase();
+              if (s === "active" || s === "activo") return "activo";
+              if (s === "pending" || s === "pendiente")
+                return "pendiente-verificacion";
+              if (s === "inactive" || s === "inactivo") return "inactivo";
+              return v;
+            }
+            function mapTipoCuenta(v) {
+              if (!v) return undefined;
+              const s = String(v).toLowerCase();
+              if (s === "ahorros") return "Ahorros";
+              if (s === "corriente") return "Corriente";
+              if (s === "nequi") return "Nequi";
+              return v;
+            }
+            function mapTipoDocumento(v) {
+              if (!v) return undefined;
+              const s = String(v).toLowerCase();
+              if (s === "cedula" || s === "cc") return "CC";
+              if (s === "extranjeria" || s === "ce") return "CE";
+              if (s === "nit") return "NIT";
+              return v;
+            }
+
+            const mappedEstado = mapEstado(estado);
+            const mappedTipoCuenta = mapTipoCuenta(tipoCuenta);
+            const mappedTipoDocumento = mapTipoDocumento(tipoDocumento);
+
             // Fallbacks...
 
             const payload = {
               nombre,
               apellido,
               email,
-              estado,
+              estado: mappedEstado,
               descripcion,
               precioPorHora,
               categorias,
               banco,
-              tipoCuenta,
+              tipoCuenta: mappedTipoCuenta,
               numeroCuenta,
               titular,
-              tipoDocumento,
+              tipoDocumento: mappedTipoDocumento,
               numeroDocumento,
               telefonoContacto,
               diasDisponibles,
@@ -4252,18 +5211,34 @@
               return;
             }
 
-            const res = await fetch(
-              `/api/expertos/admin/${currentEditingExpertId}`,
-              {
-                method: "PUT",
-                credentials: "same-origin",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${window.authToken || ""}`,
-                },
-                body: JSON.stringify(payload),
-              }
-            );
+            let res;
+            if (typeof window !== "undefined" && window.API_KEY) {
+              res = await fetch(
+                `/api/expertos/admin/${currentEditingExpertId}`,
+                {
+                  method: "PUT",
+                  credentials: "same-origin",
+                  headers: {
+                    "Content-Type": "application/json",
+                    "x-api-key": window.API_KEY,
+                    Authorization: `Bearer ${window.authToken || ""}`,
+                  },
+                  body: JSON.stringify(payload),
+                }
+              );
+            } else {
+              res = await fetch(
+                `/admin/proxy/expertos/${encodeURIComponent(
+                  currentEditingExpertId
+                )}`,
+                {
+                  method: "PUT",
+                  credentials: "same-origin",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(payload),
+                }
+              );
+            }
 
             let json = {};
             try {
@@ -4321,69 +5296,75 @@
     try {
       // Selector de días: comportamiento modal-scoped
       try {
-        const dayButtons = document.querySelectorAll(".day-button");
-
-        dayButtons.forEach((button) => {
-          button.addEventListener("click", function (ev) {
-            try {
-              // encontrar el modal padre (si existe), si no usar document
-              const modal = this.closest(".modal-expert") || document;
-
-              // si el botón está deshabilitado, no hacer nada
-              if (
-                this.disabled ||
-                this.getAttribute("aria-disabled") === "true"
-              ) {
-                try {
-                  ev.preventDefault();
-                  ev.stopPropagation();
-                } catch (e) {}
-                return;
-              }
-
-              // toggle visual en el propio botón
-              this.classList.toggle("active");
-              try {
-                this.setAttribute(
-                  "aria-pressed",
-                  this.classList.contains("active") ? "true" : "false"
-                );
-              } catch (e) {}
-
-              // calcular días activos dentro de este modal únicamente
-              const activeDays = Array.from(
-                modal.querySelectorAll(".day-button.active")
-              ).map((btn) => btn.getAttribute("data-day"));
-
-              // actualizar el display dentro del modal
-              const daysDisplay = modal.querySelector(".days-display");
-              if (daysDisplay) {
-                daysDisplay.textContent =
-                  activeDays.length === 0
-                    ? "Ningún día seleccionado"
-                    : activeDays.join(", ");
-              }
-
-              // actualizar el hidden input dentro del modal (preferir _edit si existe)
-              try {
-                const diasHiddenEdit = modal.querySelector(
-                  "#diasDisponibles_edit"
-                );
-                const diasHidden = modal.querySelector("#diasDisponibles");
-                const targetHidden = diasHiddenEdit || diasHidden;
-                if (targetHidden)
-                  targetHidden.value = Array.isArray(activeDays)
-                    ? activeDays.join(",")
-                    : activeDays || "";
-              } catch (e) {}
-            } catch (e) {
-              // fallo silencioso para no romper otras inicializaciones
-            }
-          });
-        });
+        // NOTE: removed global per-button click binding to avoid duplicate
+        // handlers and double-toggle behavior. Per-modal handlers are
+        // attached when a modal is shown (see showExpertModal). The
+        // delegated document-level listener below remains as a fallback
+        // for dynamically created buttons.
       } catch (e) {
         // ignore
       }
+      // Delegated fallback: si por cualquier razón los botones no tienen listeners (p.ej. render dinámico),
+      // manejar clicks a nivel de documento y delegar en .day-button
+      try {
+        document.addEventListener("click", function (ev) {
+          try {
+            const btn =
+              ev.target &&
+              ev.target.closest &&
+              ev.target.closest(".day-button");
+            if (!btn) return;
+            // si ya fue manejado por el listener propio, salir cedo
+            // Si el botón ya tiene un listener directo enlazado, saltar la
+            // lógica delegada para evitar que se ejecute dos veces (doble
+            // toggle que cancela el cambio). El listener directo marca
+            // dataset._dayHandlerBound cuando se enlaza.
+            if (btn.dataset._dayHandlerBound === "true") return;
+
+            // si está deshabilitado, ignorar
+            if (btn.disabled || btn.getAttribute("aria-disabled") === "true") {
+              try {
+                ev.preventDefault();
+                ev.stopPropagation();
+              } catch (e) {}
+              return;
+            }
+
+            // Emular la lógica del handler directo
+            const modal = btn.closest(".modal-expert") || document;
+            btn.classList.toggle("active");
+            try {
+              btn.setAttribute(
+                "aria-pressed",
+                btn.classList.contains("active") ? "true" : "false"
+              );
+            } catch (e) {}
+
+            const activeDays = Array.from(
+              modal.querySelectorAll(".day-button.active")
+            ).map((b) => b.getAttribute("data-day"));
+            const daysDisplay = modal.querySelector(".days-display");
+            if (daysDisplay) {
+              daysDisplay.textContent =
+                activeDays.length === 0
+                  ? "Ningún día seleccionado"
+                  : activeDays.join(", ");
+            }
+
+            try {
+              const diasHiddenEdit = modal.querySelector(
+                "#diasDisponibles_edit"
+              );
+              const diasHidden = modal.querySelector("#diasDisponibles");
+              const targetHidden = diasHiddenEdit || diasHidden;
+              if (targetHidden)
+                targetHidden.value = Array.isArray(activeDays)
+                  ? activeDays.join(",")
+                  : activeDays || "";
+            } catch (e) {}
+          } catch (e) {}
+        });
+      } catch (e) {}
 
       // Toggle visibilidad de número de cuenta (botón con clase .toggle-password y input #numeroCuenta)
       const togglePasswordBtns = document.querySelectorAll(".toggle-password");
