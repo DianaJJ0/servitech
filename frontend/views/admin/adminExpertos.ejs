@@ -73,13 +73,6 @@
                 </select>
               </div>
             </div>
-            <div class="admin-controls__row admin-filter">
-              <label for="filtroTexto" class="admin-label admin-label--small">Buscar:</label>
-              <div class="admin-input-wrapper">
-                <input type="search" id="filtroTexto" class="admin-input admin-input--medium" placeholder="Nombre, email..."
-                  aria-label="Buscar por nombre o correo" data-filter="texto" />
-              </div>
-            </div>
           </div>
 
           <div class="expertos-grid">
@@ -257,13 +250,13 @@
               </label>
               <div class="days-selector">
                 <div class="days-buttons">
-                  <button type="button" class="day-button" data-day="lunes" disabled aria-disabled="true">L</button>
-                  <button type="button" class="day-button" data-day="martes" disabled aria-disabled="true">M</button>
-                  <button type="button" class="day-button" data-day="miercoles" disabled aria-disabled="true">X</button>
-                  <button type="button" class="day-button" data-day="jueves" disabled aria-disabled="true">J</button>
-                  <button type="button" class="day-button" data-day="viernes" disabled aria-disabled="true">V</button>
-                  <button type="button" class="day-button" data-day="sabado" disabled aria-disabled="true">S</button>
-                  <button type="button" class="day-button" data-day="domingo" disabled aria-disabled="true">D</button>
+                  <button type="button" class="day-button" data-day="lunes">L</button>
+                  <button type="button" class="day-button" data-day="martes">M</button>
+                  <button type="button" class="day-button" data-day="miercoles">X</button>
+                  <button type="button" class="day-button" data-day="jueves">J</button>
+                  <button type="button" class="day-button" data-day="viernes">V</button>
+                  <button type="button" class="day-button" data-day="sabado">S</button>
+                  <button type="button" class="day-button" data-day="domingo">D</button>
                 </div>
                 <div class="days-display">Ningún día seleccionado</div>
               </div>
@@ -272,12 +265,27 @@
 
             <!-- Estado (custom select para control visual y accesibilidad) -->
             <div class="form-group">
-              <label class="modal-expert__label" for="status_display">
+              <label class="modal-expert__label" for="statusInput">
                 <i class="fas fa-toggle-on modal-expert__icon"></i>
                 Estado
               </label>
-              <!-- Estado: readonly display is created/managed by JS when needed -->
-              <input type="hidden" id="statusInput" name="status" value="">
+              <div class="select-with-icons">
+                <!-- control custom: mantiene compatibilidad con el formulario mediante un input hidden -->
+                <div class="custom-select" data-name="status" role="combobox" aria-haspopup="listbox" aria-expanded="false"
+                  tabindex="0">
+                  <input type="hidden" id="statusInput" name="status" value="active">
+                  <div class="custom-select__trigger" aria-labelledby="statusLabel">
+                    <span class="custom-select__value" id="statusLabel">Selecciona un estado</span>
+                    <span class="custom-select__arrowActivo</span>
+                    <i class="fas fa-chevron-down icon-right" aria-hidden="true"></i>
+                  </div>
+                  <ul class="custom-select__options" role="listbox">
+                    <li role="option" data-value="active" aria-selected="true">Activo</li>
+                    <li role="option" data-value="pending" aria-selected="false">Pendiente</li>
+                    <li role="option" data-value="inactive" aria-selected="false">Inactivo</li>
+                  </ul>
+                </div>
+              </div>
               <small class="modal-expert__hint">Define si el experto puede recibir solicitudes</small>
             </div>
 
@@ -331,21 +339,31 @@
 
                 <div class="bank-grid">
                   <div class="form-group">
-                    <label class="modal-expert__label" for="banco">
+                    <label class="modal-expert__label" for="banco_hidden_view">
                       <i class="fas fa-university modal-expert__icon"></i>
                       Banco *
                     </label>
-                    <!-- Banco: readonly display is created/managed by JS when needed -->
-                    <input type="hidden" id="banco_hidden_view" name="banco">
+                    <!-- Campo visible para seleccionar banco al crear un experto. Usamos el id existente para compatibilidad con el JS. -->
+                    <select id="banco_hidden_view" name="banco" class="modal-expert__input">
+                      <option value="">-- Seleccionar banco --</option>
+                      <option value="Bancolombia">Bancolombia</option>
+                      <option value="Nequi">Nequi</option>
+
+                    </select>
                   </div>
 
                   <div class="form-group">
-                    <label class="modal-expert__label" for="tipoCuenta">
+                    <label class="modal-expert__label" for="tipoCuenta_hidden_view">
                       <i class="fas fa-credit-card modal-expert__icon"></i>
                       Tipo de cuenta *
                     </label>
-                    <!-- Tipo de cuenta: readonly display is created/managed by JS when needed -->
-                    <input type="hidden" id="tipoCuenta_hidden_view" name="tipoCuenta">
+                    <!-- Campo visible para seleccionar tipo de cuenta al crear un experto. Usamos el id existente para compatibilidad con el JS. -->
+                    <select id="tipoCuenta_hidden_view" name="tipoCuenta" class="modal-expert__input">
+                      <option value="">-- Seleccionar tipo de cuenta --</option>
+                      <option value="ahorros">Ahorros</option>
+                      <option value="corriente">Corriente</option>
+                      <option value="Nequi">Nequi</option>
+                    </select>
                   </div>
 
                   <div class="form-group">
@@ -423,13 +441,17 @@
                 </div>
               </div>
             </div>
-
           </div>
         </form>
       </div>
 
       <div class="modal-expert__footer">
-        <button class="btn btn-primary" type="button" data-action="close-modal" aria-label="Cerrar">Cerrar</button>
+        <button class="btn btn-outline" type="button" data-action="close-modal" aria-label="Cancelar">Cancelar</button>
+        <button class="btn btn-primary" type="submit" form="addExpertForm" id="btnCreateExpert"
+          aria-label="Crear experto">
+          <i class="fas fa-user-plus" aria-hidden="true"></i>
+          Crear experto
+        </button>
       </div>
     </div>
   </div>
