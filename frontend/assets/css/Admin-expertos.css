@@ -432,6 +432,10 @@ textarea[aria-invalid="true"] {
   cursor: pointer;
   transition: all var(--ae-transition);
   text-align: center;
+  /* Asegurar que los botones acepten clicks aunque haya overlays o reglas globales */
+  pointer-events: auto !important;
+  position: relative !important;
+  z-index: 2 !important;
 }
 
 .day-button.active {

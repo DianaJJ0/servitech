@@ -231,4 +231,13 @@ router.put(
   expertoController.adminActualizarPerfilExperto
 );
 
+// Crear experto manualmente (admin + API Key)
+router.post(
+  "/",
+  apiKeyMiddleware,
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("admin"),
+  (req, res, next) => expertoController.adminCrearExperto(req, res, next)
+);
+
 module.exports = router;
