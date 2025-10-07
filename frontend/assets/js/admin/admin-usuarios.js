@@ -326,47 +326,56 @@ function escapeHtml(str) {
 // -----------------------
 // Modales y comportamiento
 // -----------------------
+/**
+ * Abre un modal por su ID con animaciones CSS
+ * @param {string} id - ID del modal a abrir
+ */
 function openModalById(id) {
   const m = document.getElementById(id);
   if (!m) return;
-  // Ensure backdrop and dialog are visible and on top
+  m.setAttribute("aria-hidden", "false");
   m.style.display = "block";
-  try {
-    const dialog = m.querySelector(".admin-modal__dialog");
-    const backdrop = m.querySelector(".admin-modal__backdrop");
-    if (backdrop) {
-      backdrop.style.display = "block";
-      backdrop.style.position = "fixed";
-      backdrop.style.left = "0";
-      backdrop.style.top = "0";
-      backdrop.style.width = "100%";
-      backdrop.style.height = "100%";
-      backdrop.style.background = "rgba(0,0,0,0.4)";
-      backdrop.style.zIndex = "9998";
-    }
-    if (dialog) {
-      dialog.style.position = "fixed";
-      dialog.style.left = "50%";
-      dialog.style.top = "50%";
-      dialog.style.transform = "translate(-50%, -50%)";
-      dialog.style.zIndex = "9999";
-      dialog.style.maxHeight = "90vh";
-      dialog.style.overflow = "auto";
-    }
-  } catch (e) {}
+  // small delay to allow the browser to apply display before starting transition
+  requestAnimationFrame(() => {
+    m.classList.add("active");
+  });
   document.body.classList.add("modal-open");
 }
 
+/**
+ * Cierra un modal buscando el elemento .admin-modal más cercano
+ * @param {HTMLElement} el - Elemento dentro del modal (ej: botón con data-close)
+ */
 function closeModalByElement(el) {
   if (!el) return;
-  const modal = el.closest(".admin-modal");
-  if (!modal) return;
-  modal.style.display = "none";
+  const m = el.closest(".admin-modal");
+  if (!m) return;
+  m.classList.remove("active");
+  m.setAttribute("aria-hidden", "true");
+  // wait for CSS transition to finish before hiding the element
+  setTimeout(() => {
+    m.style.display = "none";
+  }, 260);
+  document.body.classList.remove("modal-open");
+}
+
+/**
+ * Cierra un modal por su ID con animaciones CSS
+ * @param {string} id - ID del modal a cerrar
+ */
+function closeModalById(id) {
+  const m = document.getElementById(id);
+  if (!m) return;
+  m.classList.remove("active");
+  m.setAttribute("aria-hidden", "true");
+  setTimeout(() => {
+    m.style.display = "none";
+  }, 260);
   document.body.classList.remove("modal-open");
 }
 
 function initUserModals() {
-  // Delegación en el tbody para actions (view/edit/delete)
+  // Delegación en el tbody para acciones (ver/editar/eliminar)
   const tbody = document.getElementById("usuarios-tbody");
   if (tbody && !tbody.__userDelegation) {
     tbody.__userDelegation = true;
@@ -468,21 +477,21 @@ function initUserModals() {
     });
   }
 
-  // Document-level fallback delegation (covers cases where event doesn't reach tbody)
+  // Delegación a nivel de documento (cubre casos donde el evento no llega al tbody)
   if (!document.__userDelegationGlobal) {
     document.__userDelegationGlobal = true;
     document.addEventListener("click", function (e) {
       const btn = e.target.closest("button[data-action]");
       if (!btn) return;
-      // If the tbody handler already processed, this will still be idempotent
+      // Si el manejador del tbody ya procesó el evento, esto seguirá siendo idempotente
       try {
         console.debug(
           "[admin-usuarios] document click action=",
           btn.getAttribute("data-action")
         );
       } catch (e) {}
-      // reuse same behavior: simulate a click on tbody to reuse code path by calling the handler directly
-      // We'll find the nearest row and call the same logic inline
+      // Reutilizar el mismo comportamiento: simular un click en el tbody para aprovechar la misma ruta de código llamando al manejador directamente
+      // Buscaremos la fila más cercana y aplicaremos la misma lógica en línea
       const row = btn.closest("tr");
       if (!row) return;
       const cols = row.children;
@@ -491,7 +500,7 @@ function initUserModals() {
       const roles = cols[2] ? cols[2].innerText.trim() : "";
       const estado = cols[3] ? cols[3].innerText.trim() : "";
       const action = btn.getAttribute("data-action");
-      // handle actions (duplicate of tbody handler)
+      // manejar acciones (duplicado del manejador del tbody)
       if (action === "view") {
         const viewNombre = document.getElementById("view-nombre");
         const viewEmail = document.getElementById("view-email");
@@ -562,6 +571,113 @@ function initUserModals() {
       closeModalByElement(cl);
     }
   });
+
+  // Abrir modal Nuevo Cliente cuando se pulsa el botón superior
+  const btnAddUser = document.getElementById("btnAddUser");
+  if (btnAddUser) {
+    btnAddUser.addEventListener("click", function () {
+      openModalById("modalCreateUser");
+    });
+  }
+
+  // Crear usuario desde modal (delegado para soportar modal insertado después de cargar el script)
+  if (!document.__adminUsuariosCreateDelegated) {
+    document.__adminUsuariosCreateDelegated = true;
+    document.addEventListener("click", function (e) {
+      const target = e.target.closest("#btnCreateUser");
+      if (!target) return;
+      e.preventDefault();
+
+      const nombreEl = document.getElementById("create-nombre");
+      const apellidoEl = document.getElementById("create-apellido");
+      const emailEl = document.getElementById("create-email");
+      const passwordEl = document.getElementById("create-password");
+      const rolesEl = document.getElementById("create-roles");
+      const estadoEl = document.getElementById("create-estado");
+
+      const nombre = nombreEl ? nombreEl.value.trim() : "";
+      const apellido = apellidoEl ? apellidoEl.value.trim() : "";
+      const email = emailEl ? emailEl.value.trim() : "";
+      const password = passwordEl ? passwordEl.value : "";
+      const roles = rolesEl
+        ? (rolesEl.value || "")
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : [];
+      const estado = (estadoEl && estadoEl.value) || "activo";
+
+      if (!nombre || !apellido || !email || !password) {
+        alert("Nombre, apellido, email y contraseña son requeridos");
+        return;
+      }
+
+      // UX: deshabilitar botón para evitar envíos duplicados
+      const btn = target;
+      if (btn) btn.setAttribute("disabled", "");
+
+      const payload = { nombre, apellido, email, password, roles, estado };
+      const headers = getAuthHeaders();
+
+      console.debug("[admin-usuarios] crear usuario payload=", payload);
+
+      fetch("/api/usuarios/registro", {
+        method: "POST",
+        credentials: "same-origin",
+        headers,
+        body: JSON.stringify(payload),
+      })
+        .then(async (r) => {
+          const body = await r.json().catch(() => null);
+          console.debug(
+            "[admin-usuarios] crear usuario response",
+            r.status,
+            body
+          );
+          if (!r.ok) {
+            throw new Error((body && body.mensaje) || r.status);
+          }
+          // mostrar mensaje de éxito si el backend lo proporciona
+          const successMsg =
+            (body && body.mensaje) || "Usuario creado correctamente.";
+          try {
+            alert(successMsg);
+          } catch (e) {
+            console.log(successMsg);
+          }
+
+          // cerrar modal: intentar varias vías
+          if (typeof closeModalById === "function") {
+            closeModalById("modalCreateUser");
+          } else if (typeof closeModalByElement === "function") {
+            const modal = document.getElementById("modalCreateUser");
+            if (modal)
+              closeModalByElement(modal.querySelector("[data-close]") || modal);
+          } else {
+            const modal = document.getElementById("modalCreateUser");
+            if (modal) {
+              modal.classList.remove("active");
+              modal.setAttribute("aria-hidden", "true");
+              modal.style.display = "none";
+              document.body.classList.remove("modal-open");
+            }
+          }
+
+          // recargar la lista (volver a la primera página)
+          usuariosPaginationState.page = 1;
+          loadUsuarios(1, usuariosPaginationState.limit);
+        })
+        .catch((err) => {
+          console.error("Error creando usuario", err);
+          alert(
+            "Error creando usuario: " + (err && err.message ? err.message : err)
+          );
+        })
+        .finally(() => {
+          if (btn) btn.removeAttribute("disabled");
+        });
+    });
+  }
 
   // Guardar edición
   const saveBtn = document.getElementById("btnSaveEditUser");

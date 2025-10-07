@@ -1383,12 +1383,13 @@
 
   /* Ocultar el contenedor de la tabla para que no interfiera */
   .table-container.admin-table--expertos-container {
-    background-color: transparent;
-    border: none;
-    box-shadow: none;
-    overflow: visible;
-    margin: 0;
-    padding: 0;
+    background-color: var(--admin-card-bg);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--admin-border-color);
+  overflow: hidden;
+    overflow-x: hidden;
+  box-shadow: var(--admin-shadow);
+  margin: 0 0rem;
   }
 
   /* Ajustes específicos para tablets más pequeñas */

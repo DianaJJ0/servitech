@@ -670,7 +670,7 @@ router.get("/expertos/:email/calendario", async (req, res) => {
       if (asesoriaRes.ok) {
         const data = await asesoriaRes.json();
         // SOLUCIÓN: asegura que asesoriasExistentes es SIEMPRE un array
-        asesoriasExistentes = Array.isArray(data) ? data : (data.asesorias || []);
+        asesoriasExistentes = Array.isArray(data) ? data : data.asesorias || [];
         asesoriasExistentes = asesoriasExistentes.filter((a) =>
           ["pendiente-aceptacion", "confirmada"].includes(a.estado)
         );
@@ -709,14 +709,21 @@ router.get("/confirmacion-asesoria", async (req, res) => {
 
   try {
     if (asesoriaId) {
-      const asesoriaRes = await fetch(`${BACKEND_URL}/api/asesorias/${asesoriaId}`, {
-        headers: req.session.user?.token ? { Authorization: `Bearer ${req.session.user.token}` } : {},
-      });
+      const asesoriaRes = await fetch(
+        `${BACKEND_URL}/api/asesorias/${asesoriaId}`,
+        {
+          headers: req.session.user?.token
+            ? { Authorization: `Bearer ${req.session.user.token}` }
+            : {},
+        }
+      );
       if (asesoriaRes.ok) asesoria = await asesoriaRes.json();
     }
     if (pagoId) {
       const pagoRes = await fetch(`${BACKEND_URL}/api/pagos/${pagoId}`, {
-        headers: req.session.user?.token ? { Authorization: `Bearer ${req.session.user.token}` } : {},
+        headers: req.session.user?.token
+          ? { Authorization: `Bearer ${req.session.user.token}` }
+          : {},
       });
       if (pagoRes.ok) pago = await pagoRes.json();
     }
@@ -741,7 +748,12 @@ router.get("/pasarela-pagos", (req, res) => {
   // Validar que el usuario esté autenticado
   if (!req.session.user || !req.session.user.token) {
     console.log("Usuario no autenticado, redirigiendo a login");
-    return res.redirect("/login.html?next=" + encodeURIComponent("/pasarela-pagos?" + new URLSearchParams(req.query).toString()));
+    return res.redirect(
+      "/login.html?next=" +
+        encodeURIComponent(
+          "/pasarela-pagos?" + new URLSearchParams(req.query).toString()
+        )
+    );
   }
 
   let expertoSeleccionado = null;
@@ -778,14 +790,21 @@ router.get("/pasarela-pagos", (req, res) => {
     if (!isNaN(duracionTemp) && [1, 1.5, 2, 3].includes(duracionTemp)) {
       duracion = duracionTemp;
     } else {
-      console.warn("Duración inválida en pasarela de pagos:", req.query.duracion);
+      console.warn(
+        "Duración inválida en pasarela de pagos:",
+        req.query.duracion
+      );
       duracion = 1; // valor por defecto
     }
   } else {
     duracion = 1; // valor por defecto
   }
 
-  console.log("Datos procesados para pasarela:", { expertoSeleccionado, monto, duracion });
+  console.log("Datos procesados para pasarela:", {
+    expertoSeleccionado,
+    monto,
+    duracion,
+  });
 
   res.render("pasarelaPagos", {
     user: req.session.user,
@@ -1083,6 +1102,128 @@ router.put(
       return res.status(resp.status).json(body);
     } catch (e) {
       console.error("proxy rechazar error:", e && e.message);
+      return res.status(500).json({ error: "proxy_error", mensaje: e.message });
+    }
+  }
+);
+
+// Proxy seguro: crear experto (POST)
+router.post("/admin/proxy/expertos", requireAdmin, async (req, res) => {
+  try {
+    const backendUrl = `${BACKEND_URL}/api/expertos`;
+    const headers = { "Content-Type": "application/json" };
+    if (process.env.API_KEY) headers["x-api-key"] = process.env.API_KEY;
+    if (req.session && req.session.user && req.session.user.token) {
+      headers["Authorization"] = `Bearer ${req.session.user.token}`;
+    }
+    const resp = await fetch(backendUrl, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(req.body),
+    });
+    const bodyText = await resp.text();
+    let body = null;
+    try {
+      body = JSON.parse(bodyText);
+    } catch (e) {
+      body = { mensaje: bodyText };
+    }
+    return res.status(resp.status).json(body);
+  } catch (e) {
+    console.error("proxy crear experto error:", e && e.message);
+    return res.status(500).json({ error: "proxy_error", mensaje: e.message });
+  }
+});
+
+// Proxy seguro: actualizar experto (PUT)
+router.put("/admin/proxy/expertos/:id", requireAdmin, async (req, res) => {
+  try {
+    const id = req.params.id;
+    // NOTA: el backend expone la ruta administrativa para actualizar perfil en
+    // /api/expertos/admin/:id, no en /api/expertos/:id. Usar la ruta /admin/:id.
+    const backendUrl = `${BACKEND_URL}/api/expertos/admin/${encodeURIComponent(
+      id
+    )}`;
+    const headers = { "Content-Type": "application/json" };
+    if (process.env.API_KEY) headers["x-api-key"] = process.env.API_KEY;
+    if (req.session && req.session.user && req.session.user.token) {
+      headers["Authorization"] = `Bearer ${req.session.user.token}`;
+    }
+    const resp = await fetch(backendUrl, {
+      method: "PUT",
+      headers,
+      body: JSON.stringify(req.body),
+    });
+    const bodyText = await resp.text();
+    let body = null;
+    try {
+      body = JSON.parse(bodyText);
+    } catch (e) {
+      body = { mensaje: bodyText };
+    }
+    return res.status(resp.status).json(body);
+  } catch (e) {
+    console.error("proxy actualizar experto error:", e && e.message);
+    return res.status(500).json({ error: "proxy_error", mensaje: e.message });
+  }
+});
+
+// Proxy para activar/inactivar experto (PUT /admin/proxy/expertos/:email/activo)
+router.put(
+  "/admin/proxy/expertos/:email/activo",
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const email = req.params.email;
+      const backendUrl = `${BACKEND_URL}/api/expertos/${encodeURIComponent(
+        email
+      )}/activo`;
+      const headers = { "Content-Type": "application/json" };
+      const willInjectApiKey = !!process.env.API_KEY;
+      if (willInjectApiKey) headers["x-api-key"] = process.env.API_KEY;
+      const hasAuth = !!(
+        req.session &&
+        req.session.user &&
+        req.session.user.token
+      );
+      if (hasAuth) {
+        headers["Authorization"] = `Bearer ${req.session.user.token}`;
+      }
+
+      // Diagnostic log (no imprimir API_KEY completo)
+      try {
+        const payloadPreview = JSON.stringify(req.body || {}).slice(0, 1000);
+        console.log(
+          `[proxy activar] ${req.method} ${req.originalUrl} -> ${backendUrl} injectXApiKey=${willInjectApiKey} hasAuth=${hasAuth} payloadPreview=${payloadPreview}`
+        );
+      } catch (e) {}
+
+      const resp = await fetch(backendUrl, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify(req.body),
+      });
+
+      const bodyText = await resp.text().catch(() => "");
+      let body = null;
+      try {
+        body = JSON.parse(bodyText);
+      } catch (e) {
+        body = { mensaje: bodyText };
+      }
+
+      try {
+        const respPreview = (
+          typeof bodyText === "string" ? bodyText : JSON.stringify(body)
+        ).slice(0, 1000);
+        console.log(
+          `[proxy activar] backend status=${resp.status} bodyPreview=${respPreview}`
+        );
+      } catch (e) {}
+
+      return res.status(resp.status).json(body);
+    } catch (e) {
+      console.error("proxy activar error:", e && e.message);
       return res.status(500).json({ error: "proxy_error", mensaje: e.message });
     }
   }

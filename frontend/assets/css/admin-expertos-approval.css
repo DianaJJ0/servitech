@@ -1,4 +1,13 @@
-/* Estilos para funcionalidad de aprobación de expertos */
+/* Estilos para funcionalidad de aprobación de expertos (tema basado en variables) */
+
+/* Colores auxiliares con fallback si no estuvieran definidos en :root */
+:root {
+  /* No sobreescribe si ya existen, solo proporciona valores por defecto */
+  --admin-reject: #ef4444;
+  --admin-reject-hover: #dc2626;
+  --admin-warning: #f59e0b;
+  --admin-warning-hover: #d97706;
+}
 
 /* Botones de aprobación y rechazo */
 .btn-approve,
@@ -13,24 +22,26 @@
   align-items: center;
   gap: 0.25rem;
   transition: all 0.2s ease;
+  box-shadow: var(--admin-shadow);
+  color: var(--admin-text-primary);
 }
 
 .btn-approve {
-  background-color: #10b981;
-  color: white;
+  background-color: var(--admin-accent-color);
+  color: var(--admin-text-primary);
 }
 
 .btn-approve:hover {
-  background-color: #059669;
+  background-color: var(--admin-accent-secondary);
 }
 
 .btn-reject {
-  background-color: #ef4444;
-  color: white;
+  background-color: var(--admin-reject);
+  color: var(--admin-text-primary);
 }
 
 .btn-reject:hover {
-  background-color: #dc2626;
+  background-color: var(--admin-reject-hover);
 }
 
 .btn-approve:disabled,
@@ -41,43 +52,44 @@
 
 /* Botones de activar/inactivar */
 .btn-activate {
-  background-color: #10b981;
-  color: white;
+  background-color: var(--admin-accent-color);
+  color: var(--admin-text-primary);
   padding: 0.25rem 0.5rem;
   border: none;
   border-radius: 4px;
   font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
+  box-shadow: var(--admin-shadow);
 }
 
 .btn-activate:hover {
-  background-color: #059669;
+  background-color: var(--admin-accent-secondary);
 }
 
 .btn-warning {
-  background-color: #f59e0b;
-  color: white;
+  background-color: var(--admin-warning);
+  color: var(--admin-text-primary);
 }
 
 .btn-warning:hover {
-  background-color: #d97706;
+  background-color: var(--admin-warning-hover);
 }
 
 /* Badges de estado */
 .badge--pending {
-  background-color: #fbbf24;
-  color: #92400e;
+  background-color: var(--admin-warning);
+  color: var(--admin-text-primary);
 }
 
 .badge--active {
-  background-color: #10b981;
-  color: white;
+  background-color: var(--admin-accent-color);
+  color: var(--admin-text-primary);
 }
 
 .badge--inactive {
-  background-color: #6b7280;
-  color: white;
+  background-color: var(--admin-border-color);
+  color: var(--admin-text-secondary);
 }
 
 /* Filtros */
@@ -86,9 +98,11 @@
   gap: 1rem;
   align-items: center;
   padding: 1rem;
-  background-color: #f9fafb;
+  background-color: var(--admin-card-bg);
   border-radius: 8px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--admin-border-color);
+  color: var(--admin-text-primary);
+  box-shadow: var(--admin-shadow);
 }
 
 .filter-group {
@@ -99,17 +113,18 @@
 
 .filter-select {
   padding: 0.5rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--admin-border-color);
   border-radius: 4px;
-  background-color: white;
+  background-color: var(--admin-bg);
+  color: var(--admin-text-primary);
   font-size: 0.875rem;
   min-width: 150px;
 }
 
 .filter-select:focus {
   outline: none;
-  box-shadow: 0 0 0 2px #3b82f6;
-  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px var(--admin-accent-color);
+  border-color: var(--admin-accent-color);
 }
 
 /* Responsivo */
