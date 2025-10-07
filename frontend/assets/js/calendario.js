@@ -141,13 +141,6 @@ function generarCalendario() {
   const mesActual = fechaActualCalendario.getMonth();
   const anoActual = fechaActualCalendario.getFullYear();
 
-  console.log(
-    "Generando calendario para:",
-    obtenerNombreMes(mesActual),
-    anoActual
-  );
-
-  // Estructura del calendario
   calendarContainer.innerHTML = `
     <div class="calendar-header">
       <div class="calendar-nav">
@@ -181,17 +174,51 @@ function generarCalendario() {
     </div>
   `;
 
-  // Generar días del mes
   generarDiasDelMes(anoActual, mesActual);
 
-  // Event listeners para navegación
-  document
-    .getElementById("prevMonth")
-    .addEventListener("click", navegarMesAnterior);
-  document
-    .getElementById("nextMonth")
-    .addEventListener("click", navegarMesSiguiente);
+  document.getElementById("prevMonth").addEventListener("click", navegarMesAnterior);
+  document.getElementById("nextMonth").addEventListener("click", navegarMesSiguiente);
 }
+
+/**
+ * Navega al mes anterior
+ */
+function navegarMesAnterior() {
+  fechaActualCalendario.setMonth(fechaActualCalendario.getMonth() - 1);
+  generarCalendario();
+  limpiarSelecciones();
+}
+
+/**
+ * Navega al mes siguiente
+ */
+function navegarMesSiguiente() {
+  fechaActualCalendario.setMonth(fechaActualCalendario.getMonth() + 1);
+  generarCalendario();
+  limpiarSelecciones();
+}
+
+/**
+ * Limpia las selecciones actuales
+ */
+function limpiarSelecciones() {
+  fechaSeleccionada = null;
+  horaSeleccionada = null;
+
+  const fechaInput = document.getElementById("fechaSeleccionada");
+  const horaInput = document.getElementById("horaSeleccionada");
+
+  if (fechaInput) fechaInput.value = "";
+  if (horaInput) horaInput.value = "";
+
+  const horariosSection = document.getElementById("horariosSection");
+  if (horariosSection) {
+    horariosSection.style.display = "none";
+  }
+
+  actualizarResumen();
+}
+
 
 /**
  * Navega al mes anterior
@@ -252,25 +279,19 @@ function generarDiasDelMes(ano, mes) {
   const diasEnMes = ultimoDia.getDate();
   const diaSemanaInicio = primerDia.getDay();
   const hoy = new Date();
-  hoy.setHours(0, 0, 0, 0); // Reset time para comparación de solo fecha
+  hoy.setHours(0, 0, 0, 0);
 
   let html = "";
   let fecha = 1;
 
-  // Generar semanas (máximo 6 semanas)
   for (let semana = 0; semana < 6; semana++) {
     html += "<tr>";
-
-    // Generar días de la semana
     for (let dia = 0; dia < 7; dia++) {
       if (semana === 0 && dia < diaSemanaInicio) {
-        // Días vacíos al inicio del mes
         html += '<td class="calendar-day inactive"></td>';
       } else if (fecha > diasEnMes) {
-        // Días vacíos al final del mes
         html += '<td class="calendar-day inactive"></td>';
       } else {
-        // Días del mes actual
         const fechaActual = new Date(ano, mes, fecha);
         fechaActual.setHours(0, 0, 0, 0);
 
@@ -278,7 +299,7 @@ function generarDiasDelMes(ano, mes) {
         const esPasado = fechaActual < hoy;
         const esDisponible = !esPasado && esDiaDisponible(fechaActual);
         const esFuturoLejano =
-          fechaActual > new Date(hoy.getTime() + 90 * 24 * 60 * 60 * 1000); // 90 días
+          fechaActual > new Date(hoy.getTime() + 90 * 24 * 60 * 60 * 1000);
 
         let clases = ["calendar-day"];
         let titulo = "";
@@ -311,31 +332,25 @@ function generarDiasDelMes(ano, mes) {
         fecha++;
       }
     }
-
     html += "</tr>";
-
-    // Si ya terminamos el mes, salir del bucle
     if (fecha > diasEnMes) break;
   }
 
   calendarBody.innerHTML = html;
 
-  // Agregar event listeners a los días disponibles
   calendarBody.querySelectorAll("td.available").forEach((td) => {
     td.addEventListener("click", function () {
       seleccionarFecha(this.dataset.fecha);
     });
-
-    // Agregar efecto hover
     td.addEventListener("mouseenter", function () {
       this.classList.add("hover");
     });
-
     td.addEventListener("mouseleave", function () {
       this.classList.remove("hover");
     });
   });
 }
+
 
 /**
  * Verifica si un día está disponible para asesorías
@@ -421,9 +436,6 @@ function generarHorariosDisponibles(fecha) {
     return;
   }
 
-  console.log("Generando horarios para fecha:", fecha);
-
-  // Horarios disponibles de 8:00 a 17:30 (permite asesorías que terminen máximo a las 18:00)
   const horarios = [];
   for (let hora = 8; hora <= 17; hora++) {
     horarios.push(`${hora.toString().padStart(2, "0")}:00`);
@@ -436,17 +448,14 @@ function generarHorariosDisponibles(fecha) {
   horarios.forEach((horario) => {
     const disponible = verificarDisponibilidadHorario(fecha, horario);
     const clases = ["horario-slot"];
-
     if (disponible) {
       clases.push("disponible");
     } else {
       clases.push("ocupado");
     }
-
     const titulo = disponible
       ? "Horario disponible - Click para seleccionar"
       : "No disponible para la duración seleccionada";
-
     html += `
       <div class="${clases.join(" ")}"
            data-horario="${horario}"
@@ -459,8 +468,6 @@ function generarHorariosDisponibles(fecha) {
   });
 
   horariosGrid.innerHTML = html;
-
-  console.log("Horarios generados:", horarios.length);
 }
 
 /**
@@ -471,7 +478,6 @@ function generarHorariosDisponibles(fecha) {
  */
 function verificarDisponibilidadHorario(fecha, horario) {
   try {
-    // Obtener duración seleccionada
     const duracionSeleccionada = document.querySelector(
       'input[name="duracion"]:checked'
     );
@@ -479,29 +485,32 @@ function verificarDisponibilidadHorario(fecha, horario) {
       ? parseInt(duracionSeleccionada.value)
       : 60;
 
-    // Crear objetos Date para el horario
     const fechaHoraInicio = new Date(`${fecha}T${horario}:00`);
     const fechaHoraFin = new Date(
       fechaHoraInicio.getTime() + duracionMinutos * 60000
     );
 
-    // Verificar que no exceda las 18:00
+    // Limitar máximo hasta 18:00
     const limiteHora = new Date(`${fecha}T18:00:00`);
     if (fechaHoraFin > limiteHora) {
-      console.log(`Horario ${horario} rechazado: excede límite de 18:00`);
       return false;
     }
 
-    // Verificar que no sea en el pasado
-    const ahora = new Date();
-    if (fechaHoraInicio <= ahora) {
-      console.log(`Horario ${horario} rechazado: es en el pasado`);
-      return false;
+    // SOLO si el día seleccionado es hoy, bloquea horarios pasados
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    const fechaSeleccionadaDate = new Date(fecha);
+    fechaSeleccionadaDate.setHours(0, 0, 0, 0);
+
+    if (fechaSeleccionadaDate.getTime() === hoy.getTime()) {
+      const ahora = new Date();
+      if (fechaHoraInicio <= ahora) {
+        return false;
+      }
     }
 
     // Verificar conflictos con asesorías existentes
     for (const asesoria of asesoriasExistentes) {
-      // Solo considerar asesorías activas (confirmadas o en progreso)
       if (
         !["confirmada", "en-progreso", "pendiente-aceptacion"].includes(
           asesoria.estado
@@ -509,21 +518,14 @@ function verificarDisponibilidadHorario(fecha, horario) {
       ) {
         continue;
       }
-
       const asesoriaInicio = new Date(asesoria.fechaHoraInicio);
       const asesoriaFin = new Date(
         asesoriaInicio.getTime() + (asesoria.duracionMinutos || 60) * 60000
       );
-
-      // Verificar si hay solapamiento
       if (fechaHoraInicio < asesoriaFin && fechaHoraFin > asesoriaInicio) {
-        console.log(
-          `Horario ${horario} rechazado: conflicto con asesoría existente`
-        );
         return false;
       }
     }
-
     return true;
   } catch (error) {
     console.error("Error verificando disponibilidad:", error);

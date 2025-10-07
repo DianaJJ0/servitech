@@ -88,7 +88,6 @@
                 <i class="fas fa-calendar-check"></i>
                 Resumen de tu asesoría
               </h2>
-
               <div id="resumenDatos" class="summary-content">
                 <div class="loading-placeholder">
                   <i class="fas fa-spinner fa-spin"></i>
@@ -97,43 +96,48 @@
               </div>
             </div>
 
+            <!-- FORMULARIO DE PAGO -->
+            <form id="formPago" class="form-pago" autocomplete="off">
+              <h3 class="form-title"><i class="fas fa-credit-card"></i> Información para el pago</h3>
+              <div class="form-group">
+                <label for="nombrePago">Nombre completo</label>
+                <input type="text" id="nombrePago" name="nombrePago" maxlength="80" required>
+              </div>
+              <div class="form-group">
+                <label for="emailPago">Correo electrónico</label>
+                <input type="email" id="emailPago" name="emailPago" maxlength="80" required>
+              </div>
+              <div class="form-group">
+                <label for="cedulaPago">Cédula/NIT</label>
+                <input type="text" id="cedulaPago" name="cedulaPago" maxlength="15" required pattern="^[0-9]+$">
+              </div>
+              <div class="form-group">
+                <label for="telefonoPago">Teléfono (opcional)</label>
+                <input type="text" id="telefonoPago" name="telefonoPago" maxlength="15">
+              </div>
+              <button id="btnPagar" class="btn-pay" type="submit">
+                <i class="fas fa-play"></i>
+                Pagar Ahora
+              </button>
+            </form>
+
             <!-- Área de procesamiento de pago -->
             <div class="payment-process">
-
-              <!-- Estado de carga -->
               <div id="loadingState" class="loading-state" style="display: none;">
                 <div class="loading-spinner">
                   <i class="fas fa-spinner fa-spin"></i>
                 </div>
                 <p class="loading-text">Procesando tu solicitud...</p>
               </div>
-
-              <!-- Contenedor del botón de pago -->
-              <div id="paymentContainer" class="payment-container">
-                <div class="payment-info">
-                  <h3>Procesar Pago</h3>
-                  <p class="payment-description">
-                    Tu pago será procesado. El dinero se retendrá hasta que la asesoría sea completada.
-                  </p>
-                </div>
-
-                <button id="btnPagar" class="btn-pay" onclick="procesarPago()">
-                  <i class="fas fa-play"></i>
-                  Pagar Ahora
-                </button>
-              </div>
-
-              <!-- Estado de éxito -->
               <div id="successState" class="success-state" style="display: none;">
                 <div class="success-icon">
                   <i class="fas fa-check-circle"></i>
                 </div>
                 <h3 class="success-title">Pago Procesado Exitosamente</h3>
                 <p class="success-message">
-                  Tu pago simulado ha sido procesado y la solicitud de asesoría fue enviada al experto.
+                  Tu pago ha sido procesado y la solicitud de asesoría fue enviada al experto.
                   Recibirás una notificación cuando el experto acepte o rechace tu solicitud.
                 </p>
-
                 <div class="success-actions">
                   <a href="/misAsesorias.html" class="btn btn-primary">
                     <i class="fas fa-calendar-alt"></i>
@@ -145,8 +149,6 @@
                   </a>
                 </div>
               </div>
-
-              <!-- Estado de error -->
               <div id="errorState" class="error-state" style="display: none;">
                 <div class="error-icon">
                   <i class="fas fa-exclamation-triangle"></i>
@@ -155,7 +157,6 @@
                 <p id="errorMessage" class="error-message">
                   Ocurrió un problema al procesar tu pago. Por favor, inténtalo nuevamente.
                 </p>
-
                 <div class="error-actions">
                   <button onclick="reintentar()" class="btn btn-primary">
                     <i class="fas fa-redo"></i>
@@ -168,7 +169,6 @@
                 </div>
               </div>
             </div>
-
           </section>
 
           <!-- Footer del pago -->
@@ -182,18 +182,8 @@
                 <i class="fas fa-undo-alt"></i>
                 <span>Reembolso automático si rechaza</span>
               </div>
-
-            </div>
-
-            <div class="payment-notice">
-              <p class="notice-text">
-                <i class="fas fa-info-circle"></i>
-                <strong>Nota:</strong> Este es un pago simulado para demostración.
-                No se procesará dinero real.
-              </p>
             </div>
           </footer>
-
         </section>
 
         <!-- Información adicional -->
@@ -206,7 +196,6 @@
               <h3>Asesoría Virtual</h3>
               <p>Se realizará por videollamada en la fecha y hora acordada</p>
             </article>
-
             <article class="info-card">
               <div class="info-icon">
                 <i class="fas fa-clock"></i>
@@ -214,7 +203,6 @@
               <h3>Confirmación en 24h</h3>
               <p>El experto tiene hasta 24 horas para confirmar tu solicitud</p>
             </article>
-
             <article class="info-card">
               <div class="info-icon">
                 <i class="fas fa-headset"></i>

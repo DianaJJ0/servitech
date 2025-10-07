@@ -158,11 +158,6 @@ const generarToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "2d" });
 };
 
-const {
-  validateNumeroCuentaByBank,
-  validateTitularName,
-} = require("../validators/expertValidators.js");
-
 /**
  * Registra un nuevo usuario en el sistema
  * @function registrarUsuario
@@ -429,18 +424,6 @@ const registrarUsuario = async (req, res) => {
           ? String(infoExperto.telefonoContacto)
           : undefined,
       };
-      // VALIDACION SERVER-SIDE: número de cuenta y titular
-      const cuentaCheck = validateNumeroCuentaByBank(
-        infoExpToSave.banco,
-        infoExpToSave.numeroCuenta
-      );
-      if (!cuentaCheck.valid) {
-        return res.status(400).json({ mensaje: cuentaCheck.message });
-      }
-      const titularCheck = validateTitularName(infoExpToSave.titular);
-      if (!titularCheck.valid) {
-        return res.status(400).json({ mensaje: titularCheck.message });
-      }
       // Use the enum defined in the Usuario model
       estadoUsuario = "pendiente-verificacion"; // Experto queda pendiente hasta aprobación admin
       // Si el usuario solicitó ser experto, asegúrate de incluir el rol 'experto'
@@ -1092,16 +1075,6 @@ const actualizarPerfilUsuario = async (req, res) => {
             "Faltan campos obligatorios para actualizar el perfil de experto. Revisa todos los campos y selecciona al menos una categoría.",
         });
       }
-      // Server-side validate numeroCuenta + titular
-      const cuentaCheckUp = validateNumeroCuentaByBank(
-        datos.banco,
-        datos.numeroCuenta
-      );
-      if (!cuentaCheckUp.valid)
-        return res.status(400).json({ mensaje: cuentaCheckUp.message });
-      const titularCheckUp = validateTitularName(datos.titular);
-      if (!titularCheckUp.valid)
-        return res.status(400).json({ mensaje: titularCheckUp.message });
       usuario.infoExperto = {
         descripcion: datos.descripcion,
         precioPorHora: datos.precioPorHora,
