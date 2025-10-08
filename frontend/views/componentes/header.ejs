@@ -49,22 +49,16 @@
                             <a href="/editarExperto" class="dropdown-item"><i class="fas fa-calendar-alt"></i> Editar
                                 datos de experto</a>
                             <% } %>
-                                <button class="dropdown-item" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Cerrar
-                                    sesion</button>
+                                <% if (user && user.roles && user.roles.includes('admin')) { %>
+                                    <a href="/admin/adminExpertos" class="dropdown-item"><i class="fas fa-tools"></i>
+                                        Panel de administradores</a>
+                                    <% } %>
+                                        <button class="dropdown-item" id="logoutBtn"><i class="fas fa-sign-out-alt"></i>
+                                            Cerrar
+                                            sesion</button>
                     </div>
             </div>
 
-            <!-- Boton de admin - solo si el usuario es admin -->
-            <% if (user && user.roles && user.roles.includes('admin')) { %>
-                <div class="admin-access" id="adminAccess" role="region" aria-label="Acceso administradores"
-                    style="display:none">
-                    <a href="/admin/adminExpertos" class="btn btn-admin" id="adminPanelBtn"
-                        title="Abrir panel de administradores">
-                        <i class="fas fa-tools" aria-hidden="true"></i>
-                        <span class="btn-text">Admin</span>
-                    </a>
-                </div>
-                <% } %>
         </div>
 
         <div class="mobile-menu-toggle mobile-only" id="mobileMenuToggle">
