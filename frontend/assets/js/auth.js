@@ -68,8 +68,10 @@ async function registrarUsuario(datosUsuario) {
 function logout() {
   localStorage.removeItem("token");
   localStorage.removeItem("usuario");
+  // Llama al backend para destruir la sesión
   fetch("/logout", { method: "POST", credentials: "include" }).finally(() => {
-    window.location.href = "/login.html";
+    // Redirige a la página de inicio para una experiencia de usuario consistente
+    window.location.href = "/";
   });
 }
 
