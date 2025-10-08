@@ -690,6 +690,29 @@ select.form-control:focus {
   margin-top: 0.25rem;
 }
 
+/* Forzar que los mensajes de error dentro de .form-field ocupen su propia línea
+   y aparezcan debajo del input, manteniendo el mismo espaciado que .form-hint */
+.form-field .mensaje-error {
+  display: block;
+  width: 100%;
+  margin-top: 0.25rem;
+  color: var(--danger);
+  font-size: 0.875rem;
+}
+
+/* Utility class para ocultar elementos (anteriormente inline style display:none) */
+.hidden {
+  display: none !important;
+}
+
+/* Reemplazo de inline style para el bloque derecho del header */
+.registro-header-right {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-end;
+}
+
 .email-field {
   padding: 0.75rem 1rem;
   background-color: var(--input-bg);
@@ -1118,6 +1141,8 @@ select:not([multiple]):focus {
   display: flex;
   flex-direction: column;
   margin-bottom: 1.5rem;
+  /* allow children to shrink properly inside grid/flex containers */
+  min-width: 0;
 }
 
 /* end of bank selector styles */
@@ -1304,6 +1329,37 @@ select:not([multiple]):focus {
   .bank-selector[aria-expanded="true"] .bank-options-container {
     transform: translateY(-50%);
   }
+}
+
+/* Force error messages inside the bank-data grid to appear full-width below the input.
+   Some grids and wrappers may cause the message to float to the side; this override
+   ensures the message is block-level and spans the available column. */
+.bank-data-grid .form-row .form-field .mensaje-error,
+.bank-data-grid .form-row.cols-4 .form-field .mensaje-error {
+  display: block !important;
+  width: 100% !important;
+  margin-top: 0.25rem !important;
+  color: var(--danger) !important;
+}
+
+/* Ensure correct visual order inside each form-field: input (password-wrapper) first,
+   then hint, then error. This avoids cases where error is visually shown beside the input
+   due to layout quirks. */
+.bank-data-grid .form-field .password-wrapper {
+  order: 1;
+}
+.bank-data-grid .form-field .form-hint {
+  order: 2;
+}
+.bank-data-grid .form-field .mensaje-error {
+  order: 3;
+  clear: both !important;
+}
+
+/* Extra enforcement for grid contexts where a child might still float: force the
+   mensaje-error to span available width. */
+.bank-data-grid .form-row .form-field .mensaje-error {
+  grid-column: 1 / -1 !important;
 }
 
 @media (max-width: 480px) {
