@@ -17,10 +17,10 @@
   <main class="registroExperto-main">
     <section class="registroExperto-section">
       <!-- Alertas -->
-      <div class="alert alert-danger" style="display: none;">
+      <div class="alert alert-danger hidden">
         Mensaje de error
       </div>
-      <div class="alert alert-success" style="display: none;">
+      <div class="alert alert-success hidden">
         Mensaje de éxito
       </div>
 
@@ -32,7 +32,7 @@
           <p class="subtitle registro-header-subtitle">Completa tu perfil para ofrecer asesorías de forma profesional
           </p>
         </div>
-        <div style="display:flex;flex-direction:column;gap:0.5rem;align-items:flex-end;">
+        <div class="registro-header-right">
           <span id="currentDate" class="registro-fecha"></span>
           <a href="/" class="back-link"><i class="fas fa-arrow-left"></i>Inicio</a>
         </div>
@@ -163,7 +163,6 @@
                         <option value="Bancolombia">Bancolombia</option>
                         <option value="Nequi">Nequi</option>
                       </select>
-                      <i class="fas fa-chevron-down select-arrow" aria-hidden="true"></i>
                     </div>
                     <p class="form-hint" id="banco-hint">El banco donde recibirás los pagos</p>
                     <div class="mensaje-error" id="errorBanco"></div>
@@ -179,7 +178,6 @@
                         <option value="Corriente">Corriente</option>
                         <option value="Nequi">Nequi</option>
                       </select>
-                      <i class="fas fa-chevron-down select-arrow" aria-hidden="true"></i>
                     </div>
                     <p id="tipo-cuenta-hint" class="form-hint">Tipo de cuenta bancaria</p>
                     <div class="mensaje-error" id="errorTipoCuenta"></div>
@@ -197,8 +195,6 @@
                     </div>
                     <p id="numero-cuenta-hint" class="form-hint">Número de cuenta asociado a la cuenta
                     </p>
-                    <p id="numero-cuenta-error" class="form-hint"
-                      style="color:var(--danger);display:none;margin-top:0.25rem;"></p>
                     <div class="mensaje-error" id="errorNumeroCuenta"></div>
                   </div>
                 </div>
@@ -224,7 +220,6 @@
                         <option value="CE">Cédula de extranjería</option>
                         <option value="NIT">NIT</option>
                       </select>
-                      <i class="fas fa-chevron-down select-arrow" aria-hidden="true"></i>
                     </div>
                   </div>
                   <!-- Número de documento -->
