@@ -61,10 +61,6 @@
   display: none; /* Oculto por defecto en desktop */
 }
 
-#adminAccess {
-  display: none !important; /* Oculto por defecto, solo JS (server-admin) lo mostrará */
-}
-
 .nav-item {
   display: flex;
   align-items: center;
@@ -87,6 +83,15 @@
   color: var(--primary-color);
   background-color: rgba(58, 142, 255, 0.1);
   transform: translateY(-2px);
+}
+
+/* Enlaces destacados que deben usar el color primario */
+.accent-link {
+  color: var(--primary-color);
+  transition: color var(--transition);
+}
+.accent-link:hover {
+  color: var(--primary-hover);
 }
 
 .auth-buttons {
@@ -135,28 +140,6 @@
   background-color: rgba(58, 142, 255, 0.1);
   transform: translateY(-2px);
 }
-
-.btn-admin {
-  background-color: var(--primary-color);
-  color: var(--text-color);
-  border: 1px solid var(--primary-color);
-  padding: 0.75rem 1.5rem;
-  border-radius: var(--btn-radius);
-  font-weight: 600;
-  font-size: 0.95rem;
-  transition: var(--transition);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  text-decoration: none;
-}
-
-.btn-admin:hover {
-  background-color: var(--primary-hover);
-  transform: translateY(-2px);
-  box-shadow: var(--btn-shadow);
-}
-
 .user-menu {
   display: flex;
   align-items: center;
@@ -314,31 +297,6 @@
   .nav-item:hover {
     background-color: rgba(58, 142, 255, 0.15);
     transform: translateY(-2px);
-  }
-
-  .auth-buttons {
-    flex-direction: column;
-    gap: 0.75rem;
-    width: 100%;
-    max-width: 250px;
-  }
-
-  /* Mantenemos los estilos originales de los botones en móvil */
-  .nav-container .btn-primary {
-    background-color: var(--primary-color);
-    color: var(--text-color);
-    border: none;
-    padding: 0.75rem 1.25rem;
-    border-radius: var(--btn-radius);
-    font-weight: 600;
-    font-size: 0.95rem;
-    transition: var(--transition);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    text-decoration: none;
-    width: 100%;
   }
 
   .nav-container .btn-primary:hover {

@@ -28,10 +28,17 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   function validatePasswordCriteria(pw) {
-    const minLength = pw.length >= 8;
-    const hasUppercase = /[A-Z]/.test(pw);
-    const hasLowercase = /[a-z]/.test(pw);
-    const hasNumber = /[0-9]/.test(pw);
+    // Si PasswordUtils está disponible, delega la actualización de la UI
+    if (window.PasswordUtils) {
+      window.PasswordUtils.updateCriteriaNodes(pw, {
+        minLengthItem,
+        uppercaseItem,
+        lowercaseItem,
+        numberItem,
+      });
+      return window.PasswordUtils.isPasswordValid(pw);
+    }
+    const { minLength, hasUppercase, hasLowercase, hasNumber } = criteria;
     minLengthItem.classList.toggle("valid", minLength);
     minLengthItem.classList.toggle("invalid", !minLength);
     uppercaseItem.classList.toggle("valid", hasUppercase);
@@ -90,6 +97,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
   function validarConfirmPassword() {
+    // Si hay util disponible, delegar la validación y mostrados de error
+    if (window.PasswordUtils) {
+      return window.PasswordUtils.validateConfirmAndShow(
+        passwordInput.value,
+        confirmPasswordInput.value,
+        confirmPasswordError
+      );
+    }
+
+    // Fallback al comportamiento original
     if (!confirmPasswordInput.value.trim()) {
       confirmPasswordError.textContent = "Debes confirmar la contraseña.";
       confirmPasswordError.style.display = "block";
@@ -135,7 +152,11 @@ document.addEventListener("DOMContentLoaded", () => {
       valid = false;
     }
     if (!validarConfirmPassword()) valid = false;
-    if (!validatePasswordCriteria(passwordInput.value)) {
+    if (
+      !(window.PasswordUtils
+        ? window.PasswordUtils.isPasswordValid(passwordInput.value)
+        : validatePasswordCriteria(passwordInput.value))
+    ) {
       formError.textContent = "La contraseña no cumple los requisitos.";
       formError.style.display = "block";
       valid = false;
