@@ -29,6 +29,42 @@ document.addEventListener("DOMContentLoaded", function () {
         emailError.style.display = "block";
         return;
       }
+      // Validación básica de formato de email
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        emailError.textContent = "Formato de correo inválido.";
+        emailError.style.display = "block";
+        return;
+      }
+
+      // Verificar existencia del email en la base de datos mediante endpoint público
+      try {
+        const lookupResp = await fetch(
+          `/api/usuarios/buscar?email=${encodeURIComponent(email)}`,
+          { method: "GET" }
+        );
+        if (!lookupResp.ok) {
+          // Si retorna 404 -> usuario no encontrado
+          if (lookupResp.status === 404) {
+            emailError.textContent =
+              "No se encontró una cuenta con ese correo. Verifica el email ingresado.";
+            emailError.style.color = "#dc3545";
+            emailError.style.display = "block";
+            return;
+          }
+          // Otros errores se tratan genéricamente
+          const lookupResult = await lookupResp.json().catch(() => ({}));
+          throw new Error(
+            lookupResult.mensaje || "Error verificando el correo."
+          );
+        }
+      } catch (lookupErr) {
+        emailError.textContent =
+          lookupErr.message || "Error verificando el correo.";
+        emailError.style.color = "#dc3545";
+        emailError.style.display = "block";
+        return;
+      }
       const submitBtn = recoveryForm.querySelector('button[type="submit"]');
       submitBtn.disabled = true;
       submitBtn.innerHTML =
@@ -72,6 +108,39 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Restablecer contraseña usando el token recibido por email
   if (resetForm) {
+    // Añadir toggles para mostrar/ocultar contraseñas
+    const addPasswordToggle = (input) => {
+      if (!input) return;
+      // evitar duplicar el toggle si ya existe
+      const wrapper = input.parentElement;
+      if (!wrapper) return;
+      if (wrapper.querySelector(".toggle-password")) return;
+
+      const toggle = document.createElement("span");
+      toggle.className = "toggle-password";
+      toggle.setAttribute("role", "button");
+      toggle.setAttribute("aria-label", "Mostrar contraseña");
+      toggle.style.userSelect = "none";
+      toggle.innerHTML = '<i class="fas fa-eye"></i>';
+      toggle.addEventListener("click", function () {
+        if (input.type === "password") {
+          input.type = "text";
+          this.innerHTML = '<i class="fas fa-eye-slash"></i>';
+          this.setAttribute("aria-label", "Ocultar contraseña");
+        } else {
+          input.type = "password";
+          this.innerHTML = '<i class="fas fa-eye"></i>';
+          this.setAttribute("aria-label", "Mostrar contraseña");
+        }
+        input.focus();
+      });
+      wrapper.appendChild(toggle);
+    };
+
+    // Crear toggles para ambos inputs (si existen)
+    addPasswordToggle(document.getElementById("newPassword"));
+    addPasswordToggle(document.getElementById("confirmPassword"));
+
     resetForm.addEventListener("submit", async function (e) {
       e.preventDefault();
       resetError.style.display = "none";
