@@ -425,94 +425,10 @@ function mostrarInfoUsuario(usuario = null) {
 
 // Solo muestra el boton de admin si el backend confirma sesión y rol admin
 async function mostrarBotonAdminSoloSiSesionAdmin() {
-  const adminAccess = document.getElementById("adminAccess");
-  if (!adminAccess) return;
-  adminAccess.style.display = "none"; // SIEMPRE oculto por defecto
-
-  try {
-    const res = await fetch("/perfil", { credentials: "include" });
-    if (!res.ok) return;
-    const html = await res.text();
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, "text/html");
-    const headerUserData = doc.getElementById("headerUserData");
-    if (!headerUserData) return;
-    const userJson = headerUserData.getAttribute("data-user-json");
-    const isAuthenticated =
-      headerUserData.getAttribute("data-is-authenticated") === "true";
-    if (!isAuthenticated || !userJson) return;
-    const user = JSON.parse(decodeURIComponent(userJson));
-    if (user && Array.isArray(user.roles) && user.roles.includes("admin")) {
-      adminAccess.style.display = "flex";
-      const adminPanelBtn = document.getElementById("adminPanelBtn");
-      if (adminPanelBtn) {
-        adminPanelBtn.setAttribute("href", "/admin");
-        if (!adminPanelBtn.hasAttribute("data-listener")) {
-          adminPanelBtn.setAttribute("data-listener", "true");
-          adminPanelBtn.addEventListener("click", async function (e) {
-            e.preventDefault();
-            // Verifica si ya tienes sesión admin usando /perfil (NO /admin/debug-session)
-            try {
-              const perfilRes = await fetch("/perfil", {
-                credentials: "include",
-              });
-              if (perfilRes.ok) {
-                const perfilHtml = await perfilRes.text();
-                const perfilDoc = new DOMParser().parseFromString(
-                  perfilHtml,
-                  "text/html"
-                );
-                const perfilUserData =
-                  perfilDoc.getElementById("headerUserData");
-                if (perfilUserData) {
-                  const perfilUserJson =
-                    perfilUserData.getAttribute("data-user-json");
-                  const perfilIsAuth =
-                    perfilUserData.getAttribute("data-is-authenticated") ===
-                    "true";
-                  if (perfilIsAuth && perfilUserJson) {
-                    const perfilUser = JSON.parse(
-                      decodeURIComponent(perfilUserJson)
-                    );
-                    if (
-                      perfilUser &&
-                      Array.isArray(perfilUser.roles) &&
-                      perfilUser.roles.includes("admin")
-                    ) {
-                      // Ya eres admin, solo navega
-                      window.location.href = "/admin";
-                      return;
-                    }
-                  }
-                }
-              }
-            } catch {}
-            // Si no eres admin, establece la sesión y recarga la página
-            try {
-              const response = await fetch("/set-session", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ usuario: user }),
-                credentials: "include",
-              });
-              const result = await response.json();
-              if (response.ok && result.ok) {
-                window.location.reload();
-              } else {
-                alert("Error de sesión admin. Inicia sesión nuevamente.");
-                window.location.href = "/login.html";
-              }
-            } catch {
-              alert("Error de conexión. Intenta de nuevo.");
-              window.location.href = "/login.html";
-            }
-          });
-        }
-      }
-    }
-  } catch (e) {
-    adminAccess.style.display = "none";
-  }
+  // Legacy admin button logic removed: admin access is now provided only via
+  // the user dropdown when server-rendered. This function kept as noop for
+  // compatibility and to avoid runtime errors when referenced elsewhere.
+  return;
 }
 
 // Mantener API pública anterior por compatibilidad, pero NO LLAMARLA NUNCA
@@ -535,8 +451,7 @@ function logout() {
   localStorage.removeItem("usuario");
 
   // Ocultar boton de admin al cerrar sesion
-  const adminAccess = document.getElementById("adminAccess");
-  if (adminAccess) adminAccess.style.display = "none";
+  // adminAccess element removed; no DOM update required here
 
   // Llama al backend para destruir la sesion si había una
   if (token || usuario) {
