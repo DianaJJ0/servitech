@@ -287,6 +287,52 @@ app.post("/set-session", (req, res) => {
   }
 });
 
+// Cerrar sesión: aceptar POST y GET para compatibilidad
+app.post("/logout", (req, res) => {
+  try {
+    if (req.session) {
+      req.session.destroy((err) => {
+        try {
+          res.clearCookie("connect.sid");
+        } catch (e) {}
+        if (err)
+          return res.status(500).json({ error: "Error al cerrar sesión" });
+        return res.json({ success: true });
+      });
+    } else {
+      try {
+        res.clearCookie("connect.sid");
+      } catch (e) {}
+      return res.json({ success: true });
+    }
+  } catch (e) {
+    console.error("Error en /logout:", e && e.message ? e.message : e);
+    return res.status(500).json({ error: "Error al cerrar sesión" });
+  }
+});
+
+// Por compatibilidad también soportar GET /logout (redirige a / luego de destruir sesión)
+app.get("/logout", (req, res) => {
+  try {
+    if (req.session) {
+      req.session.destroy((err) => {
+        try {
+          res.clearCookie("connect.sid");
+        } catch (e) {}
+        return res.redirect("/");
+      });
+    } else {
+      try {
+        res.clearCookie("connect.sid");
+      } catch (e) {}
+      return res.redirect("/");
+    }
+  } catch (e) {
+    console.error("Error en GET /logout:", e && e.message ? e.message : e);
+    return res.redirect("/");
+  }
+});
+
 // 404 controlado
 app.use((req, res) => {
   res.status(404).json({ error: "No encontrado" });

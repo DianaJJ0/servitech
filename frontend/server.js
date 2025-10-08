@@ -437,9 +437,38 @@ router.post("/logout", (req, res) => {
   });
 });
 
+// GET /logout: destruir sesión y redirigir al inicio (útil para enlaces simples)
+router.get("/logout", (req, res) => {
+  try {
+    if (req.session) {
+      req.session.destroy((err) => {
+        try {
+          res.clearCookie("connect.sid");
+        } catch (e) {}
+        return res.redirect("/");
+      });
+    } else {
+      try {
+        res.clearCookie("connect.sid");
+      } catch (e) {}
+      return res.redirect("/");
+    }
+  } catch (e) {
+    console.error(
+      "Error en frontend GET /logout",
+      e && e.message ? e.message : e
+    );
+    return res.redirect("/");
+  }
+});
+
 // --- Rutas públicas ---
 router.get("/", (req, res) => {
   res.render("index", { user: req.session.user || null });
+});
+// Redirección para enlaces legacy que apunten a /index -> mantener compatibilidad
+router.get("/index", (req, res) => {
+  return res.redirect(301, "/");
 });
 router.get("/registro.html", (req, res) => {
   res.render("registro", {
