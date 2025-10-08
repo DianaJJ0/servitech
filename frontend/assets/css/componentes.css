@@ -57,7 +57,13 @@
   align-items: center;
 }
 
-/* mobile menu toggle removed; styles intentionally deleted to avoid orphan selectors */
+.mobile-only {
+  display: none; /* Oculto por defecto en desktop */
+}
+
+#adminAccess {
+  display: none !important; /* Oculto por defecto, solo JS (server-admin) lo mostrará */
+}
 
 .nav-item {
   display: flex;
@@ -128,6 +134,27 @@
 .btn-outline:hover {
   background-color: rgba(58, 142, 255, 0.1);
   transform: translateY(-2px);
+}
+
+.btn-admin {
+  background-color: var(--primary-color);
+  color: var(--text-color);
+  border: 1px solid var(--primary-color);
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--btn-radius);
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.btn-admin:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--btn-shadow);
 }
 
 .user-menu {
@@ -342,7 +369,20 @@
     transform: translateY(-2px);
   }
 
-  /* mobile menu toggle removed; no mobile toggle element present */
+  .mobile-only {
+    display: flex; /* Visible en pantallas más pequeñas */
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--text-color);
+    cursor: pointer;
+    z-index: 1002;
+    transition: var(--transition);
+  }
+
+  .mobile-only:hover {
+    color: var(--primary-color);
+  }
 
   .user-menu {
     display: flex;
@@ -785,7 +825,9 @@ body {
 /* Asegurar que main tome el espacio correcto */
 main {
   flex: 1;
-  min-height: calc(100vh - 4.5rem - 120px); /* Altura header + footer aproximado */
+  min-height: calc(
+    100vh - 4.5rem - 120px
+  ); /* Altura header + footer aproximado */
 }
 
 /* Contenedor general para páginas */
