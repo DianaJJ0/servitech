@@ -729,3 +729,120 @@ select.filter-input option:checked {
     border-color: var(--border-light);
   }
 }
+
+/* Responsive fixes: asegurar que las tarjetas muestren todo su contenido
+   y que el botón 'Ver calendario' se adapte en pantallas pequeñas */
+@media (max-width: 768px) {
+  .expert-grid {
+    grid-template-columns: 1fr; /* una columna en pantallas pequeñas */
+    gap: 1rem;
+  }
+
+  .expert-card {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .expert-card-header {
+    padding: 1rem;
+    gap: 0.75rem;
+  }
+
+  .expert-card-body {
+    padding: 1rem;
+    flex: 1 1 auto; /* permitir que el body ocupe espacio y empuje el footer abajo */
+    overflow: visible;
+  }
+
+  .expert-card-footer {
+    display: flex;
+    flex-direction: column; /* apilar precio y botón verticalmente */
+    gap: 0.75rem;
+    align-items: stretch;
+    padding: 1rem;
+    border-top: 1px solid var(--border-light);
+    background: transparent;
+  }
+
+  .expert-card-footer .expert-price {
+    order: 1;
+    font-size: 1rem;
+    text-align: left;
+    color: var(--primary-color);
+    font-weight: 700;
+    white-space: normal;
+  }
+
+  .expert-card-footer .btn-profile,
+  .expert-card-footer .view-profile-btn {
+    order: 2;
+    width: 100%; /* botón ocupa todo el ancho */
+    box-sizing: border-box;
+    justify-content: center;
+    padding: 0.75rem 1rem;
+  }
+
+  /* Mejorar wrapping de tags y descripción en pantallas estrechas */
+  .expert-description {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .expert-tags .category-tag,
+  .skill-tag {
+    white-space: normal;
+  }
+}
+
+@media (max-width: 420px) {
+  .expert-photo {
+    width: 48px;
+    height: 48px;
+  }
+
+  .expert-card-header,
+  .expert-card-body,
+  .expert-card-footer {
+    padding-left: 0.9rem;
+    padding-right: 0.9rem;
+  }
+
+  .expert-card-footer .expert-price {
+    font-size: 0.98rem;
+  }
+
+  .expert-card-footer .btn-profile {
+    font-size: 0.95rem;
+    padding: 0.7rem 0.9rem;
+  }
+}
+
+/* Ajustes intermedios para evitar que el botón sobresalga en columnas estrechas (tablet/desktop) */
+@media (min-width: 421px) and (max-width: 1024px) {
+  .expert-card-footer {
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .expert-card-footer .expert-price {
+    flex: 1 1 auto;
+    min-width: 120px;
+  }
+
+  .expert-card-footer .btn-profile,
+  .expert-card-footer .view-profile-btn {
+    flex: 0 0 auto;
+    max-width: 48%; /* limitar ancho para que quepa junto al precio */
+    padding: 0.5rem 0.9rem;
+    font-size: 0.92rem;
+  }
+
+  /* Si el contenido es muy estrecho, el botón reducirá su tamaño */
+  .expert-card-footer .btn-profile.small,
+  .expert-card-footer .view-profile-btn.small {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.85rem;
+  }
+}
