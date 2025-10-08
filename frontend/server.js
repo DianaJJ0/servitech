@@ -158,6 +158,35 @@ router.get("/csrf-token", (req, res) => {
 // Proxy manual /api
 router.use("/api", async (req, res) => {
   try {
+    // --- Throttle simple por sesión para evitar bucles de alto volumen ---
+    try {
+      const THROTTLE_MS = 300; // umbral mínimo entre peticiones al mismo endpoint desde la misma sesión
+      if (!req.session) {
+        // si no hay sesión, permitir pero no almacenar throttle
+      } else {
+        if (!req.session._proxyRate) req.session._proxyRate = {};
+        const key = `${req.method}:${req.path}`;
+        const now = Date.now();
+        const last = req.session._proxyRate[key] || 0;
+        if (now - last < THROTTLE_MS) {
+          // Si llegamos demasiado rápido, responder 429
+          console.warn(
+            `[proxy-throttle] ${req.method} ${
+              req.originalUrl
+            } throttled for session=${req.session.id || "no-session"}`
+          );
+          return res.status(429).json({
+            error: "Too Many Requests",
+            mensaje: "Demasiadas peticiones, intenta más tarde",
+          });
+        }
+        req.session._proxyRate[key] = now;
+      }
+    } catch (e) {
+      // no bloquear por fallos en el throttle
+      console.warn("proxy throttle error:", e && e.message ? e.message : e);
+    }
+
     const targetUrl = `${BACKEND_URL}/api${req.url}`;
     const outboundHeaders = Object.assign({}, req.headers);
     try {
@@ -213,6 +242,23 @@ router.use("/api", async (req, res) => {
       headers: outboundHeaders,
       body: fetchBody,
     });
+
+    // Si el backend responde 401/403, limpiar sesión para evitar bucles de reintento
+    if (response && (response.status === 401 || response.status === 403)) {
+      try {
+        console.warn(
+          `[frontend-proxy] backend returned ${response.status} for ${req.originalUrl} - invalidating frontend session`
+        );
+        if (req.session) {
+          req.session.user = null;
+        }
+      } catch (e) {
+        console.warn(
+          "Error invalidating session after backend auth failure:",
+          e && e.message ? e.message : e
+        );
+      }
+    }
 
     const respText = await response.text();
     let respData = null;
@@ -301,13 +347,84 @@ function requireAdmin(req, res, next) {
 // Solo permite setear sesión si el usuario viene con token (verificado por backend)
 router.post("/set-session", async (req, res) => {
   try {
-    if (req.body && req.body.usuario && req.body.usuario.token) {
-      req.session.user = req.body.usuario;
-      return res.json({ ok: true, user: req.session.user });
+    const usuario = req.body && req.body.usuario;
+    if (!usuario || !usuario.token) {
+      return res
+        .status(400)
+        .json({ ok: false, mensaje: "Usuario no recibido" });
     }
-    res.status(400).json({ ok: false, mensaje: "Usuario no recibido" });
+
+    const token = String(usuario.token);
+
+    // Verificar token con backend (/api/usuarios/perfil)
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 4500);
+      let perfilRes;
+      try {
+        perfilRes = await fetch(`${BACKEND_URL}/api/usuarios/perfil`, {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token}` },
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timeout);
+      }
+
+      if (!perfilRes || !perfilRes.ok) {
+        console.warn(
+          "/set-session: token inválido o backend respondió no-OK",
+          perfilRes && perfilRes.status
+        );
+        return res
+          .status(401)
+          .json({ ok: false, mensaje: "Token inválido o no autorizado" });
+      }
+
+      const perfil = await perfilRes.json();
+
+      // Normalizar avatarUrl si apunta al frontend/uploads
+      try {
+        if (
+          perfil &&
+          perfil.avatarUrl &&
+          typeof perfil.avatarUrl === "string" &&
+          perfil.avatarUrl.indexOf(`${FRONTEND_URL}/uploads`) === 0
+        ) {
+          perfil.avatarUrl = perfil.avatarUrl.replace(
+            FRONTEND_URL,
+            BACKEND_URL
+          );
+        }
+      } catch (e) {}
+
+      // Mantener token en la sesión para futuras peticiones proxy
+      perfil.token = token;
+
+      req.session.user = perfil;
+      return res.json({ ok: true, user: req.session.user });
+    } catch (err) {
+      if (err && err.name === "AbortError") {
+        console.error("/set-session: timeout verificando token");
+        return res
+          .status(504)
+          .json({ ok: false, mensaje: "Timeout verificando token" });
+      }
+      console.error(
+        "Error verificando token en /set-session:",
+        err && err.message ? err.message : err
+      );
+      return res.status(500).json({
+        ok: false,
+        mensaje: "Error verificando token",
+        detalle: err && err.message,
+      });
+    }
   } catch (err) {
-    console.error("Error en set-session:", err);
+    console.error(
+      "Error en set-session:",
+      err && err.message ? err.message : err
+    );
     res.status(500).json({ ok: false, mensaje: "Error al establecer sesión" });
   }
 });
@@ -584,7 +701,7 @@ router.get("/editarExperto", async (req, res) => {
 });
 
 // Actualizar perfil experto (protegido)
-router.post("/editarExperto", async (req, res) => {
+router.put("/editarExperto", async (req, res) => {
   try {
     if (!req.session?.user?.token) {
       return res.status(401).render("editarExpertos", {
@@ -895,23 +1012,6 @@ router.get("/pago-error", (req, res) => {
       code: errorCode,
       message: errorMessage,
     },
-  });
-});
-
-// Ruta: mis asesorías (protegida)
-router.get("/misAsesorias.html", (req, res) => {
-  if (!req.session.user || !req.session.user.token) {
-    return res.redirect("/login.html?next=/misAsesorias.html");
-  }
-
-  const esExperto =
-    req.session.user.roles && req.session.user.roles.includes("experto");
-
-  res.render("misAsesorias", {
-    user: req.session.user,
-    usuario: req.session.user,
-    usuarioId: req.session.user._id,
-    rolUsuario: esExperto ? "experto" : "cliente",
   });
 });
 
@@ -1282,7 +1382,6 @@ if (require.main === module) {
   );
   app.set("view engine", "ejs");
   app.set("views", path.join(__dirname, "views"));
-  app.use("/assets", express.static(path.join(__dirname, "assets")));
 
   // Ruta de prueba para el modal
   app.get("/modal-test", (req, res) => {
