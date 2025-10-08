@@ -138,20 +138,130 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     // Crear toggles para ambos inputs (si existen)
-    addPasswordToggle(document.getElementById("newPassword"));
-    addPasswordToggle(document.getElementById("confirmPassword"));
+    const newPasswordInput = document.getElementById("newPassword");
+    const confirmPasswordInput = document.getElementById("confirmPassword");
+    addPasswordToggle(newPasswordInput);
+    addPasswordToggle(confirmPasswordInput);
+
+    // Añadir lista de criterios y validación en tiempo real (mismo comportamiento que registro)
+    const minLengthItem = document.getElementById("minLengthCriteria");
+    const uppercaseItem = document.getElementById("uppercaseCriteria");
+    const lowercaseItem = document.getElementById("lowercaseCriteria");
+    const numberItem = document.getElementById("numberCriteria");
+    const criteriaList = document.getElementById("passwordCriteria");
+    const confirmPasswordErrorEl = document.getElementById(
+      "confirmPasswordError"
+    );
+    if (criteriaList) criteriaList.style.display = "none";
+
+    function validatePasswordCriteria(pw) {
+      // Delegar en PasswordUtils cuando esté disponible
+      if (window.PasswordUtils) {
+        window.PasswordUtils.updateCriteriaNodes(pw, {
+          minLengthItem,
+          uppercaseItem,
+          lowercaseItem,
+          numberItem,
+        });
+        return window.PasswordUtils.isPasswordValid(pw);
+      }
+      const { minLength, hasUppercase, hasLowercase, hasNumber } = criteria;
+      if (minLengthItem) {
+        minLengthItem.classList.toggle("valid", minLength);
+        minLengthItem.classList.toggle("invalid", !minLength);
+      }
+      if (uppercaseItem) {
+        uppercaseItem.classList.toggle("valid", hasUppercase);
+        uppercaseItem.classList.toggle("invalid", !hasUppercase);
+      }
+      if (lowercaseItem) {
+        lowercaseItem.classList.toggle("valid", hasLowercase);
+        lowercaseItem.classList.toggle("invalid", !hasLowercase);
+      }
+      if (numberItem) {
+        numberItem.classList.toggle("valid", hasNumber);
+        numberItem.classList.toggle("invalid", !hasNumber);
+      }
+      return minLength && hasUppercase && hasLowercase && hasNumber;
+    }
+
+    if (newPasswordInput) {
+      newPasswordInput.addEventListener("focus", () => {
+        if (criteriaList) criteriaList.style.display = "block";
+        validatePasswordCriteria(newPasswordInput.value);
+      });
+      newPasswordInput.addEventListener("blur", () => {
+        if (criteriaList) criteriaList.style.display = "none";
+      });
+      newPasswordInput.addEventListener("input", (e) => {
+        validatePasswordCriteria(e.target.value);
+        // actualizar estado de confirmación cuando cambia la contraseña
+        if (confirmPasswordInput) validateConfirmPassword();
+      });
+    }
+
+    function validateConfirmPassword() {
+      if (!confirmPasswordInput) return true;
+      // Delegar en PasswordUtils si está disponible
+      if (window.PasswordUtils) {
+        return window.PasswordUtils.validateConfirmAndShow(
+          newPasswordInput ? newPasswordInput.value : "",
+          confirmPasswordInput.value,
+          confirmPasswordErrorEl
+        );
+      }
+
+      // Fallback al comportamiento original
+      if (!confirmPasswordInput.value.trim()) {
+        if (confirmPasswordErrorEl) {
+          confirmPasswordErrorEl.textContent = "Debes confirmar la contraseña.";
+          confirmPasswordErrorEl.style.display = "block";
+        }
+        return false;
+      } else if (
+        newPasswordInput &&
+        newPasswordInput.value !== confirmPasswordInput.value
+      ) {
+        if (confirmPasswordErrorEl) {
+          confirmPasswordErrorEl.textContent = "Las contraseñas no coinciden.";
+          confirmPasswordErrorEl.style.display = "block";
+        }
+        return false;
+      } else {
+        if (confirmPasswordErrorEl)
+          confirmPasswordErrorEl.style.display = "none";
+        return true;
+      }
+    }
+
+    if (confirmPasswordInput) {
+      confirmPasswordInput.addEventListener("input", validateConfirmPassword);
+    }
 
     resetForm.addEventListener("submit", async function (e) {
       e.preventDefault();
       resetError.style.display = "none";
-      const newPassword = resetForm.newPassword.value.trim();
-      const confirmPassword = resetForm.confirmPassword.value.trim();
+      const newPassword = newPasswordInput ? newPasswordInput.value.trim() : "";
+      const confirmPassword = confirmPasswordInput
+        ? confirmPasswordInput.value.trim()
+        : "";
       if (!newPassword || !confirmPassword) {
         resetError.textContent = "Completa ambos campos.";
         resetError.style.display = "block";
         return;
       }
-      if (newPassword !== confirmPassword) {
+      // Validar criterios
+      if (
+        !(window.PasswordUtils
+          ? window.PasswordUtils.isPasswordValid(newPassword)
+          : validatePasswordCriteria(newPassword))
+      ) {
+        resetError.textContent = "La contraseña no cumple los requisitos.";
+        resetError.style.display = "block";
+        return;
+      }
+      // Validar confirm
+      if (!validateConfirmPassword()) {
         resetError.textContent = "Las contraseñas no coinciden.";
         resetError.style.display = "block";
         return;

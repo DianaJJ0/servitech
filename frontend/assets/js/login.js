@@ -27,10 +27,17 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   function validatePasswordCriteria(pw) {
-    const minLength = pw.length >= 8;
-    const hasUppercase = /[A-Z]/.test(pw);
-    const hasLowercase = /[a-z]/.test(pw);
-    const hasNumber = /[0-9]/.test(pw);
+    // Delegar en PasswordUtils cuando esté disponible
+    if (window.PasswordUtils) {
+      window.PasswordUtils.updateCriteriaNodes(pw, {
+        minLengthItem,
+        uppercaseItem,
+        lowercaseItem,
+        numberItem,
+      });
+      return window.PasswordUtils.isPasswordValid(pw);
+    }
+    const { minLength, hasUppercase, hasLowercase, hasNumber } = criteria;
     minLengthItem.classList.toggle("valid", minLength);
     minLengthItem.classList.toggle("invalid", !minLength);
     uppercaseItem.classList.toggle("valid", hasUppercase);
@@ -64,7 +71,11 @@ document.addEventListener("DOMContentLoaded", () => {
       formError.style.display = "block";
       return;
     }
-    if (!validatePasswordCriteria(datosLogin.password)) {
+    if (
+      !(window.PasswordUtils
+        ? window.PasswordUtils.isPasswordValid(datosLogin.password)
+        : validatePasswordCriteria(datosLogin.password))
+    ) {
       formError.textContent = "La contraseña no cumple los requisitos.";
       formError.style.display = "block";
       return;
