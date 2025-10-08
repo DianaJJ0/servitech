@@ -284,7 +284,6 @@ function setupUserInterface() {
   const authButtons = document.getElementById("authButtons");
   const userMenu = document.getElementById("userMenuContainer");
   const navContainer = document.getElementById("navContainer");
-  const adminAccess = document.getElementById("adminAccess");
 
   if (isAuthenticated && currentUser && currentUser.email) {
     // Usuario autenticado: ocultar botones de auth, mostrar menu usuario
@@ -300,9 +299,6 @@ function setupUserInterface() {
       navContainer.classList.add("logged-in");
     }
 
-    // Mostrar boton admin si corresponde
-    mostrarBotonAdmin(currentUser);
-
     // Configurar sincronizacion automatica
     setupUserDataSync();
   } else {
@@ -310,13 +306,6 @@ function setupUserInterface() {
     if (authButtons) authButtons.style.display = "flex";
     if (userMenu) userMenu.style.display = "none";
     if (navContainer) navContainer.classList.remove("logged-in");
-    if (adminAccess) adminAccess.style.display = "none";
-
-    // Limpiar intervalo si existe
-    if (userDataCheckInterval) {
-      clearInterval(userDataCheckInterval);
-      userDataCheckInterval = null;
-    }
   }
 }
 
@@ -434,84 +423,101 @@ function mostrarInfoUsuario(usuario = null) {
   }
 }
 
-// Solo muestra el boton de admin si el usuario tiene rol 'admin'
-function mostrarBotonAdmin(usuario) {
+// Solo muestra el boton de admin si el backend confirma sesión y rol admin
+async function mostrarBotonAdminSoloSiSesionAdmin() {
   const adminAccess = document.getElementById("adminAccess");
   if (!adminAccess) return;
+  adminAccess.style.display = "none"; // SIEMPRE oculto por defecto
 
-  // Verificar si el usuario tiene rol de admin
-  const esAdmin =
-    usuario && Array.isArray(usuario.roles) && usuario.roles.includes("admin");
-
-  if (esAdmin) {
-    adminAccess.style.display = "block";
-    // Agregar event listener al boton de admin para verificar sesion antes de abrir
-    const adminPanelBtn = document.getElementById("adminPanelBtn");
-    if (adminPanelBtn && !adminPanelBtn.hasAttribute("data-listener")) {
-      adminPanelBtn.setAttribute("data-listener", "true");
-      adminPanelBtn.addEventListener("click", async function (e) {
-        e.preventDefault();
-        await verificarSesionYAbrirAdmin();
-      });
+  try {
+    const res = await fetch("/perfil", { credentials: "include" });
+    if (!res.ok) return;
+    const html = await res.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, "text/html");
+    const headerUserData = doc.getElementById("headerUserData");
+    if (!headerUserData) return;
+    const userJson = headerUserData.getAttribute("data-user-json");
+    const isAuthenticated =
+      headerUserData.getAttribute("data-is-authenticated") === "true";
+    if (!isAuthenticated || !userJson) return;
+    const user = JSON.parse(decodeURIComponent(userJson));
+    if (user && Array.isArray(user.roles) && user.roles.includes("admin")) {
+      adminAccess.style.display = "flex";
+      const adminPanelBtn = document.getElementById("adminPanelBtn");
+      if (adminPanelBtn) {
+        adminPanelBtn.setAttribute("href", "/admin");
+        if (!adminPanelBtn.hasAttribute("data-listener")) {
+          adminPanelBtn.setAttribute("data-listener", "true");
+          adminPanelBtn.addEventListener("click", async function (e) {
+            e.preventDefault();
+            // Verifica si ya tienes sesión admin usando /perfil (NO /admin/debug-session)
+            try {
+              const perfilRes = await fetch("/perfil", {
+                credentials: "include",
+              });
+              if (perfilRes.ok) {
+                const perfilHtml = await perfilRes.text();
+                const perfilDoc = new DOMParser().parseFromString(
+                  perfilHtml,
+                  "text/html"
+                );
+                const perfilUserData =
+                  perfilDoc.getElementById("headerUserData");
+                if (perfilUserData) {
+                  const perfilUserJson =
+                    perfilUserData.getAttribute("data-user-json");
+                  const perfilIsAuth =
+                    perfilUserData.getAttribute("data-is-authenticated") ===
+                    "true";
+                  if (perfilIsAuth && perfilUserJson) {
+                    const perfilUser = JSON.parse(
+                      decodeURIComponent(perfilUserJson)
+                    );
+                    if (
+                      perfilUser &&
+                      Array.isArray(perfilUser.roles) &&
+                      perfilUser.roles.includes("admin")
+                    ) {
+                      // Ya eres admin, solo navega
+                      window.location.href = "/admin";
+                      return;
+                    }
+                  }
+                }
+              }
+            } catch {}
+            // Si no eres admin, establece la sesión y recarga la página
+            try {
+              const response = await fetch("/set-session", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ usuario: user }),
+                credentials: "include",
+              });
+              const result = await response.json();
+              if (response.ok && result.ok) {
+                window.location.reload();
+              } else {
+                alert("Error de sesión admin. Inicia sesión nuevamente.");
+                window.location.href = "/login.html";
+              }
+            } catch {
+              alert("Error de conexión. Intenta de nuevo.");
+              window.location.href = "/login.html";
+            }
+          });
+        }
+      }
     }
-  } else {
+  } catch (e) {
     adminAccess.style.display = "none";
   }
 }
 
-// Funcion para verificar la sesion del servidor antes de abrir el panel de admin
-async function verificarSesionYAbrirAdmin() {
-  try {
-    const token = localStorage.getItem("token");
-    const usuario = getCurrentUserData();
-
-    if (
-      !token ||
-      !usuario ||
-      !usuario.roles ||
-      !usuario.roles.includes("admin")
-    ) {
-      alert("No tienes permisos de administrador o tu sesion ha expirado.");
-      return;
-    }
-
-    // Establecer sesion en el servidor antes de navegar
-    try {
-      const response = await fetch("/set-session", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          usuario: {
-            _id: usuario._id,
-            email: usuario.email,
-            nombre: usuario.nombre,
-            apellido: usuario.apellido,
-            roles: usuario.roles,
-            token: token,
-          },
-        }),
-        credentials: "include",
-      });
-
-      const result = await response.json();
-      if (response.ok && result.ok) {
-        // Navegar al panel de admin
-        window.location.href = "/admin/adminExpertos";
-      } else {
-        alert(
-          "Error al establecer la sesion de administrador. Inicia sesion nuevamente."
-        );
-        window.location.href = "/login.html";
-      }
-    } catch (error) {
-      alert("Error de conexion. Intentalo de nuevo.");
-    }
-  } catch (error) {
-    alert("Error al verificar la sesion. Inicia sesion nuevamente.");
-    window.location.href = "/login.html";
-  }
+// Mantener API pública anterior por compatibilidad, pero NO LLAMARLA NUNCA
+function mostrarBotonAdmin() {
+  // No hacer nada aquí, solo dejar por compatibilidad
 }
 
 // Cierra la sesion del usuario
@@ -522,6 +528,9 @@ function logout() {
     userDataCheckInterval = null;
   }
 
+  const token = localStorage.getItem("token");
+  const usuario = localStorage.getItem("usuario");
+
   localStorage.removeItem("token");
   localStorage.removeItem("usuario");
 
@@ -529,10 +538,14 @@ function logout() {
   const adminAccess = document.getElementById("adminAccess");
   if (adminAccess) adminAccess.style.display = "none";
 
-  // Llama al backend para destruir la sesion
-  fetch("/logout", { method: "POST", credentials: "include" }).finally(() => {
+  // Llama al backend para destruir la sesion si había una
+  if (token || usuario) {
+    fetch("/logout", { method: "POST", credentials: "include" }).finally(() => {
+      window.location.href = "/";
+    });
+  } else {
     window.location.href = "/";
-  });
+  }
 }
 
 // Fetch protegido con token
@@ -565,15 +578,18 @@ document.addEventListener("DOMContentLoaded", () => {
   setupScrollAnimations();
   setupSmoothScroll();
 
-  // Esperar un poco para que el header se renderice completamente
-  setTimeout(() => {
-    setupUserInterface();
-    setupMobileMenu();
-  }, 100);
-
+  // Intentar cargar el header AUTENTICADO primero (si existe)
   const headerContainer = document.getElementById("header-container");
   if (headerContainer) {
+    // loadDynamicHeader se encargará de llamar setupUserInterface() y mostrar el botón admin tras inyectar el header
     loadDynamicHeader(headerContainer);
+  } else {
+    // Si no existe carga dinámica del header, inicializar UI de forma normal
+    setTimeout(() => {
+      setupUserInterface();
+      setupMobileMenu();
+      mostrarBotonAdminSoloSiSesionAdmin();
+    }, 100);
   }
 
   const footerContainer = document.getElementById("footer-container");
@@ -591,7 +607,7 @@ window.addEventListener("beforeunload", () => {
 
 // Carga dinamica del header
 function loadDynamicHeader(headerContainer) {
-  fetch("/componentes/header.html")
+  fetch("/componentes/header.html", { credentials: "include" })
     .then((response) => {
       if (!response.ok) {
         throw new Error(`Error al cargar el header: ${response.statusText}`);
@@ -600,19 +616,29 @@ function loadDynamicHeader(headerContainer) {
     })
     .then((html) => {
       headerContainer.innerHTML = html;
+      // Esperar ligeramente para que el DOM parcial se estabilice
       setTimeout(() => {
         setupMobileMenu();
+        // Re-evaluar UI con la información de sesión que ahora el servidor pudo adjuntar
         setupUserInterface();
-      }, 200);
+        // Verificación robusta contra el backend para mostrar botón admin
+        mostrarBotonAdminSoloSiSesionAdmin();
+      }, 150);
     })
     .catch((error) => {
       console.warn("Header dinamico no disponible:", error.message);
+      // Fallback: inicializar UI aunque no se haya cargado el header dinámico
+      setTimeout(() => {
+        setupUserInterface();
+        setupMobileMenu();
+        mostrarBotonAdminSoloSiSesionAdmin();
+      }, 100);
     });
 }
 
 // Carga dinamica del footer
 function loadDynamicFooter(footerContainer) {
-  fetch("/componentes/footer.html")
+  fetch("/componentes/footer.html", { credentials: "include" })
     .then((response) => {
       if (!response.ok) {
         throw new Error(`Error al cargar el footer: ${response.statusText}`);
@@ -625,6 +651,94 @@ function loadDynamicFooter(footerContainer) {
     .catch((error) => {
       console.warn("Footer dinamico no disponible:", error.message);
     });
+}
+
+// Lógica para el botón de desarrollo de admin
+function setupDevAdminButton() {
+  try {
+    const devBtn = document.getElementById("devAdminBtn");
+    if (!devBtn) return;
+
+    // El servidor decide si debe mostrarse el botón; si llegó aquí, lo dejamos activo
+    devBtn.style.display = "";
+    devBtn.addEventListener("click", async () => {
+      // Preserve original content (icon + accessible text) so we don't remove it
+      const originalContent = devBtn.innerHTML;
+      devBtn.disabled = true;
+      devBtn.setAttribute("aria-busy", "true");
+      devBtn.innerHTML = "<span>Entrando...</span>";
+      try {
+        const payload = {
+          usuario: {
+            roles: ["admin"],
+            token: "dev-token",
+            email: "admin@local.dev",
+          },
+        };
+        // Obtener CSRF token: preferir window._csrfToken, si no, pedir /csrf-token
+        let csrf = (window && window._csrfToken) || null;
+        if (!csrf) {
+          try {
+            const t = await fetch("/csrf-token");
+            if (t.ok) {
+              const jd = await t.json();
+              csrf = jd && jd.csrfToken;
+            }
+          } catch (e) {
+            // ignore
+          }
+        }
+
+        const headers = { "Content-Type": "application/json" };
+        if (csrf) headers["x-csrf-token"] = csrf;
+
+        // Intentar ruta dev especializada que crea/asegura un admin y devuelve token
+        let res = null;
+        try {
+          res = await fetch("/dev/create-admin-session", {
+            method: "POST",
+            headers,
+            body: JSON.stringify(payload),
+            credentials: "same-origin",
+          });
+        } catch (e) {
+          // ignore — fallback below
+          res = null;
+        }
+
+        // Si el endpoint dev no está disponible, intentar /set-session (compatibilidad)
+        if (!res || !res.ok) {
+          try {
+            res = await fetch("/set-session", {
+              method: "POST",
+              headers,
+              body: JSON.stringify(payload),
+              credentials: "same-origin",
+            });
+          } catch (e) {
+            res = null;
+          }
+        }
+        if (!res || !res.ok) throw new Error("No se pudo establecer sesión");
+        // Abrir panel admin en nueva pestaña
+        window.open("/admin/adminExpertos", "_blank");
+      } catch (e) {
+        console.error(e);
+        alert("Error al intentar iniciar sesión como admin. Revisa consola.");
+      } finally {
+        devBtn.disabled = false;
+        devBtn.removeAttribute("aria-busy");
+        // restore original content (icon + sr-only text)
+        try {
+          devBtn.innerHTML = originalContent;
+        } catch (e) {
+          devBtn.textContent = "Entrar como admin (dev)";
+        }
+      }
+    });
+  } catch (e) {
+    console.error("admin-button init error", e);
+  }
 }
 
 // Hacer funciones disponibles globalmente

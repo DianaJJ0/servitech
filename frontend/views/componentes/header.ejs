@@ -1,6 +1,5 @@
 <!-- Encabezado principal -->
 <header class="header">
-    <link rel="stylesheet" href="/assets/css/admin-access.css">
     <nav class="navbar">
         <div class="logo">
             <a href="/"><img src="/assets/img/logo.png" alt="logo" class="logo-img"></a>
@@ -55,17 +54,20 @@
                     </div>
             </div>
 
-            <!-- Boton de admin - siempre presente en el HTML -->
-            <div class="admin-access" id="adminAccess" role="region" aria-label="Acceso administradores">
-                <a href="/admin/adminExpertos" class="btn btn-admin" id="adminPanelBtn"
-                    title="Abrir panel de administradores">
-                    <i class="fas fa-tools" aria-hidden="true"></i>
-                    <span class="btn-text">Admin</span>
-                </a>
-            </div>
+            <!-- Boton de admin - solo si el usuario es admin -->
+            <% if (user && user.roles && user.roles.includes('admin')) { %>
+                <div class="admin-access" id="adminAccess" role="region" aria-label="Acceso administradores"
+                    style="display:none">
+                    <a href="/admin/adminExpertos" class="btn btn-admin" id="adminPanelBtn"
+                        title="Abrir panel de administradores">
+                        <i class="fas fa-tools" aria-hidden="true"></i>
+                        <span class="btn-text">Admin</span>
+                    </a>
+                </div>
+                <% } %>
         </div>
 
-        <div class="mobile-menu-toggle" id="mobileMenuToggle">
+        <div class="mobile-menu-toggle mobile-only" id="mobileMenuToggle">
             <i class="fas fa-bars"></i>
         </div>
     </nav>
