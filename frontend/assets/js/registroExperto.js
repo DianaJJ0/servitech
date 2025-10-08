@@ -1344,7 +1344,7 @@
           // Fallback: formato simple (solo dígitos 6-20)
           const cleaned = (nCuenta.value || "").replace(/\D/g, "");
           if (!/^[0-9]{10,34}$/.test(cleaned)) {
-            showError(nCuenta, "Número de cuenta inválido (10-34 dígitos)");
+            showError(nCuenta, "Número inválido (10-34 dígitos)");
             valid = false;
           } else {
             clearError(nCuenta);
