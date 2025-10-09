@@ -534,11 +534,13 @@ const iniciarSesion = async (req, res) => {
         .json({ mensaje: "Correo y contraseña son requeridos." });
     }
     const usuario = await Usuario.findOne({ email });
-    if (!usuario) {
+    if (!usuario || usuario.estado === "inactivo") {
       generarLogs.registrarEvento({
         usuarioEmail: email || null,
         accion: "LOGIN",
-        detalle: "Credenciales incorrectas - usuario no encontrado",
+        detalle: !usuario
+          ? "Credenciales incorrectas - usuario no encontrado"
+          : "Intento de login con cuenta inactiva",
         resultado: "Error: credenciales incorrectas",
         tipo: "usuarios",
         persistirEnDB: true,
@@ -1749,7 +1751,8 @@ const actualizarUsuarioPorEmailAdmin = async (req, res) => {
     generarLogs.registrarEvento({
       usuarioEmail: req.params.email || null,
       accion: "ACTUALIZAR_USUARIO_ADMIN",
-      detalle: "Error general al actualizar usuario por admin: " + error.message,
+      detalle:
+        "Error general al actualizar usuario por admin: " + error.message,
       resultado: "Error: " + (error.message || "desconocido"),
       tipo: "usuarios",
       persistirEnDB: true,
@@ -1757,7 +1760,10 @@ const actualizarUsuarioPorEmailAdmin = async (req, res) => {
 
     res.status(500).json({
       mensaje: "Error interno al actualizar usuario.",
-      error: process.env.NODE_ENV === "development" ? error.message : "Error interno"
+      error:
+        process.env.NODE_ENV === "development"
+          ? error.message
+          : "Error interno",
     });
   }
 };
@@ -1869,22 +1875,24 @@ const obtenerUsuarioPorEmailAdmin = async (req, res) => {
     // Validar formato de email
     if (!email || !email.trim()) {
       return res.status(400).json({
-        mensaje: "Email es requerido"
+        mensaje: "Email es requerido",
       });
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return res.status(400).json({
-        mensaje: "Formato de email inválido"
+        mensaje: "Formato de email inválido",
       });
     }
 
-    const usuario = await Usuario.findOne({ email }).select("-passwordHash -passwordResetToken -passwordResetExpires");
+    const usuario = await Usuario.findOne({ email }).select(
+      "-passwordHash -passwordResetToken -passwordResetExpires"
+    );
 
     if (!usuario) {
       return res.status(404).json({
-        mensaje: "Usuario no encontrado."
+        mensaje: "Usuario no encontrado.",
       });
     }
 
@@ -1896,7 +1904,7 @@ const obtenerUsuarioPorEmailAdmin = async (req, res) => {
       detalle: `Usuario consultado por admin: ${email}`,
       resultado: "Exito",
       tipo: "usuarios",
-      persistirEnDB: false // No persistir para evitar spam de logs
+      persistirEnDB: false, // No persistir para evitar spam de logs
     });
 
     res.json(usuario);
@@ -1914,7 +1922,10 @@ const obtenerUsuarioPorEmailAdmin = async (req, res) => {
 
     res.status(500).json({
       mensaje: "Error interno al obtener usuario.",
-      error: process.env.NODE_ENV === "development" ? error.message : "Error interno"
+      error:
+        process.env.NODE_ENV === "development"
+          ? error.message
+          : "Error interno",
     });
   }
 };
@@ -2042,7 +2053,7 @@ const buscarUsuarioPorEmail = async (req, res) => {
     if (!email || !email.trim()) {
       console.log("Error: Email no proporcionado");
       return res.status(400).json({
-        mensaje: "Email requerido"
+        mensaje: "Email requerido",
       });
     }
 
@@ -2051,7 +2062,7 @@ const buscarUsuarioPorEmail = async (req, res) => {
     if (!emailRegex.test(email.trim())) {
       console.log("Error: Formato de email inválido");
       return res.status(400).json({
-        mensaje: "Formato de email inválido"
+        mensaje: "Formato de email inválido",
       });
     }
 
@@ -2064,7 +2075,7 @@ const buscarUsuarioPorEmail = async (req, res) => {
     if (!usuario) {
       console.log("Usuario no encontrado para email:", email);
       return res.status(404).json({
-        mensaje: "Usuario no encontrado"
+        mensaje: "Usuario no encontrado",
       });
     }
 
@@ -2082,11 +2093,10 @@ const buscarUsuarioPorEmail = async (req, res) => {
       detalle: `Usuario encontrado: ${email}`,
       resultado: "Exito",
       tipo: "usuarios",
-      persistirEnDB: false // No persistir para evitar spam de logs
+      persistirEnDB: false, // No persistir para evitar spam de logs
     });
 
     res.json(usuario);
-
   } catch (error) {
     console.error("Error en /api/usuarios/buscar:", error);
 
@@ -2096,12 +2106,15 @@ const buscarUsuarioPorEmail = async (req, res) => {
       detalle: `Error buscando usuario: ${req.query.email}, error: ${error.message}`,
       resultado: "Error",
       tipo: "usuarios",
-      persistirEnDB: true
+      persistirEnDB: true,
     });
 
     res.status(500).json({
       mensaje: "Error al buscar usuario",
-      error: process.env.NODE_ENV === "development" ? error.message : "Error interno"
+      error:
+        process.env.NODE_ENV === "development"
+          ? error.message
+          : "Error interno",
     });
   }
 };
@@ -2120,5 +2133,5 @@ module.exports = {
   actualizarUsuarioPorEmailAdmin,
   obtenerUsuarioPorEmailAdmin,
   subirAvatar,
-  buscarUsuarioPorEmail
+  buscarUsuarioPorEmail,
 };
