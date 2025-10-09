@@ -133,24 +133,98 @@ const crearPagoSimulado = async (req, res) => {
       });
     }
 
-    // Validar datos del formulario de pago (NUEVO)
+    // Validar datos del formulario de pago (mejorado)
     if (
       !datosPago ||
       !datosPago.nombre ||
       !datosPago.email ||
       !datosPago.cedula
     ) {
-      return res.status(400).json({
-        mensaje: "Faltan los datos básicos de pago (nombre, email, cédula).",
-      });
+      return res
+        .status(400)
+        .json({
+          mensaje: "Faltan los datos básicos de pago (nombre, email, cédula).",
+        });
     }
+    // Nombre: solo letras y espacios, mínimo 5
+    if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ ]{5,80}$/.test(datosPago.nombre)) {
+      return res
+        .status(400)
+        .json({
+          mensaje:
+            "El nombre solo puede contener letras y espacios, mínimo 5 caracteres.",
+        });
+    }
+    // Email
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(datosPago.email)) {
       return res
         .status(400)
         .json({ mensaje: "Correo electrónico de pago inválido." });
     }
+    // Cédula: solo números, 5-15 dígitos
     if (!/^[0-9]{5,15}$/.test(datosPago.cedula)) {
-      return res.status(400).json({ mensaje: "Cédula/NIT inválido." });
+      return res
+        .status(400)
+        .json({
+          mensaje: "Cédula/NIT inválido. Solo números, entre 5 y 15 dígitos.",
+        });
+    }
+    // Teléfono: solo números, máximo 10 dígitos
+    if (datosPago.telefono && !/^[0-9]{0,10}$/.test(datosPago.telefono)) {
+      return res
+        .status(400)
+        .json({
+          mensaje: "El teléfono debe tener solo números, máximo 10 dígitos.",
+        });
+    }
+    // Método de pago
+    if (!datosPago.metodo) {
+      return res.status(400).json({ mensaje: "Selecciona un método de pago." });
+    }
+    if (datosPago.metodo === "tarjeta") {
+      // Número de tarjeta: 16-19 dígitos, solo números
+      if (
+        !datosPago.numeroTarjeta ||
+        !/^[0-9]{16,19}$/.test(datosPago.numeroTarjeta)
+      ) {
+        return res
+          .status(400)
+          .json({
+            mensaje:
+              "Número de tarjeta inválido. Debe tener 16 a 19 dígitos, solo números.",
+          });
+      }
+      // Expiración: MM/AA, mes 01-12 y año >= actual
+      if (
+        !datosPago.expiracionTarjeta ||
+        !/^(0[1-9]|1[0-2])\/([0-9]{2})$/.test(datosPago.expiracionTarjeta)
+      ) {
+        return res
+          .status(400)
+          .json({ mensaje: "Fecha de expiración inválida. Formato MM/AA." });
+      }
+      // Validar que la fecha no sea pasada
+      const [mesExp, anioExp] = datosPago.expiracionTarjeta.split("/");
+      const hoy = new Date();
+      const anioActual = hoy.getFullYear() % 100;
+      const mesActual = hoy.getMonth() + 1;
+      if (
+        parseInt(anioExp) < anioActual ||
+        (parseInt(anioExp) === anioActual && parseInt(mesExp) < mesActual)
+      ) {
+        return res
+          .status(400)
+          .json({
+            mensaje:
+              "La tarjeta está expirada. Verifica la fecha de expiración.",
+          });
+      }
+      // CVV: 3 o 4 dígitos
+      if (!datosPago.cvvTarjeta || !/^[0-9]{3,4}$/.test(datosPago.cvvTarjeta)) {
+        return res
+          .status(400)
+          .json({ mensaje: "CVV inválido. Debe tener 3 o 4 dígitos." });
+      }
     }
 
     if (monto < 1000) {
@@ -228,11 +302,24 @@ const crearPagoSimulado = async (req, res) => {
     }
 
     // Crear pago simulado (se guardan los datos de pago en metadatos)
+    const datosPagoGuardados = {
+      nombre: datosPago.nombre,
+      email: datosPago.email,
+      cedula: datosPago.cedula,
+      telefono: datosPago.telefono || "",
+      metodo: datosPago.metodo || "simulado",
+    };
+    if (datosPago.metodo === "tarjeta") {
+      datosPagoGuardados.numeroTarjeta = datosPago.numeroTarjeta || "";
+      datosPagoGuardados.expiracionTarjeta = datosPago.expiracionTarjeta || "";
+      // No guardar el CVV
+    }
+
     const nuevoPago = new Pago({
       clienteId: req.usuario.email,
       expertoId: expertoEmail,
       monto: parseFloat(monto),
-      metodo: "simulado",
+      metodo: datosPago.metodo || "simulado",
       estado: "retenido", // Dinero retenido hasta finalizar asesoría
       descripcion: `Asesoría: ${titulo}`,
       fechaHoraAsesoria: fechaAsesoria,
@@ -244,12 +331,7 @@ const crearPagoSimulado = async (req, res) => {
         clienteNombre: `${req.usuario.nombre} ${req.usuario.apellido}`,
         simulado: true,
         fechaProcesamiento: new Date(),
-        datosPago: {
-          nombre: datosPago.nombre,
-          email: datosPago.email,
-          cedula: datosPago.cedula,
-          telefono: datosPago.telefono || "",
-        },
+        datosPago: datosPagoGuardados,
       },
     });
 

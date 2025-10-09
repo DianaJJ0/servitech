@@ -1,0 +1,118 @@
+/*
+ * CSS exclusivo para la vista de historial de notificaciones y asesorías en el panel de administración.
+*/
+
+.admin-notificaciones__contenedor {
+  background: var(--admin-card-bg, #181c24);
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+  padding: 2rem;
+  margin-top: 2rem;
+}
+
+.admin-notificaciones__titulo {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: var(--admin-text-primary);
+}
+
+.admin-notificaciones__tabla {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1.5rem;
+  background: transparent;
+}
+
+.admin-notificaciones__tabla th,
+.admin-notificaciones__tabla td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--admin-table-border, #23283a);
+  text-align: left;
+  color: var(--admin-table-text, #e5e7ef);
+}
+
+.admin-notificaciones__estado {
+  display: inline-block;
+  padding: 0.25em 0.75em;
+  border-radius: 12px;
+  font-size: 0.95em;
+  font-weight: 500;
+  background: var(--admin-badge-bg, #23283a);
+}
+
+.admin-notificaciones__estado--pendiente {
+  background: #23283a;
+  color: #fbbf24;
+}
+.admin-notificaciones__estado--enviado {
+  background: #23283a;
+  color: #10b981;
+}
+.admin-notificaciones__estado--fallido {
+  background: #23283a;
+  color: #ef4444;
+}
+.admin-notificaciones__estado--confirmada {
+  background: #23283a;
+  color: #38bdf8;
+}
+.admin-notificaciones__estado--completada,
+.admin-notificaciones__estado--finalizada {
+  background: #23283a;
+  color: #a3e635;
+}
+.admin-notificaciones__estado--pagada {
+  background: #23283a;
+  color: #f59e42;
+}
+.admin-notificaciones__estado--rechazada,
+.admin-notificaciones__estado--cancelada {
+  background: #23283a;
+  color: #ef4444;
+}
+
+.admin-notificaciones__acciones {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.admin-notificaciones__btn-borrar {
+  background: #23283a;
+  color: #ef4444;
+  border: none;
+  border-radius: 6px;
+  padding: 0.4em 0.8em;
+  cursor: pointer;
+  font-size: 1em;
+  transition: background 0.2s;
+}
+.admin-notificaciones__btn-borrar:hover {
+  background: #3b4252;
+}
+
+.admin-notificaciones__vacio {
+  text-align: center;
+  color: #888;
+  padding: 2rem 0;
+  font-size: 1.1em;
+}
+
+.admin-notificaciones__filtros {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.admin-notificaciones__filtros-label {
+  color: var(--admin-table-text, #e5e7ef);
+  font-weight: 500;
+}
+.admin-notificaciones__filtros-select {
+  background: var(--admin-table-header-bg, #23283a);
+  color: var(--admin-table-text, #e5e7ef);
+  border: 1px solid var(--admin-table-border, #23283a);
+  border-radius: 6px;
+  padding: 0.5em 1em;
+  font-size: 1em;
+}
