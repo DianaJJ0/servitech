@@ -13,8 +13,8 @@
 .admin-notificaciones__titulo {
   font-size: 2rem;
   font-weight: 600;
-  color: var(--primary-color, #4475fb);
   margin-bottom: 1.5rem;
+  color: var(--admin-text-primary);
 }
 
 .admin-notificaciones__tabla {
