@@ -96,7 +96,6 @@ router.post(
  */
 router.get(
   "/",
-  apiKeyMiddleware,
   authMiddleware.autenticar,
   authMiddleware.asegurarRol("admin"),
   notificacionController.obtenerNotificaciones
@@ -130,4 +129,31 @@ router.get(
   notificacionController.obtenerNotificacionPorId
 );
 
+/**
+ * @swagger
+ * /api/notificaciones/{id}:
+ *   delete:
+ *     summary: Eliminar notificación (bitácora de asesoría) por ID (solo admin)
+ *     tags: [Notificaciones]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Notificación eliminada correctamente
+ *       404:
+ *         description: Notificación no encontrada
+ */
+router.delete(
+  "/:id",
+  apiKeyMiddleware,
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("admin"),
+  notificacionController.eliminarNotificacion
+);
 module.exports = router;

@@ -57,8 +57,8 @@ const pagoSchema = new mongoose.Schema(
     metodo: {
       type: String,
       enum: {
-        values: ["simulado"],
-        message: "Solo se permite método simulado",
+        values: ["simulado", "tarjeta", "pse"],
+        message: "Solo se permite método simulado, tarjeta o pse",
       },
       default: "simulado",
       required: true,
