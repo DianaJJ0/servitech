@@ -46,22 +46,21 @@
                   <p id="userEmail">
                     <%= user ? (user.email || 'Sin email' ) : '' %>
                   </p>
-                  <div class="perfil-actions-wrapper">
-                    <div class="perfil-actions">
-                      <% if (user && user.roles && user.roles.includes('experto')) { %>
-                        <a href="/editarExperto" id="btnEditarPerfil" class="btn btn-primary">
-                          <i class="fas fa-edit"></i> Editar datos de experto
+                  <div class="perfil-actions-wrapper perfil-actions-horizontal">
+                    <% if (user && user.roles && user.roles.includes('experto')) { %>
+                      <a href="/editarExperto" id="btnEditarPerfil" class="btn btn-primary">
+                        <i class="fas fa-edit"></i> Editar datos de experto
+                      </a>
+                      <% } %>
+                        <a href="/misAsesorias.html" class="btn btn-outline">
+                          <i class="fas fa-calendar-alt"></i> Mis asesorias
                         </a>
-                        <% } %>
-                          <a href="/misAsesorias.html" class="btn btn-outline">
-                            <i class="fas fa-calendar-alt"></i> Mis asesorias
-                          </a>
-                          <a href="/" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left"></i> Volver al inicio
-                          </a>
-                    </div>
+                        <a href="/" class="btn btn-secondary btn-volver-inicio">
+                          <i class="fas fa-arrow-left"></i> Volver al inicio
+                        </a>
                   </div>
                 </div>
+                <!-- Eliminado duplicado de 'Información personal' y botón de editar -->
               </div>
             </div>
 
@@ -69,11 +68,6 @@
               <div class="profile-tab" id="personalInfo">
                 <div style="display:flex;align-items:center;justify-content:space-between;">
                   <h2>Informacion personal</h2>
-                  <% if (user) { %>
-                    <a href="#" id="btnEditarNombreApellido" class="btn btn-secondary btn-sm">
-                      <i class="fas fa-edit"></i> Editar
-                    </a>
-                    <% } %>
                 </div>
                 <form class="profile-form">
                   <div class="form-row">
@@ -202,6 +196,11 @@
                       </div>
                     </div>
                     <% } %>
+                      <!-- Botón eliminar cuenta para todos los roles -->
+                      <div class="eliminar-cuenta-wrapper">
+                        <button id="btnEliminarCuenta" class="btn btn-danger btn-eliminar-cuenta">Eliminar
+                          cuenta</button>
+                      </div>
             </div>
           </section>
     </main>
@@ -230,6 +229,20 @@
             </div>
             <div class="input-error" id="modalErrorGeneral"></div>
           </form>
+        </div>
+      </div>
+
+      <!-- Modal eliminar cuenta -->
+      <div id="modalEliminarCuenta" class="modal-perfil" style="display:none;">
+        <div class="modal-content-perfil">
+          <h3 style="color:#ff5f5f;">Eliminar cuenta</h3>
+          <p>Esta acción es <b>irreversible</b>. ¿Estás seguro de que deseas eliminar tu cuenta?<br>Todos tus datos
+            serán desactivados y no podrás volver a acceder.</p>
+          <div class="modal-btns">
+            <button type="button" class="btn btn-secondary" id="btnCancelarEliminarCuenta">Cancelar</button>
+            <button type="button" class="btn btn-danger" id="btnConfirmarEliminarCuenta">Eliminar</button>
+          </div>
+          <div class="input-error" id="eliminarCuentaError"></div>
         </div>
       </div>
     </section>

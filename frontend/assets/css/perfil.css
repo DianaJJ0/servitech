@@ -1,28 +1,3 @@
-/* --- Variables y estilos base --- */
-:root {
-  --primary-color: #3a8eff;
-  --primary-hover: #2a7af0;
-  --accent-color: #12d8fa;
-  --text-color: #fff;
-  --text-secondary: #d0d0d0;
-  --text-light: #a0a0a0;
-  --background: #0f0f0f;
-  --card-bg: #1a1a1a;
-  --input-bg: #2a2a2a;
-  --border-color: #3a3a3a;
-  --border-light: #ffffff14;
-  --focus-shadow: 0 0 0 0.1875rem #3a8eff33;
-  --card-shadow: 0 1.25rem 2.5rem #0000004d;
-  --hover-shadow: 0 0.625rem 1.5625rem #0000004d;
-  --btn-shadow: 0 0.3125rem 0.9375rem #2a7af04d;
-  --border-radius: 1rem;
-  --btn-radius: 0.5rem;
-  --input-radius: 0.5rem;
-  --transition: all 0.3s ease;
-  --header-height: 4.5rem;
-  --content-max-width: 81.25rem;
-}
-
 /* --- Estructura principal --- */
 .container {
   max-width: var(--content-max-width);
@@ -49,6 +24,33 @@
   width: 100%;
   display: flex;
   justify-content: center;
+}
+/* Espaciado horizontal entre los botones principales */
+.perfil-actions-wrapper {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+/* Botón eliminar cuenta abajo a la derecha */
+.eliminar-cuenta-wrapper {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+  color: var(--danger-color);
+}
+.btn-danger {
+  background-color: #cd1818;
+  color: #fff;
+  border: none;
+  transition: var(--transition);
+}
+.btn-danger:hover {
+  background-color: #ffffff;
+  color: #000000;
 }
 
 /* --- Tarjeta de perfil --- */
@@ -115,13 +117,6 @@
 .perfil-info p {
   margin: 0 0 1.5rem;
   color: var(--text-secondary);
-}
-
-/* Wrapper para acciones para mejor control en mobile */
-.perfil-actions-wrapper {
-  width: 100%;
-  display: flex;
-  justify-content: flex-start;
 }
 
 .perfil-actions {
