@@ -1,3 +1,61 @@
+// --- Eliminar cuenta: lógica modal y petición ---
+document.addEventListener("DOMContentLoaded", function () {
+  const btnEliminarCuenta = document.getElementById("btnEliminarCuenta");
+  const modalEliminar = document.getElementById("modalEliminarCuenta");
+  const btnCancelarEliminar = document.getElementById(
+    "btnCancelarEliminarCuenta"
+  );
+  const btnConfirmarEliminar = document.getElementById(
+    "btnConfirmarEliminarCuenta"
+  );
+  const eliminarCuentaError = document.getElementById("eliminarCuentaError");
+
+  if (btnEliminarCuenta && modalEliminar) {
+    btnEliminarCuenta.onclick = function () {
+      eliminarCuentaError.textContent = "";
+      modalEliminar.style.display = "flex";
+    };
+  }
+  if (btnCancelarEliminar && modalEliminar) {
+    btnCancelarEliminar.onclick = function () {
+      modalEliminar.style.display = "none";
+    };
+  }
+  if (btnConfirmarEliminar) {
+    btnConfirmarEliminar.onclick = async function () {
+      btnConfirmarEliminar.disabled = true;
+      eliminarCuentaError.textContent = "";
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch("/api/usuarios/perfil", {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.mensaje || "Error al eliminar cuenta");
+        }
+        // Mostrar mensaje pequeño de éxito
+        modalEliminar.innerHTML =
+          '<div style="color:#28a745;text-align:center;font-weight:600;padding:1.5rem 0;">Cuenta eliminada</div>';
+        // Limpiar sesión/localStorage y redirigir tras breve delay
+        setTimeout(() => {
+          localStorage.removeItem("token");
+          localStorage.removeItem("usuario");
+          // Si hay endpoint de logout, llamar
+          fetch("/logout", { method: "POST", credentials: "include" }).finally(
+            () => {
+              window.location.href = "/index";
+            }
+          );
+        }, 1200);
+      } catch (err) {
+        eliminarCuentaError.textContent = err.message;
+        btnConfirmarEliminar.disabled = false;
+      }
+    };
+  }
+});
 /**
  * Logica del frontend para la pagina de perfil:
  * - Carga datos del usuario autenticado y renderiza el avatar (iniciales si no hay imagen)
