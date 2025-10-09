@@ -50,8 +50,7 @@
           <!-- Header del pago -->
           <header class="payment-header">
             <div class="logo-container">
-              <i class="fas fa-graduation-cap"></i>
-              <span>ServiTech</span>
+              <span>Servitech</span>
             </div>
 
             <div class="payment-title">
@@ -98,27 +97,76 @@
 
             <!-- FORMULARIO DE PAGO -->
             <form id="formPago" class="form-pago" autocomplete="off">
+
               <h3 class="form-title"><i class="fas fa-credit-card"></i> Información para el pago</h3>
-              <div class="form-group">
-                <label for="nombrePago">Nombre completo</label>
-                <input type="text" id="nombrePago" name="nombrePago" maxlength="80" required>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="nombrePago">Nombre completo</label>
+                  <input type="text" id="nombrePago" name="nombrePago" maxlength="80" required
+                    pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ ]{5,80}$" placeholder="Como aparece en la tarjeta"
+                    autocomplete="cc-name">
+                  <small class="input-help">Solo letras y espacios. Ej: Juan Pérez</small>
+                </div>
+                <div class="form-group">
+                  <label for="emailPago">Correo electrónico</label>
+                  <input type="email" id="emailPago" name="emailPago" maxlength="80" required
+                    placeholder="tucorreo@email.com" autocomplete="email">
+                  <small class="input-help">Ejemplo: usuario@email.com</small>
+                </div>
               </div>
-              <div class="form-group">
-                <label for="emailPago">Correo electrónico</label>
-                <input type="email" id="emailPago" name="emailPago" maxlength="80" required>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="cedulaPago">Cédula/NIT</label>
+                  <input type="text" id="cedulaPago" name="cedulaPago" maxlength="15" required pattern="^[0-9]{5,15}$"
+                    placeholder="Ej: 1234567890" inputmode="numeric" autocomplete="off">
+                  <small class="input-help">Solo números, entre 5 y 15 dígitos.</small>
+                </div>
+                <div class="form-group">
+                  <label for="telefonoPago">Teléfono (opcional)</label>
+                  <input type="text" id="telefonoPago" name="telefonoPago" maxlength="10" pattern="^[0-9]{0,10}$"
+                    placeholder="Ej: 3001234567" inputmode="numeric" autocomplete="tel">
+                  <small class="input-help">Solo números, máximo 10 dígitos.</small>
+                </div>
               </div>
-              <div class="form-group">
-                <label for="cedulaPago">Cédula/NIT</label>
-                <input type="text" id="cedulaPago" name="cedulaPago" maxlength="15" required pattern="^[0-9]+$">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="metodoPago">Método de pago</label>
+                  <select id="metodoPago" name="metodoPago" required>
+                    <option value="">Selecciona un método</option>
+                    <option value="tarjeta">Tarjeta de crédito/débito</option>
+                    <option value="pse">PSE (simulado)</option>
+                  </select>
+                  <small class="input-help">Elige cómo deseas pagar</small>
+                </div>
+                <div class="form-group">
+                  <label for="numeroTarjeta">Número de tarjeta</label>
+                  <input type="text" id="numeroTarjeta" name="numeroTarjeta" maxlength="19"
+                    pattern="^(?:[0-9]{4} ?){4,5}$" placeholder="0000 0000 0000 0000" inputmode="numeric"
+                    autocomplete="cc-number">
+                  <small class="input-help">16 a 19 dígitos, solo números. Ej: 1234 5678 9012 3456</small>
+                </div>
               </div>
-              <div class="form-group">
-                <label for="telefonoPago">Teléfono (opcional)</label>
-                <input type="text" id="telefonoPago" name="telefonoPago" maxlength="15">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="expiracionTarjeta">Fecha de expiración</label>
+                  <input type="text" id="expiracionTarjeta" name="expiracionTarjeta" maxlength="5"
+                    pattern="^(0[1-9]|1[0-2])\/([0-9]{2})$" placeholder="MM/AA" autocomplete="cc-exp"
+                    inputmode="numeric">
+                  <small class="input-help">Formato MM/AA. Ej: 08/27</small>
+                </div>
+                <div class="form-group">
+                  <label for="cvvTarjeta">CVV</label>
+                  <input type="password" id="cvvTarjeta" name="cvvTarjeta" maxlength="4" pattern="^[0-9]{3,4}$"
+                    placeholder="123" inputmode="numeric" autocomplete="cc-csc">
+                  <small class="input-help">3 o 4 dígitos, solo números.</small>
+                </div>
               </div>
-              <button id="btnPagar" class="btn-pay" type="submit">
-                <i class="fas fa-play"></i>
-                Pagar Ahora
-              </button>
+              <div class="form-row form-row-center">
+                <button id="btnPagar" class="btn-pay" type="submit">
+                  <i class="fas fa-play"></i>
+                  Pagar Ahora
+                </button>
+              </div>
             </form>
 
             <!-- Área de procesamiento de pago -->

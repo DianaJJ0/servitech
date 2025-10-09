@@ -269,12 +269,7 @@ router.get(
  *       404:
  *         description: Pago no encontrado
  */
-router.get(
-  "/:id",
-  apiKeyMiddleware,
-  authMiddleware.autenticar,
-  authMiddleware.asegurarRol("admin"),
-  pagoController.obtenerPagoPorId
-);
+// Permitir que el usuario autenticado (cliente o admin) consulte su propio pago
+router.get("/:id", authMiddleware.autenticar, pagoController.obtenerPagoPorId);
 
 module.exports = router;

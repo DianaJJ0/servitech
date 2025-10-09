@@ -207,18 +207,81 @@ async function procesarPagoConFormulario() {
   const email = document.getElementById("emailPago").value.trim();
   const cedula = document.getElementById("cedulaPago").value.trim();
   const telefono = document.getElementById("telefonoPago").value.trim();
+  const metodoPago = document.getElementById("metodoPago").value;
+  let numeroTarjeta = document
+    .getElementById("numeroTarjeta")
+    .value.replace(/\s+/g, "");
+  const expiracionTarjeta = document
+    .getElementById("expiracionTarjeta")
+    .value.trim();
+  const cvvTarjeta = document.getElementById("cvvTarjeta").value.trim();
 
-  if (!nombre || nombre.length < 5) {
-    mostrarAlerta("Debes ingresar tu nombre completo.");
+  // Nombre: solo letras y espacios
+  if (
+    !nombre ||
+    nombre.length < 5 ||
+    !/^[A-Za-zÁÉÍÓÚáéíóúÑñ ]{5,80}$/.test(nombre)
+  ) {
+    mostrarAlerta(
+      "El nombre solo puede contener letras y espacios, mínimo 5 caracteres."
+    );
     return;
   }
   if (!email || !validarEmail(email)) {
     mostrarAlerta("Debes ingresar un correo electrónico válido.");
     return;
   }
+  // Cédula: solo números, 5-15 dígitos
   if (!cedula || !/^[0-9]{5,15}$/.test(cedula)) {
-    mostrarAlerta("Debes ingresar un número de cédula válido.");
+    mostrarAlerta("La cédula/NIT debe tener solo números (5 a 15 dígitos).");
     return;
+  }
+  // Teléfono: solo números, máximo 10 dígitos
+  if (telefono && !/^[0-9]{0,10}$/.test(telefono)) {
+    mostrarAlerta("El teléfono debe tener solo números (máximo 10 dígitos).");
+    return;
+  }
+  if (!metodoPago) {
+    mostrarAlerta("Selecciona un método de pago.");
+    return;
+  }
+  if (metodoPago === "tarjeta") {
+    // Número de tarjeta: 16-19 dígitos, solo números
+    if (!numeroTarjeta || !/^[0-9]{16,19}$/.test(numeroTarjeta)) {
+      mostrarAlerta(
+        "Ingresa un número de tarjeta válido (16 a 19 dígitos, solo números)."
+      );
+      return;
+    }
+    // Expiración: MM/AA, mes 01-12 y año >= actual
+    if (
+      !expiracionTarjeta ||
+      !/^(0[1-9]|1[0-2])\/([0-9]{2})$/.test(expiracionTarjeta)
+    ) {
+      mostrarAlerta(
+        "Ingresa la fecha de expiración en formato MM/AA (ej: 08/27)."
+      );
+      return;
+    }
+    // Validar que la fecha no sea pasada
+    const [mesExp, anioExp] = expiracionTarjeta.split("/");
+    const hoy = new Date();
+    const anioActual = hoy.getFullYear() % 100;
+    const mesActual = hoy.getMonth() + 1;
+    if (
+      parseInt(anioExp) < anioActual ||
+      (parseInt(anioExp) === anioActual && parseInt(mesExp) < mesActual)
+    ) {
+      mostrarAlerta(
+        "La tarjeta está expirada. Verifica la fecha de expiración."
+      );
+      return;
+    }
+    // CVV: 3 o 4 dígitos
+    if (!cvvTarjeta || !/^[0-9]{3,4}$/.test(cvvTarjeta)) {
+      mostrarAlerta("Ingresa un CVV válido (3 o 4 dígitos).");
+      return;
+    }
   }
 
   try {
@@ -247,6 +310,11 @@ async function procesarPagoConFormulario() {
           email,
           cedula,
           telefono,
+          metodo: metodoPago,
+          numeroTarjeta: metodoPago === "tarjeta" ? numeroTarjeta : undefined,
+          expiracionTarjeta:
+            metodoPago === "tarjeta" ? expiracionTarjeta : undefined,
+          cvvTarjeta: metodoPago === "tarjeta" ? cvvTarjeta : undefined,
         },
       }),
     });
@@ -299,6 +367,11 @@ function mostrarAlerta(mensaje) {
     container.style.display = "block";
     setTimeout(() => cerrarAlerta(), 6000);
     container.scrollIntoView({ behavior: "smooth", block: "center" });
+    // feedback visual en el primer input con error
+    const firstInput = document.querySelector(
+      "#formPago input:invalid, #formPago select:invalid"
+    );
+    if (firstInput) firstInput.focus();
   } else {
     alert(mensaje);
   }
