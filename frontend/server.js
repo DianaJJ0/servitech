@@ -190,13 +190,8 @@ router.use("/api", async (req, res) => {
     const targetUrl = `${BACKEND_URL}/api${req.url}`;
     const outboundHeaders = Object.assign({}, req.headers);
     try {
-      if (
-        req.session &&
-        req.session.user &&
-        Array.isArray(req.session.user.roles) &&
-        req.session.user.roles.includes("admin") &&
-        process.env.API_KEY
-      ) {
+      // Forzar x-api-key para todas las rutas de notificaciones
+      if (process.env.API_KEY && req.url.startsWith("/notificaciones")) {
         outboundHeaders["x-api-key"] = process.env.API_KEY;
       }
       if (req.session && req.session.user && req.session.user.token) {
