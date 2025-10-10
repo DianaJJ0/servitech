@@ -104,7 +104,10 @@ app.use(
     saveUninitialized: false,
     cookie: {
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      httpOnly: true,
+      domain: process.env.COOKIE_DOMAIN || undefined, // Permite compartir cookie entre frontend/backend si es necesario
+      maxAge: 24 * 60 * 60 * 1000,
     },
   })
 );
