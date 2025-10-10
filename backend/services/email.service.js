@@ -2,72 +2,14 @@
  * SERVICIO PARA ENVÍO DE CORREOS
  * Abstrae la lógica de Nodemailer y utiliza las credenciales del entorno.
  */
-const nodemailer = require("nodemailer");
 
-// Función para validar configuración de email
-const validarConfiguracionEmail = () => {
-  const requiredVars = ["EMAIL_HOST", "EMAIL_PORT", "EMAIL_USER", "EMAIL_PASS"];
-  const missing = requiredVars.filter((varName) => !process.env[varName]);
-
-  if (missing.length > 0) {
-    throw new Error(
-      `Faltan variables de entorno de email: ${missing.join(", ")}`
-    );
-  }
-  const password = process.env.EMAIL_PASS;
-  if (password.includes(" ")) {
-    throw new Error(
-      "EMAIL_PASS no debe contener espacios. Usa una App Password de Gmail."
-    );
-  }
-  if (password.length !== 16) {
-    console.warn(
-      `App Password tiene ${password.length} caracteres, debería tener 16. Verifica que sea correcta.`
-    );
-  }
-  const isValid = /^[a-zA-Z0-9]{16}$/.test(password);
-  if (!isValid) {
-    throw new Error(
-      "EMAIL_PASS debe ser una App Password válida (16 caracteres alfanuméricos)"
-    );
-  }
-};
-
-try {
-  validarConfiguracionEmail();
-} catch (error) {
-  console.error("Error de configuración de email:", error.message);
+const sgMail = require("@sendgrid/mail");
+if (!process.env.SENDGRID_API_KEY || !process.env.EMAIL_USER) {
+  throw new Error(
+    "Faltan SENDGRID_API_KEY o EMAIL_USER en las variables de entorno."
+  );
 }
-// Sólo crear transporter si la configuración de email es válida
-let transporter;
-let _emailConfigured = true;
-try {
-  validarConfiguracionEmail();
-} catch (error) {
-  _emailConfigured = false;
-  console.error("Error de configuración de email:", error.message);
-}
-
-if (_emailConfigured) {
-  transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: parseInt(process.env.EMAIL_PORT, 10),
-    secure: true,
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS.trim(),
-    },
-  });
-} else {
-  // Fallback: transporter que informa que el servicio no está configurado
-  transporter = {
-    sendMail: async () => {
-      throw new Error(
-        "Email service not configured. Set EMAIL_HOST/EMAIL_PORT/EMAIL_USER/EMAIL_PASS in backend/.env"
-      );
-    },
-  };
-}
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 /**
  * Envía un correo electrónico personalizado. Si no se da nombre/apellido, usa un saludo genérico.
@@ -98,16 +40,19 @@ const enviarCorreo = async (destinatario, asunto, mensaje, opciones = {}) => {
     `<p style="color:#551a8b;font-size:1.1em;">${saludo}</p>
      <p style="color:#551a8b;">${mensaje.replace(/\n/g, "<br>")}</p>`;
 
-  const mailOptions = {
-    from: `"ServiTech" <${process.env.EMAIL_USER}>`,
+  const msg = {
     to: destinatario,
+    from: {
+      email: process.env.EMAIL_USER,
+      name: "Servitech",
+    },
     subject: asunto,
     text: mensajeTexto,
     html: mensajeHtml,
   };
 
   try {
-    const info = await transporter.sendMail(mailOptions);
+    const info = await sgMail.send(msg);
     return info;
   } catch (error) {
     throw new Error(`Error de email: ${error.message}`);
@@ -164,3 +109,8 @@ module.exports = {
   enviarCorreo,
   generarCuerpoRecuperacion,
 };
+
+
+
+
+

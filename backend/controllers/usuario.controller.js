@@ -807,11 +807,7 @@ const solicitarRecuperacionPassword = async (req, res) => {
     usuario.passwordResetExpires = Date.now() + 60 * 60 * 1000;
     await usuario.save();
 
-    const baseUrl =
-      process.env.FRONTEND_URL ||
-      process.env.RENDER_EXTERNAL_URL ||
-      process.env.APP_URL ||
-      `http://localhost:${process.env.PORT || 5020}`;
+    const baseUrl = process.env.BACKEND_URL;
     const enlace = `${baseUrl}/recuperarPassword.html?token=${token}`;
 
     // Cuerpo del email según imagen y estándares.
