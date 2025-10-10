@@ -2079,7 +2079,8 @@ const buscarUsuarioPorEmail = async (req, res) => {
     try {
       if (usuario.avatarUrl && typeof usuario.avatarUrl === "string") {
         const reqProtocol = req.protocol || "http";
-        const reqHost = req.get("host") || process.env.BACKEND_URL || "localhost:5020";
+        const reqHost =
+          req.get("host") || process.env.BACKEND_URL || "localhost:5020";
         // Si es relativa
         if (usuario.avatarUrl.startsWith("/uploads")) {
           usuario.avatarUrl = `${reqProtocol}://${reqHost}${usuario.avatarUrl}`;
