@@ -1427,8 +1427,10 @@ if (require.main === module) {
       store: RedisStore ? new RedisStore({ client: redisClient }) : undefined,
       cookie: {
         secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        httpOnly: true,
+        domain: process.env.COOKIE_DOMAIN || undefined,
         maxAge: 24 * 60 * 60 * 1000,
-        sameSite: "lax",
       },
     })
   );
