@@ -2075,6 +2075,20 @@ const buscarUsuarioPorEmail = async (req, res) => {
       });
     }
 
+    // --- Normalizar avatarUrl para que sea absoluta y accesible ---
+    try {
+      if (usuario.avatarUrl && typeof usuario.avatarUrl === "string") {
+        const reqProtocol = req.protocol || "http";
+        const reqHost = req.get("host") || process.env.BACKEND_URL || "localhost:5020";
+        // Si es relativa
+        if (usuario.avatarUrl.startsWith("/uploads")) {
+          usuario.avatarUrl = `${reqProtocol}://${reqHost}${usuario.avatarUrl}`;
+        }
+        // Si es absoluta pero apunta a otro dominio, mantenerla
+        // Si es vacía o null, dejarla igual
+      }
+    } catch (e) {}
+
     console.log(
       "Usuario encontrado:",
       usuario.nombre,
