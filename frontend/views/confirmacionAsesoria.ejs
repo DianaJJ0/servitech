@@ -90,7 +90,7 @@
                         </li>
                         <li><strong>Método:</strong>
                           <%= pago.metadatos.datosPago.metodo==='tarjeta' ? 'Tarjeta de crédito/débito' :
-                            (pago.metadatos.datosPago.metodo==='pse' ? 'PSE (simulado)' : (pago.metodo || 'Simulado' ))
+                            (pago.metadatos.datosPago.metodo==='pse' ? 'PSE' : (pago.metodo || 'Simulado' ))
                             %>
                         </li>
                         <% if (pago.metadatos.datosPago.metodo==='tarjeta' ) { %>
