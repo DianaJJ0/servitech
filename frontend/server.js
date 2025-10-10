@@ -644,6 +644,34 @@ router.get("/expertos.html", async (req, res) => {
     expertos = [];
   }
 
+  // Normalizar avatarUrl de cada experto para que sea accesible desde frontend (soporta absoluta y relativa)
+  try {
+    expertos = (expertos || []).map((exp) => {
+      if (exp.avatarUrl && typeof exp.avatarUrl === "string") {
+        // Si es relativa
+        if (exp.avatarUrl.startsWith("/uploads")) {
+          exp.avatarUrl = `${BACKEND_URL}${exp.avatarUrl}`;
+        }
+        // Si es absoluta pero apunta al FRONTEND
+        else if (exp.avatarUrl.indexOf(`${FRONTEND_URL}/uploads`) === 0) {
+          exp.avatarUrl = exp.avatarUrl.replace(FRONTEND_URL, BACKEND_URL);
+        }
+        // Si es absoluta pero apunta al BACKEND pero con dominio diferente
+        else if (
+          exp.avatarUrl.indexOf("/uploads") === -1 &&
+          exp.avatarUrl.indexOf(BACKEND_URL) === -1 &&
+          exp.avatarUrl.includes("uploads")
+        ) {
+          // Intenta extraer la ruta desde /uploads
+          const idx = exp.avatarUrl.indexOf("/uploads");
+          if (idx !== -1) {
+            exp.avatarUrl = `${BACKEND_URL}${exp.avatarUrl.substring(idx)}`;
+          }
+        }
+      }
+      return exp;
+    });
+  } catch (e) {}
   res.render("expertos", {
     user: req.session.user || null,
     categorias,
