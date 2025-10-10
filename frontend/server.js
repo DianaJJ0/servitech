@@ -302,15 +302,32 @@ router.use("/uploads", (req, res, next) => {
   } catch (e) {}
   next();
 });
-const backendUploads = path.join(__dirname, "..", "backend", "uploads");
-try {
-  const fs = require("fs");
-  if (!fs.existsSync(backendUploads))
-    fs.mkdirSync(backendUploads, { recursive: true });
-} catch (e) {}
-router.use("/uploads", express.static(backendUploads));
 
-// SSE (opcional, solo si usas eventos)
+// --- SERVIR /uploads ---
+if (PROXY_MODE || process.env.NODE_ENV === "production") {
+  // En producción/proxy: reenviar peticiones a /uploads al backend real
+  const { createProxyMiddleware } = require("http-proxy-middleware");
+  router.use(
+    "/uploads",
+    createProxyMiddleware({
+      target: BACKEND_URL,
+      changeOrigin: true,
+      pathRewrite: { "^/uploads": "/uploads" },
+      logLevel: "warn",
+    })
+  );
+} else {
+  // En desarrollo local: servir desde disco
+  const backendUploads = path.join(__dirname, "..", "backend", "uploads");
+  try {
+    const fs = require("fs");
+    if (!fs.existsSync(backendUploads))
+      fs.mkdirSync(backendUploads, { recursive: true });
+  } catch (e) {}
+  router.use("/uploads", express.static(backendUploads));
+}
+
+// SSE (opcional, solo eventos)
 router.get("/sse/stream", (req, res) => {
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
@@ -432,7 +449,7 @@ router.post("/logout", (req, res) => {
   });
 });
 
-// GET /logout: destruir sesión y redirigir al inicio (útil para enlaces simples)
+// GET /logout: destruir sesión y redirigir al inicio 
 router.get("/logout", (req, res) => {
   try {
     if (req.session) {
