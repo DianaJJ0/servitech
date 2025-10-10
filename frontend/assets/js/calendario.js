@@ -1,3 +1,20 @@
+// --- Sincronización de sesión al cargar calendario (para evitar perder sesión al recargar) ---
+document.addEventListener("DOMContentLoaded", async () => {
+  const token = localStorage.getItem("token");
+  const usuarioLS = localStorage.getItem("usuario");
+  if (token && usuarioLS) {
+    try {
+      await fetch("/set-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ usuario: { ...JSON.parse(usuarioLS), token } }),
+        credentials: "include",
+      });
+    } catch (err) {
+      console.warn("Error sincronizando sesion en calendario:", err);
+    }
+  }
+});
 /**
  * CALENDARIO DE ASESORÍAS CON INTEGRACIÓN DE PAGOS SIMULADOS
  * Maneja la selección de fechas, horarios y redirige a pagos simulados
@@ -176,8 +193,12 @@ function generarCalendario() {
 
   generarDiasDelMes(anoActual, mesActual);
 
-  document.getElementById("prevMonth").addEventListener("click", navegarMesAnterior);
-  document.getElementById("nextMonth").addEventListener("click", navegarMesSiguiente);
+  document
+    .getElementById("prevMonth")
+    .addEventListener("click", navegarMesAnterior);
+  document
+    .getElementById("nextMonth")
+    .addEventListener("click", navegarMesSiguiente);
 }
 
 /**
@@ -218,7 +239,6 @@ function limpiarSelecciones() {
 
   actualizarResumen();
 }
-
 
 /**
  * Navega al mes anterior
@@ -351,7 +371,6 @@ function generarDiasDelMes(ano, mes) {
   });
 }
 
-
 /**
  * Verifica si un día está disponible para asesorías
  * @param {Date} fecha - Fecha a verificar
@@ -462,7 +481,7 @@ function generarHorariosDisponibles(fecha) {
            title="${titulo}"
            ${disponible ? `onclick="seleccionarHorario('${horario}')"` : ""}>
         <span>${horario}</span>
-        ${!disponible ? '<i class="fas fa-times"></i>' : ''}
+        ${!disponible ? '<i class="fas fa-times"></i>' : ""}
       </div>
     `;
   });
