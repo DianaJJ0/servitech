@@ -74,7 +74,7 @@
 
                     <div class="expert-card-header">
                       <img
-                        src="https://ui-avatars.com/api/?name=<%= experto.nombre %>+<%= experto.apellido %>&background=3a8eff&color=fff&size=96"
+                        src="<% if (experto.avatarUrl && experto.avatarUrl.trim() !== '' && !experto.avatarUrl.includes('ui-avatars.com')) { %><%= experto.avatarUrl %><% } else { %>https://ui-avatars.com/api/?name=<%= encodeURIComponent((experto.nombre || '') + ' ' + (experto.apellido || '')) %>&background=3a8eff&color=fff&size=96<% } %>"
                         alt="Foto de <%= experto.nombre %>" class="expert-photo">
 
                       <div class="expert-info">
