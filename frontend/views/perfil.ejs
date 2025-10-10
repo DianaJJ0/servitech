@@ -60,14 +60,20 @@
                         </a>
                   </div>
                 </div>
-                <!-- Eliminado duplicado de 'Información personal' y botón de editar -->
               </div>
             </div>
-
+            <!-- Seccion principal de perfil -->
             <div class="profile-main">
               <div class="profile-tab" id="personalInfo">
-                <div style="display:flex;align-items:center;justify-content:space-between;">
-                  <h2>Informacion personal</h2>
+                <div class="personal-info-header">
+                  <h2 class="personal-info-title">
+                    Informacion personal
+                    <button type="button" id="btnEditarNombreApellido"
+                      class="btn btn-outline btn-editar-nombre-apellido" title="Editar nombre y apellido">
+                      <i class="fas fa-edit"></i>
+                      Editar
+                    </button>
+                  </h2>
                 </div>
                 <form class="profile-form">
                   <div class="form-row">
@@ -91,7 +97,7 @@
                   </div>
                 </form>
               </div>
-
+              <!-- Seccion de Experto -->
               <% if (user && user.roles && user.roles.includes('experto') && user.infoExperto) { %>
                 <div class="profile-tab" id="expertInfo">
                   <h2>Informacion de Experto</h2>
