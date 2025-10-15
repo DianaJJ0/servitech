@@ -57,10 +57,11 @@ const pagoSchema = new mongoose.Schema(
     metodo: {
       type: String,
       enum: {
-        values: ["simulado", "tarjeta", "pse"],
-        message: "Solo se permite método simulado, tarjeta o pse",
+        values: ["simulado", "tarjeta", "pse", "mercadopago"],
+        message:
+          "Método no válido (esperado: simulado, tarjeta, pse o mercadopago)",
       },
-      default: "simulado",
+      default: "mercadopago",
       required: true,
     },
 
@@ -95,11 +96,25 @@ const pagoSchema = new mongoose.Schema(
      * ID de transacción simulada
      * @type {String}
      */
+    // Id de transacción (puede ser id interno o id de Mercado Pago)
     transaccionId: {
       type: String,
-      default: function () {
-        return `SIM-${Date.now()}-${this._id}`;
-      },
+      index: true,
+    },
+
+    // Campos específicos para integración con Mercado Pago
+    preferenceId: {
+      type: String,
+      default: null,
+      index: true,
+    },
+    initPoint: {
+      type: String,
+      default: null,
+    },
+    mpPaymentId: {
+      type: String,
+      default: null,
       index: true,
     },
 

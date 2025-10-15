@@ -23,15 +23,122 @@ async function inicializarPago() {
     return;
   }
 
-  mostrarResumen();
+  // mostrarResumen se define más abajo; si no existe por alguna razón, usamos un fallback
+  try {
+    if (typeof mostrarResumen === "function") mostrarResumen();
+  } catch (err) {
+    console.error("Error llamando a mostrarResumen:", err);
+  }
 
   // Manejar el submit del formulario de pago
-  const form = document.getElementById("formPago");
-  if (form) {
-    form.addEventListener("submit", function (e) {
+  // Manejar botón de Mercado Pago
+  const btnMP = document.getElementById("btnIrAMercadoPago");
+  // Inicializar Mercado Pago SDK si disponemos de la clave pública en serverData
+  // No usamos SDK; el botón es puramente visual y hace fetch al backend
+  if (btnMP) {
+    btnMP.addEventListener("click", function (e) {
       e.preventDefault();
-      procesarPagoConFormulario();
+      iniciarCheckoutMercadoPago();
     });
+  }
+}
+
+/**
+ * Rellena el contenedor #resumenDatos con la información de la asesoría
+ * Esta función evita referencias a elementos inexistentes y presenta un resumen sencillo
+ */
+function mostrarResumen() {
+  const cont = document.getElementById("resumenDatos");
+  if (!cont) return;
+
+  // Limpiar contenido
+  cont.innerHTML = "";
+
+  const wrap = document.createElement("div");
+  wrap.className = "summary-box";
+  // Mostrar título como un item más (misma estructura que los demás)
+  const tituloItem = document.createElement("p");
+  tituloItem.className = "summary-item";
+  tituloItem.textContent =
+    datosAsesoria && datosAsesoria.titulo
+      ? `Título: ${datosAsesoria.titulo}`
+      : "Título: Asesoría";
+
+  const experto = document.createElement("div");
+  experto.className = "summary-item";
+  const expertoLabel = document.createElement("div");
+  expertoLabel.className = "item-label";
+  expertoLabel.innerHTML = "<strong>Experto:</strong>";
+  const expertoValue = document.createElement("div");
+  expertoValue.className = "item-value descripcion";
+  expertoValue.textContent =
+    datosAsesoria && datosAsesoria.experto
+      ? `${datosAsesoria.experto.nombre || ""} ${
+          datosAsesoria.experto.apellido || ""
+        } (${datosAsesoria.experto.email || ""})`
+      : "N/A";
+  experto.appendChild(expertoLabel);
+  experto.appendChild(expertoValue);
+
+  const fecha = document.createElement("div");
+  fecha.className = "summary-item";
+  const fechaLabel = document.createElement("div");
+  fechaLabel.className = "item-label";
+  fechaLabel.innerHTML = "<strong>Fecha:</strong>";
+  const fechaValue = document.createElement("div");
+  fechaValue.className = "item-value descripcion";
+  try {
+    fechaValue.textContent =
+      datosAsesoria && datosAsesoria.fechaHoraInicio
+        ? new Date(datosAsesoria.fechaHoraInicio).toLocaleString()
+        : "Por definir";
+  } catch (e) {
+    fechaValue.textContent = "Por definir";
+  }
+  fecha.appendChild(fechaLabel);
+  fecha.appendChild(fechaValue);
+
+  const duracion = document.createElement("div");
+  duracion.className = "summary-item";
+  const duracionLabel = document.createElement("div");
+  duracionLabel.className = "item-label";
+  duracionLabel.innerHTML = "<strong>Duración:</strong>";
+  const duracionValue = document.createElement("div");
+  duracionValue.className = "item-value descripcion";
+  duracionValue.textContent =
+    datosAsesoria && datosAsesoria.duracionMinutos
+      ? `${datosAsesoria.duracionMinutos} minutos`
+      : "Por definir";
+  duracion.appendChild(duracionLabel);
+  duracion.appendChild(duracionValue);
+
+  const precio = document.createElement("div");
+  precio.className = "summary-item summary-price";
+  const monto =
+    datosAsesoria && datosAsesoria.precio
+      ? datosAsesoria.precio
+      : (serverData && serverData.monto) || 0;
+  const precioLabel = document.createElement("div");
+  precioLabel.className = "item-label";
+  precioLabel.innerHTML = "<strong>Total:</strong>";
+  const precioValue = document.createElement("div");
+  precioValue.className = "item-value descripcion";
+  precioValue.textContent = `$${Number(monto).toLocaleString("es-CO")} COP`;
+  precio.appendChild(precioLabel);
+  precio.appendChild(precioValue);
+
+  wrap.appendChild(tituloItem);
+  wrap.appendChild(experto);
+  wrap.appendChild(fecha);
+  wrap.appendChild(duracion);
+  wrap.appendChild(precio);
+
+  cont.appendChild(wrap);
+
+  // Asegurar que el monto visible en el header también se sincroniza
+  const montoTotalEl = document.getElementById("montoTotal");
+  if (montoTotalEl) {
+    montoTotalEl.textContent = `$${Number(monto).toLocaleString("es-CO")} COP`;
   }
 }
 
@@ -126,173 +233,28 @@ function validarDatos() {
 }
 
 /**
- * Muestra el resumen de la asesoría en la interfaz
+ * Inicia el Checkout Pro de Mercado Pago solicitando al backend la preferencia
  */
-function mostrarResumen() {
-  const container = document.getElementById("resumenDatos");
-  if (!container || !datosAsesoria) return;
-  try {
-    const fecha = new Date(datosAsesoria.fechaHoraInicio);
-    const duracionTexto = calcularDuracionTexto(datosAsesoria.duracionMinutos);
-    container.innerHTML = `
-      <div class="summary-grid">
-        <div class="summary-item">
-          <div class="item-label"><i class="fas fa-user-tie"></i> Experto:</div>
-          <div class="item-value">${datosAsesoria.experto.nombre} ${
-      datosAsesoria.experto.apellido
-    }</div>
-        </div>
-        <div class="summary-item">
-          <div class="item-label"><i class="fas fa-bookmark"></i> Tema:</div>
-          <div class="item-value">${datosAsesoria.titulo}</div>
-        </div>
-        <div class="summary-item">
-          <div class="item-label"><i class="fas fa-calendar"></i> Fecha:</div>
-          <div class="item-value">${fecha.toLocaleDateString("es-ES", {
-            weekday: "long",
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-          })}</div>
-        </div>
-        <div class="summary-item">
-          <div class="item-label"><i class="fas fa-clock"></i> Hora:</div>
-          <div class="item-value">${fecha.toLocaleTimeString("es-ES", {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}</div>
-        </div>
-        <div class="summary-item">
-          <div class="item-label"><i class="fas fa-hourglass-half"></i> Duración:</div>
-          <div class="item-value">${duracionTexto}</div>
-        </div>
-        <div class="summary-item">
-          <div class="item-label"><i class="fas fa-tag"></i> Categoría:</div>
-          <div class="item-value">${datosAsesoria.categoria}</div>
-        </div>
-        <div class="summary-item full-width">
-          <div class="item-label"><i class="fas fa-align-left"></i> Descripción:</div>
-          <div class="item-value description">${datosAsesoria.descripcion}</div>
-        </div>
-        <div class="summary-item total full-width">
-          <div class="item-label"><i class="fas fa-dollar-sign"></i> Total a pagar:</div>
-          <div class="item-value total-amount">$${datosAsesoria.precio.toLocaleString(
-            "es-CO"
-          )} COP</div>
-        </div>
-      </div>
-    `;
-  } catch (error) {
-    container.innerHTML =
-      '<div class="error-placeholder">Error mostrando resumen de la asesoría</div>';
-  }
-}
-
-function calcularDuracionTexto(minutos) {
-  if (minutos === 60) return "1 hora";
-  if (minutos === 90) return "1.5 horas";
-  if (minutos === 120) return "2 horas";
-  if (minutos === 180) return "3 horas";
-  return `${minutos} minutos`;
-}
-
-/**
- * Procesa el pago con los datos del formulario
- */
-async function procesarPagoConFormulario() {
+async function iniciarCheckoutMercadoPago() {
   if (pagoEnProceso) return;
-
-  // Validar campos del formulario
-  const nombre = document.getElementById("nombrePago").value.trim();
-  const email = document.getElementById("emailPago").value.trim();
-  const cedula = document.getElementById("cedulaPago").value.trim();
-  const telefono = document.getElementById("telefonoPago").value.trim();
-  const metodoPago = document.getElementById("metodoPago").value;
-  let numeroTarjeta = document
-    .getElementById("numeroTarjeta")
-    .value.replace(/\s+/g, "");
-  const expiracionTarjeta = document
-    .getElementById("expiracionTarjeta")
-    .value.trim();
-  const cvvTarjeta = document.getElementById("cvvTarjeta").value.trim();
-
-  // Nombre: solo letras y espacios
-  if (
-    !nombre ||
-    nombre.length < 5 ||
-    !/^[A-Za-zÁÉÍÓÚáéíóúÑñ ]{5,80}$/.test(nombre)
-  ) {
-    mostrarAlerta(
-      "El nombre solo puede contener letras y espacios, mínimo 5 caracteres."
-    );
-    return;
-  }
-  if (!email || !validarEmail(email)) {
-    mostrarAlerta("Debes ingresar un correo electrónico válido.");
-    return;
-  }
-  // Cédula: solo números, 5-15 dígitos
-  if (!cedula || !/^[0-9]{5,15}$/.test(cedula)) {
-    mostrarAlerta("La cédula/NIT debe tener solo números (5 a 15 dígitos).");
-    return;
-  }
-  // Teléfono: solo números, máximo 10 dígitos
-  if (telefono && !/^[0-9]{0,10}$/.test(telefono)) {
-    mostrarAlerta("El teléfono debe tener solo números (máximo 10 dígitos).");
-    return;
-  }
-  if (!metodoPago) {
-    mostrarAlerta("Selecciona un método de pago.");
-    return;
-  }
-  if (metodoPago === "tarjeta") {
-    // Número de tarjeta: 16-19 dígitos, solo números
-    if (!numeroTarjeta || !/^[0-9]{16,19}$/.test(numeroTarjeta)) {
-      mostrarAlerta(
-        "Ingresa un número de tarjeta válido (16 a 19 dígitos, solo números)."
-      );
-      return;
-    }
-    // Expiración: MM/AA, mes 01-12 y año >= actual
-    if (
-      !expiracionTarjeta ||
-      !/^(0[1-9]|1[0-2])\/([0-9]{2})$/.test(expiracionTarjeta)
-    ) {
-      mostrarAlerta(
-        "Ingresa la fecha de expiración en formato MM/AA (ej: 08/27)."
-      );
-      return;
-    }
-    // Validar que la fecha no sea pasada
-    const [mesExp, anioExp] = expiracionTarjeta.split("/");
-    const hoy = new Date();
-    const anioActual = hoy.getFullYear() % 100;
-    const mesActual = hoy.getMonth() + 1;
-    if (
-      parseInt(anioExp) < anioActual ||
-      (parseInt(anioExp) === anioActual && parseInt(mesExp) < mesActual)
-    ) {
-      mostrarAlerta(
-        "La tarjeta está expirada. Verifica la fecha de expiración."
-      );
-      return;
-    }
-    // CVV: 3 o 4 dígitos
-    if (!cvvTarjeta || !/^[0-9]{3,4}$/.test(cvvTarjeta)) {
-      mostrarAlerta("Ingresa un CVV válido (3 o 4 dígitos).");
-      return;
-    }
-  }
-
   try {
     pagoEnProceso = true;
     mostrarEstadoCarga();
 
     const token = localStorage.getItem("token");
+    console.debug("iniciarCheckoutMercadoPago: token present?", !!token);
     if (!token) throw new Error("No hay sesión activa. Inicia sesión.");
 
-    // Enviar solicitud al backend incluyendo los datos de pago
-    const response = await fetch("/api/pagos/crear-pago-simulado", {
+    console.debug("iniciarCheckoutMercadoPago: payload", {
+      titulo: datosAsesoria.titulo,
+      descripcion: datosAsesoria.descripcion,
+      expertoEmail: datosAsesoria.experto.email,
+      fechaHoraInicio: datosAsesoria.fechaHoraInicio,
+      duracionMinutos: datosAsesoria.duracionMinutos,
+      monto: datosAsesoria.precio,
+    });
+
+    const response = await fetch("/api/pagos/crear-preferencia-mp", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -305,37 +267,154 @@ async function procesarPagoConFormulario() {
         fechaHoraInicio: datosAsesoria.fechaHoraInicio,
         duracionMinutos: datosAsesoria.duracionMinutos,
         monto: datosAsesoria.precio,
-        datosPago: {
-          nombre,
-          email,
-          cedula,
-          telefono,
-          metodo: metodoPago,
-          numeroTarjeta: metodoPago === "tarjeta" ? numeroTarjeta : undefined,
-          expiracionTarjeta:
-            metodoPago === "tarjeta" ? expiracionTarjeta : undefined,
-          cvvTarjeta: metodoPago === "tarjeta" ? cvvTarjeta : undefined,
-        },
+        simulate: true,
       }),
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(
-        errorData.mensaje || `Error del servidor: ${response.status}`
+    const text = await response.text();
+    let result;
+    try {
+      result = text ? JSON.parse(text) : {};
+    } catch (e) {
+      console.error(
+        "iniciarCheckoutMercadoPago: response text is not JSON",
+        text
       );
+      throw new Error(`Respuesta inesperada del servidor: ${response.status}`);
     }
 
-    const result = await response.json();
-    // Limpiar datos de localStorage
-    localStorage.removeItem("asesoriaEnProceso");
+    if (!response.ok) {
+      const errMsg =
+        result && result.mensaje
+          ? result.mensaje
+          : `Error del servidor: ${response.status}`;
+      console.error(
+        "iniciarCheckoutMercadoPago: backend error",
+        errMsg,
+        result
+      );
+      throw new Error(errMsg);
+    }
 
-    // Redirigir a la confirmación con los datos de la factura
-    window.location.href = `/confirmacion-asesoria?status=success&pagoId=${result.pagoId}&asesoriaId=${result.asesoriaId}&simulado=true`;
+    console.debug("iniciarCheckoutMercadoPago: backend result", result);
+    if (result.initPoint) {
+      localStorage.removeItem("asesoriaEnProceso");
+      // Antes de redirigir, pedir estado de notificaciones para informar al usuario
+      try {
+        // result.pagoId fue devuelto por el backend
+        if (result.pagoId) {
+          // No esperamos la respuesta (no bloquear redirección), pero la solicitamos
+          fetch(`/api/pagos/${result.pagoId}/notificaciones`, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+            .then((r) => r.json())
+            .then((data) => mostrarResultadoNotificaciones(data))
+            .catch((e) =>
+              console.warn("No se pudo obtener estado notificaciones", e)
+            );
+        }
+      } catch (e) {
+        console.warn("Error consultando notificaciones:", e);
+      }
+
+      // If SDK is initialized, render official MP button using preference id
+      try {
+        if (window.mpInstance && result.preferenceId) {
+          const container = document.getElementById("mp-button-container");
+          try {
+            // ocultar botón original si existe
+            const originalBtn = document.getElementById("btnIrAMercadoPago");
+            if (originalBtn) originalBtn.classList.add("hidden");
+            // Usar el render del SDK para que inyecte el botón oficial
+            if (window.mpInstance && container) {
+              window.mpInstance.checkout({
+                preference: { id: result.preferenceId },
+                render: {
+                  container: "#mp-button-container",
+                  label: "Pagar con Mercado Pago",
+                },
+              });
+            }
+          } catch (e) {
+            console.warn(
+              "Error renderizando botón SDK, fallback a init_point",
+              e
+            );
+            window.open(result.initPoint, "_blank");
+          }
+        } else {
+          // Open Mercado Pago in a new tab so the current page can show confirmation
+          try {
+            window.open(result.initPoint, "_blank");
+          } catch (e) {
+            // If popups are blocked, fallback to navigating
+            window.location.href = result.initPoint;
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn("Error iniciando SDK de MP, abriendo init_point", e);
+        try {
+          window.open(result.initPoint, "_blank");
+        } catch (e2) {
+          window.location.href = result.initPoint;
+        }
+      }
+
+      // Immediately navigate current tab to confirmation page with ids so user sees the result
+      const params = new URLSearchParams();
+      if (result.pagoId) params.set("pagoId", result.pagoId);
+      if (result.asesoriaId) params.set("asesoriaId", result.asesoriaId);
+      params.set("status", "pending");
+      window.location.href = `/confirmacion-asesoria?${params.toString()}`;
+      return;
+    }
+
+    mostrarError("No se pudo iniciar Mercado Pago");
   } catch (error) {
-    mostrarError("Error al procesar el pago: " + error.message);
+    console.error("iniciarCheckoutMercadoPago error:", error);
+    mostrarError("Error al iniciar Mercado Pago: " + error.message);
   } finally {
     pagoEnProceso = false;
+  }
+}
+
+/**
+ * Muestra un pequeño mensaje informando si las notificaciones fueron enviadas
+ * data = { enviado: boolean, detalles: Array }
+ */
+function mostrarResultadoNotificaciones(data) {
+  try {
+    const container = document.getElementById("notificacionResult");
+    if (!container) {
+      // crear un badge minimal debajo del botón
+      const mpContainer = document.querySelector(".mp-checkout-container");
+      const el = document.createElement("div");
+      el.id = "notificacionResult";
+      el.style.marginTop = "12px";
+      el.style.fontSize = "0.95rem";
+      if (data && data.enviado) {
+        // No mostramos el texto verde en la parte superior por diseño; mantener silencio
+        el.textContent = "";
+        el.style.display = "none";
+      } else {
+        el.style.color = "#c62828"; // rojo
+        el.textContent =
+          "No se pudieron enviar notificaciones (configurar SENDGRID).";
+      }
+      if (mpContainer) mpContainer.appendChild(el);
+      return;
+    }
+    if (data && data.enviado) {
+      // no mostrar mensaje positivo
+      container.style.display = "none";
+    } else {
+      container.style.color = "#c62828";
+      container.textContent =
+        "No se pudieron enviar notificaciones (configurar SENDGRID).";
+    }
+  } catch (e) {
+    console.warn("mostrarResultadoNotificaciones fallo:", e);
   }
 }
 
@@ -343,17 +422,35 @@ async function procesarPagoConFormulario() {
  * Muestra el estado de carga durante el procesamiento
  */
 function mostrarEstadoCarga() {
-  document.getElementById("formPago").style.display = "none";
-  document.getElementById("loadingState").style.display = "block";
-  document.getElementById("successState").style.display = "none";
-  document.getElementById("errorState").style.display = "none";
+  const formPagoEl = document.getElementById("formPago");
+  const loadingEl = document.getElementById("loadingState");
+  const successEl = document.getElementById("successState");
+  const errorEl = document.getElementById("errorState");
+  if (formPagoEl) formPagoEl.classList.add("hidden");
+  if (loadingEl) loadingEl.classList.remove("hidden");
+  if (successEl) successEl.classList.add("hidden");
+  if (errorEl) errorEl.classList.add("hidden");
 }
 
 function mostrarError(mensaje) {
-  document.getElementById("loadingState").style.display = "none";
-  document.getElementById("formPago").style.display = "block";
-  document.getElementById("errorMessage").textContent = mensaje;
-  document.getElementById("errorState").style.display = "block";
+  try {
+    const loadingEl = document.getElementById("loadingState");
+    const formPagoEl = document.getElementById("formPago");
+    const errorMessageEl = document.getElementById("errorMessage");
+    const errorEl = document.getElementById("errorState");
+    if (loadingEl) loadingEl.classList.add("hidden");
+    if (formPagoEl) formPagoEl.classList.remove("hidden");
+    if (errorMessageEl) errorMessageEl.textContent = mensaje;
+    if (errorEl) errorEl.classList.remove("hidden");
+  } catch (e) {
+    console.error("mostrarError fallo al manipular el DOM:", e, mensaje);
+    // último recurso: alert al usuario
+    try {
+      alert(mensaje);
+    } catch (e2) {
+      /* ignore */
+    }
+  }
 }
 
 /**
@@ -364,7 +461,7 @@ function mostrarAlerta(mensaje) {
   const text = document.getElementById("alertText");
   if (container && text) {
     text.textContent = mensaje;
-    container.style.display = "block";
+    container.classList.remove("hidden");
     setTimeout(() => cerrarAlerta(), 6000);
     container.scrollIntoView({ behavior: "smooth", block: "center" });
     // feedback visual en el primer input con error
@@ -378,11 +475,13 @@ function mostrarAlerta(mensaje) {
 }
 function cerrarAlerta() {
   const container = document.getElementById("alertContainer");
-  if (container) container.style.display = "none";
+  if (container) container.classList.add("hidden");
 }
 function reintentar() {
-  document.getElementById("errorState").style.display = "none";
-  document.getElementById("formPago").style.display = "block";
+  const errorEl = document.getElementById("errorState");
+  const formPagoEl = document.getElementById("formPago");
+  if (errorEl) errorEl.classList.add("hidden");
+  if (formPagoEl) formPagoEl.classList.remove("hidden");
   pagoEnProceso = false;
 }
 function validarEmail(email) {
