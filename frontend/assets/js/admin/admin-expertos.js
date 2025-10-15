@@ -714,21 +714,17 @@
   }
 
   async function toggleExpertStatus(id, newStatus, clickedButton) {
-    // Preferir el botón que se ha pulsado para leer data-email; si no, consultar el DOM
+    // Buscar email de forma robusta
     let btn = clickedButton;
     if (!btn) {
-      // Intentar localizar específicamente un elemento button (evitar seleccionar el TR que también tiene data-id)
       btn = document.querySelector(`button[data-id="${id}"]`);
     }
-    // Si aún no se encuentra, intentar localizar la fila y luego el botón dentro de ella
     if (!btn) {
       const row = document.querySelector(`tr[data-id="${id}"]`);
       if (row) {
         btn = row.querySelector(`button[data-id="${id}"]`);
       }
     }
-
-    // Intentar múltiples atributos y alternativas para obtener el email
     let email = null;
     try {
       if (btn) {
@@ -737,15 +733,31 @@
     } catch (e) {
       email = null;
     }
-
+    // Si no hay email, buscar en la fila o en el dataset global
     if (!email) {
-      console.error(
-        "[admin-expertos] toggleExpertStatus: could not resolve email for id",
-        id,
-        "resolved element:",
-        btn || document.querySelector(`tr[data-id="${id}"]`)
+      const row = document.querySelector(`tr[data-id="${id}"]`);
+      if (row) {
+        // Buscar en celdas de la fila
+        const emailCell = row.querySelector("[data-email]");
+        if (emailCell) email = emailCell.getAttribute("data-email");
+        // Buscar en el texto de la fila
+        if (!email) {
+          const possible = Array.from(row.querySelectorAll("td,span,div"))
+            .map((e) => e.textContent)
+            .find((t) => t && t.includes("@"));
+          if (possible) email = possible.trim();
+        }
+      }
+      // Buscar en el array global allExperts
+      if (!email && typeof allExperts !== "undefined") {
+        const found = allExperts.find((x) => getExpertField(x, "id") == id);
+        if (found) email = getExpertField(found, "email");
+      }
+    }
+    if (!email) {
+      alert(
+        "Error: No se pudo obtener el email del experto. Intenta recargar la página."
       );
-      alert("Error: No se pudo obtener el email del experto");
       return;
     }
 
@@ -757,52 +769,52 @@
     try {
       btn.disabled = true;
       btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
-
       // Construir headers
       const headers = { "Content-Type": "application/json" };
       if (typeof window !== "undefined" && window.API_KEY) {
         headers["x-api-key"] = window.API_KEY;
         headers["Authorization"] = `Bearer ${window.authToken || ""}`;
-      } else {
-        // si no hay API_KEY en cliente, usaremos proxy server-side
-        // proxy usará la sesión admin para inyectar la API_KEY
       }
-
-      let response;
-      if (typeof window !== "undefined" && window.API_KEY) {
-        response = await fetch(
-          `/api/expertos/${encodeURIComponent(email)}/activo`,
-          {
-            method: "PUT",
-            credentials: "same-origin",
-            headers,
-            body: JSON.stringify({ activo: newStatus }),
-          }
-        );
-      } else {
-        response = await fetch(
-          `/admin/proxy/expertos/${encodeURIComponent(email)}/activo`,
-          {
-            method: "PUT",
-            credentials: "same-origin",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ activo: newStatus }),
-          }
-        );
+      let response,
+        result = {};
+      let triedById = false;
+      let lastTriedEmail = email;
+      let lastError = null;
+      // Función para hacer la petición (por email o por id)
+      async function doRequest(identifier, isId) {
+        const url = isId
+          ? `/api/expertos/id/${encodeURIComponent(identifier)}/activo`
+          : `/api/expertos/${encodeURIComponent(identifier)}/activo`;
+        return await fetch(url, {
+          method: "PUT",
+          credentials: "same-origin",
+          headers,
+          body: JSON.stringify({ activo: newStatus }),
+        });
       }
-
-      let result = {};
+      // Primer intento: por email
+      response = await doRequest(email, false);
       try {
         result = await response.json();
       } catch (e) {
+        result = { mensaje: await response.text() };
+      }
+      // Si falla por correo no encontrado, reintentar por id
+      if (
+        !response.ok &&
+        result &&
+        typeof result.mensaje === "string" &&
+        result.mensaje.toLowerCase().includes("correo") &&
+        !triedById
+      ) {
+        triedById = true;
+        response = await doRequest(id, true);
         try {
-          const txt = await response.text();
-          result = { mensaje: txt };
-        } catch (ee) {
-          result = { mensaje: "HTTP " + response.status };
+          result = await response.json();
+        } catch (e) {
+          result = { mensaje: await response.text() };
         }
       }
-
       if (response.ok) {
         const row = document.querySelector(
           `table.admin-table--expertos tr[data-id="${id}"]`
@@ -810,21 +822,19 @@
         if (row) {
           const badge = row.querySelector(".badge");
           const actionsCell = row.querySelector(".expertos-actions-cell");
-
-          const expert = result.experto;
-
+          const expert = result.experto || {
+            estado: newStatus ? "activo" : "inactivo",
+          };
           if (badge) {
             badge.className = `badge ${getStatusBadgeClass(
               expert.estado
             )} badge-as-btn`;
             badge.textContent = expert.estado;
-            // asegurar atributos accesibles
             if (!badge.hasAttribute("role"))
               badge.setAttribute("role", "button");
             if (!badge.hasAttribute("tabindex"))
               badge.setAttribute("tabindex", "0");
           }
-
           if (actionsCell) {
             const newButtons = `
               <div class="action-buttons" role="group" aria-label="Acciones experto">
@@ -839,13 +849,10 @@
             `;
             actionsCell.innerHTML = newButtons;
             bindRowActions(row.closest("table"));
-            // asegurar que badges recién insertados tienen bindings de teclado
             bindBadgeKeyboard(row.closest("table"));
           }
-
           row.setAttribute("data-status", expert.estado);
         }
-
         alert(
           `Experto ${
             action === "activar" ? "activado" : "inactivado"
@@ -855,7 +862,7 @@
         const msg =
           result && result.mensaje
             ? result.mensaje
-            : "HTTP " + response.status + " " + response.statusText;
+            : `HTTP ${response.status} ${response.statusText}`;
         throw new Error(msg || `Error al ${action} experto`);
       }
     } catch (error) {
