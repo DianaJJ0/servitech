@@ -1,7 +1,23 @@
 /**
- * Controlador de Asesorías - ServiTech
- * @module controllers/asesoria
- * @description Gestión completa de asesorías y su ciclo de vida
+ * CONTROLADOR DE ASESORÍAS
+ * ---------------------------------------------
+ * Este archivo implementa la lógica de negocio para la gestión de asesorías en la plataforma.
+ * Incluye operaciones de creación, aceptación, rechazo, inicio, finalización, cancelación, consulta,
+ * manejo de pagos, notificaciones automáticas y registro de logs para auditoría.
+ *
+ * @module controllers/asesoria.controller
+ * @requires models/asesoria.model
+ * @requires models/pago.model
+ * @requires models/usuario.model
+ * @requires models/notificacion.model
+ * @requires services/generarLogs
+ * @requires services/email.service
+ *
+ * Uso típico:
+ *   const asesoriaController = require('./controllers/asesoria.controller');
+ *   app.get('/api/asesorias/mis-asesorias', asesoriaController.obtenerMisAsesorias);
+ *
+ * Todas las funciones están documentadas con JSDoc y Swagger/OpenAPI para Deepwiki y generación automática de documentación.
  */
 
 const Asesoria = require("../models/asesoria.model.js");
@@ -12,18 +28,19 @@ const generarLogs = require("../services/generarLogs");
 const { enviarCorreo } = require("../services/email.service.js");
 
 /**
- * Obtener asesorías del usuario actual
- * @function obtenerMisAsesorias
- * @description Obtiene todas las asesorías donde el usuario es cliente o experto
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- * @returns {Promise<Object>} Lista de asesorías del usuario
+ * Obtiene todas las asesorías donde el usuario autenticado es cliente o experto.
+ * Permite filtrar por estado, rol y paginar los resultados.
  *
- * @swagger
+ * @function obtenerMisAsesorias
+ * @param {import('express').Request} req - Request de Express con usuario autenticado y filtros opcionales.
+ * @param {import('express').Response} res - Response de Express.
+ * @returns {Promise<void>} Responde con la lista de asesorías y paginación.
+ *
+ * @openapi
  * /api/asesorias/mis-asesorias:
  *   get:
  *     summary: Obtener mis asesorías
- *     description: Obtiene todas las asesorías donde el usuario autenticado es cliente o experto
+ *     description: Obtiene todas las asesorías donde el usuario autenticado es cliente o experto.
  *     tags: [Asesorías]
  *     security:
  *       - bearerAuth: []
@@ -34,14 +51,14 @@ const { enviarCorreo } = require("../services/email.service.js");
  *           type: string
  *           enum: [pendiente-aceptacion, confirmada, en-progreso, completada, cancelada, rechazada]
  *         description: Filtrar por estado específico
- *         example: "pendiente-aceptacion"
+ *         example: pendiente-aceptacion
  *       - in: query
  *         name: rol
  *         schema:
  *           type: string
  *           enum: [cliente, experto]
  *         description: Filtrar por rol (cliente o experto)
- *         example: "experto"
+ *         example: experto
  *       - in: query
  *         name: page
  *         schema:
@@ -119,8 +136,8 @@ const obtenerMisAsesorias = async (req, res) => {
     let filtros = {
       $or: [
         { "cliente.email": usuarioEmail },
-        { "experto.email": usuarioEmail }
-      ]
+        { "experto.email": usuarioEmail },
+      ],
     };
 
     // Filtro por estado
@@ -147,18 +164,20 @@ const obtenerMisAsesorias = async (req, res) => {
       .sort({ fechaCreacion: -1 })
       .skip(skip)
       .limit(parseInt(limit))
-      .populate('pagoId', 'monto estado metodo');
+      .populate("pagoId", "monto estado metodo");
 
     const total = await Asesoria.countDocuments(filtros);
 
-    console.log(`Encontradas ${asesorias.length} asesorías de ${total} totales`);
+    console.log(
+      `Encontradas ${asesorias.length} asesorías de ${total} totales`
+    );
 
     // Agregar información del usuario actual para el frontend
     const usuarioInfo = {
       email: req.usuario.email,
       nombre: req.usuario.nombre,
       apellido: req.usuario.apellido,
-      roles: req.usuario.roles || []
+      roles: req.usuario.roles || [],
     };
 
     res.json({
@@ -169,9 +188,8 @@ const obtenerMisAsesorias = async (req, res) => {
         total,
         pages: Math.ceil(total / parseInt(limit)),
       },
-      usuarioActual: usuarioInfo // IMPORTANTE: enviar info del usuario
+      usuarioActual: usuarioInfo, // IMPORTANTE: enviar info del usuario
     });
-
   } catch (error) {
     console.error("Error obteniendo asesorías:", error);
     res.status(500).json({
@@ -757,7 +775,14 @@ const cancelarAsesoria = async (req, res) => {
     const { motivo = "Cancelada por el usuario" } = req.body;
 
     console.log("=== CANCELAR ASESORÍA ===");
-    console.log("AsesoriaId:", asesoriaId, "Usuario:", usuarioEmail, "Motivo:", motivo);
+    console.log(
+      "AsesoriaId:",
+      asesoriaId,
+      "Usuario:",
+      usuarioEmail,
+      "Motivo:",
+      motivo
+    );
 
     const asesoria = await Asesoria.findById(asesoriaId);
     if (!asesoria) {
@@ -798,14 +823,13 @@ const cancelarAsesoria = async (req, res) => {
       try {
         const pago = await Pago.findById(asesoria.pagoId);
         if (pago && ["retenido", "liberado"].includes(pago.estado)) {
-
           // Lógica de descuentos según estado y quien cancela
           if (asesoria.estado === "confirmada") {
             // Asesoría ya confirmada
             if (esCliente) {
               // Cliente cancela: se le devuelve 85%, experto recibe 10%, ServiTech 5%
               montoReembolso = Math.round(pago.monto * 0.85);
-              const montoExperto = Math.round(pago.monto * 0.10);
+              const montoExperto = Math.round(pago.monto * 0.1);
               const montoServitech = Math.round(pago.monto * 0.05);
 
               detallesReembolso = {
@@ -815,9 +839,8 @@ const cancelarAsesoria = async (req, res) => {
                 montoExperto: montoExperto,
                 montoServitech: montoServitech,
                 porcentajeReembolso: 85,
-                motivo: `Cliente canceló asesoría confirmada: ${motivo}`
+                motivo: `Cliente canceló asesoría confirmada: ${motivo}`,
               };
-
             } else if (esExperto) {
               // Experto cancela: cliente recibe 100%
               montoReembolso = pago.monto;
@@ -827,7 +850,7 @@ const cancelarAsesoria = async (req, res) => {
                 montoOriginal: pago.monto,
                 montoReembolso: montoReembolso,
                 porcentajeReembolso: 100,
-                motivo: `Experto canceló asesoría confirmada: ${motivo}`
+                motivo: `Experto canceló asesoría confirmada: ${motivo}`,
               };
             }
           } else {
@@ -839,7 +862,7 @@ const cancelarAsesoria = async (req, res) => {
               montoOriginal: pago.monto,
               montoReembolso: montoReembolso,
               porcentajeReembolso: 100,
-              motivo: `Cancelación en estado pendiente: ${motivo}`
+              motivo: `Cancelación en estado pendiente: ${motivo}`,
             };
           }
 
@@ -895,7 +918,6 @@ const cancelarAsesoria = async (req, res) => {
       reembolsoProcesado: reembolsoProcesado,
       detallesReembolso: detallesReembolso,
     });
-
   } catch (error) {
     console.error("Error cancelando asesoría:", error);
     res.status(500).json({
@@ -1039,9 +1061,11 @@ async function enviarNotificacionesFinalizacion(asesoria, pagoLiberado) {
     await enviarCorreo(
       asesoria.cliente.email,
       "Asesoría completada - ¡Gracias! ",
-      `Tu asesoría "${asesoria.titulo}" con ${asesoria.experto.nombre} ${asesoria.experto.apellido} ha sido completada exitosamente.
+      `Tu asesoría "${asesoria.titulo}" con ${asesoria.experto.nombre} ${
+        asesoria.experto.apellido
+      } ha sido completada exitosamente.
 
-${pagoLiberado ? 'El pago ha sido liberado al experto.' : ''}
+${pagoLiberado ? "El pago ha sido liberado al experto." : ""}
 
 Esperamos que hayas tenido una excelente experiencia. ¡Gracias por usar ServiTech!
 
@@ -1064,18 +1088,22 @@ Esperamos que hayas tenido una excelente experiencia. ¡Gracias por usar ServiTe
       fechaEnvio: new Date(),
     });
 
-    const pagoInfo = asesoria.pagoId ?
-      await Pago.findById(asesoria.pagoId) : null;
+    const pagoInfo = asesoria.pagoId
+      ? await Pago.findById(asesoria.pagoId)
+      : null;
 
-    const montoTexto = pagoInfo ?
-      `$${pagoInfo.monto.toLocaleString("es-CO")} COP` : "el monto correspondiente";
+    const montoTexto = pagoInfo
+      ? `$${pagoInfo.monto.toLocaleString("es-CO")} COP`
+      : "el monto correspondiente";
 
     await enviarCorreo(
       asesoria.experto.email,
       "Asesoría completada - Pago liberado",
-      `Tu asesoría "${asesoria.titulo}" con ${asesoria.cliente.nombre} ${asesoria.cliente.apellido} ha sido completada exitosamente.
+      `Tu asesoría "${asesoria.titulo}" con ${asesoria.cliente.nombre} ${
+        asesoria.cliente.apellido
+      } ha sido completada exitosamente.
 
-${pagoLiberado ? `El pago de ${montoTexto} ha sido liberado exitosamente.` : ''}
+${pagoLiberado ? `El pago de ${montoTexto} ha sido liberado exitosamente.` : ""}
 
 ¡Felicitaciones por completar otra asesoría exitosa!
 
@@ -1097,22 +1125,40 @@ En un ambiente real, el dinero sería transferido a tu cuenta registrada.`,
  * @function enviarNotificacionesCancelacion
  * @private
  */
-async function enviarNotificacionesCancelacion(asesoria, motivo, canceladaPor, reembolsoProcesado, detallesReembolso) {
+async function enviarNotificacionesCancelacion(
+  asesoria,
+  motivo,
+  canceladaPor,
+  reembolsoProcesado,
+  detallesReembolso
+) {
   try {
     const esCliente = asesoria.cliente.email === canceladaPor;
     const esExperto = asesoria.experto.email === canceladaPor;
-    const canceladoPorTexto = esCliente ? "el cliente" : esExperto ? "el experto" : "el usuario";
+    const canceladoPorTexto = esCliente
+      ? "el cliente"
+      : esExperto
+      ? "el experto"
+      : "el usuario";
     const otroUsuario = esCliente ? asesoria.experto : asesoria.cliente;
 
     // Preparar mensajes específicos según el tipo de cancelación
     let mensajeReembolso = "";
     if (reembolsoProcesado && detallesReembolso) {
       if (detallesReembolso.tipo === "cancelacion_cliente_confirmada") {
-        mensajeReembolso = `Se procesó un reembolso del ${detallesReembolso.porcentajeReembolso}% ($${detallesReembolso.montoReembolso.toLocaleString("es-CO")} COP). El 10% se destinó al experto por la confirmación previa y el 5% a ServiTech por gastos administrativos.`;
+        mensajeReembolso = `Se procesó un reembolso del ${
+          detallesReembolso.porcentajeReembolso
+        }% ($${detallesReembolso.montoReembolso.toLocaleString(
+          "es-CO"
+        )} COP). El 10% se destinó al experto por la confirmación previa y el 5% a ServiTech por gastos administrativos.`;
       } else if (detallesReembolso.tipo === "cancelacion_experto_confirmada") {
-        mensajeReembolso = `Se procesó un reembolso completo de $${detallesReembolso.montoReembolso.toLocaleString("es-CO")} COP.`;
+        mensajeReembolso = `Se procesó un reembolso completo de $${detallesReembolso.montoReembolso.toLocaleString(
+          "es-CO"
+        )} COP.`;
       } else {
-        mensajeReembolso = `Se procesó un reembolso completo de $${detallesReembolso.montoReembolso.toLocaleString("es-CO")} COP.`;
+        mensajeReembolso = `Se procesó un reembolso completo de $${detallesReembolso.montoReembolso.toLocaleString(
+          "es-CO"
+        )} COP.`;
       }
     }
 
@@ -1205,8 +1251,8 @@ const obtenerAsesoriasPorExperto = async (req, res) => {
       filtroFecha = {
         fechaHoraInicio: {
           $gte: inicioMes,
-          $lte: finMes
-        }
+          $lte: finMes,
+        },
       };
     }
 
@@ -1214,22 +1260,25 @@ const obtenerAsesoriasPorExperto = async (req, res) => {
     const filtros = {
       "experto.email": expertoEmail,
       estado: { $in: ["confirmada", "en-progreso"] }, // Solo asesorías confirmadas
-      ...filtroFecha
+      ...filtroFecha,
     };
 
     // Obtener asesorías
     const asesorias = await Asesoria.find(filtros)
-      .select('fechaHoraInicio fechaHoraFin duracionMinutos titulo estado cliente')
+      .select(
+        "fechaHoraInicio fechaHoraFin duracionMinutos titulo estado cliente"
+      )
       .sort({ fechaHoraInicio: 1 });
 
-    console.log(`Encontradas ${asesorias.length} asesorías para ${expertoEmail}`);
+    console.log(
+      `Encontradas ${asesorias.length} asesorías para ${expertoEmail}`
+    );
 
     res.json({
       expertoEmail: expertoEmail,
       asesorias: asesorias,
-      total: asesorias.length
+      total: asesorias.length,
     });
-
   } catch (error) {
     console.error("Error obteniendo asesorías por experto:", error);
     res.status(500).json({
@@ -1238,8 +1287,6 @@ const obtenerAsesoriasPorExperto = async (req, res) => {
     });
   }
 };
-
-
 
 module.exports = {
   obtenerMisAsesorias,
@@ -1254,5 +1301,4 @@ module.exports = {
   enviarNotificacionesRechazo,
   enviarNotificacionesFinalizacion,
   enviarNotificacionesCancelacion,
-
 };

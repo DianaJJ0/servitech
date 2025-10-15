@@ -1,24 +1,25 @@
 /**
- * RUTAS DE ASESORÍAS
- * Endpoints para gestión completa del ciclo de vida de asesorías
- * @module routes/asesoria
+ * ---------------------------------------------
+ * Rutas de gestión de asesorías para Servitech
+ * ---------------------------------------------
+ * Este archivo define todos los endpoints relacionados con el ciclo de vida de las asesorías:
+ * - Solicitud, aceptación, rechazo, inicio, finalización y cancelación de asesorías
+ * - Consulta de asesorías propias y por experto
+ * - Seguridad: uso de JWT, roles y validaciones de negocio
+ *
+ * Incluye documentación Swagger/OpenAPI y comentarios técnicos para Deepwiki/manual técnico.
+ *
  */
+
 const express = require("express");
 const router = express.Router();
+// Controlador principal de asesorías
 const asesoriaController = require("../controllers/asesoria.controller.js");
+// Middleware de autenticación JWT
 const authMiddleware = require("../middleware/auth.middleware");
+// Middleware de validación de API Key (si aplica en futuras rutas admin)
 const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
-
-/**
- * @swagger
- * tags:
- *   - name: Asesorías
- *     description: Gestión de asesorías y su ciclo de vida
- */
-
-/**
- * @swagger
- * components:
+/* components:
  *   schemas:
  *     Asesoria:
  *       type: object
@@ -175,6 +176,19 @@ const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
  *       500:
  *         description: Error interno del servidor
  */
+
+/**
+ * Obtiene todas las asesorías donde el usuario autenticado es cliente o experto.
+ * Permite filtrar por estado, rol, paginación, etc.
+ * @route GET /api/asesorias/mis-asesorias
+ * @group Asesorías - Consulta
+ * @security JWT
+ * @param {string} estado.query - Filtrar por estado específico
+ * @param {string} rol.query - Filtrar por rol (cliente o experto)
+ * @param {integer} page.query - Número de página
+ * @param {integer} limit.query - Elementos por página
+ * @returns {object} 200 - Lista de asesorías y paginación
+ */
 router.get(
   "/mis-asesorias",
   authMiddleware.autenticar,
@@ -232,6 +246,16 @@ router.get(
  *         description: Solo el experto puede aceptar la asesoría
  *       404:
  *         description: Asesoría no encontrada
+ */
+
+/**
+ * Permite al experto aceptar una asesoría pendiente de aceptación.
+ * Solo el experto asignado puede aceptar.
+ * @route POST /api/asesorias/{id}/aceptar
+ * @group Asesorías - Ciclo de vida
+ * @security JWT
+ * @param {string} id.path.required - ID de la asesoría
+ * @returns {object} 200 - Asesoría aceptada exitosamente
  */
 router.post(
   "/:id/aceptar",
@@ -302,6 +326,17 @@ router.post(
  *       404:
  *         description: Asesoría no encontrada
  */
+
+/**
+ * Permite al experto rechazar una asesoría pendiente y procesar reembolso automático.
+ * Solo el experto asignado puede rechazar.
+ * @route POST /api/asesorias/{id}/rechazar
+ * @group Asesorías - Ciclo de vida
+ * @security JWT
+ * @param {string} id.path.required - ID de la asesoría
+ * @param {object} body.body - Motivo del rechazo
+ * @returns {object} 200 - Asesoría rechazada y reembolso procesado
+ */
 router.post(
   "/:id/rechazar",
   authMiddleware.autenticar,
@@ -348,6 +383,15 @@ router.post(
  *         description: Sin permisos para iniciar la asesoría
  *       404:
  *         description: Asesoría no encontrada
+ */
+
+/**
+ * Marca una asesoría confirmada como iniciada (solo cliente o experto asignado).
+ * @route POST /api/asesorias/{id}/iniciar
+ * @group Asesorías - Ciclo de vida
+ * @security JWT
+ * @param {string} id.path.required - ID de la asesoría
+ * @returns {object} 200 - Asesoría iniciada exitosamente
  */
 router.post(
   "/:id/iniciar",
@@ -424,6 +468,17 @@ router.post(
  *       404:
  *         description: Asesoría no encontrada
  */
+
+/**
+ * Finaliza una asesoría en progreso y libera el pago al experto automáticamente.
+ * Solo cliente o experto pueden finalizar según reglas de negocio.
+ * @route POST /api/asesorias/{id}/finalizar
+ * @group Asesorías - Ciclo de vida
+ * @security JWT
+ * @param {string} id.path.required - ID de la asesoría
+ * @param {object} body.body - Comentarios y calificación (opcional)
+ * @returns {object} 200 - Asesoría finalizada y pago liberado
+ */
 router.post(
   "/:id/finalizar",
   authMiddleware.autenticar,
@@ -493,6 +548,17 @@ router.post(
  *       404:
  *         description: Asesoría no encontrada
  */
+
+/**
+ * Cancela una asesoría y procesa el reembolso automático.
+ * Puede ser cancelada por cliente o experto según estado.
+ * @route POST /api/asesorias/{id}/cancelar
+ * @group Asesorías - Ciclo de vida
+ * @security JWT
+ * @param {string} id.path.required - ID de la asesoría
+ * @param {object} body.body - Motivo de la cancelación
+ * @returns {object} 200 - Asesoría cancelada y reembolso procesado
+ */
 router.post(
   "/:id/cancelar",
   authMiddleware.autenticar,
@@ -527,6 +593,16 @@ router.post(
  *         description: Sin permisos para ver esta asesoría
  *       404:
  *         description: Asesoría no encontrada
+ */
+
+/**
+ * Obtiene información detallada de una asesoría específica (requiere JWT).
+ * Solo cliente o experto asignado pueden consultar.
+ * @route GET /api/asesorias/{id}
+ * @group Asesorías - Consulta
+ * @security JWT
+ * @param {string} id.path.required - ID de la asesoría
+ * @returns {object} 200 - Información de la asesoría
  */
 router.get(
   "/:id",
@@ -598,9 +674,21 @@ router.get(
  *       500:
  *         description: Error interno del servidor
  */
+
+/**
+ * Obtiene las asesorías confirmadas de un experto específico para mostrar disponibilidad.
+ * No requiere autenticación (público).
+ * @route GET /api/asesorias/experto/{expertoEmail}
+ * @group Asesorías - Consulta
+ * @param {string} expertoEmail.path.required - Email del experto
+ * @param {integer} mes.query - Mes a consultar (1-12)
+ * @param {integer} año.query - Año a consultar
+ * @returns {object} 200 - Lista de asesorías del experto
+ */
 router.get(
   "/experto/:expertoEmail",
   asesoriaController.obtenerAsesoriasPorExperto
 );
 
+// Exporta el router para ser usado en app.js
 module.exports = router;

@@ -4,27 +4,63 @@
  * @description Define los endpoints de la API para la gestión de usuarios en Servitech.
  */
 
+/**
+ * ---------------------------------------------
+ * Rutas de gestión de usuarios para Servitech
+ * ---------------------------------------------
+ * Este archivo define todos los endpoints relacionados con usuarios, incluyendo:
+ * - Registro, login, recuperación y reseteo de contraseña
+ * - Gestión de perfil y avatar
+ * - Administración de usuarios (CRUD por admin)
+ * - Seguridad: uso de JWT, roles y API Key
+ *
+ * Incluye documentación Swagger/OpenAPI y comentarios técnicos para Deepwiki/manual técnico.
+ *
+ * @author Equipo Servitech
+ * @see ../controllers/usuario.controller.js para la lógica de negocio
+ */
+
 const express = require("express");
 const router = express.Router();
 
+// Controlador principal de usuarios
 const usuarioController = require("../controllers/usuario.controller.js");
+// Middleware de autenticación JWT
 const authMiddleware = require("../middleware/auth.middleware.js");
+// Middleware de validación de API Key (para rutas admin)
 const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
 const multer = require("multer");
 const path = require("path");
 
-// Configurar storage para avatars (ruta backend/uploads)
+// Configuración de almacenamiento para archivos de avatar
+// Se utiliza Multer para guardar imágenes en la carpeta /uploads
 const uploadsPath = process.env.UPLOAD_PATH || "uploads";
 const storage = multer.diskStorage({
+  /**
+   * Define la carpeta de destino para los archivos subidos
+   * @param {Request} req
+   * @param {Express.Multer.File} file
+   * @param {Function} cb
+   */
   destination: function (req, file, cb) {
     cb(null, path.join(__dirname, "../", uploadsPath));
   },
+  /**
+   * Define el nombre del archivo subido (formato: avatar_TIMESTAMP.png)
+   * @param {Request} req
+   * @param {Express.Multer.File} file
+   * @param {Function} cb
+   */
   filename: function (req, file, cb) {
     const ext = path.extname(file.originalname) || ".png";
     const name = `avatar_${Date.now()}${ext}`;
     cb(null, name);
   },
 });
+/**
+ * Instancia de Multer para manejo de archivos de avatar
+ * Límite de tamaño configurable por variable de entorno (default: 5MB)
+ */
 const upload = multer({
   storage: storage,
   limits: { fileSize: Number(process.env.MAX_FILE_SIZE || 5242880) },
@@ -95,6 +131,15 @@ const upload = multer({
  *         description: Usuario no encontrado
  *       500:
  *         description: Error interno del servidor
+ */
+/**
+ * Ruta pública para buscar usuario por email.
+ * Permite validar existencia de usuario sin autenticación.
+ * @route GET /api/usuarios/buscar
+ * @group Usuarios - Operaciones públicas
+ * @param {string} email.query.required - Email del usuario a buscar
+ * @returns {object} 200 - Usuario encontrado
+ * @returns {Error}  404 - Usuario no encontrado
  */
 router.get("/buscar", usuarioController.buscarUsuarioPorEmail);
 
@@ -243,6 +288,15 @@ router.get("/buscar", usuarioController.buscarUsuarioPorEmail);
  *       500:
  *         description: Error interno del servidor
  */
+/**
+ * Ruta pública para registrar un nuevo usuario.
+ * Permite registro como cliente y/o solicitud de experto.
+ * @route POST /api/usuarios/registro
+ * @group Usuarios - Registro
+ * @param {object} body.body.required - Datos de usuario y opcional infoExperto
+ * @returns {object} 201 - Usuario registrado exitosamente
+ * @returns {Error}  400 - Error en la solicitud
+ */
 router.post("/registro", usuarioController.registrarUsuario);
 
 /**
@@ -315,6 +369,15 @@ router.post("/registro", usuarioController.registrarUsuario);
  *       500:
  *         description: Error interno del servidor
  */
+/**
+ * Ruta pública para login de usuario.
+ * Devuelve token JWT y datos de usuario si las credenciales son válidas.
+ * @route POST /api/usuarios/login
+ * @group Usuarios - Autenticación
+ * @param {object} body.body.required - Email y password
+ * @returns {object} 200 - Login exitoso con token
+ * @returns {Error}  401 - Credenciales incorrectas
+ */
 router.post("/login", usuarioController.iniciarSesion);
 
 /**
@@ -361,6 +424,14 @@ router.post("/login", usuarioController.iniciarSesion);
  *         description: Email requerido
  *       500:
  *         description: Error interno del servidor
+ */
+/**
+ * Solicita recuperación de contraseña (envía email con token).
+ * Siempre responde exitosamente por seguridad.
+ * @route POST /api/usuarios/recuperar-password
+ * @group Usuarios - Recuperación
+ * @param {object} body.body.required - Email del usuario
+ * @returns {object} 200 - Solicitud procesada
  */
 router.post(
   "/recuperar-password",
@@ -417,8 +488,15 @@ router.post(
  *       500:
  *         description: Error interno del servidor
  */
+/**
+ * Restablece la contraseña usando el token recibido por email.
+ * @route POST /api/usuarios/reset-password
+ * @group Usuarios - Recuperación
+ * @param {object} body.body.required - Token y nueva contraseña
+ * @returns {object} 200 - Contraseña actualizada
+ * @returns {Error}  400 - Token inválido o expirado
+ */
 router.post("/reset-password", usuarioController.resetearPassword);
-
 
 // Rutas protegidas (requieren token)
 
@@ -465,6 +543,14 @@ router.post("/reset-password", usuarioController.resetearPassword);
  *         description: No autenticado
  *       500:
  *         description: Error interno del servidor
+ */
+/**
+ * Obtiene el perfil del usuario autenticado (requiere JWT).
+ * Incluye info de experto si aplica.
+ * @route GET /api/usuarios/perfil
+ * @group Usuarios - Perfil
+ * @security JWT
+ * @returns {object} 200 - Perfil de usuario
  */
 router.get(
   "/perfil",
@@ -577,6 +663,15 @@ router.get(
  *       500:
  *         description: Error interno del servidor
  */
+/**
+ * Actualiza el perfil del usuario autenticado (requiere JWT).
+ * Permite actualizar datos básicos y de experto.
+ * @route PUT /api/usuarios/perfil
+ * @group Usuarios - Perfil
+ * @security JWT
+ * @param {object} body.body.required - Nuevos datos de usuario
+ * @returns {object} 200 - Perfil actualizado
+ */
 router.put(
   "/perfil",
   authMiddleware.autenticar,
@@ -626,6 +721,15 @@ router.put(
  *       500:
  *         description: Error interno del servidor
  */
+/**
+ * Sube una imagen de avatar para el usuario autenticado.
+ * El archivo debe enviarse como multipart/form-data.
+ * @route POST /api/usuarios/avatar
+ * @group Usuarios - Perfil
+ * @security JWT
+ * @param {file} avatar.formData.required - Imagen de avatar
+ * @returns {object} 200 - Avatar subido correctamente
+ */
 router.post(
   "/avatar",
   authMiddleware.autenticar,
@@ -659,6 +763,14 @@ router.post(
  *         description: Usuario no encontrado
  *       500:
  *         description: Error interno del servidor
+ */
+/**
+ * Elimina/desactiva la cuenta del usuario autenticado.
+ * Procesa reembolsos automáticos de asesorías y pagos asociados.
+ * @route DELETE /api/usuarios/perfil
+ * @group Usuarios - Perfil
+ * @security JWT
+ * @returns {object} 200 - Cuenta desactivada
  */
 router.delete(
   "/perfil",
@@ -736,6 +848,14 @@ router.delete(
  *       500:
  *         description: Error interno del servidor
  */
+/**
+ * Lista usuarios con filtros y paginación (solo admin).
+ * Requiere JWT y rol admin.
+ * @route GET /api/usuarios
+ * @group Usuarios - Administración
+ * @security JWT
+ * @returns {object} 200 - Lista de usuarios
+ */
 router.get(
   "/",
   authMiddleware.autenticar,
@@ -779,6 +899,15 @@ router.get(
  *         description: Sin permisos o API Key inválida
  *       500:
  *         description: Error interno del servidor
+ */
+/**
+ * Obtiene usuario por email (admin + API Key).
+ * Requiere JWT, rol admin y API Key válida.
+ * @route GET /api/usuarios/{email}
+ * @group Usuarios - Administración
+ * @security JWT, APIKey
+ * @param {string} email.path.required - Email del usuario
+ * @returns {object} 200 - Usuario encontrado
  */
 router.get(
   "/:email",
@@ -849,6 +978,16 @@ router.get(
  *       500:
  *         description: Error interno del servidor
  */
+/**
+ * Actualiza usuario por email (admin + API Key).
+ * Permite modificar cualquier campo del usuario.
+ * @route PUT /api/usuarios/{email}
+ * @group Usuarios - Administración
+ * @security JWT, APIKey
+ * @param {string} email.path.required - Email del usuario
+ * @param {object} body.body.required - Nuevos datos de usuario
+ * @returns {object} 200 - Usuario actualizado
+ */
 router.put(
   "/:email",
   apiKeyMiddleware,
@@ -895,6 +1034,15 @@ router.put(
  *         description: Sin permisos o API Key inválida
  *       500:
  *         description: Error interno del servidor
+ */
+/**
+ * Elimina/desactiva usuario por email (admin + API Key).
+ * Procesa reembolsos automáticos de asesorías y pagos asociados.
+ * @route DELETE /api/usuarios/{email}
+ * @group Usuarios - Administración
+ * @security JWT, APIKey
+ * @param {string} email.path.required - Email del usuario
+ * @returns {object} 200 - Usuario desactivado
  */
 router.delete(
   "/:email",

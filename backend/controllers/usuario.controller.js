@@ -1,7 +1,24 @@
 /**
- * @file Controlador de usuarios
- * @module controllers/usuario
- * @description Lógica de negocio para registro, inicio de sesión, recuperación, gestión de perfiles y desactivación segura de usuarios en Servitech.
+ * CONTROLADOR DE USUARIOS
+ * ---------------------------------------------
+ * Este archivo implementa la lógica de negocio para la gestión de usuarios en la plataforma.
+ * Incluye operaciones de registro, autenticación, recuperación de contraseña, gestión de perfiles,
+ * desactivación segura, validaciones y registro de logs para auditoría.
+ *
+ * @module controllers/usuario.controller
+ * @requires models/usuario.model
+ * @requires models/categoria.model
+ * @requires models/asesoria.model
+ * @requires models/pago.model
+ * @requires services/email.service
+ * @requires services/logService
+ * @requires services/generarLogs
+ *
+ * Uso típico:
+ *   const usuarioController = require('./controllers/usuario.controller');
+ *   app.post('/api/usuarios/registro', usuarioController.registrarUsuario);
+ *
+ * Todas las funciones están documentadas con JSDoc y Swagger/OpenAPI para Deepwiki y generación automática de documentación.
  */
 
 const Usuario = require("../models/usuario.model.js");
