@@ -5,6 +5,498 @@
  */
 
 document.addEventListener("DOMContentLoaded", function () {
+  // --- Criterios dinámicos para campo Roles (coma separado) ---
+  const allowedRoles = ["cliente", "experto", "admin"];
+  // Crear usuario
+  const createRolesInput = document.getElementById("create-roles");
+  const createRolesCriteriaList = document.getElementById(
+    "createRolesCriteria"
+  );
+  const createRolesValidItem = document.getElementById(
+    "createRolesValidCriteria"
+  );
+  const createRolesAllowedItem = document.getElementById(
+    "createRolesAllowedCriteria"
+  );
+  const createRolesNoSpacesItem = document.getElementById(
+    "createRolesNoSpacesCriteria"
+  );
+  if (
+    createRolesInput &&
+    createRolesCriteriaList &&
+    createRolesValidItem &&
+    createRolesAllowedItem &&
+    createRolesNoSpacesItem
+  ) {
+    function parseRoles(str) {
+      return str
+        .split(",")
+        .map((r) => r.trim())
+        .filter(Boolean);
+    }
+    function isValidRoles(str) {
+      return parseRoles(str).length > 0;
+    }
+    function isAllowedRoles(str) {
+      const roles = parseRoles(str);
+      return roles.every((r) => allowedRoles.includes(r));
+    }
+    function noExtraSpacesOrCommas(str) {
+      return str === str.replace(/^,|,$/g, "").replace(/\s*,\s*/g, ",");
+    }
+    function updateCreateRolesCriteriaUI(val) {
+      createRolesCriteriaList.style.display = val ? "block" : "none";
+      // Al menos un rol válido
+      const valid = isValidRoles(val);
+      createRolesValidItem.classList.remove("valid", "invalid");
+      createRolesValidItem.classList.add(valid ? "valid" : "invalid");
+      let icon1 = createRolesValidItem.querySelector(".roles-criteria-icon");
+      if (icon1) icon1.textContent = valid ? "✔" : "✖";
+      // Solo roles permitidos
+      const allowed = valid && isAllowedRoles(val);
+      createRolesAllowedItem.classList.remove("valid", "invalid");
+      createRolesAllowedItem.classList.add(allowed ? "valid" : "invalid");
+      let icon2 = createRolesAllowedItem.querySelector(".roles-criteria-icon");
+      if (icon2) icon2.textContent = allowed ? "✔" : "✖";
+      // Sin espacios extra ni comas al inicio/final
+      const noSpaces = !!val && noExtraSpacesOrCommas(val);
+      createRolesNoSpacesItem.classList.remove("valid", "invalid");
+      createRolesNoSpacesItem.classList.add(noSpaces ? "valid" : "invalid");
+      let icon3 = createRolesNoSpacesItem.querySelector(".roles-criteria-icon");
+      if (icon3) icon3.textContent = noSpaces ? "✔" : "✖";
+    }
+    createRolesInput.addEventListener("focus", () => {
+      updateCreateRolesCriteriaUI(createRolesInput.value || "");
+    });
+    createRolesInput.addEventListener("blur", () => {
+      createRolesCriteriaList.style.display = "none";
+    });
+    createRolesInput.addEventListener("input", (e) => {
+      updateCreateRolesCriteriaUI(e.target.value || "");
+    });
+  }
+
+  // Editar usuario
+  const editRolesInput = document.getElementById("edit-roles");
+  const editRolesCriteriaList = document.getElementById("editRolesCriteria");
+  const editRolesValidItem = document.getElementById("editRolesValidCriteria");
+  const editRolesAllowedItem = document.getElementById(
+    "editRolesAllowedCriteria"
+  );
+  const editRolesNoSpacesItem = document.getElementById(
+    "editRolesNoSpacesCriteria"
+  );
+  if (
+    editRolesInput &&
+    editRolesCriteriaList &&
+    editRolesValidItem &&
+    editRolesAllowedItem &&
+    editRolesNoSpacesItem
+  ) {
+    function parseRoles(str) {
+      return str
+        .split(",")
+        .map((r) => r.trim())
+        .filter(Boolean);
+    }
+    function isValidRoles(str) {
+      return parseRoles(str).length > 0;
+    }
+    function isAllowedRoles(str) {
+      const roles = parseRoles(str);
+      return roles.every((r) => allowedRoles.includes(r));
+    }
+    function noExtraSpacesOrCommas(str) {
+      return str === str.replace(/^,|,$/g, "").replace(/\s*,\s*/g, ",");
+    }
+    function updateEditRolesCriteriaUI(val) {
+      editRolesCriteriaList.style.display = val ? "block" : "none";
+      // Al menos un rol válido
+      const valid = isValidRoles(val);
+      editRolesValidItem.classList.remove("valid", "invalid");
+      editRolesValidItem.classList.add(valid ? "valid" : "invalid");
+      let icon1 = editRolesValidItem.querySelector(".roles-criteria-icon");
+      if (icon1) icon1.textContent = valid ? "✔" : "✖";
+      // Solo roles permitidos
+      const allowed = valid && isAllowedRoles(val);
+      editRolesAllowedItem.classList.remove("valid", "invalid");
+      editRolesAllowedItem.classList.add(allowed ? "valid" : "invalid");
+      let icon2 = editRolesAllowedItem.querySelector(".roles-criteria-icon");
+      if (icon2) icon2.textContent = allowed ? "✔" : "✖";
+      // Sin espacios extra ni comas al inicio/final
+      const noSpaces = !!val && noExtraSpacesOrCommas(val);
+      editRolesNoSpacesItem.classList.remove("valid", "invalid");
+      editRolesNoSpacesItem.classList.add(noSpaces ? "valid" : "invalid");
+      let icon3 = editRolesNoSpacesItem.querySelector(".roles-criteria-icon");
+      if (icon3) icon3.textContent = noSpaces ? "✔" : "✖";
+    }
+    editRolesInput.addEventListener("focus", () => {
+      updateEditRolesCriteriaUI(editRolesInput.value || "");
+    });
+    editRolesInput.addEventListener("blur", () => {
+      editRolesCriteriaList.style.display = "none";
+    });
+    editRolesInput.addEventListener("input", (e) => {
+      updateEditRolesCriteriaUI(e.target.value || "");
+    });
+  }
+  // --- Criterios dinámicos para modal Editar Usuario ---
+  // Nombre
+  const editNombreInput = document.getElementById("edit-nombre");
+  const editNombreCriteriaList = document.getElementById("editNombreCriteria");
+  const editNombreLettersItem = document.getElementById(
+    "editNombreLettersCriteria"
+  );
+  const editNombreMinItem = document.getElementById("editNombreMinCriteria");
+  const editNombreTrimItem = document.getElementById("editNombreTrimCriteria");
+  if (
+    editNombreInput &&
+    editNombreCriteriaList &&
+    editNombreLettersItem &&
+    editNombreMinItem &&
+    editNombreTrimItem
+  ) {
+    function isOnlyLettersSpaces(str) {
+      return /^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$/.test(str);
+    }
+    function isMinLength(str) {
+      return str.trim().length >= 2;
+    }
+    function isTrimmed(str) {
+      return str === str.trim();
+    }
+    function updateEditNombreCriteriaUI(val) {
+      editNombreCriteriaList.style.display = val ? "block" : "none";
+      // Solo letras y espacios
+      const onlyLetters = !!val && isOnlyLettersSpaces(val);
+      editNombreLettersItem.classList.remove("valid", "invalid");
+      editNombreLettersItem.classList.add(onlyLetters ? "valid" : "invalid");
+      let icon1 = editNombreLettersItem.querySelector(".nombre-criteria-icon");
+      if (icon1) icon1.textContent = onlyLetters ? "✔" : "✖";
+      // Mínimo 2 caracteres
+      const minLen = !!val && isMinLength(val);
+      editNombreMinItem.classList.remove("valid", "invalid");
+      editNombreMinItem.classList.add(minLen ? "valid" : "invalid");
+      let icon2 = editNombreMinItem.querySelector(".nombre-criteria-icon");
+      if (icon2) icon2.textContent = minLen ? "✔" : "✖";
+      // Sin espacios al inicio/final
+      const trimmed = !!val && isTrimmed(val);
+      editNombreTrimItem.classList.remove("valid", "invalid");
+      editNombreTrimItem.classList.add(trimmed ? "valid" : "invalid");
+      let icon3 = editNombreTrimItem.querySelector(".nombre-criteria-icon");
+      if (icon3) icon3.textContent = trimmed ? "✔" : "✖";
+    }
+    editNombreInput.addEventListener("focus", () => {
+      updateEditNombreCriteriaUI(editNombreInput.value || "");
+    });
+    editNombreInput.addEventListener("blur", () => {
+      editNombreCriteriaList.style.display = "none";
+    });
+    editNombreInput.addEventListener("input", (e) => {
+      updateEditNombreCriteriaUI(e.target.value || "");
+    });
+  }
+
+  // Apellido
+  const editApellidoInput = document.getElementById("edit-apellido");
+  const editApellidoCriteriaList = document.getElementById(
+    "editApellidoCriteria"
+  );
+  const editApellidoLettersItem = document.getElementById(
+    "editApellidoLettersCriteria"
+  );
+  const editApellidoMinItem = document.getElementById(
+    "editApellidoMinCriteria"
+  );
+  const editApellidoTrimItem = document.getElementById(
+    "editApellidoTrimCriteria"
+  );
+  if (
+    editApellidoInput &&
+    editApellidoCriteriaList &&
+    editApellidoLettersItem &&
+    editApellidoMinItem &&
+    editApellidoTrimItem
+  ) {
+    function isOnlyLettersSpaces(str) {
+      return /^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$/.test(str);
+    }
+    function isMinLength(str) {
+      return str.trim().length >= 2;
+    }
+    function isTrimmed(str) {
+      return str === str.trim();
+    }
+    function updateEditApellidoCriteriaUI(val) {
+      editApellidoCriteriaList.style.display = val ? "block" : "none";
+      // Solo letras y espacios
+      const onlyLetters = !!val && isOnlyLettersSpaces(val);
+      editApellidoLettersItem.classList.remove("valid", "invalid");
+      editApellidoLettersItem.classList.add(onlyLetters ? "valid" : "invalid");
+      let icon1 = editApellidoLettersItem.querySelector(
+        ".apellido-criteria-icon"
+      );
+      if (icon1) icon1.textContent = onlyLetters ? "✔" : "✖";
+      // Mínimo 2 caracteres
+      const minLen = !!val && isMinLength(val);
+      editApellidoMinItem.classList.remove("valid", "invalid");
+      editApellidoMinItem.classList.add(minLen ? "valid" : "invalid");
+      let icon2 = editApellidoMinItem.querySelector(".apellido-criteria-icon");
+      if (icon2) icon2.textContent = minLen ? "✔" : "✖";
+      // Sin espacios al inicio/final
+      const trimmed = !!val && isTrimmed(val);
+      editApellidoTrimItem.classList.remove("valid", "invalid");
+      editApellidoTrimItem.classList.add(trimmed ? "valid" : "invalid");
+      let icon3 = editApellidoTrimItem.querySelector(".apellido-criteria-icon");
+      if (icon3) icon3.textContent = trimmed ? "✔" : "✖";
+    }
+    editApellidoInput.addEventListener("focus", () => {
+      updateEditApellidoCriteriaUI(editApellidoInput.value || "");
+    });
+    editApellidoInput.addEventListener("blur", () => {
+      editApellidoCriteriaList.style.display = "none";
+    });
+    editApellidoInput.addEventListener("input", (e) => {
+      updateEditApellidoCriteriaUI(e.target.value || "");
+    });
+  }
+
+  // Email (solo formato y dominio, aunque está deshabilitado)
+  const editEmailInput = document.getElementById("edit-email");
+  const editEmailCriteriaList = document.getElementById("editEmailCriteria");
+  const editEmailValidItem = document.getElementById("editEmailValidCriteria");
+  const editEmailDomainItem = document.getElementById(
+    "editEmailDomainCriteria"
+  );
+  if (
+    editEmailInput &&
+    editEmailCriteriaList &&
+    editEmailValidItem &&
+    editEmailDomainItem
+  ) {
+    const tempDomains = [
+      "mailinator.com",
+      "tempmail.com",
+      "10minutemail.com",
+      "guerrillamail.com",
+      "yopmail.com",
+    ];
+    function isValidEmail(email) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+    function isAllowedDomain(email) {
+      const domain = (email.split("@")[1] || "").toLowerCase();
+      if (!domain) return false;
+      return !tempDomains.some((tmp) => domain.endsWith(tmp));
+    }
+    function updateEditEmailCriteriaUI(email) {
+      editEmailCriteriaList.style.display = email ? "block" : "none";
+      const valid = isValidEmail(email);
+      editEmailValidItem.classList.remove("valid", "invalid");
+      editEmailValidItem.classList.add(valid ? "valid" : "invalid");
+      let icon1 = editEmailValidItem.querySelector(".email-criteria-icon");
+      if (icon1) icon1.textContent = valid ? "✔" : "✖";
+      const allowed = valid && isAllowedDomain(email);
+      editEmailDomainItem.classList.remove("valid", "invalid");
+      editEmailDomainItem.classList.add(allowed ? "valid" : "invalid");
+      let icon2 = editEmailDomainItem.querySelector(".email-criteria-icon");
+      if (icon2) icon2.textContent = allowed ? "✔" : "✖";
+    }
+    // Aunque el campo está deshabilitado, mostrar criterios al enfocar (por accesibilidad)
+    editEmailInput.addEventListener("focus", () => {
+      updateEditEmailCriteriaUI(editEmailInput.value || "");
+    });
+    editEmailInput.addEventListener("blur", () => {
+      editEmailCriteriaList.style.display = "none";
+    });
+    editEmailInput.addEventListener("input", (e) => {
+      updateEditEmailCriteriaUI(e.target.value || "");
+    });
+  }
+  // Nombre: criterios dinámicos
+  const nombreInput = document.getElementById("create-nombre");
+  const nombreCriteriaList = document.getElementById("createNombreCriteria");
+  const nombreLettersItem = document.getElementById(
+    "createNombreLettersCriteria"
+  );
+  const nombreMinItem = document.getElementById("createNombreMinCriteria");
+  const nombreTrimItem = document.getElementById("createNombreTrimCriteria");
+  if (
+    nombreInput &&
+    nombreCriteriaList &&
+    nombreLettersItem &&
+    nombreMinItem &&
+    nombreTrimItem
+  ) {
+    function isOnlyLettersSpaces(str) {
+      return /^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$/.test(str);
+    }
+    function isMinLength(str) {
+      return str.trim().length >= 2;
+    }
+    function isTrimmed(str) {
+      return str === str.trim();
+    }
+    function updateNombreCriteriaUI(val) {
+      nombreCriteriaList.style.display = val ? "block" : "none";
+      // Solo letras y espacios
+      const onlyLetters = !!val && isOnlyLettersSpaces(val);
+      nombreLettersItem.classList.remove("valid", "invalid");
+      nombreLettersItem.classList.add(onlyLetters ? "valid" : "invalid");
+      let icon1 = nombreLettersItem.querySelector(".nombre-criteria-icon");
+      if (icon1) icon1.textContent = onlyLetters ? "✔" : "✖";
+      // Mínimo 2 caracteres
+      const minLen = !!val && isMinLength(val);
+      nombreMinItem.classList.remove("valid", "invalid");
+      nombreMinItem.classList.add(minLen ? "valid" : "invalid");
+      let icon2 = nombreMinItem.querySelector(".nombre-criteria-icon");
+      if (icon2) icon2.textContent = minLen ? "✔" : "✖";
+      // Sin espacios al inicio/final
+      const trimmed = !!val && isTrimmed(val);
+      nombreTrimItem.classList.remove("valid", "invalid");
+      nombreTrimItem.classList.add(trimmed ? "valid" : "invalid");
+      let icon3 = nombreTrimItem.querySelector(".nombre-criteria-icon");
+      if (icon3) icon3.textContent = trimmed ? "✔" : "✖";
+    }
+    nombreInput.addEventListener("focus", () => {
+      updateNombreCriteriaUI(nombreInput.value || "");
+    });
+    nombreInput.addEventListener("blur", () => {
+      nombreCriteriaList.style.display = "none";
+    });
+    nombreInput.addEventListener("input", (e) => {
+      updateNombreCriteriaUI(e.target.value || "");
+    });
+  }
+
+  // Apellido: criterios dinámicos
+  const apellidoInput = document.getElementById("create-apellido");
+  const apellidoCriteriaList = document.getElementById(
+    "createApellidoCriteria"
+  );
+  const apellidoLettersItem = document.getElementById(
+    "createApellidoLettersCriteria"
+  );
+  const apellidoMinItem = document.getElementById("createApellidoMinCriteria");
+  const apellidoTrimItem = document.getElementById(
+    "createApellidoTrimCriteria"
+  );
+  if (
+    apellidoInput &&
+    apellidoCriteriaList &&
+    apellidoLettersItem &&
+    apellidoMinItem &&
+    apellidoTrimItem
+  ) {
+    function isOnlyLettersSpaces(str) {
+      return /^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$/.test(str);
+    }
+    function isMinLength(str) {
+      return str.trim().length >= 2;
+    }
+    function isTrimmed(str) {
+      return str === str.trim();
+    }
+    function updateApellidoCriteriaUI(val) {
+      apellidoCriteriaList.style.display = val ? "block" : "none";
+      // Solo letras y espacios
+      const onlyLetters = !!val && isOnlyLettersSpaces(val);
+      apellidoLettersItem.classList.remove("valid", "invalid");
+      apellidoLettersItem.classList.add(onlyLetters ? "valid" : "invalid");
+      let icon1 = apellidoLettersItem.querySelector(".apellido-criteria-icon");
+      if (icon1) icon1.textContent = onlyLetters ? "✔" : "✖";
+      // Mínimo 2 caracteres
+      const minLen = !!val && isMinLength(val);
+      apellidoMinItem.classList.remove("valid", "invalid");
+      apellidoMinItem.classList.add(minLen ? "valid" : "invalid");
+      let icon2 = apellidoMinItem.querySelector(".apellido-criteria-icon");
+      if (icon2) icon2.textContent = minLen ? "✔" : "✖";
+      // Sin espacios al inicio/final
+      const trimmed = !!val && isTrimmed(val);
+      apellidoTrimItem.classList.remove("valid", "invalid");
+      apellidoTrimItem.classList.add(trimmed ? "valid" : "invalid");
+      let icon3 = apellidoTrimItem.querySelector(".apellido-criteria-icon");
+      if (icon3) icon3.textContent = trimmed ? "✔" : "✖";
+    }
+    apellidoInput.addEventListener("focus", () => {
+      updateApellidoCriteriaUI(apellidoInput.value || "");
+    });
+    apellidoInput.addEventListener("blur", () => {
+      apellidoCriteriaList.style.display = "none";
+    });
+    apellidoInput.addEventListener("input", (e) => {
+      updateApellidoCriteriaUI(e.target.value || "");
+    });
+  }
+  // Email: criterios dinámicos
+  const emailInput = document.getElementById("create-email");
+  const emailCriteriaList = document.getElementById("createEmailCriteria");
+  const emailValidItem = document.getElementById("createEmailValidCriteria");
+  const emailDomainItem = document.getElementById("createEmailDomainCriteria");
+  if (emailInput && emailCriteriaList && emailValidItem && emailDomainItem) {
+    // Dominios temporales comunes (puedes ampliar la lista)
+    const tempDomains = [
+      "mailinator.com",
+      "tempmail.com",
+      "10minutemail.com",
+      "guerrillamail.com",
+      "yopmail.com",
+    ];
+    function isValidEmail(email) {
+      // Regex simple para email válido
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+    function isAllowedDomain(email) {
+      const domain = (email.split("@")[1] || "").toLowerCase();
+      if (!domain) return false;
+      return !tempDomains.some((tmp) => domain.endsWith(tmp));
+    }
+    function updateEmailCriteriaUI(email) {
+      // Mostrar/ocultar lista
+      emailCriteriaList.style.display = email ? "block" : "none";
+      // Criterio 1: formato válido
+      const valid = isValidEmail(email);
+      emailValidItem.classList.remove("valid", "invalid");
+      emailValidItem.classList.add(valid ? "valid" : "invalid");
+      let icon1 = emailValidItem.querySelector(".email-criteria-icon");
+      if (icon1) icon1.textContent = valid ? "✔" : "✖";
+      // Criterio 2: dominio permitido
+      const allowed = valid && isAllowedDomain(email);
+      emailDomainItem.classList.remove("valid", "invalid");
+      emailDomainItem.classList.add(allowed ? "valid" : "invalid");
+      let icon2 = emailDomainItem.querySelector(".email-criteria-icon");
+      if (icon2) icon2.textContent = allowed ? "✔" : "✖";
+    }
+    emailInput.addEventListener("focus", () => {
+      updateEmailCriteriaUI(emailInput.value || "");
+    });
+    emailInput.addEventListener("blur", () => {
+      emailCriteriaList.style.display = "none";
+    });
+    emailInput.addEventListener("input", (e) => {
+      updateEmailCriteriaUI(e.target.value || "");
+    });
+  }
+  // Mostrar/ocultar contraseña en modal crear usuario
+  const pwInput = document.getElementById("create-password");
+  const pwToggle = document.getElementById("create-password-toggle");
+  if (pwInput && pwToggle) {
+    pwToggle.addEventListener("click", function (e) {
+      e.preventDefault();
+      const isHidden = pwInput.type === "password";
+      pwInput.type = isHidden ? "text" : "password";
+      // Cambiar icono
+      const icon = pwToggle.querySelector("i");
+      if (icon) {
+        icon.classList.toggle("fa-eye");
+        icon.classList.toggle("fa-eye-slash");
+      }
+      pwToggle.setAttribute(
+        "aria-label",
+        isHidden ? "Ocultar contraseña" : "Mostrar contraseña"
+      );
+    });
+  }
   // Asegura que el contenedor de mensajes exista (si se usa admin-common.js)
   if (typeof ensureAdminMessageContainer === "function") {
     ensureAdminMessageContainer();
@@ -375,6 +867,39 @@ function closeModalById(id) {
 }
 
 function initUserModals() {
+  // Inicialización: ocultar modales que puedan estar visibles por estilos inline y ocultar elementos de error/criterios
+  try {
+    const modals = [
+      document.getElementById("modalCreateUser"),
+      document.getElementById("modalViewUser"),
+      document.getElementById("modalEditUser"),
+    ];
+    modals.forEach((m) => {
+      if (!m) return;
+      m.style.display = "none";
+      m.setAttribute("aria-hidden", "true");
+      m.classList.remove("active");
+    });
+  } catch (err) {}
+
+  // ocultar errores de creación y criterios por defecto
+  try {
+    const errs = [
+      "create-nombre-error",
+      "create-apellido-error",
+      "create-email-error",
+      "create-password-error",
+    ];
+    errs.forEach((id) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.style.display = "none";
+      el.textContent = "";
+    });
+    const crit = document.getElementById("createPasswordCriteria");
+    if (crit) crit.style.display = "none";
+  } catch (err) {}
+
   // Delegación en el tbody para acciones (ver/editar/eliminar)
   const tbody = document.getElementById("usuarios-tbody");
   if (tbody && !tbody.__userDelegation) {
@@ -580,6 +1105,84 @@ function initUserModals() {
     });
   }
 
+  // Sanitización y bloqueo en tiempo real para los campos de nombre/apellido del modal Crear Usuario
+  (function setupCreateNameSanitizers() {
+    const crearNombreEl = document.getElementById("create-nombre");
+    const crearApellidoEl = document.getElementById("create-apellido");
+    if (!crearNombreEl && !crearApellidoEl) return;
+
+    function allowOnlyNameChars(e) {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      const allowed = /[A-Za-zÁÉÍÓÚáéíóúÑñ ]/;
+      const key = e.key || String.fromCharCode(e.which || e.keyCode || 0);
+      if (key && key.length === 1 && !allowed.test(key)) {
+        e.preventDefault();
+      }
+    }
+
+    function sanitizePastedName(e) {
+      const text =
+        (e.clipboardData || window.clipboardData).getData("text") || "";
+      const clean = text.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ ]/g, "");
+      e.preventDefault();
+      const el = e.target;
+      const start = el.selectionStart || 0;
+      const end = el.selectionEnd || 0;
+      const value = el.value || "";
+      el.value = value.slice(0, start) + clean + value.slice(end);
+      try {
+        el.setSelectionRange(start + clean.length, start + clean.length);
+      } catch (err) {}
+    }
+
+    function addSanitizers(el) {
+      if (!el) return;
+      el.addEventListener("keypress", allowOnlyNameChars);
+      el.addEventListener("paste", sanitizePastedName);
+      // input cleanup
+      let timer = null;
+      el.addEventListener("input", function (e) {
+        const target = e.target;
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+          const before = target.value || "";
+          const cleaned = before.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ ]/g, "");
+          if (cleaned !== before) {
+            const pos = target.selectionStart || 0;
+            target.value = cleaned;
+            try {
+              const newPos = Math.max(
+                0,
+                pos - (before.length - cleaned.length)
+              );
+              target.setSelectionRange(newPos, newPos);
+            } catch (err) {}
+          }
+        }, 0);
+      });
+      // composition handling (IME)
+      el.addEventListener("compositionstart", () => (el.__composing = true));
+      el.addEventListener("compositionend", function (e) {
+        el.__composing = false;
+        const before = el.value || "";
+        const cleaned = before.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ '\-]/g, "");
+        if (cleaned !== before) el.value = cleaned;
+      });
+      // beforeinput to block advanced insertions
+      el.addEventListener("beforeinput", function (e) {
+        try {
+          const data = e.data || "";
+          if (/[^A-Za-zÁÉÍÓÚáéíóúÑñ ]/.test(data)) {
+            e.preventDefault();
+          }
+        } catch (err) {}
+      });
+    }
+
+    addSanitizers(crearNombreEl);
+    addSanitizers(crearApellidoEl);
+  })();
+
   // Crear usuario desde modal (delegado para soportar modal insertado después de cargar el script)
   if (!document.__adminUsuariosCreateDelegated) {
     document.__adminUsuariosCreateDelegated = true;
@@ -595,6 +1198,18 @@ function initUserModals() {
       const rolesEl = document.getElementById("create-roles");
       const estadoEl = document.getElementById("create-estado");
 
+      // limpieza defensiva de nombres (eliminar dígitos u otros caracteres no permitidos)
+      try {
+        if (nombreEl)
+          nombreEl.value = (nombreEl.value || "")
+            .replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ '\-]/g, "")
+            .trim();
+        if (apellidoEl)
+          apellidoEl.value = (apellidoEl.value || "")
+            .replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ '\-]/g, "")
+            .trim();
+      } catch (err) {}
+
       const nombre = nombreEl ? nombreEl.value.trim() : "";
       const apellido = apellidoEl ? apellidoEl.value.trim() : "";
       const email = emailEl ? emailEl.value.trim() : "";
@@ -607,10 +1222,93 @@ function initUserModals() {
         : [];
       const estado = (estadoEl && estadoEl.value) || "activo";
 
-      if (!nombre || !apellido || !email || !password) {
-        alert("Nombre, apellido, email y contraseña son requeridos");
-        return;
+      // Validaciones inline
+      const namePattern = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s'\-]+$/;
+      let hasErr = false;
+      // limpiar mensajes previos
+      const setError = (id, msg) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = msg;
+        el.style.display = "block";
+      };
+      const clearError = (id) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = "";
+        el.style.display = "none";
+      };
+      [
+        "create-nombre-error",
+        "create-apellido-error",
+        "create-email-error",
+        "create-password-error",
+      ].forEach(clearError);
+
+      if (!nombre || !namePattern.test(nombre)) {
+        setError(
+          "create-nombre-error",
+          "Nombre inválido. Solo letras, espacios, guiones o apóstrofes."
+        );
+        if (nombreEl) nombreEl.classList.add("invalid");
+        hasErr = true;
       }
+      if (!apellido || !namePattern.test(apellido)) {
+        setError(
+          "create-apellido-error",
+          "Apellido inválido. Solo letras, espacios, guiones o apóstrofes."
+        );
+        if (apellidoEl) apellidoEl.classList.add("invalid");
+        hasErr = true;
+      }
+      if (!email || !email.includes("@")) {
+        setError("create-email-error", "Correo inválido. Debe incluir un '@'.");
+        if (emailEl) emailEl.classList.add("invalid");
+        hasErr = true;
+      }
+      if (!password) {
+        setError("create-password-error", "La contraseña es obligatoria.");
+        if (passwordEl) passwordEl.classList.add("invalid");
+        hasErr = true;
+      }
+      // Validar contraseña con PasswordUtils si está disponible
+      if (password) {
+        const pwCriteriaList = document.getElementById(
+          "createPasswordCriteria"
+        );
+        const pwNodes = {
+          minLengthItem: document.getElementById("createMinLengthCriteria"),
+          uppercaseItem: document.getElementById("createUppercaseCriteria"),
+          lowercaseItem: document.getElementById("createLowercaseCriteria"),
+          numberItem: document.getElementById("createNumberCriteria"),
+        };
+        if (window.PasswordUtils) {
+          if (!window.PasswordUtils.isPasswordValid(password)) {
+            setError(
+              "create-password-error",
+              "La contraseña no cumple los requisitos (mínimo 8, mayúscula, minúscula y número)."
+            );
+            if (passwordEl) passwordEl.classList.add("invalid");
+            hasErr = true;
+          }
+        } else {
+          if (password.length < 8) {
+            setError(
+              "create-password-error",
+              "La contraseña debe tener al menos 8 caracteres."
+            );
+            if (passwordEl) passwordEl.classList.add("invalid");
+            hasErr = true;
+          }
+        }
+        // mostrar criterios si existen
+        if (pwCriteriaList) {
+          pwCriteriaList.style.display = password ? "block" : "none";
+          if (window.PasswordUtils)
+            window.PasswordUtils.updateCriteriaNodes(password, pwNodes);
+        }
+      }
+      if (hasErr) return;
 
       // UX: deshabilitar botón para evitar envíos duplicados
       const btn = target;
@@ -678,6 +1376,68 @@ function initUserModals() {
         });
     });
   }
+
+  // password criteria UI para modal Crear Usuario
+  (function setupCreatePasswordUI() {
+    const passwordEl = document.getElementById("create-password");
+    const criteriaList = document.getElementById("createPasswordCriteria");
+    const nodes = {
+      minLengthItem: document.getElementById("createMinLengthCriteria"),
+      uppercaseItem: document.getElementById("createUppercaseCriteria"),
+      lowercaseItem: document.getElementById("createLowercaseCriteria"),
+      numberItem: document.getElementById("createNumberCriteria"),
+    };
+    if (!passwordEl || !criteriaList) return;
+    criteriaList.style.display = "none";
+    function updateCriteriaUI(pw) {
+      // Criterios
+      const minLen = pw.length >= 8;
+      const hasUpper = /[A-Z]/.test(pw);
+      const hasLower = /[a-z]/.test(pw);
+      const hasNum = /[0-9]/.test(pw);
+      // Array de criterios: [nodo, cumplido, texto]
+      const criterios = [
+        [nodes.minLengthItem, minLen, "Mínimo 8 caracteres"],
+        [nodes.uppercaseItem, hasUpper, "Al menos una mayúscula"],
+        [nodes.lowercaseItem, hasLower, "Al menos una minúscula"],
+        [nodes.numberItem, hasNum, "Al menos un número"],
+      ];
+      criterios.forEach(([li, cumple, texto]) => {
+        if (!li) return;
+        li.classList.remove("valid", "invalid");
+        li.classList.add(cumple ? "valid" : "invalid");
+        // Icono: buscar el span.pw-criteria-icon dentro del li
+        let iconSpan = li.querySelector(".pw-criteria-icon");
+        if (!iconSpan) {
+          iconSpan = document.createElement("span");
+          iconSpan.className = "pw-criteria-icon";
+          li.prepend(iconSpan);
+        }
+        iconSpan.textContent = cumple ? "✔" : "✖";
+        // Texto descriptivo
+        // Si el li tiene más nodos, solo actualiza el texto después del icono
+        // Elimina nodos de texto extra
+        let textNode = li.childNodes[1];
+        if (!textNode || textNode.nodeType !== 3) {
+          // Si no hay nodo de texto, crea uno
+          textNode = document.createTextNode("");
+          li.appendChild(textNode);
+        }
+        textNode.textContent = " " + texto;
+      });
+    }
+    passwordEl.addEventListener("focus", () => {
+      criteriaList.style.display = "block";
+      updateCriteriaUI(passwordEl.value || "");
+    });
+    passwordEl.addEventListener("blur", () => {
+      criteriaList.style.display = "none";
+    });
+    passwordEl.addEventListener("input", (e) => {
+      criteriaList.style.display = "block";
+      updateCriteriaUI(e.target.value || "");
+    });
+  })();
 
   // Guardar edición
   const saveBtn = document.getElementById("btnSaveEditUser");

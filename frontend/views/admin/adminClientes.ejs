@@ -16,6 +16,7 @@
 </head>
 
 <body>
+
   <div class="admin-layout">
     <%- include('../componentes/navbarAdmin.ejs') %>
       <main class="admin-main">
@@ -41,7 +42,7 @@
         </header>
         <div class="admin-content">
           <div class="page-header">
-            <h1>Gestión de Clientes</h1>
+            <h1>Gestión de Clientes 1</h1>
             <div class="page-actions">
               <button class="btn-primary" id="btnAddClient">
                 <i class="fas fa-plus"></i>
@@ -96,15 +97,23 @@
           <div class="modal-cliente__grid">
             <div>
               <label class="modal-cliente__label">Nombre</label>
-              <input type="text" id="agregarNombreCliente" class="modal-cliente__input" required />
+              <input type="text" id="agregarNombreCliente" class="modal-cliente__input" required
+                pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ ]+" inputmode="text" maxlength="80"
+                title="Solo letras, espacios, guiones o apóstrofes" />
+              <div class="modal-cliente__error" id="agregarNombreClienteError" style="display:none"></div>
             </div>
             <div>
               <label class="modal-cliente__label">Apellido</label>
-              <input type="text" id="agregarApellidoCliente" class="modal-cliente__input" required />
+              <input type="text" id="agregarApellidoCliente" class="modal-cliente__input" required
+                pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ ]+" inputmode="text" maxlength="80"
+                title="Solo letras, espacios, guiones o apóstrofes" />
+              <div class="modal-cliente__error" id="agregarApellidoClienteError" style="display:none"></div>
             </div>
             <div>
               <label class="modal-cliente__label">Correo</label>
-              <input type="email" id="agregarCorreoCliente" class="modal-cliente__input" required />
+              <input type="email" id="agregarCorreoCliente" class="modal-cliente__input" required inputmode="email"
+                maxlength="120" title="Correo electrónico válido" />
+              <div class="modal-cliente__error" id="agregarCorreoClienteError" style="display:none"></div>
             </div>
             <div>
               <label class="modal-cliente__label">Estado</label>
@@ -116,14 +125,35 @@
             </div>
             <div>
               <label class="modal-cliente__label">Foto (URL)</label>
-              <input type="url" id="agregarFotoCliente" class="modal-cliente__input" placeholder="https://..." />
+              <input type="url" id="agregarFotoCliente" class="modal-cliente__input" placeholder="https://..."
+                inputmode="url" maxlength="200" />
+              <div class="modal-cliente__error" id="agregarFotoClienteError" style="display:none"></div>
+            </div>
+            <div>
+              <label class="modal-cliente__label">Contraseña</label>
+              <input type="password" id="agregarPasswordCliente" class="modal-cliente__input" required minlength="8"
+                title="Mínimo 8 caracteres, mayúscula, minúscula y número" />
+              <div class="modal-cliente__error" id="agregarPasswordClienteError" style="display:none"></div>
+              <ul id="agregarPasswordCriteria" class="password-criteria" style="display:none; margin-top:8px;">
+                <li id="agregarMinLengthCriteria" class="invalid">Mínimo 8 caracteres</li>
+                <li id="agregarUppercaseCriteria" class="invalid">Al menos una mayúscula</li>
+                <li id="agregarLowercaseCriteria" class="invalid">Al menos una minúscula</li>
+                <li id="agregarNumberCriteria" class="invalid">Al menos un número</li>
+              </ul>
+            </div>
+            <div>
+              <label class="modal-cliente__label">Confirmar contraseña</label>
+              <input type="password" id="agregarConfirmPasswordCliente" class="modal-cliente__input" required
+                minlength="8" />
+              <div class="modal-cliente__error" id="agregarConfirmPasswordClienteError" style="display:none"></div>
             </div>
           </div>
         </form>
       </div>
       <div class="modal-cliente__footer">
         <button type="button" class="btn-outline modal-cliente-agregar-cancelar">Cancelar</button>
-        <button class="btn-primary" type="submit" form="formAgregarCliente">Guardar cliente</button>
+        <button class="btn-primary" id="agregarClienteSubmitBtn" type="submit" form="formAgregarCliente">Guardar
+          cliente</button>
       </div>
     </div>
   </div>
@@ -140,15 +170,22 @@
           <div class="modal-cliente__grid">
             <div>
               <label class="modal-cliente__label">Nombre</label>
-              <input type="text" id="editarNombreCliente" class="modal-cliente__input" />
+              <input type="text" id="editarNombreCliente" class="modal-cliente__input" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ ]+"
+                inputmode="text" maxlength="80" title="Solo letras, espacios, guiones o apóstrofes" />
+              <div class="modal-cliente__error" id="editarNombreClienteError" style="display:none"></div>
             </div>
             <div>
               <label class="modal-cliente__label">Apellido</label>
-              <input type="text" id="editarApellidoCliente" class="modal-cliente__input" />
+              <input type="text" id="editarApellidoCliente" class="modal-cliente__input"
+                pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ ]+" inputmode="text" maxlength="80"
+                title="Solo letras, espacios, guiones o apóstrofes" />
+              <div class="modal-cliente__error" id="editarApellidoClienteError" style="display:none"></div>
             </div>
             <div>
               <label class="modal-cliente__label">Correo</label>
-              <input type="email" id="editarCorreoCliente" class="modal-cliente__input" />
+              <input type="email" id="editarCorreoCliente" class="modal-cliente__input" inputmode="email"
+                maxlength="120" title="Correo electrónico válido" />
+              <div class="modal-cliente__error" id="editarCorreoClienteError" style="display:none"></div>
             </div>
             <div>
               <label class="modal-cliente__label">Estado</label>
@@ -161,6 +198,7 @@
             <div>
               <label class="modal-cliente__label">Foto (URL)</label>
               <input type="url" id="editarFotoCliente" class="modal-cliente__input" />
+              <div class="modal-cliente__error" id="editarFotoClienteError" style="display:none"></div>
             </div>
           </div>
         </form>
@@ -218,8 +256,9 @@
     cancelarClass: 'modal-cliente-inactivar-cancelar' , confirmarClass: 'modal-cliente-inactivar-confirmar' ,
     textoAccion: 'Inactivar' }) %>
 
-    <script src="/assets/js/admin/admin-clientes.js"></script>
     <script src="/assets/js/admin/admin-common.js"></script>
+    <script src="/assets/js/password-utils.js"></script>
+    <script src="/assets/js/admin/admin-clientes.js"></script>
 </body>
 
 </html>
