@@ -22,6 +22,9 @@
  * @property {string} apellido - Apellido del participante
  * @property {string} avatarUrl - URL del avatar
  */
+const mongoose = require("mongoose");
+const { Schema } = mongoose;
+
 const infoParticipanteSchema = new Schema(
   {
     email: { type: String, required: true },

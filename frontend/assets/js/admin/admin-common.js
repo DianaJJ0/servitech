@@ -10,6 +10,13 @@
 /**
  * Funciones comunes para todas las páginas del panel de administración
  */
+
+/**
+ * Deepwiki: metadata
+ * - propósito: utilidades compartidas del panel admin (sidebar, dropdown, notificaciones)
+ * - variables DOM esperadas: #admin-sidebar-container, .notification-icon, .admin-profile
+ * - notas: no hace fetch de partials; compatible con Bootstrap offcanvas
+ */
 document.addEventListener("DOMContentLoaded", () => {
   // Sidebar: renderizado ahora server-side mediante EJS include.
   // Si por alguna razón aún existe un placeholder en la página, no intentamos

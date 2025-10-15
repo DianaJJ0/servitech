@@ -1,4 +1,15 @@
-﻿<!DOCTYPE html>
+﻿<!--
+    Archivo: admin/adminNotificaciones.ejs
+    Propósito: Panel para visualizar y administrar notificaciones/enviadas (historial, reintentos).
+    Variables EJS esperadas:
+        - user: objeto admin (opcional)
+    Dependencias CSS/JS:
+        - /assets/css/admin-notificaciones.css, /assets/js/admin/admin-notificaciones.js
+    Notas técnicas:
+        - El historial se carga via JS desde endpoints back-end. Revisar políticas de retención antes de exponer datos sensibles.
+-->
+
+<!DOCTYPE html>
 <html lang="es">
 
 <head>

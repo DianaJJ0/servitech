@@ -20,7 +20,199 @@
  * - Maneja errores globales y arranca el servidor si es el entrypoint.
  */
 
+// Dependencias principales necesarias para inicializar la aplicación
+const dotenv = require("dotenv");
+dotenv.config();
+const express = require("express");
+const path = require("path");
+const cors = require("cors");
+const session = require("express-session");
+const mongoose = require("mongoose");
+
 // Endpoints de salud para monitoreo y pruebas
+/**
+ * @swagger
+ * /api/health:
+ *   get:
+ *     summary: Endpoint de salud del backend
+ *     description: Retorna un objeto `{ ok: true }` si el backend está operativo.
+ *     tags:
+ *       - Health
+ *     responses:
+ *       200:
+ *         description: Backend operativo
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 ok:
+ *                   type: boolean
+ *                   example: true
+ */
+// Las rutas públicas (health, sesión y legales) se han movido más abajo
+// para garantizar que `app` y los middlewares estén inicializados antes de su uso.
+// Las definiciones Swagger/JSDoc originales se mantienen junto a las rutas en la sección correspondiente más abajo.
+
+// Middlewares de autenticación y autorización
+const { asegurarRol } = require("./middleware/auth.middleware");
+
+// Importación de rutas principales del backend
+const usuarioRoutes = require("./routes/usuario.routes.js");
+const categoriaRoutes = require("./routes/categoria.routes.js");
+const pagoRoutes = require("./routes/pago.routes.js");
+const notificacionRoutes = require("./routes/notificacion.routes.js");
+const expertoRoutes = require("./routes/experto.routes.js");
+const asesoriaRoutes = require("./routes/asesoria.routes.js");
+
+const app = express();
+
+// Servir archivos estáticos del frontend (CSS, JS, imágenes)
+app.use(
+  "/assets",
+  express.static(path.join(__dirname, "..", "frontend", "assets"))
+);
+
+// Servir archivos subidos (uploads) de forma pública
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// Configuración del motor de vistas EJS para renderizar páginas del frontend
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "..", "frontend", "views"));
+
+// Configuración avanzada de CORS para desarrollo (orígenes permitidos y seguridad)
+const PROXY_MODE =
+  String(process.env.PROXY_MODE || "false").toLowerCase() === "true";
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5021";
+
+if (!PROXY_MODE && process.env.NODE_ENV !== "production") {
+  app.use(
+    cors({
+      origin: (origin, cb) => {
+        try {
+          if (!origin) return cb(null, true); // Permite peticiones sin origen (como Postman)
+          const allowed = new Set(
+            [
+              FRONTEND_URL,
+              process.env.BACKEND_URL || process.env.APP_URL,
+              process.env.RENDER_EXTERNAL_URL,
+            ].filter(Boolean)
+          );
+          if (allowed.has(origin)) return cb(null, true);
+          if (typeof origin === "string" && origin.endsWith(".onrender.com"))
+            return cb(null, true);
+          if (
+            String(process.env.ALLOW_ALL_ORIGINS || "").toLowerCase() === "true"
+          )
+            return cb(null, true);
+          return cb(new Error("Origen no permitido por CORS"));
+        } catch (e) {
+          return cb(new Error("Origen no permitido por CORS"));
+        }
+      },
+      credentials: true,
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+      allowedHeaders: [
+        "Content-Type",
+        "Authorization",
+        "X-Requested-With",
+        "x-api-key",
+        "x-csrf-token",
+        "X-CSRF-Token",
+      ],
+      exposedHeaders: ["Content-Disposition"],
+    })
+  );
+  console.log(
+    "CORS habilitado en entorno de desarrollo, origen permitido:",
+    FRONTEND_URL
+  );
+}
+
+// Parsers para JSON y URL-encoded. Guarda rawBody para validación de firmas (webhooks)
+app.use(
+  express.json({
+    limit: "5mb",
+    verify: function (req, res, buf, encoding) {
+      try {
+        req.rawBody = buf;
+      } catch (e) {
+        req.rawBody = null;
+      }
+    },
+  })
+);
+app.use(express.urlencoded({ extended: true }));
+
+// Configuración de sesión de usuario (almacenada en memoria por defecto)
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "servitech-secret",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      httpOnly: true,
+      domain: process.env.COOKIE_DOMAIN || undefined, // Permite compartir cookie entre frontend/backend si es necesario
+      maxAge: 24 * 60 * 60 * 1000, // 1 día
+    },
+  })
+);
+
+// Documentación Swagger protegida (solo admins autenticados pueden acceder)
+try {
+  const swaggerJSDoc = require("swagger-jsdoc");
+  const swaggerUi = require("swagger-ui-express");
+  const swaggerOptions = require("./config/swagger");
+  const swaggerSpec = swaggerJSDoc(swaggerOptions);
+
+  if (!swaggerSpec.components) swaggerSpec.components = {};
+  if (!swaggerSpec.components.securitySchemes) {
+    swaggerSpec.components.securitySchemes = {
+      bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" },
+    };
+  }
+  swaggerSpec.security = [{ bearerAuth: [] }];
+
+  const { autenticar } = require("./middleware/auth.middleware");
+  if (process.env.JWT_SECRET) {
+    app.use(
+      "/api-docs",
+      autenticar,
+      asegurarRol("admin"),
+      swaggerUi.serve,
+      swaggerUi.setup(swaggerSpec, {
+        swaggerOptions: { supportedSubmitMethods: [] },
+      })
+    );
+    app.get("/api-docs.json", autenticar, asegurarRol("admin"), (req, res) => {
+      res.setHeader("Content-Type", "application/json");
+      res.send(swaggerSpec);
+    });
+  } else {
+    // Fallback: middleware de autenticación básica para Swagger si no hay JWT
+    const swaggerAuth = require("./middleware/swaggerAuth.middleware");
+    app.use(
+      "/api-docs",
+      swaggerAuth,
+      swaggerUi.serve,
+      swaggerUi.setup(swaggerSpec, {
+        swaggerOptions: { supportedSubmitMethods: [] },
+      })
+    );
+    app.get("/api-docs.json", swaggerAuth, (req, res) => {
+      res.setHeader("Content-Type", "application/json");
+      res.send(swaggerSpec);
+    });
+  }
+} catch (e) {
+  // Solo mostrar si ocurre un error real de inicialización de Swagger
+  console.warn("Swagger no inicializado:", e && e.message);
+}
+
+// Rutas principales del backend (API REST)
+// Endpoints públicos y legales (salud, sesión y páginas legales)
 /**
  * @swagger
  * /api/health:
@@ -265,164 +457,6 @@ app.get("/cookies.html", (req, res) => {
   }
 });
 
-// Middlewares de autenticación y autorización
-const { asegurarRol } = require("./middleware/auth.middleware");
-
-// Importación de rutas principales del backend
-const usuarioRoutes = require("./routes/usuario.routes.js");
-const categoriaRoutes = require("./routes/categoria.routes.js");
-const pagoRoutes = require("./routes/pago.routes.js");
-const notificacionRoutes = require("./routes/notificacion.routes.js");
-const expertoRoutes = require("./routes/experto.routes.js");
-const asesoriaRoutes = require("./routes/asesoria.routes.js");
-
-const app = express();
-
-// Servir archivos estáticos del frontend (CSS, JS, imágenes)
-app.use(
-  "/assets",
-  express.static(path.join(__dirname, "..", "frontend", "assets"))
-);
-
-// Servir archivos subidos (uploads) de forma pública
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-
-// Configuración del motor de vistas EJS para renderizar páginas del frontend
-app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "..", "frontend", "views"));
-
-// Configuración avanzada de CORS para desarrollo (orígenes permitidos y seguridad)
-const PROXY_MODE =
-  String(process.env.PROXY_MODE || "false").toLowerCase() === "true";
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5021";
-
-if (!PROXY_MODE && process.env.NODE_ENV !== "production") {
-  app.use(
-    cors({
-      origin: (origin, cb) => {
-        try {
-          if (!origin) return cb(null, true); // Permite peticiones sin origen (como Postman)
-          const allowed = new Set(
-            [
-              FRONTEND_URL,
-              process.env.BACKEND_URL || process.env.APP_URL,
-              process.env.RENDER_EXTERNAL_URL,
-            ].filter(Boolean)
-          );
-          if (allowed.has(origin)) return cb(null, true);
-          if (typeof origin === "string" && origin.endsWith(".onrender.com"))
-            return cb(null, true);
-          if (
-            String(process.env.ALLOW_ALL_ORIGINS || "").toLowerCase() === "true"
-          )
-            return cb(null, true);
-          return cb(new Error("Origen no permitido por CORS"));
-        } catch (e) {
-          return cb(new Error("Origen no permitido por CORS"));
-        }
-      },
-      credentials: true,
-      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-      allowedHeaders: [
-        "Content-Type",
-        "Authorization",
-        "X-Requested-With",
-        "x-api-key",
-        "x-csrf-token",
-        "X-CSRF-Token",
-      ],
-      exposedHeaders: ["Content-Disposition"],
-    })
-  );
-  console.log(
-    "CORS habilitado en entorno de desarrollo, origen permitido:",
-    FRONTEND_URL
-  );
-}
-
-// Parsers para JSON y URL-encoded. Guarda rawBody para validación de firmas (webhooks)
-app.use(
-  express.json({
-    limit: "5mb",
-    verify: function (req, res, buf, encoding) {
-      try {
-        req.rawBody = buf;
-      } catch (e) {
-        req.rawBody = null;
-      }
-    },
-  })
-);
-app.use(express.urlencoded({ extended: true }));
-
-// Configuración de sesión de usuario (almacenada en memoria por defecto)
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || "servitech-secret",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      httpOnly: true,
-      domain: process.env.COOKIE_DOMAIN || undefined, // Permite compartir cookie entre frontend/backend si es necesario
-      maxAge: 24 * 60 * 60 * 1000, // 1 día
-    },
-  })
-);
-
-// Documentación Swagger protegida (solo admins autenticados pueden acceder)
-try {
-  const swaggerJSDoc = require("swagger-jsdoc");
-  const swaggerUi = require("swagger-ui-express");
-  const swaggerOptions = require("./config/swagger");
-  const swaggerSpec = swaggerJSDoc(swaggerOptions);
-
-  if (!swaggerSpec.components) swaggerSpec.components = {};
-  if (!swaggerSpec.components.securitySchemes) {
-    swaggerSpec.components.securitySchemes = {
-      bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" },
-    };
-  }
-  swaggerSpec.security = [{ bearerAuth: [] }];
-
-  const { autenticar } = require("./middleware/auth.middleware");
-  if (process.env.JWT_SECRET) {
-    app.use(
-      "/api-docs",
-      autenticar,
-      asegurarRol("admin"),
-      swaggerUi.serve,
-      swaggerUi.setup(swaggerSpec, {
-        swaggerOptions: { supportedSubmitMethods: [] },
-      })
-    );
-    app.get("/api-docs.json", autenticar, asegurarRol("admin"), (req, res) => {
-      res.setHeader("Content-Type", "application/json");
-      res.send(swaggerSpec);
-    });
-  } else {
-    // Fallback: middleware de autenticación básica para Swagger si no hay JWT
-    const swaggerAuth = require("./middleware/swaggerAuth.middleware");
-    app.use(
-      "/api-docs",
-      swaggerAuth,
-      swaggerUi.serve,
-      swaggerUi.setup(swaggerSpec, {
-        swaggerOptions: { supportedSubmitMethods: [] },
-      })
-    );
-    app.get("/api-docs.json", swaggerAuth, (req, res) => {
-      res.setHeader("Content-Type", "application/json");
-      res.send(swaggerSpec);
-    });
-  }
-} catch (e) {
-  // Solo mostrar si ocurre un error real de inicialización de Swagger
-  console.warn("Swagger no inicializado:", e && e.message);
-}
-
-// Rutas principales del backend (API REST)
 app.use("/api/usuarios", usuarioRoutes);
 app.use("/api/categorias", categoriaRoutes);
 app.use("/api/pagos", pagoRoutes);

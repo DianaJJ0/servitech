@@ -1,7 +1,32 @@
 /**
- * SERVITECH SERVER.JS - FRONTEND
- * Renderiza vistas, gestiona sesión y consulta datos al backend.
- * Mantiene proxy manual /api con CSRF y casos especiales.
+ * SERVITECH FRONTEND SERVER - server.js
+ *
+ * Propósito:
+ *  - Servir las vistas EJS del frontend (renderizado server-side) en modo standalone.
+ *  - Proveer un proxy manual a BACKEND (/api) que inyecta cabeceras de sesión, CSRF y maneja casos especiales (throttle, x-api-key en notificaciones).
+ *
+ * Entradas / Configuración (variables de entorno relevantes):
+ *  - PORT: puerto local (default 5021)
++ *  - BACKEND_URL: URL del backend (default http://localhost:5020)
++ *  - PROXY_MODE: 'true'| 'false' (controla política de ORIGINS)
++ *  - API_KEY: (opcional) valor inyectado en X-API-KEY para rutas de notificaciones desde el proxy
+ *  - USE_REDIS / REDIS_URL: habilita uso de Redis para sesiones si está disponible
+ *
+ * Endpoints importantes expuestos por este servidor:
+ *  - GET  /backend-check   -> Comprobar conectividad al BACKEND
+ *  - GET  /csrf-token      -> Recuperar token CSRF asociado a la sesión
+ *  - ANY  /api/*           -> Proxy hacia BACKEND_URL/api/* con inyección de auth/keys
+ *  - Static routes: /assets, /uploads (según configuración)
++ *
+ * Notas de seguridad y operación (para el manual Deepwiki):
+ *  - El proxy inyecta la cabecera Authorization cuando existe req.session.user.token; evita loggear tokens completos.
+ *  - API_KEY solo se inyecta para rutas de /notificaciones y debe manejarse con precaución en entornos productivos.
+ *  - El servidor aplica un throttle simple por sesión para evitar sobrecarga accidental hacia el backend.
+ *  - CSRF se genera por sesión y se expone via res.locals.csrfToken; no exponer otros secretos en el HTML.
+ *
+ * Modo de ejecución:
+ *  - Ejecutar de forma independiente: node server.js (o npm run start-frontend), usará middlewares de parsing.
+ *  - En despliegue con proxy inverso, revisar BACKEND_URL y PROXY_MODE.
  */
 
 require("dotenv").config();
@@ -449,7 +474,7 @@ router.post("/logout", (req, res) => {
   });
 });
 
-// GET /logout: destruir sesión y redirigir al inicio 
+// GET /logout: destruir sesión y redirigir al inicio
 router.get("/logout", (req, res) => {
   try {
     if (req.session) {

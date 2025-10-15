@@ -1,4 +1,17 @@
 <!DOCTYPE html>
+<!--
+    Archivo: calendario.ejs
+    Propósito: Interfaz para seleccionar fecha y horario de una asesoría con un experto.
+    Variables EJS esperadas:
+        - experto: objeto experto (requerido). Propiedades: nombre, apellido, email, avatarUrl, infoExperto
+        - user: objeto usuario (opcional)
+    Dependencias:
+        - /assets/css/calendario.css, /assets/js/calendario.js
+    Notas para Deepwiki:
+        - El calendario debe obtener franjas disponibles vía API y renderizar dinámicamente.
+        - Evitar lógica de disponibilidad en plantilla; hacer llamadas AJAX al backend.
+-->
+
 <html lang="es">
 
 <head>

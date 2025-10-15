@@ -1,3 +1,8 @@
+/*
+  Archivo: assets/css/expertos.css
+  Propósito: Estilos para la página pública de listados de expertos y su presentación.
+*/
+
 /* Estilos base mejorados */
 .container {
   max-width: var(--content-max-width, 1200px);

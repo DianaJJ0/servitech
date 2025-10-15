@@ -29,6 +29,8 @@ const usuarioController = require("../controllers/usuario.controller.js");
 const authMiddleware = require("../middleware/auth.middleware.js");
 // Middleware de validación de API Key (para rutas admin)
 const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
+
+// Nota: logs de depuración eliminados para evitar salida excesiva en consola.
 const multer = require("multer");
 const path = require("path");
 

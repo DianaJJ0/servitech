@@ -145,3 +145,9 @@ const asegurarRol = (...rolesRequeridos) => {
     next();
   };
 };
+
+// Exportar middlewares para su uso en rutas
+module.exports = {
+  autenticar,
+  asegurarRol,
+};

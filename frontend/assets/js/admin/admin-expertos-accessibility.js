@@ -1,3 +1,8 @@
+/**
+ * @file admin-expertos-accessibility.js
+ * @description Mejoras de accesibilidad para la página admin-expertos (focus management, ARIA attributes)
+ */
+
 // Accessibility helper para la tabla de Expertos
 // Añade title/aria-label a botones de acción generados dinámicamente y observa
 // nuevas filas para mantener los atributos.

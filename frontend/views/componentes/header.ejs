@@ -1,3 +1,17 @@
+<!--
+    Archivo: componentes/header.ejs
+    Propósito: Cabecera principal reutilizable que incluye navegación, botones de autenticación y menú de usuario.
+    Variables EJS esperadas:
+        - user: objeto de usuario { nombre, apellido, email, roles } (opcional). Si está presente muestra avatar/iniciales y enlaces de usuario.
+    Dependencias CSS/JS:
+        - /assets/css/base.css, /assets/css/componentes.css (u hojas globales que incluyan estilos de .header/.navbar)
+        - /assets/js/common.js o scripts que gestionen el menú y autenticación (logout, toggles)
+    Notas técnicas para Deepwiki/manual:
+        - Este partial contiene pequeñas funciones EJS utilitarias (getInitials, getDisplayName) usadas solo en renderizado.
+        - No incluir datos sensibles en HTML. El bloque #headerUserData expone un JSON codificado con datos de usuario para uso por JS; evita inyectar tokens o secretos.
+        - Renderizado server-side: colocar directamente encima del contenido para facilitar extracción por herramientas de documentación.
+-->
+
 <!-- Encabezado principal -->
 <header class="header">
     <nav class="navbar">
