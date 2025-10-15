@@ -7,6 +7,12 @@
 document.addEventListener("DOMContentLoaded", function () {
   // --- Criterios dinámicos para campo Roles (coma separado) ---
   const allowedRoles = ["cliente", "experto", "admin"];
+  /**
+   * Deepwiki: metadata
+   * - propósito: validación y gestión de formularios de creación/edición de usuarios en Admin
+   * - variables DOM esperadas: #create-roles, #createRolesCriteria, #edit-roles, #editRolesCriteria
+   * - dependencias: none (DOM-only)
+   */
   // Crear usuario
   const createRolesInput = document.getElementById("create-roles");
   const createRolesCriteriaList = document.getElementById(

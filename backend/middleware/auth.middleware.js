@@ -1,20 +1,28 @@
 /**
- * @file Middleware de autenticación JWT
+ * ---------------------------------------------
+ * Middleware de autenticación y autorización JWT
+ * ---------------------------------------------
+ * Este módulo:
+ * - Protege rutas privadas exigiendo JWT válido o sesión activa
+ * - Permite definir rutas públicas que no requieren autenticación
+ * - Permite asegurar roles mínimos requeridos para ciertas rutas
+ *
  * @module middleware/auth
- * @description Middleware para proteger rutas y verificar roles de usuario
+ * @author Equipo Servitech
  */
 
 const jwt = require("jsonwebtoken");
 const Usuario = require("../models/usuario.model");
 
 /**
- * Middleware para autenticar usuarios usando JWT.
- * @swagger
- * securitySchemes:
- *   bearerAuth:
- *     type: http
- *     scheme: bearer
- *     bearerFormat: JWT
+ * Middleware para autenticar usuarios usando JWT o sesión.
+ * Si la ruta es pública, permite el acceso sin autenticación.
+ * Si la ruta es privada, valida JWT o sesión y adjunta el usuario a req.usuario.
+ * @function autenticar
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @param {Function} next - Next middleware function
+ * @returns {void}
  */
 const autenticar = async (req, res, next) => {
   try {
@@ -40,25 +48,20 @@ const autenticar = async (req, res, next) => {
     }
 
     // Autenticación por sesión (cuando la UI del frontend usa sesiones)
-    try {
-      if (req.session && req.session.user && req.session.user.email) {
-        const usuarioSession = await Usuario.findOne({
-          email: req.session.user.email,
-        }).select("-passwordHash");
-        if (usuarioSession) {
-          if (usuarioSession.estado === "inactivo") {
-            return res.status(401).json({
-              mensaje: "Cuenta desactivada",
-              error: "ACCOUNT_INACTIVE",
-            });
-          }
-          req.usuario = usuarioSession;
-          return next();
+    if (req.session && req.session.user && req.session.user.email) {
+      const usuarioSession = await Usuario.findOne({
+        email: req.session.user.email,
+      }).select("-passwordHash");
+      if (usuarioSession) {
+        if (usuarioSession.estado === "inactivo") {
+          return res.status(401).json({
+            mensaje: "Cuenta desactivada",
+            error: "ACCOUNT_INACTIVE",
+          });
         }
+        req.usuario = usuarioSession;
+        return next();
       }
-    } catch (e) {
-      // si falla la validación por sesión, continuar con método JWT
-      console.warn("auth.middleware: session auth error", e && e.message);
     }
 
     // Para rutas protegidas, validar Authorization: Bearer <token>
@@ -116,8 +119,9 @@ const autenticar = async (req, res, next) => {
 
 /**
  * Middleware para asegurar que el usuario tiene al menos uno de los roles requeridos.
- * @param {...string} rolesRequeridos
- * @returns {function}
+ * @function asegurarRol
+ * @param {...string} rolesRequeridos - Roles requeridos para acceder a la ruta
+ * @returns {function} Middleware de autorización
  */
 const asegurarRol = (...rolesRequeridos) => {
   return (req, res, next) => {
@@ -142,4 +146,8 @@ const asegurarRol = (...rolesRequeridos) => {
   };
 };
 
-module.exports = { autenticar, asegurarRol };
+// Exportar middlewares para su uso en rutas
+module.exports = {
+  autenticar,
+  asegurarRol,
+};

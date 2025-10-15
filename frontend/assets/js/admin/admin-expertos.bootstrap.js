@@ -1,3 +1,9 @@
+/**
+ * @file admin-expertos.bootstrap.js
+ * @description Inicializaciones relacionadas con Bootstrap para la vista admin-expertos.
+ * Deepwiki: espera datos en DOM y eventos de offcanvas/modal de Bootstrap.
+ */
+
 // Bootstrap ligero: inyecta datos provistos por la vista (initial-expertos y categorias-data)
 try {
   (function () {
@@ -29,7 +35,7 @@ try {
             ) {
               window._adminCategorias = parsedCats;
             } else {
-                // compatibilidad con versiones anteriores: mapear formatos antiguos a una forma mínima normalizada
+              // compatibilidad con versiones anteriores: mapear formatos antiguos a una forma mínima normalizada
               var normalized = parsedCats.map(function (c) {
                 return {
                   id: String(c._id || c.id || c.value || ""),

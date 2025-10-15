@@ -1,3 +1,18 @@
+/**
+ * ---------------------------------------------
+ * Configuración de backups automáticos de la base de datos
+ * ---------------------------------------------
+ * Este módulo permite:
+ * - Crear respaldos de la base de datos MongoDB usando mongodump
+ * - Comprimir los respaldos (zip/tar.gz)
+ * - Enviar el respaldo por correo electrónico
+ * - Limpiar respaldos antiguos
+ * - Programar backups automáticos con node-cron
+ *
+ * @module config/backup
+ * @author Equipo Servitech
+ */
+
 const cron = require("node-cron");
 const util = require("util");
 const execP = util.promisify(require("child_process").exec);
@@ -7,10 +22,15 @@ const nodemailer = require("nodemailer");
 const generarLogs = require("../services/generarLogs");
 process.loadEnvFile("./.env");
 
+// Carpeta donde se almacenan los respaldos
 const CARPETA_RESPALDOS = path.join(".", "backup");
 if (!fs.existsSync(CARPETA_RESPALDOS))
   fs.mkdirSync(CARPETA_RESPALDOS, { recursive: true });
 
+/**
+ * Crea un respaldo de la base de datos MongoDB usando mongodump.
+ * @returns {Promise<string>} Ruta del directorio de salida del respaldo
+ */
 async function crearRespaldo() {
   const ts = new Date().toISOString().replace(/[:.]/g, "-");
   const dirSalida = path.join(CARPETA_RESPALDOS, `backup_${ts}`);
@@ -19,6 +39,11 @@ async function crearRespaldo() {
   return dirSalida;
 }
 
+/**
+ * Comprime el respaldo en formato zip o tar.gz (fallback).
+ * @param {string} dirSalida - Ruta del respaldo a comprimir
+ * @returns {Promise<string>} Ruta del archivo comprimido
+ */
 async function comprimir(dirSalida) {
   const zipPath = `${dirSalida}.zip`;
   try {
@@ -35,7 +60,12 @@ async function comprimir(dirSalida) {
   }
 }
 
-async function enviarCorreo(rutaArchivo) {
+/**
+ * Envía el archivo de respaldo comprimido por correo electrónico.
+ * @param {string} filePath - Ruta del archivo comprimido
+ * @returns {Promise<object>} Información del envío
+ */
+async function enviarCorreo(filePath) {
   const transportCfg = process.env.SMTP_HOST
     ? {
         host: process.env.SMTP_HOST,
@@ -58,11 +88,14 @@ async function enviarCorreo(rutaArchivo) {
   return infoEnvio;
 }
 
-// Elimina todo en CARPETA_RESPALDOS excepto keepPath (ruta absoluta)
+/**
+ * Elimina todos los respaldos antiguos excepto el especificado.
+ * @param {string} keepPath - Ruta absoluta del respaldo a conservar
+ */
 function limpiarRespaldosAntiguos(keepPath) {
   const items = fs.readdirSync(CARPETA_RESPALDOS);
   for (const item of items) {
-    const full = path.join(BACKUP_DIR, item);
+    const full = path.join(CARPETA_RESPALDOS, item);
     try {
       if (path.resolve(full) === path.resolve(keepPath)) continue;
       // eliminar archivo o carpeta recursivamente
@@ -73,6 +106,11 @@ function limpiarRespaldosAntiguos(keepPath) {
   }
 }
 
+/**
+ * Realiza el proceso completo de backup: crea, comprime, envía por correo y limpia antiguos.
+ * Registra logs de éxito o error.
+ * @returns {Promise<{archivoComprimido: string, infoEnvio: object}>}
+ */
 exports.realizarBackupCompletoConCorreo = async () => {
   try {
     const dirSalida = await crearRespaldo();
@@ -110,6 +148,7 @@ exports.realizarBackupCompletoConCorreo = async () => {
   }
 };
 
+// Programa el backup automático cada 3 días a las 2:00 AM
 cron.schedule("0 2 */3 * *", async () => {
   try {
     await exports.realizarBackupCompletoConCorreo();

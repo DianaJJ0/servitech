@@ -1,6 +1,18 @@
 /**
- * RUTAS DE NOTIFICACIÓN
- * Endpoints para registrar y consultar notificaciones.
+ * RUTAS DE NOTIFICACIONES
+ * ---------------------------------------------
+ * Define los endpoints de la API para el registro, consulta y eliminación de notificaciones.
+ * Incluye protección con middlewares de autenticación y autorización para operaciones administrativas y de usuario autenticado.
+ *
+ * @module routes/notificacion.routes
+ * @requires express
+ * @requires controllers/notificacion.controller
+ * @requires middleware/auth.middleware
+ * @requires middleware/apiKey.middleware
+ *
+ * Uso típico:
+ *   const notificacionRoutes = require('./routes/notificacion.routes');
+ *   app.use('/api/notificaciones', notificacionRoutes);
  */
 const express = require("express");
 const router = express.Router();

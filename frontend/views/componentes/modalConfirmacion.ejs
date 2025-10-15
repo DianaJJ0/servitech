@@ -1,5 +1,25 @@
 <!-- Modal genérico para confirmación/inactivación -->
 <div id="<%= modalId %>" class="<%= modalClass %>">
+  <!--
+  Archivo: componentes/modalConfirmacion.ejs
+  Propósito: Modal genérico reutilizable para confirmaciones (eliminar, desactivar, aprobar).
+  Variables EJS requeridas:
+    - modalId: string - id HTML del modal
+    - modalClass: string - clase base para estilos del modal
+    - titulo: string - título principal del modal
+    - nombre: string - texto destacado (p.ej. nombre del recurso)
+    - mensaje: string - cuerpo principal del modal
+    - nota: string (opcional) - texto secundario informativo
+    - cancelarClass: string - clase para el boton cancelar
+    - confirmarClass: string - clase para el boton confirmar
+    - textoAccion: string - texto del boton de confirmación
+  Dependencias CSS/JS:
+    - estilos generales de modales en /assets/css/componentes.css o admin-components.css
+    - scripts de comportamiento: cerrar modal, callbacks de confirmación (p.ej. /assets/js/modal.js)
+  Notas técnicas:
+    - Este partial no realiza ninguna acción de servidor; solo estructura HTML. La acción debe implementarse por JS que adjunte handlers a los botones.
+    - Asegurar que modalId sea único en la página para evitar colisiones.
+-->
   <div class="<%= modalClass %>__content">
     <div class="<%= modalClass %>__header">
       <h2 class="<%= modalClass %>__title">

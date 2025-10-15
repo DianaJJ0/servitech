@@ -1,4 +1,17 @@
 <!DOCTYPE html>
+<!--
+    Archivo: login.ejs
+    Propósito: Formulario de inicio de sesión para usuarios.
+    Variables EJS esperadas:
+        - next: URL destino opcional tras login
+        - recaptchaSiteKey: clave de reCAPTCHA (opcional)
+    Dependencias:
+        - /assets/css/auth.css, /assets/css/login.css, /assets/js/login.js
+    Notas para Deepwiki:
+        - El formulario incluye criterios de contraseña en el DOM y validación en cliente.
+        - Mantener `novalidate` en el form para manejar errores via JS.
+-->
+
 <html lang="es">
 
 <head>

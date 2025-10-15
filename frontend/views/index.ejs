@@ -1,5 +1,18 @@
 <!DOCTYPE html>
-<!-- Declaración del tipo de documento HTML5 para asegurar compatibilidad y buenas prácticas -->
+<!--
+    Archivo: index.ejs
+    Propósito: Landing page / home de ServiTech. Presenta la plataforma, acceso rápido a expertos y llamadas a acción.
+    Variables EJS esperadas:
+        - user: objeto usuario (opcional). Propiedades usadas: email, nombre, apellido, roles
+        - showDevAdmin: boolean (opcional) muestra botones de desarrollo
+    Dependencias CSS/JS importantes:
+        - /assets/css/landing-page.css, /assets/css/componentes.css, /assets/css/base.css
+        - /assets/js/index.js
+    Notas para Deepwiki:
+        - Esta vista incluye el componente `componentes/header` mediante EJS partial.
+        - Evitar lógica compleja en la plantilla; pasar datos necesarios desde el servidor.
+        - Para pruebas, setear `user` en la sesión o inyectar mock durante el render.
+-->
 
 <html lang="es">
 <!-- Indica que el contenido está en español -->

@@ -1,3 +1,15 @@
+/**
+ * Archivo: assets/js/registroExperto.js
+ * Propósito: Control del formulario de registro y edición de expertos. Valida campos (titular, documento, número de cuenta), maneja UI (Choices, días disponibles) y restauración de sesión cuando procede.
+ * Uso: Incluido en `registroExperto.ejs`. Elementos DOM esperados (ejemplos):
+ *   - #registroExpertoForm  -> formulario principal
+ *   - #diasDisponibles       -> input hidden con días seleccionados
+ *   - .day-option            -> botones de selección de días
+ *   - #titular, #numero-documento, #numeroCuenta -> campos con reglas propias
+ * Dependencias: Choices.js (opcional), window.SharedValidators (opcional), fetch hacia /set-session y /csrf-token para CSRF.
+ * Notas de seguridad/operación: No almacenar ni exponer credenciales en el cliente. Se intenta restaurar sesión desde localStorage si el proxy retorna 401 para mejorar la UX entre orígenes/puertos.
+ */
+
 // Scripts consolidado para registroExperto.ejs - Versión Mejorada
 (function () {
   "use strict";

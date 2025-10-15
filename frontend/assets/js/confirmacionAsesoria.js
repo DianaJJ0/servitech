@@ -1,4 +1,10 @@
 /**
+ * Archivo: assets/js/confirmacionAsesoria.js
+ * Propósito: Gestión del flujo de confirmación de asesoría (interacción con la vista confirmacionAsesoria.ejs).
+ * Uso: Atender botones de descarga/impresión y mostrar datos de factura desde el DOM.
+ */
+
+/**
  * CONFIRMACIÓN DE ASESORÍA CON PAGOS SIMULADOS - SERVITECH
  * Maneja la confirmación de asesorías con sistema de pagos simulados y visualización de factura
  */

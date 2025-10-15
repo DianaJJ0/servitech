@@ -1,3 +1,19 @@
+/**
+ * RUTAS DE EXPERTOS
+ * ---------------------------------------------
+ * Define los endpoints de la API para la gestión de expertos y sus perfiles.
+ * Incluye protección con middlewares de autenticación y autorización para operaciones administrativas y de usuario autenticado.
+ *
+ * @module routes/experto.routes
+ * @requires express
+ * @requires controllers/experto.controller
+ * @requires middleware/auth.middleware
+ * @requires middleware/apiKey.middleware
+ *
+ * Uso típico:
+ *   const expertoRoutes = require('./routes/experto.routes');
+ *   app.use('/api/expertos', expertoRoutes);
+ */
 const express = require("express");
 const router = express.Router();
 const expertoController = require("../controllers/experto.controller");

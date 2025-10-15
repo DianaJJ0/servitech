@@ -1,3 +1,10 @@
+/**
+ * Archivo: assets/js/analytics-loader.js
+ * Propósito: Carga condicional de librerías de analítica (p.ej. GA) en producción.
+ * Uso: Se incluye en el footer y espera una configuración desde analytics-config.js.
+ * Notas de privacidad: Respeta la configuración de consentimiento de cookies antes de inicializar trackers.
+ */
+
 (function () {
   const CONSENT_KEY = "servitech_cookie_consent_v1";
   function getConsent() {

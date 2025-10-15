@@ -1,7 +1,22 @@
 /**
- * Controlador de Pagos Simulados - ServiTech
- * @module controllers/pago
- * @description Gestión completa de pagos simulados sin integración externa
+ * CONTROLADOR DE PAGOS
+ * ---------------------------------------------
+ * Este archivo implementa la lógica de negocio para la gestión de pagos y asesorías en la plataforma.
+ * Incluye operaciones de creación de pagos simulados, integración con Mercado Pago, liberación, reembolso,
+ * notificaciones y registro de logs para auditoría.
+ *
+ * @module controllers/pago.controller
+ * @requires models/pago.model
+ * @requires models/usuario.model
+ * @requires models/asesoria.model
+ * @requires services/generarLogs
+ * @requires services/email.service
+ *
+ * Uso típico:
+ *   const pagoController = require('./controllers/pago.controller');
+ *   app.post('/api/pagos/crear-pago-simulado', pagoController.crearPagoConMercadoPago);
+ *
+ * Todas las funciones están documentadas con JSDoc y Swagger/OpenAPI para Deepwiki y generación automática de documentación.
  */
 
 const Pago = require("../models/pago.model.js");

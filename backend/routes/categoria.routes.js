@@ -1,6 +1,18 @@
 /**
  * RUTAS DE CATEGORÍAS
- * Define los endpoints de la API para la gestión de categorías.
+ * ------------------------
+ * Define los endpoints de la API para la gestión de categorías de especialización.
+ * Incluye protección con middlewares de autenticación y autorización para operaciones administrativas.
+ *
+ * @module routes/categoria.routes
+ * @requires express
+ * @requires controllers/categoria.controller
+ * @requires middleware/auth.middleware
+ * @requires middleware/apiKey.middleware
+ *
+ * Uso típico:
+ *   const categoriaRoutes = require('./routes/categoria.routes');
+ *   app.use('/api/categorias', categoriaRoutes);
  */
 const express = require("express");
 const router = express.Router();

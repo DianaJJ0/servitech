@@ -1,6 +1,18 @@
 /**
  * CONTROLADOR DE CATEGORÍAS
- * Lógica de negocio para la gestión de las categorías de especialización.
+ * ---------------------------------------------
+ * Este archivo implementa la lógica de negocio para la gestión de las categorías de especialización.
+ * Incluye operaciones CRUD, validaciones, normalización de datos y registro de logs para auditoría.
+ *
+ * @module controllers/categoria.controller
+ * @requires models/categoria.model
+ * @requires services/generarLogs
+ *
+ * Uso típico:
+ *   const categoriaController = require('./controllers/categoria.controller');
+ *   app.post('/api/categorias', categoriaController.crearCategoria);
+ *
+ * Todas las funciones están documentadas con JSDoc y Swagger/OpenAPI para Deepwiki y generación automática de documentación.
  */
 const Categoria = require("../models/categoria.model.js");
 const mongoose = require("mongoose");
@@ -13,7 +25,17 @@ const parentCategoryMap = {
   infrastructure: "Infraestructura",
 };
 
-// Normaliza una categoría a la forma pública que usa el frontend
+/**
+ * Normaliza una categoría a la forma pública que usa el frontend y la API.
+ * Convierte un documento Mongoose o un objeto plano en un objeto de respuesta estándar.
+ *
+ * @function
+ * @param {Object} c - Documento de categoría (Mongoose o plain object)
+ * @returns {Object} Objeto normalizado con los campos públicos de la categoría
+ * @example
+ *   const cat = await Categoria.findById(id);
+ *   const normalizado = normalizeCategory(cat);
+ */
 function normalizeCategory(c) {
   if (!c) return null;
   // Manejar tanto documentos Mongoose como objetos plain
@@ -113,10 +135,84 @@ function normalizeCategory(c) {
  */
 
 /**
- * Crea una nueva categoría
- * @param {Object} req - Request object
- * @param {Object} res - Response object
+ * @openapi
+ * /api/categorias:
+ *   post:
+ *     tags: [Categorias]
+ *     summary: Crea una nueva categoría
+ *     description: Crea una nueva categoría de especialización. Requiere autenticación y permisos de administrador.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nombre:
+ *                 type: string
+ *                 example: "Desarrollo Web"
+ *               slug:
+ *                 type: string
+ *                 example: "desarrollo-web"
+ *               parent:
+ *                 type: string
+ *                 example: "parentCategoryId"
+ *               estado:
+ *                 type: string
+ *                 enum: ["active", "inactive"]
+ *                 example: "active"
+ *               descripcion:
+ *                 type: string
+ *                 example: "Categoría para expertos en desarrollo web."
+ *               icon:
+ *                 type: string
+ *                 example: "fa-code"
+ *               color:
+ *                 type: string
+ *                 example: "#3a8eff"
+ *     responses:
+ *       201:
+ *         description: Categoría creada exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mensaje:
+ *                   type: string
+ *                   example: "Categoría creada exitosamente."
+ *                 categoria:
+ *                   $ref: '#/components/schemas/Categoria'
+ *       400:
+ *         description: Datos de entrada inválidos
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       409:
+ *         description: Conflicto, la categoría ya existe
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *
+ * @function crearCategoria
+ * @param {import('express').Request} req - Objeto de solicitud HTTP
+ * @param {import('express').Response} res - Objeto de respuesta HTTP
  * @returns {Promise<void>}
+ * @throws {Error} Error interno del servidor o conflicto de datos
+ * @example
+ *   // POST /api/categorias
+ *   {
+ *     "nombre": "Desarrollo Web",
+ *     "slug": "desarrollo-web"
+ *   }
  */
 const crearCategoria = async (req, res) => {
   try {
@@ -196,9 +292,39 @@ const crearCategoria = async (req, res) => {
  *   get:
  *     tags: [Categorias]
  *     summary: Obtener categorías
+ *     description: Obtiene todas las categorías activas o todas si el usuario es admin o se pasa el parámetro all=true.
+ *     parameters:
+ *       - in: query
+ *         name: nombre
+ *         schema:
+ *           type: string
+ *         description: Filtro por nombre parcial (opcional)
+ *       - in: query
+ *         name: all
+ *         schema:
+ *           type: boolean
+ *         description: Si es true, devuelve todas las categorías (requiere permisos de admin)
  *     responses:
  *       200:
  *         description: Lista de categorías
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Categoria'
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *
+ * @function obtenerCategorias
+ * @param {import('express').Request} req - Objeto de solicitud HTTP
+ * @param {import('express').Response} res - Objeto de respuesta HTTP
+ * @returns {Promise<void>}
+ * @throws {Error} Error interno del servidor
  */
 
 /**
@@ -256,10 +382,56 @@ const obtenerCategorias = async (req, res) => {
 };
 
 /**
- * Actualiza una categoría existente
- * @param {Object} req - Request object
- * @param {Object} res - Response object
+ * @openapi
+ * /api/categorias/{id}:
+ *   put:
+ *     tags: [Categorias]
+ *     summary: Actualiza una categoría existente
+ *     description: Actualiza los datos de una categoría por su ID. Requiere autenticación y permisos de administrador.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de la categoría a actualizar
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Categoria'
+ *     responses:
+ *       200:
+ *         description: Categoría actualizada exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mensaje:
+ *                   type: string
+ *                   example: "Categoría actualizada exitosamente."
+ *                 categoria:
+ *                   $ref: '#/components/schemas/Categoria'
+ *       404:
+ *         description: Categoría no encontrada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *
+ * @function actualizarCategoria
+ * @param {import('express').Request} req - Objeto de solicitud HTTP
+ * @param {import('express').Response} res - Objeto de respuesta HTTP
  * @returns {Promise<void>}
+ * @throws {Error} Error interno del servidor o categoría no encontrada
  */
 const actualizarCategoria = async (req, res) => {
   try {
@@ -326,10 +498,48 @@ const actualizarCategoria = async (req, res) => {
 };
 
 /**
- * Elimina una categoría por ID
- * @param {Object} req - Request object
- * @param {Object} res - Response object
+ * @openapi
+ * /api/categorias/{id}:
+ *   delete:
+ *     tags: [Categorias]
+ *     summary: Elimina una categoría por ID
+ *     description: Elimina una categoría existente por su ID. Requiere autenticación y permisos de administrador.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de la categoría a eliminar
+ *     responses:
+ *       200:
+ *         description: Categoría eliminada exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mensaje:
+ *                   type: string
+ *                   example: "Categoría eliminada exitosamente."
+ *       404:
+ *         description: Categoría no encontrada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *
+ * @function eliminarCategoria
+ * @param {import('express').Request} req - Objeto de solicitud HTTP
+ * @param {import('express').Response} res - Objeto de respuesta HTTP
  * @returns {Promise<void>}
+ * @throws {Error} Error interno del servidor o categoría no encontrada
  */
 const eliminarCategoria = async (req, res) => {
   try {

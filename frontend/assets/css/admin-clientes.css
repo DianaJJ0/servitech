@@ -1,3 +1,10 @@
+/*
+  Archivo: assets/css/admin-clientes.css
+  Propósito: Estilos específicos para la interfaz de gestión de clientes en el panel admin.
+  Dependencias: /assets/css/administrador.css, /assets/css/admin-components.css
+  Uso: Cargado por adminClientes.ejs
+*/
+
 /* Criterios de contraseña: colores y tamaño */
 #agregarPasswordCriteria,
 #agregarPasswordCriteria li {

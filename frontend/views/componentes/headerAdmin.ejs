@@ -1,3 +1,17 @@
+<!--
+  Archivo: componentes/headerAdmin.ejs
+  Propósito: Cabecera interior para páginas del panel de administración. Muestra título de la página, toggle del sidebar, notificaciones y perfil del administrador.
+  Variables EJS esperadas:
+    - titulo: string (opcional) - texto del título mostrado en la cabecera. Si no existe, se usa 'Dashboard'.
+    - user: objeto (opcional) - se usa para mostrar avatar (user.avatar) y nombre (user.nombre).
+  Dependencias CSS/JS:
+    - estilos: /assets/css/administrador.css, /assets/css/admin.css
+    - scripts: /assets/js/admin-common.js (sidebar toggle), /assets/js/admin-notifications.js (opcional)
+  Notas Deepwiki/manual:
+    - Este partial debe permanecer liviano; no incluir lógica de negocio en el template. Los handlers (logout, abrir modal) deben implementarse en JS.
+    - Evitar exponer tokens o claves en atributos data; solo inyectar datos no sensibles (nombre, avatar).
+-->
+
 <header class="admin-header">
   <div class="header-left">
     <!-- Botón para abrir/cerrar el menú en pantallas pequeñas -->

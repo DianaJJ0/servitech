@@ -1,3 +1,22 @@
+<!--
+  Archivo: componentes/adminLayout.ejs
+  Propósito: Layout base para vistas del panel de administración. Provee estructura HTML completa y puntos para incluir CSS/JS adicionales.
+  Variables EJS esperadas:
+    - title: string (opcional) - título de la página
+    - body: HTML - contenido principal (habitualmente renderizado por el servidor o por un engine de templates)
+    - extraCss: array<string> (opcional) - hojas CSS adicionales para la página
+    - extraJs: array<string> (opcional) - scripts adicionales a inyectar antes del cierre del body
+    - showDevAdmin: boolean (opcional) - activa scripts/dependencias de desarrollo en admin
+    - csrfToken: string (opcional) - token CSRF inyectado para uso de admin-common.js
+    - API_KEY: string (opcional, solo para sesiones admin) - expuesto deliberadamente a cliente admin si procede
+  Dependencias CSS/JS:
+    - /assets/css/administrador.css, /assets/css/admin.css, /assets/css/admin-components.css
+    - Bootstrap CDN (opcional), FontAwesome, /assets/js/admin-common.js, /assets/js/admin-* modules
+  Notas técnicas:
+    - Este layout inyecta un <script type="application/json" id="initial-csrf"> con csrfToken; evitar exponer otros secretos.
+    - API_KEY solo debe exponerse si la sesión pertenece a un usuario admin autorizado; revisa riesgos de seguridad antes de usar en ambientes productivos.
+-->
+
 <!DOCTYPE html>
 <html lang="es">
 

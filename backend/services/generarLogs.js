@@ -1,10 +1,25 @@
+/**
+ * ---------------------------------------------
+ * Servicio para generación y registro de logs
+ * ---------------------------------------------
+ * Este módulo permite:
+ * - Registrar eventos en archivos de log por tipo de entidad o general
+ * - Crear archivos de log si no existen
+ * - Persistir logs en la base de datos si se requiere
+ *
+ * @module services/generarLogs
+ * @author Equipo Servitech
+ */
+
 const path = require("path");
 const fs = require("fs");
 const logService = require("../services/logService");
 
+// Directorio donde se almacenan los logs
 const logsDir = path.join(__dirname, "..", "logs");
 if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir, { recursive: true });
 
+// Mapeo de tipos de log a archivos
 const tipoMap = {
   usuarios: "usuarios.log",
   asesoria: "asesoria.log",
@@ -27,10 +42,30 @@ Object.values(tipoMap).forEach((filename) => {
   }
 });
 
+/**
+ * Obtiene el nombre de archivo de log según el tipo.
+ * @param {string} tipo - Tipo de log (usuarios, asesoria, etc.)
+ * @returns {string} Nombre de archivo de log
+ */
 function obtenerArchivo(tipo) {
   return tipoMap[tipo] || tipoMap.general;
 }
 
+/**
+ * Registra un evento en el log correspondiente y opcionalmente en la base de datos.
+ * @param {object} params - Parámetros del evento
+ * @param {string} [params.usuarioEmail]
+ * @param {string} [params.nombre]
+ * @param {string} [params.apellido]
+ * @param {string} [params.accion] - Acción realizada
+ * @param {string} [params.detalle] - Detalle del evento
+ * @param {string} [params.resultado] - Resultado (Exito/Error)
+ * @param {string} [params.recursoId]
+ * @param {string} [params.tipo] - Tipo de log
+ * @param {object} [params.meta] - Información adicional
+ * @param {boolean} [params.persistirEnDB] - Si se debe guardar en la base de datos
+ * @returns {Promise<void>}
+ */
 async function registrarEvento({
   usuarioEmail = null,
   nombre = "",

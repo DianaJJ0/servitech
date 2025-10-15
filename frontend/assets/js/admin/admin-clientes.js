@@ -1,4 +1,13 @@
 /**
+ * @file admin-clientes.js
+ * @description Funciones para gestionar clientes desde el panel admin (filtros, ver perfil)
+ *
+ * Deepwiki: metadata
+ * - propósito: gestión de usuarios con rol cliente
+ * - variables DOM esperadas: .clientes-table, .cliente-actions
+ */
+
+/**
  * @fileoverview
  * Panel de administración para gestión de clientes puros (solo rol "cliente").
  * Lista, pagina, agrega, edita, ve y elimina clientes desde el admin.

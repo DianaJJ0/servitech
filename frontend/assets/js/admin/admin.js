@@ -1,5 +1,14 @@
 /**
- * Funcionalidad específica para la página principal del panel de administración (dashboard)
+ * @file admin.js
+ * @description JavaScript del dashboard del panel de administración.
+ *
+ * Deepwiki: Encabezado para extracción automática.
+ * Propósito: inicializar gráficos y manejar el modal de detalle del dashboard.
+ * Variables DOM esperadas:
+ *  - #dashboardModal, #dashboardModalForm, .dashboard-view-btn
+ *  - #userTrendChart, #categoryChart
+ * Dependencias: Chart.js (global `Chart`).
+ * Notas: No modifica datos de servidor; solo UI/UX del panel.
  */
 
 document.addEventListener("DOMContentLoaded", function () {

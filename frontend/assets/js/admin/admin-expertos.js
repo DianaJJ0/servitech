@@ -1,8 +1,17 @@
 /**
  * @file admin-expertos.js
- * @description
- * Módulo autoejecutable que gestiona la visualización y la interacción de la
- * lista de "expertos" en la vista de administración. Proporciona utilidades para:
+ * @description Gestión de la lista de expertos en el panel de administración.
+ *
+ * Deepwiki: metadata
+ * - propósito: render, filtros y acciones sobre expertos (ver/editar/inactivar)
+ * - variables DOM esperadas: #initial-expertos, #categorias-data, .admin-table
+ * - dependencias: utilidades comunes de admin (admin-common.js)
+ */
+/**
+ * Nota: el archivo contiene utilidades para parseo de JSON inyectado en el DOM,
+ * render de filas, paginación y manejadores de modales.
+ */
+/**
  * - parsear datos iniciales inyectados en el DOM (JSON dentro de elementos con id)
  * - escapar y formatear valores (escapeHtml, formatDate)
  * - normalizar campos de un objeto experto con distintas posibles rutas/propiedades
@@ -49,7 +58,7 @@
  *   que existen inputs con ids formateados como `${campo}_${tipo}` (ej. name_view).
  * - La paginación es simple y muestra hasta las primeras 5 páginas, con una
  *   elipsis y la última página si hay más.
- */
+ **/
 // admin-expertos.js
 // Render simple de la lista de expertos en la vista de admin.
 (function () {

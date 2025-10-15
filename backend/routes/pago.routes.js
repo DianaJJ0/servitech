@@ -1,7 +1,18 @@
 /**
- * RUTAS DE PAGO SIMULADO
- * Endpoints para gestión de pagos simulados sin integración externa
- * @module routes/pago
+ * RUTAS DE PAGOS
+ * ---------------------------------------------
+ * Define los endpoints de la API para la gestión de pagos simulados y reales, incluyendo integración con Mercado Pago.
+ * Incluye protección con middlewares de autenticación y autorización para operaciones administrativas y de usuario autenticado.
+ *
+ * @module routes/pago.routes
+ * @requires express
+ * @requires controllers/pago.controller
+ * @requires middleware/auth.middleware
+ * @requires middleware/apiKey.middleware
+ *
+ * Uso típico:
+ *   const pagoRoutes = require('./routes/pago.routes');
+ *   app.use('/api/pagos', pagoRoutes);
  */
 const express = require("express");
 const router = express.Router();
