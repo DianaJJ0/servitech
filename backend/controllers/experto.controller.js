@@ -1,3 +1,37 @@
+// Activar/inactivar experto por ID
+const setActivoPorId = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { activo } = req.body;
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ mensaje: "ID de experto no válido" });
+    }
+    const experto = await Usuario.findById(id);
+    if (!experto || !experto.roles || !experto.roles.includes("experto")) {
+      return res.status(404).json({ mensaje: "Experto no encontrado" });
+    }
+    experto.infoExperto = experto.infoExperto || {};
+    experto.infoExperto.activo = !!activo;
+    experto.estado = activo ? "activo" : "inactivo";
+    await experto.save();
+    try {
+      await generarLogs("experto", {
+        action: activo ? "activar" : "inactivar",
+        expertEmail: experto.email,
+        adminEmail: req.usuario?.email,
+        timestamp: new Date(),
+      });
+    } catch (logErr) {
+      console.warn("Error al generar log (no crítico):", logErr.message);
+    }
+    return res.status(200).json({ mensaje: "Estado actualizado", experto });
+  } catch (err) {
+    console.error("setActivoPorId error:", err);
+    return res
+      .status(500)
+      .json({ error: "Error interno", mensaje: err.message });
+  }
+};
 /**
  * @file Controlador de expertos
  * @module controllers/experto
@@ -760,4 +794,5 @@ module.exports = {
   setActivo,
   adminActualizarPerfilExperto,
   adminCrearExperto,
+  setActivoPorId,
 };

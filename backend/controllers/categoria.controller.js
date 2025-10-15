@@ -210,7 +210,7 @@ const crearCategoria = async (req, res) => {
 const obtenerCategorias = async (req, res) => {
   try {
     const { nombre } = req.query;
-    let filtro = {};
+    let filtro = { estado: { $in: ["active", "activo"] } };
     if (nombre && typeof nombre === "string" && nombre.trim() !== "") {
       // Busca por nombre parcial, insensible a mayúsculas y minúsculas
       filtro.nombre = { $regex: nombre.trim(), $options: "i" };

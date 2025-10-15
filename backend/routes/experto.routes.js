@@ -1,14 +1,16 @@
-/**
- * @file Rutas de expertos
- * @module routes/experto
- * @description Endpoints públicos y protegidos para gestión y edición de perfil experto en Servitech.
- */
-
 const express = require("express");
 const router = express.Router();
 const expertoController = require("../controllers/experto.controller");
 const authMiddleware = require("../middleware/auth.middleware");
 const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
+
+// Activar/inactivar experto por ID (admin)
+router.put(
+  "/id/:id/activo",
+  authMiddleware.autenticar,
+  authMiddleware.asegurarRol("admin"),
+  (req, res, next) => expertoController.setActivoPorId(req, res, next)
+);
 
 /**
  * @swagger
