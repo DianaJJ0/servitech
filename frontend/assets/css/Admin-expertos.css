@@ -1,3 +1,58 @@
+.admin-table--expertos td.estado-cell .estado-badge,
+.admin-table--expertos td.expertos-actions-cell .action-buttons {
+  position: relative;
+  top: 6px;
+}
+/* Centrado total de los badges de estado en su celda */
+.admin-table--expertos td.estado-cell {
+  vertical-align: middle !important;
+  text-align: center !important;
+}
+
+.admin-table--expertos td.estado-cell .estado-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 32px !important;
+}
+.admin-table--expertos td.expertos-actions-cell,
+.admin-table--expertos td.estado-cell {
+  vertical-align: middle !important;
+  text-align: center !important;
+  padding-top: 1rem !important;
+  padding-bottom: 1rem !important;
+}
+
+.admin-table--expertos td.expertos-actions-cell > .action-buttons {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+/* Centrado total de los botones de acciones en la celda de acciones */
+.expertos-actions-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.expertos-actions-cell .action-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+/* Eliminar cualquier borde inferior o superior en celdas de la tabla de expertos para evitar líneas dobles */
+.admin-table--expertos td,
+.admin-table--expertos th {
+  border-bottom: none !important;
+  border-top: none !important;
+}
 @import "base.css";
 /* ===== Variables globales proporcionadas ===== */
 :root {
@@ -199,13 +254,36 @@
 
 .admin-table--expertos td {
   padding: 1rem;
-  border-bottom: 1px solid var(--admin-border-color);
+  /* border-bottom eliminado para que la línea sea continua con pseudo-elemento en tr */
   color: var(--admin-text-primary);
   vertical-align: middle;
 }
 
 .admin-table--expertos tbody tr {
+  position: relative;
   transition: background-color var(--ae-transition);
+}
+
+/* LÍNEAS HORIZONTALES CORREGIDAS - TODAS LAS FILAS TIENEN LÍNEA INFERIOR */
+.admin-table--expertos tbody tr::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--admin-border-color);
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Última fila no necesita línea inferior */
+.admin-table--expertos tbody tr:last-child::after {
+  display: none;
+}
+
+.admin-table--expertos tbody tr:hover::after {
+  background: var(--admin-accent-color);
 }
 
 .admin-table--expertos tbody tr:hover {
@@ -266,10 +344,13 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.4rem 0.75rem;
-  border-radius: 20px;
+  border-radius: 6px;
   font-size: 0.8rem;
   font-weight: 500;
   text-transform: lowercase;
+  /* uniform size baseline */
+  height: 32px;
+  box-sizing: border-box;
 }
 
 .estado-badge i {
@@ -277,9 +358,44 @@
 }
 
 .estado-activo {
-  background: rgba(72, 187, 120, 0.15);
-  color: #48bb78;
-  border: 1px solid rgba(72, 187, 120, 0.3);
+  /* Usar el color de acento del admin para estado activo (coherente con botones) */
+  background: rgba(58, 142, 255, 0.12); /* tono azul sutil */
+  color: var(--admin-accent-color);
+  border: 1px solid rgba(58, 142, 255, 0.25);
+  cursor: default;
+}
+
+.estado-activo:hover {
+  /* pequeño efecto hover para coherencia visual (no cambia la intención) */
+  background: rgba(58, 142, 255, 0.18);
+}
+
+/* Utility: tratar un badge como botón (coincide con .btn-approve / .btn-reject) */
+.badge-as-btn,
+.estado-activo.badge-as-btn,
+.estado-pendiente.badge-as-btn {
+  /* Match the visual size/shape of .estado-badge (pill) */
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  box-shadow: var(--admin-shadow);
+  line-height: 1;
+  cursor: pointer;
+  transition: all var(--ae-transition);
+  height: 32px;
+  box-sizing: border-box;
+}
+
+.badge-as-btn:hover,
+.estado-activo.badge-as-btn:hover,
+.estado-pendiente.badge-as-btn:hover {
+  background: var(--admin-hover-bg);
+  border-color: var(--admin-accent-color);
+  color: var(--admin-accent-color);
 }
 
 .estado-inactivo {
@@ -289,10 +405,19 @@
 }
 
 .estado-pendiente {
-  background: rgba(237, 137, 54, 0.15);
-  color: #ed8936;
-  border: 1px solid rgba(237, 137, 54, 0.3);
+  /* Usar tono de advertencia sutil y permitir comportamiento tipo botón */
+  background: rgba(237, 137, 54, 0.12);
+  color: var(--admin-warning, #ed8936);
+  border: 1px solid rgba(237, 137, 54, 0.25);
+  cursor: default;
 }
+
+.estado-pendiente:hover {
+  background: rgba(237, 137, 54, 0.18);
+}
+
+/* Permitir usar la utilidad badge-as-btn para badges de pendiente */
+/* (estado_pendiente badge-as-btn now handled by unified .badge-as-btn rules above) */
 
 /* ===== Botones de acción ===== */
 .experto-acciones {
@@ -331,6 +456,125 @@
 .accion-btn--editar:hover {
   background: rgba(58, 142, 255, 0.2);
   border-color: var(--admin-accent-color);
+}
+
+/* Unificar tamaño y forma de los botones dentro de las filas de expertos
+   (Ver, Editar, Inactivar, Activar) para que coincidan con el resto del panel */
+.expertos-actions-cell .action-buttons button,
+.action-buttons button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem; /* match estado-badge */
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  line-height: 1;
+  box-shadow: var(--admin-shadow);
+  transition: all var(--ae-transition);
+  height: 32px;
+  box-sizing: border-box;
+}
+
+.expertos-actions-cell .action-buttons button:hover {
+  background: var(--admin-hover-bg);
+  border-color: var(--admin-accent-color);
+  color: var(--admin-accent-color);
+}
+
+/* ELIMINADO: Código problemático que ocultaba la línea en la celda de acciones
+.expertos-actions-cell {
+  position: relative;
+  z-index: 2;
+  background-clip: padding-box;
+}
+
+.expertos-actions-cell::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--admin-card-bg);
+  pointer-events: none;
+  z-index: 3;
+}
+
+.admin-table--expertos tbody tr:hover .expertos-actions-cell::after {
+  background: var(--admin-hover-bg);
+}
+*/
+
+/* Preservar colores específicos para botones de aprobación/rechazo */
+.action-buttons .btn-approve {
+  background-color: var(--admin-accent-color);
+  color: var(--admin-text-primary);
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+}
+.action-buttons .btn-approve:hover {
+  background-color: var(--admin-accent-secondary);
+}
+.action-buttons .btn-reject {
+  background-color: var(--admin-reject, #ef4444);
+  color: var(--admin-text-primary);
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+}
+.action-buttons .btn-reject:hover {
+  background-color: var(--admin-reject-hover, #dc2626);
+}
+
+/* Botones creados dinámicamente por admin-expertos.js
+   (por ejemplo: .btn-warning .btn-inactivate y .btn-success .btn-activate)
+   Los hacemos coincidir visualmente con los botones de acción del panel */
+.btn-warning,
+.btn-success {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--admin-border-color);
+  background: var(--admin-card-bg);
+  color: var(--admin-text-primary);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all var(--ae-transition);
+  white-space: nowrap;
+}
+
+.btn-warning:hover,
+.btn-success:hover {
+  background: var(--admin-hover-bg);
+  border-color: var(--admin-accent-color);
+  color: var(--admin-accent-color);
+}
+
+/* Variante visual leve para diferenciar intención sin romper la coherencia */
+.btn-warning {
+  /* Mantener look general, añadir sutil indicación de advertencia en estado activo */
+  --warning-color: #ed8936; /* naranja suave */
+}
+
+.btn-success {
+  --success-color: #48bb78; /* verde suave */
+}
+
+/* Si se quiere resaltar aún más (por ejemplo cuando el botón es primario en contexto),
+   se puede usar una clase extra como .is-emphasized para aplicar fondo coloreado */
+.btn-warning.is-emphasized {
+  background: rgba(237, 137, 54, 0.12);
+  color: var(--warning-color);
+  border-color: rgba(237, 137, 54, 0.25);
+}
+
+.btn-success.is-emphasized {
+  background: rgba(72, 187, 120, 0.12);
+  color: var(--success-color);
+  border-color: rgba(72, 187, 120, 0.25);
 }
 
 /* ===== Paginación ===== */
