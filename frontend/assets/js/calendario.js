@@ -904,7 +904,7 @@ function actualizarFeedbackCampos(
  */
 async function procederAPagoSimulado() {
   try {
-    console.log("=== PROCEDIENDO A PAGO SIMULADO ===");
+    console.log("=== PROCEDIENDO A PAGO ===");
 
     if (!validarFormulario()) {
       mostrarMensaje("Por favor completa todos los campos requeridos", "error");

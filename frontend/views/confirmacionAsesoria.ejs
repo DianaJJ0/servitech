@@ -20,181 +20,193 @@
 </head>
 
 <body>
-    <main>
-      <div class="container">
-        <section class="confirmacionCard success">
-          <div class="iconContainer">
-            <i class="fas fa-check-circle"></i>
-          </div>
-          <h1>¡Asesoría agendada exitosamente!</h1>
-          <p class="mensajePrincipal">
-            Tu pago fue procesado. La solicitud fue enviada al experto.
-            El dinero está retenido hasta que se complete la asesoría.
-          </p>
+  <main>
+    <div class="container">
+      <section class="confirmacionCard success">
+        <div class="iconContainer">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="top-actions">
+          <button id="btnReenviarNoti" class="btn btn-outline hidden">Reenviar notificaciones</button>
+        </div>
+        <h1>¡Asesoría agendada exitosamente!</h1>
+        <p class="mensajePrincipal">
+          Tu pago fue procesado. La solicitud fue enviada al experto.
+          El dinero está retenido hasta que se complete la asesoría.
+        </p>
 
-          <!-- Factura/Resumen de pago y asesoría -->
-          <div class="facturaContainer">
-            <h3><i class="fas fa-file-invoice"></i> Resumen de tu solicitud y factura</h3>
-            <div class="facturaGrid">
-              <!-- Datos de la asesoría -->
-              <div class="facturaSection">
-                <h4>Datos de la asesoría</h4>
-                <% if (typeof asesoria !=='undefined' && asesoria) { %>
-                  <ul>
-                    <li><strong>Título:</strong>
+        <!-- Factura/Resumen de pago y asesoría -->
+        <div class="facturaContainer">
+          <h3><i class="fas fa-file-invoice"></i> Resumen de tu solicitud y factura</h3>
+          <div class="facturaGrid">
+            <!-- Datos de la asesoría -->
+            <div class="facturaSection">
+              <h4>Datos de la asesoría</h4>
+              <% if (typeof asesoria !=='undefined' && asesoria) { %>
+                <div class="summary-box">
+                  <div class="summary-item">
+                    <div class="item-label"><strong>Título:</strong></div>
+                    <div class="item-value descripcion">
                       <%= asesoria.titulo %>
-                    </li>
-                    <li><strong>Descripción:</strong>
+                    </div>
+                  </div>
+                  <div class="summary-item">
+                    <div class="item-label"><strong>Descripción:</strong></div>
+                    <div class="item-value descripcion">
                       <%= asesoria.descripcion %>
-                    </li>
-                    <li><strong>Fecha y hora:</strong>
-                      <%= asesoria.fechaHoraInicio ? new Date(asesoria.fechaHoraInicio).toLocaleString('es-CO') : "N/A"
+                    </div>
+                  </div>
+                  <div class="summary-item">
+                    <div class="item-label"><strong>Fecha y hora:</strong></div>
+                    <div class="item-value descripcion">
+                      <%= asesoria.fechaHoraInicio ? new Date(asesoria.fechaHoraInicio).toLocaleString('es-CO') : 'N/A'
                         %>
-                    </li>
-                    <li><strong>Duración:</strong>
+                    </div>
+                  </div>
+                  <div class="summary-item">
+                    <div class="item-label"><strong>Duración:</strong></div>
+                    <div class="item-value descripcion">
                       <%= asesoria.duracionMinutos %> minutos
-                    </li>
-                    <li><strong>Cliente:</strong>
+                    </div>
+                  </div>
+                  <div class="summary-item">
+                    <div class="item-label"><strong>Cliente:</strong></div>
+                    <div class="item-value descripcion">
                       <%= asesoria.cliente?.nombre %>
                         <%= asesoria.cliente?.apellido %> (<%= asesoria.cliente?.email %>)
-                    </li>
-                    <li><strong>Experto:</strong>
+                    </div>
+                  </div>
+                  <div class="summary-item">
+                    <div class="item-label"><strong>Experto:</strong></div>
+                    <div class="item-value descripcion">
                       <%= asesoria.experto?.nombre %>
                         <%= asesoria.experto?.apellido %> (<%= asesoria.experto?.email %>)
-                    </li>
-                  </ul>
-                  <% } else { %>
-                    <p>No se encontraron datos de la asesoría.</p>
-                    <% } %>
-              </div>
-              <!-- Datos del pago -->
-              <div class="facturaSection">
-                <h4>Datos de pago / Factura</h4>
-                <% if (typeof pago !=='undefined' && pago && pago.metadatos && pago.metadatos.datosPago) { %>
-                  <ul>
-                    <li><strong>Nombre:</strong>
+                    </div>
+                  </div>
+                </div>
+                <% } else { %>
+                  <p>No se encontraron datos de la asesoría.</p>
+                  <% } %>
+            </div>
+
+            <!-- Datos del pago -->
+            <div class="facturaSection">
+              <h4>Datos de pago / Factura</h4>
+              <% if (typeof pago !=='undefined' && pago && pago.metadatos && pago.metadatos.datosPago) { %>
+                <div class="summary-box">
+                  <div class="summary-item">
+                    <div class="item-label"><strong>Nombre:</strong></div>
+                    <div class="item-value descripcion">
                       <%= pago.metadatos.datosPago.nombre %>
-                    </li>
-                    <li><strong>Email:</strong>
+                    </div>
+                  </div>
+                  <div class="summary-item">
+                    <div class="item-label"><strong>Email:</strong></div>
+                    <div class="item-value descripcion">
                       <%= pago.metadatos.datosPago.email %>
-                    </li>
-                    <li><strong>Cédula/NIT:</strong>
-                      <%= pago.metadatos.datosPago.cedula %>
-                    </li>
-                    <% if (pago.metadatos.datosPago.telefono) { %>
-                      <li><strong>Teléfono:</strong>
+                    </div>
+                  </div>
+                  <% if (pago.metadatos.datosPago.telefono) { %>
+                    <div class="summary-item">
+                      <div class="item-label"><strong>Teléfono:</strong></div>
+                      <div class="item-value descripcion">
                         <%= pago.metadatos.datosPago.telefono %>
-                      </li>
-                      <% } %>
-                        <li><strong>Monto:</strong> $<%= pago.monto ? pago.monto.toLocaleString('es-CO') : 'N/A' %> COP
-                        </li>
-                        <li><strong>Método:</strong>
+                      </div>
+                    </div>
+                    <% } %>
+                      <div class="summary-item">
+                        <div class="item-label"><strong>Monto:</strong></div>
+                        <div class="item-value descripcion">$<%= pago.monto ? pago.monto.toLocaleString('es-CO') : 'N/A'
+                            %> COP</div>
+                      </div>
+                      <div class="summary-item">
+                        <div class="item-label"><strong>Método:</strong></div>
+                        <div class="item-value descripcion">
                           <%= pago.metadatos.datosPago.metodo==='tarjeta' ? 'Tarjeta de crédito/débito' :
                             (pago.metadatos.datosPago.metodo==='pse' ? 'PSE (simulado)' : (pago.metodo || 'Simulado' ))
                             %>
-                        </li>
-                        <% if (pago.metadatos.datosPago.metodo==='tarjeta' ) { %>
-                          <li><strong>Número de tarjeta:</strong> **** **** **** <%=
-                              pago.metadatos.datosPago.numeroTarjeta ? pago.metadatos.datosPago.numeroTarjeta.slice(-4)
-                              : 'XXXX' %>
-                          </li>
-                          <li><strong>Expiración:</strong>
+                        </div>
+                      </div>
+                      <% if (pago.metadatos.datosPago.metodo==='tarjeta' ) { %>
+                        <div class="summary-item">
+                          <div class="item-label"><strong>Número de tarjeta:</strong></div>
+                          <div class="item-value descripcion">**** **** **** <%= pago.metadatos.datosPago.numeroTarjeta
+                              ? pago.metadatos.datosPago.numeroTarjeta.slice(-4) : 'XXXX' %>
+                          </div>
+                        </div>
+                        <div class="summary-item">
+                          <div class="item-label"><strong>Expiración:</strong></div>
+                          <div class="item-value descripcion">
                             <%= pago.metadatos.datosPago.expiracionTarjeta %>
-                          </li>
-                          <% } %>
-                            <li><strong>Fecha del pago:</strong>
+                          </div>
+                        </div>
+                        <% } %>
+                          <div class="summary-item">
+                            <div class="item-label"><strong>Fecha del pago:</strong></div>
+                            <div class="item-value descripcion">
                               <%= pago.fechaCreacion ? new Date(pago.fechaCreacion).toLocaleString('es-CO') : 'N/A' %>
-                            </li>
-                  </ul>
-                  <% } else { %>
-                    <p>No se encontraron datos del pago.</p>
-                    <% } %>
-              </div>
+                            </div>
+                          </div>
+                </div>
+                <% } else { %>
+                  <p>No se encontraron datos del pago.</p>
+                  <% } %>
+            </div>
+          </div>
+        </div>
+        <!-- Pasos siguientes (¿Qué sigue ahora?) -->
+        <section class="pasosSiguientes">
+          <h3>¿Qué sigue ahora?</h3>
+          <div class="pasoPago">
+            <div class="pasoNumero">1</div>
+            <div class="pasoContenido">
+              <h4>El experto revisa tu solicitud</h4>
+              <p>El experto tiene hasta 24 horas para aceptar o rechazar tu solicitud.</p>
+            </div>
+          </div>
+          <div class="pasoPago">
+            <div class="pasoNumero">2</div>
+            <div class="pasoContenido">
+              <h4>Recibe notificación</h4>
+              <p>Te avisaremos por email cuando el experto responda.</p>
+            </div>
+          </div>
+          <div class="pasoPago">
+            <div class="pasoNumero">3</div>
+            <div class="pasoContenido">
+              <h4>Coordina la asesoría</h4>
+              <p>Si es aceptada, recibirás los datos de contacto para la videollamada.</p>
             </div>
           </div>
 
-          <!-- Pasos siguientes -->
-          <div class="pasosSiguientes">
-            <h3><i class="fas fa-route"></i> ¿Qué sigue ahora?</h3>
-            <div class="pasoPago">
-              <div class="pasoNumero">1</div>
-              <div class="pasoContenido">
-                <h4>El experto revisa tu solicitud</h4>
-                <p>El experto tiene hasta 24 horas para aceptar o rechazar tu solicitud.</p>
-              </div>
-            </div>
-            <div class="pasoPago">
-              <div class="pasoNumero">2</div>
-              <div class="pasoContenido">
-                <h4>Recibe notificación</h4>
-                <p>Te avisaremos por email cuando el experto responda.</p>
-              </div>
-            </div>
-            <div class="pasoPago">
-              <div class="pasoNumero">3</div>
-              <div class="pasoContenido">
-                <h4>Coordina la asesoría</h4>
-                <p>Si es aceptada, recibirás los datos de contacto para la videollamada.</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Acciones -->
-          <div class="accionesPago">
-            <a href="/index" class="btn btn-secondary">
-              <i class="fas fa-search"></i>
-              Ir al inicio
-            </a>
-            <a href="/misAsesorias.html" class="btn btn-primary">
-              <i class="fas fa-calendar-check"></i>
-              Ver mis asesorías
-            </a>
-            <a href="/expertos.html" class="btn btn-secondary">
-              <i class="fas fa-search"></i>
-              Buscar más expertos
-            </a>
+          <div class="accionesPago" style="margin-top:18px;">
+            <a href="/" class="btn btn-secondary">Ir al inicio</a>
+            <a href="/misAsesorias.html" class="btn btn-primary">Ver mis asesorías</a>
+            <a href="/expertos.html" class="btn btn-secondary">Buscar más expertos</a>
           </div>
         </section>
-        <!-- Información adicional -->
-        <section class="infoAdicionalPago">
-          <div class="infoGridPago">
-            <article class="infoItemPago">
-              <i class="fas fa-shield-alt"></i>
-              <h4>Sistema Seguro</h4>
-              <p>Tus datos están protegidos con tecnología de encriptación.</p>
-            </article>
-            <article class="infoItemPago">
-              <i class="fas fa-undo-alt"></i>
-              <h4>Proceso Transparente</h4>
-              <p>Si el experto rechaza tu solicitud, recibirás un reembolso completo.</p>
-            </article>
-            <article class="infoItemPago">
-              <i class="fas fa-headset"></i>
-              <h4>Soporte Especializado</h4>
-              <p>Nuestro equipo de atención al cliente te acompaña en todo el proceso.</p>
-            </article>
-          </div>
-        </section>
-      </div>
-    </main>
+      </section>
+    </div>
+  </main>
 
-      <!-- Datos para JS -->
-      <script type="application/json" id="pageStatus"><%- JSON.stringify(status) %></script>
-      <script type="application/json" id="pageData"><%- JSON.stringify({
+  <!-- Datos para JS -->
+  <script type="application/json" id="pageStatus"><%- JSON.stringify(status) %></script>
+  <script type="application/json" id="pageData"><%- JSON.stringify({
     pagoId: typeof pagoId !== 'undefined' ? pagoId : null,
     asesoriaId: typeof asesoriaId !== 'undefined' ? asesoriaId : null,
     simulado: true,
     hasUser: !!(user)
   }) %></script>
-      <script type="application/json" id="facturaData"><%- JSON.stringify({
+  <script type="application/json" id="facturaData"><%- JSON.stringify({
     pago: typeof pago !== 'undefined' ? pago : null,
     asesoria: typeof asesoria !== 'undefined' ? asesoria : null
   }) %></script>
-      <script src="/assets/js/common.js"></script>
-      <script src="/assets/js/confirmacionAsesoria.js"></script>
-      <div id="conexionEstado" class="conexion-estado offline" style="display: none;">
-        <i class="fas fa-wifi-slash"></i> <span>Sin conexión</span>
-      </div>
+  <script src="/assets/js/common.js"></script>
+  <script src="/assets/js/confirmacionAsesoria.js"></script>
+
+  <div id="conexionEstado" class="conexion-estado offline" style="display: none;">
+    <i class="fas fa-wifi-slash"></i> <span>Sin conexión</span>
+  </div>
 </body>
 
 </html>
