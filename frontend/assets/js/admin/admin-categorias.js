@@ -374,7 +374,7 @@ function addCategoryToTable(formData, responseData) {
   tdActions.innerHTML = `<div class="action-buttons">
       <button class="btn-icon" title="Editar" data-id="${tr.dataset.id}"><i class="fas fa-edit"></i></button>
       <button class="btn-icon" title="Ver detalles" data-id="${tr.dataset.id}"><i class="fas fa-eye"></i></button>
-      <button class="btn-icon" title="Eliminar" data-id="${tr.dataset.id}"><i class="fas fa-trash"></i></button>
+  <button class="btn-icon" title="Inactivar" data-id="${tr.dataset.id}"><i class="fas fa-toggle-off"></i></button>
     </div>`;
   tr.appendChild(tdActions);
 
@@ -501,23 +501,33 @@ function abrirModalEditarCategoria(categoriaId) {
  * Elimina una categoría de la base de datos.
  */
 async function eliminarCategoria(categoriaId) {
+  // Nota: esta función ahora inactiva la categoría en lugar de eliminarla permanentemente.
   try {
+    const payload = { estado: "inactive" };
     const response = await fetch(`/api/categorias/${categoriaId}`, {
-      method: "DELETE",
-      headers: getHeaders(),
+      method: "PUT",
+      headers: Object.assign(
+        { "Content-Type": "application/json" },
+        getHeaders()
+      ),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
-      throw new Error("Error al eliminar categoría");
+      const json = await response.json().catch(() => ({}));
+      const msg =
+        (json && (json.message || json.mensaje)) ||
+        "Error al inactivar categoría";
+      throw new Error(msg);
     }
 
-    console.log(`Categoría eliminada: ID ${categoriaId}`);
+    console.log(`Categoría inactivada: ID ${categoriaId}`);
     // Refrescar tabla
     await loadCategorias();
-    showMessage("Categoría eliminada correctamente.", "success");
+    showMessage("Categoría inactivada correctamente.", "success");
   } catch (error) {
-    console.error("Error:", error);
-    showMessage("Error al eliminar categoría.", "error");
+    console.error("Error inactivar categoría:", error);
+    showMessage("Error al inactivar categoría.", "error");
   }
 }
 
@@ -627,9 +637,9 @@ function displayCategorias(page = 1, pageSize = 7) {
                     <button class="btn-icon" title="Ver detalles" data-id="${
                       c.id
                     }"><i class="fas fa-eye"></i></button>
-                    <button class="btn-icon" title="Eliminar" data-id="${
+                    <button class="btn-icon" title="Inactivar" data-id="${
                       c.id
-                    }"><i class="fas fa-trash"></i></button>
+                    }"><i class="fas fa-toggle-off"></i></button>
                   </div>
                 </td>
             `;

@@ -907,6 +907,36 @@ const adminCrearExperto = async (req, res) => {
       avatar,
     } = req.body;
 
+    // Validación previa para devolver errores claros cuando faltan campos obligatorios
+    const requiredForExpert = {
+      descripcion,
+      precioPorHora,
+      banco,
+      tipoCuenta,
+      numeroCuenta,
+      titular,
+      tipoDocumento,
+      numeroDocumento,
+    };
+    const missingFields = Object.keys(requiredForExpert).filter((k) => {
+      const v = requiredForExpert[k];
+      return (
+        v === undefined ||
+        v === null ||
+        (typeof v === "string" && v.trim() === "")
+      );
+    });
+    if (missingFields.length > 0) {
+      console.warn(
+        "adminCrearExperto validation failed, missing:",
+        missingFields
+      );
+      return res.status(400).json({
+        mensaje: "Faltan campos obligatorios para crear experto.",
+        camposFaltantes: missingFields,
+      });
+    }
+
     if (!email || !email.trim()) {
       return res.status(400).json({ mensaje: "Email es requerido." });
     }
