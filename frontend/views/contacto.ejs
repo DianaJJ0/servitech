@@ -1,8 +1,16 @@
 <!DOCTYPE html>
-<!-- Declaración del tipo de documento HTML5 -->
+<!--
+    Archivo: contacto.ejs
+    Propósito: Formulario de contacto para consultas generales y soporte.
+    Variables EJS esperadas:
+        - user: objeto usuario (opcional)
+    Dependencias:
+        - /assets/css/contacto.css, /assets/js/contacto.js
+    Notas para Deepwiki:
+        - Validar y sanitizar entradas en servidor antes de enviar correos.
+-->
 
 <html lang="es">
-<!-- Inicio del documento HTML en español -->
 
 <head>
     <!-- Metadatos y enlaces a recursos externos -->
@@ -99,7 +107,8 @@
                             <i class="fas fa-envelope contact-icon"></i>
                             <div class="contact-text">
                                 <h4>Correo electrónico</h4>
-                                <a href="mailto:contacto@servitech.com" class="contact-link">servitech.app.correo@gmail.com</a>
+                                <a href="mailto:contacto@servitech.com"
+                                    class="contact-link">servitech.app.correo@gmail.com</a>
                                 <!-- Enlace de correo electrónico -->
                             </div>
                         </div>

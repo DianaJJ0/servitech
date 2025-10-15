@@ -1,7 +1,14 @@
 /**
- * @file Middleware de validación de API Key
+ * ---------------------------------------------
+ * Middleware de validación de API Key para rutas administrativas
+ * ---------------------------------------------
+ * Este middleware:
+ * - Protege rutas sensibles exigiendo una API Key válida en el header 'x-api-key'
+ * - Compara la clave recibida con la definida en las variables de entorno
+ * - Devuelve 403 si la clave es incorrecta o falta
+ *
  * @module middleware/apiKey
- * @description Middleware para proteger rutas administrativas con API Key
+ * @author Equipo Servitech
  */
 
 /**
@@ -10,7 +17,6 @@
  * @param {Object} req - Request object
  * @param {Object} res - Response object
  * @param {Function} next - Next middleware function
- * @description Verifica la API Key del header 'x-api-key'
  * @throws {403} Si la API Key es inválida o no está presente
  * @example
  * // En rutas administrativas

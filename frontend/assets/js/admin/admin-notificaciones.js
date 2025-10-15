@@ -1,3 +1,12 @@
+/**
+ * @file admin-notificaciones.js
+ * @description Manejo de notificaciones en el panel admin (lista, marcar leídas, filtros)
+ *
+ * Deepwiki: metadata
+ * - propósito: gestionar notificaciones administrativas
+ * - variables DOM esperadas: .notifications-list, .notification-filter
+ */
+
 // admin-notificaciones.js
 // Script para la gestión del historial de asesorías y notificaciones en el panel de administración
 

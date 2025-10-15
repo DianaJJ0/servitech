@@ -1,3 +1,8 @@
+/**
+ * Archivo: assets/js/perfil.js
+ * Propósito: Gestión de la página de perfil (edición de datos, carga de avatar, ajustes de privacidad).
+ */
+
 // --- Eliminar cuenta: lógica modal y petición ---
 document.addEventListener("DOMContentLoaded", function () {
   const btnEliminarCuenta = document.getElementById("btnEliminarCuenta");

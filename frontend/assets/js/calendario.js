@@ -1,3 +1,14 @@
+/**
+ * Archivo: assets/js/calendario.js
+ * Propósito: Lógica del calendario de asesorías — selección de fechas/horas, validación de disponibilidad y flujo hacia pasarela de pago.
+ * Uso: Incluido en `calendario.ejs` y en la vista de detalle de experto; este script espera que el servidor haya embebido JSON en el DOM en los siguientes elementos:
+ *   - #expertoData  -> JSON con datos del experto (p.ej. { nombre, apellido, infoExperto: { precioPorHora } })
+ *   - #usuarioData   -> JSON con datos del usuario autenticado (opcional)
+ *   - #asesoriasData -> JSON array con asesorías existentes para bloqueo de fechas
+ * Dependencias: /assets/css/calendario.css y utilidades globales en /assets/js/common.js.
+ * Notas de seguridad: No inyectar tokens secretos en el DOM. El script puede usar localStorage token para sincronizar sesión mediante el endpoint /set-session, pero la autorización real debe validarse en el servidor.
+ */
+
 // --- Sincronización de sesión al cargar calendario (para evitar perder sesión al recargar) ---
 document.addEventListener("DOMContentLoaded", async () => {
   const token = localStorage.getItem("token");

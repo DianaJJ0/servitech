@@ -1,6 +1,18 @@
 /**
  * CONTROLADOR DE NOTIFICACIONES
- * Lógica para registrar y listar notificaciones enviadas a usuarios.
+ * ---------------------------------------------
+ * Este archivo implementa la lógica de negocio para la gestión de notificaciones y webhooks.
+ * Incluye operaciones CRUD, validaciones, normalización de datos y registro de logs para auditoría.
+ *
+ * @module controllers/notificacion.controller
+ * @requires models/notificacion.model
+ * @requires services/generarLogs
+ *
+ * Uso típico:
+ *   const notificacionController = require('./controllers/notificacion.controller');
+ *   app.post('/api/notificaciones', notificacionController.crearNotificacion);
+ *
+ * Todas las funciones están documentadas con JSDoc y Swagger/OpenAPI para Deepwiki y generación automática de documentación.
  */
 const Notificacion = require("../models/notificacion.model.js");
 const Usuario = require("../models/usuario.model.js");
@@ -53,31 +65,51 @@ const generarLogs = require("../services/generarLogs");
  */
 
 /**
- * Registra una nueva notificación
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- * @returns {Promise<void>}
+ * Registra una nueva notificación.
+ *
  * @openapi
  * /api/notificaciones:
  *   post:
  *     tags: [Notificaciones]
  *     summary: Enviar notificación
+ *     description: Registra y envía una notificación a un usuario. Requiere autenticación.
  *     security:
  *       - bearerAuth: []
  *     requestBody:
+ *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/Notificacion'
  *     responses:
- *       200:
- *         description: Notificación enviada
+ *       201:
+ *         description: Notificación registrada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mensaje:
+ *                   type: string
+ *                 notificacion:
+ *                   $ref: '#/components/schemas/Notificacion'
  *       400:
  *         description: Petición inválida
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *
+ * @function crearNotificacion
+ * @param {import('express').Request} req - Objeto de solicitud HTTP
+ * @param {import('express').Response} res - Objeto de respuesta HTTP
+ * @returns {Promise<void>}
  */
 const crearNotificacion = async (req, res) => {
   try {
@@ -132,9 +164,35 @@ const crearNotificacion = async (req, res) => {
 };
 
 /**
- * Lista todas las notificaciones (solo admin)
- * @param {Object} req - Request object
- * @param {Object} res - Response object
+ * Lista todas las notificaciones (solo admin).
+ *
+ * @openapi
+ * /api/notificaciones:
+ *   get:
+ *     tags: [Notificaciones]
+ *     summary: Listar notificaciones
+ *     description: Devuelve todas las notificaciones registradas en el sistema. Solo para administradores.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de notificaciones
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Notificacion'
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *
+ * @function obtenerNotificaciones
+ * @param {import('express').Request} req - Objeto de solicitud HTTP
+ * @param {import('express').Response} res - Objeto de respuesta HTTP
  * @returns {Promise<void>}
  */
 const obtenerNotificaciones = async (req, res) => {
@@ -173,9 +231,46 @@ const obtenerNotificaciones = async (req, res) => {
 };
 
 /**
- * Obtiene una notificación específica por ID
- * @param {Object} req - Request object
- * @param {Object} res - Response object
+ * Obtiene una notificación específica por ID.
+ *
+ * @openapi
+ * /api/notificaciones/{id}:
+ *   get:
+ *     tags: [Notificaciones]
+ *     summary: Obtener notificación por ID
+ *     description: Devuelve los detalles de una notificación específica por su ID.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de la notificación
+ *     responses:
+ *       200:
+ *         description: Notificación encontrada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Notificacion'
+ *       404:
+ *         description: Notificación no encontrada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *
+ * @function obtenerNotificacionPorId
+ * @param {import('express').Request} req - Objeto de solicitud HTTP
+ * @param {import('express').Response} res - Objeto de respuesta HTTP
  * @returns {Promise<void>}
  */
 const obtenerNotificacionPorId = async (req, res) => {
@@ -200,15 +295,14 @@ const obtenerNotificacionPorId = async (req, res) => {
 };
 
 /**
- * Elimina una notificación/registro de bitácora por ID (solo admin)
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- * @returns {Promise<void>}
+ * Elimina una notificación/registro de bitácora por ID (solo admin).
+ *
  * @openapi
  * /api/notificaciones/{id}:
  *   delete:
  *     summary: Eliminar notificación (bitácora de asesoría) por ID (solo admin)
  *     tags: [Notificaciones]
+ *     description: Elimina una notificación específica por su ID. Solo para administradores.
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -217,11 +311,34 @@ const obtenerNotificacionPorId = async (req, res) => {
  *         required: true
  *         schema:
  *           type: string
+ *         description: ID de la notificación
  *     responses:
  *       200:
  *         description: Notificación eliminada correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mensaje:
+ *                   type: string
  *       404:
  *         description: Notificación no encontrada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *
+ * @function eliminarNotificacion
+ * @param {import('express').Request} req - Objeto de solicitud HTTP
+ * @param {import('express').Response} res - Objeto de respuesta HTTP
+ * @returns {Promise<void>}
  */
 const eliminarNotificacion = async (req, res) => {
   try {

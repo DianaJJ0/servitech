@@ -1,3 +1,18 @@
+<!--
+  Archivo: componentes/navbarAdmin.ejs
+  Propósito: Sidebar / navegación lateral usada por las páginas del panel de administración.
+  Variables EJS esperadas:
+    - user: objeto de usuario (opcional) para mostrar información de perfil breve en el sidebar.
+    - showDevAdmin: booleano (opcional) para mostrar controles de desarrollo en admin.
+  Dependencias CSS/JS:
+    - /assets/css/administrador.css, /assets/css/admin.css, /assets/css/admin-components.css
+    - /assets/js/admin-common.js para inicializaciones (sidebar toggle, accesibilidad)
+  Notas técnicas para Deepwiki/manual:
+    - Este partial se incluye en plantillas admin/* mediante include('../componentes/navbarAdmin.ejs').
+    - Provee enlaces a rutas administrativas (adminExpertos, adminCategorias, adminUsuarios, adminLogs).
+    - No hace llamadas directas a APIs; el comportamiento dinámico (paginación, fetch) lo gestiona JS en /assets/js/admin/.
+-->
+
 <!-- Offcanvas sidebar (toggle removed: menu will be opened via layout or automatically on larger screens) -->
 <div class="admin-layout">
   <!-- Botón para abrir el menú en móvil/tablet -->

@@ -1,14 +1,41 @@
 /**
- * MODELO DE PAGO SIMULADO
- * Esquema de MongoDB para registros de pagos simulados
+ * @file Modelo de Pago
  * @module models/pago
+ * @description Modelo Mongoose para pagos simulados y reales. Permite registrar pagos de clientes a expertos, controlar estados (retenido, liberado, reembolsado), y almacenar información relevante para conciliación, reportes y auditoría.
+ *
+ * Este modelo es esencial para la gestión financiera de la plataforma, soportando integración con pasarelas de pago y simulaciones para pruebas. Incluye validaciones, índices, métodos virtuales y lógica de negocio para el ciclo de vida de un pago.
+ *
+ * Ejemplo de uso:
+ * ```js
+ * const pago = new Pago({ clienteId: '...', expertoId: '...', monto: 50000, ... });
+ * await pago.save();
+ * const resumen = pago.obtenerResumen();
+ * ```
  */
 
 const mongoose = require("mongoose");
 
 /**
- * Esquema de Pago Simulado
- * @description Define la estructura de los pagos simulados en la base de datos
+ * Esquema de Pago Simulado y Real
+ * Define la estructura de los pagos en la base de datos, incluyendo integración con Mercado Pago y simulaciones.
+ * @typedef {Object} Pago
+ * @property {String} clienteId - ID del cliente que realiza el pago
+ * @property {String} expertoId - ID del experto que recibe el pago
+ * @property {Number} monto - Monto del pago en pesos colombianos
+ * @property {String} metodo - Método de pago (simulado, tarjeta, pse, mercadopago)
+ * @property {String} estado - Estado del pago (retenido, liberado, reembolsado, reembolsado-parcial)
+ * @property {String} descripcion - Descripción del pago
+ * @property {String} transaccionId - ID de la transacción
+ * @property {String} preferenceId - ID de preferencia de Mercado Pago
+ * @property {String} initPoint - URL de inicio de pago
+ * @property {String} mpPaymentId - ID de pago en Mercado Pago
+ * @property {Date} fechaHoraAsesoria - Fecha y hora de la asesoría asociada
+ * @property {Number} duracionMinutos - Duración de la asesoría en minutos
+ * @property {ObjectId} asesoriaId - ID de la asesoría asociada
+ * @property {Date} fechaCreacion - Fecha de creación del registro
+ * @property {Date} fechaLiberacion - Fecha de liberación del pago
+ * @property {Date} fechaReembolso - Fecha de reembolso (si aplica)
+ * @property {Object} metadatos - Metadatos adicionales (estructura libre)
  */
 const pagoSchema = new mongoose.Schema(
   {
@@ -23,7 +50,6 @@ const pagoSchema = new mongoose.Schema(
       trim: true,
       index: true,
     },
-
     /**
      * ID del experto que recibe el pago
      * @type {String}
@@ -35,7 +61,6 @@ const pagoSchema = new mongoose.Schema(
       trim: true,
       index: true,
     },
-
     /**
      * Monto del pago en pesos colombianos
      * @type {Number}
@@ -47,12 +72,11 @@ const pagoSchema = new mongoose.Schema(
       min: [1000, "El monto mínimo es $1.000 COP"],
       max: [10000000, "El monto máximo es $10.000.000 COP"],
     },
-
     /**
-     * Método de pago utilizado (solo simulado)
+     * Método de pago utilizado
      * @type {String}
-     * @enum ["simulado"]
-     * @default "simulado"
+     * @enum ["simulado", "tarjeta", "pse", "mercadopago"]
+     * @default "mercadopago"
      */
     metodo: {
       type: String,
@@ -335,7 +359,92 @@ pagoSchema.set("toJSON", {
   },
 });
 
-// Crear y exportar el modelo
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     Pago:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *         clienteId:
+ *           type: string
+ *         expertoId:
+ *           type: string
+ *         monto:
+ *           type: number
+ *         metodo:
+ *           type: string
+ *           enum: [simulado, tarjeta, pse, mercadopago]
+ *         estado:
+ *           type: string
+ *           enum: [retenido, liberado, reembolsado, reembolsado-parcial]
+ *         descripcion:
+ *           type: string
+ *         transaccionId:
+ *           type: string
+ *         preferenceId:
+ *           type: string
+ *         initPoint:
+ *           type: string
+ *         mpPaymentId:
+ *           type: string
+ *         fechaHoraAsesoria:
+ *           type: string
+ *           format: date-time
+ *         duracionMinutos:
+ *           type: number
+ *         asesoriaId:
+ *           type: string
+ *         fechaCreacion:
+ *           type: string
+ *           format: date-time
+ *         fechaLiberacion:
+ *           type: string
+ *           format: date-time
+ *         fechaReembolso:
+ *           type: string
+ *           format: date-time
+ *         metadatos:
+ *           type: object
+ *       required:
+ *         - clienteId
+ *         - expertoId
+ *         - monto
+ *         - metodo
+ *         - estado
+ *         - fechaHoraAsesoria
+ *         - duracionMinutos
+ *
+ *   responses:
+ *     PagoResponse:
+ *       description: Respuesta exitosa con información del pago
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Pago'
+ *     PagoNotFound:
+ *       description: Pago no encontrado
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               message:
+ *                 type: string
+ *                 example: Pago no encontrado
+ *     PagoError:
+ *       description: Error en la operación de pago
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               message:
+ *                 type: string
+ *                 example: Error procesando el pago
+ */
+// Exporta el modelo Pago para su uso en controladores y servicios.
 const Pago = mongoose.model("Pago", pagoSchema);
-
 module.exports = Pago;

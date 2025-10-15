@@ -1,3 +1,8 @@
+/*
+  Archivo: assets/css/admin-panel-global.css
+  Propósito: Reglas globales compartidas por varias páginas del panel admin.
+*/
+
 /* ===== CSS COMPLETO PARA PANEL DE ADMINISTRACIÓN ===== */
 @import "base.css";
 
@@ -228,9 +233,6 @@
   background-color: var(--admin-hover-bg);
   color: var(--admin-text-primary);
 }
-
-
-
 
 /* ===== TABLAS ===== */
 .table-container {
@@ -1384,12 +1386,12 @@
   /* Ocultar el contenedor de la tabla para que no interfiera */
   .table-container.admin-table--expertos-container {
     background-color: var(--admin-card-bg);
-  border-radius: var(--border-radius);
-  border: 1px solid var(--admin-border-color);
-  overflow: hidden;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--admin-border-color);
+    overflow: hidden;
     overflow-x: hidden;
-  box-shadow: var(--admin-shadow);
-  margin: 0 0rem;
+    box-shadow: var(--admin-shadow);
+    margin: 0 0rem;
   }
 
   /* Ajustes específicos para tablets más pequeñas */

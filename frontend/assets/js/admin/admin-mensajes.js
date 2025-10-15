@@ -1,4 +1,13 @@
 /**
+ * @file admin-mensajes.js
+ * @description Gestión de mensajes privados y conversaciones en el panel admin.
+ *
+ * Deepwiki: metadata
+ * - propósito: ver y administrar mensajes entre usuarios y soporte
+ * - variables DOM esperadas: .messages-thread, #messageComposeForm
+ */
+
+/**
  * @fileoverview
  * Funcionalidad del panel de administración para la gestión de mensajes en Servitech.
  * Permite listar, filtrar, ver, responder y eliminar mensajes entre usuarios y expertos.

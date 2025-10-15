@@ -1,4 +1,18 @@
 <!DOCTYPE html>
+<!--
+  Archivo: confirmacionAsesoria.ejs
+  Propósito: Mostrar confirmación y resumen tras el pago/agenda de una asesoría.
+  Variables EJS esperadas:
+    - status: 'success'|'pending'|'failed' (opcional)
+    - asesoria: objeto con información de la asesoría (opcional)
+    - pago: objeto con información del pago (opcional)
+  Dependencias:
+    - /assets/css/confirmacion-asesoria.css, /assets/js/confirmacionAsesoria.js
+  Notas para Deepwiki:
+    - No incluir números de tarjeta completos; mostrar solo últimos 4 dígitos si es necesario.
+    - Esta vista se usa como punto de aterrizaje tras procesos de pago.
+-->
+
 <html lang="es">
 
 <head>
@@ -37,6 +51,7 @@
 
         <!-- Factura/Resumen de pago y asesoría -->
         <div class="facturaContainer">
+
           <h3><i class="fas fa-file-invoice"></i> Resumen de tu solicitud y factura</h3>
           <div class="facturaGrid">
             <!-- Datos de la asesoría -->

@@ -1,11 +1,20 @@
 /**
- * SERVICIO PARA ENVÍO DE CORREOS
- * Abstrae la lógica de Nodemailer y utiliza las credenciales del entorno.
+ * ---------------------------------------------
+ * Servicio para envío de correos electrónicos
+ * ---------------------------------------------
+ * Este módulo abstrae el envío de correos usando SendGrid (sgMail)
+ * y utiliza las credenciales del entorno. Permite:
+ * - Enviar correos personalizados a usuarios
+ * - Personalizar saludo y cuerpo del mensaje
+ * - Manejar errores de configuración y envío
+ *
+ * @module services/email.service
+ * @author Equipo Servitech
  */
 
 const sgMail = require("@sendgrid/mail");
-// Dejar que la app arranque aunque no haya credenciales de SendGrid
-// Validaremos al intentar enviar cada correo y reportaremos errores sin bloquear el servidor.
+// Permite que la app arranque aunque no haya credenciales de SendGrid
+// Se valida al intentar enviar cada correo y se reportan errores sin bloquear el servidor
 if (process.env.SENDGRID_API_KEY) {
   try {
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -24,6 +33,7 @@ if (process.env.SENDGRID_API_KEY) {
 
 /**
  * Envía un correo electrónico personalizado. Si no se da nombre/apellido, usa un saludo genérico.
+ * @function enviarCorreo
  * @param {string} destinatario - Correo del destinatario.
  * @param {string} asunto - Asunto del correo.
  * @param {string} mensaje - Cuerpo principal del mensaje (sin saludo).
@@ -48,8 +58,10 @@ const enviarCorreo = async (destinatario, asunto, mensaje, opciones = {}) => {
   const mensajeTexto = `${saludo}\n\n${mensaje}`;
   const mensajeHtml =
     opciones.html ||
-    `<p style="color:#551a8b;font-size:1.1em;">${saludo}</p>
-     <p style="color:#551a8b;">${mensaje.replace(/\n/g, "<br>")}</p>`;
+    `<p style=\"color:#551a8b;font-size:1.1em;\">${saludo}</p>\n     <p style=\"color:#551a8b;\">${mensaje.replace(
+      /\n/g,
+      "<br>"
+    )}</p>`;
 
   const msg = {
     to: destinatario,

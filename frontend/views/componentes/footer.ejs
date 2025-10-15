@@ -1,5 +1,16 @@
 <!-- Pie de página principal -->
 <footer class="footer">
+  <!--
+  Archivo: componentes/footer.ejs
+  Propósito: Pie de página reutilizable con enlaces legales, recursos de analítica y scripts de consentimiento de cookies.
+  Variables EJS esperadas: ninguna obligatoria; puede leer configuraciones globales si se inyectan (p.ej. showAnalytics).
+  Dependencias CSS/JS:
+    - /assets/css/cookie-consent.css y scripts: /assets/js/analytics-config.js, /assets/js/analytics-loader.js, /assets/js/cookie-consent.js
+  Notas técnicas para Deepwiki/manual:
+    - No incluir información sensible (API keys) en el markup. Los scripts de analítica se cargan de forma diferida.
+    - Mantener el bloque como partial para permitir su inclusión en todas las vistas.
+-->
+
   <!-- Contenedor principal del contenido del footer -->
   <div class="footer-content">
     <!-- Contenido principal del footer -->

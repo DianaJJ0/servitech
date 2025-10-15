@@ -1,41 +1,18 @@
-// Activar/inactivar experto por ID
-const setActivoPorId = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { activo } = req.body;
-    if (!mongoose.isValidObjectId(id)) {
-      return res.status(400).json({ mensaje: "ID de experto no válido" });
-    }
-    const experto = await Usuario.findById(id);
-    if (!experto || !experto.roles || !experto.roles.includes("experto")) {
-      return res.status(404).json({ mensaje: "Experto no encontrado" });
-    }
-    experto.infoExperto = experto.infoExperto || {};
-    experto.infoExperto.activo = !!activo;
-    experto.estado = activo ? "activo" : "inactivo";
-    await experto.save();
-    try {
-      await generarLogs("experto", {
-        action: activo ? "activar" : "inactivar",
-        expertEmail: experto.email,
-        adminEmail: req.usuario?.email,
-        timestamp: new Date(),
-      });
-    } catch (logErr) {
-      console.warn("Error al generar log (no crítico):", logErr.message);
-    }
-    return res.status(200).json({ mensaje: "Estado actualizado", experto });
-  } catch (err) {
-    console.error("setActivoPorId error:", err);
-    return res
-      .status(500)
-      .json({ error: "Error interno", mensaje: err.message });
-  }
-};
 /**
- * @file Controlador de expertos
- * @module controllers/experto
- * @description Listado, consulta y actualización de perfil de expertos en Servitech.
+ * CONTROLADOR DE EXPERTOS
+ * ---------------------------------------------
+ * Este archivo implementa la lógica de negocio para la gestión de expertos en la plataforma.
+ * Incluye operaciones de listado, consulta, actualización, aprobación, rechazo y administración de perfiles de expertos.
+ *
+ * @module controllers/experto.controller
+ * @requires models/usuario.model
+ * @requires services/generarLogs
+ *
+ * Uso típico:
+ *   const expertoController = require('./controllers/experto.controller');
+ *   app.get('/api/expertos', expertoController.listarExpertos);
+ *
+ * Todas las funciones están documentadas con JSDoc y Swagger/OpenAPI para Deepwiki y generación automática de documentación.
  */
 
 const mongoose = require("mongoose");
@@ -201,6 +178,109 @@ const listarExpertos = async (req, res) => {
   } catch (err) {
     console.error("listarExpertos error:", err);
     res.status(500).json({ error: "Error interno", message: err.message });
+  }
+};
+
+/**
+ * Activa o inactiva un experto por su ID (admin).
+ *
+ * @openapi
+ * /api/expertos/{id}/activo:
+ *   put:
+ *     tags: [Expertos]
+ *     summary: Activar/inactivar experto por ID
+ *     description: Permite a un administrador activar o inactivar el perfil de un experto por su ID.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID del experto
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               activo:
+ *                 type: boolean
+ *                 example: true
+ *     responses:
+ *       200:
+ *         description: Estado actualizado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mensaje:
+ *                   type: string
+ *                   example: "Estado actualizado"
+ *                 experto:
+ *                   $ref: '#/components/schemas/UsuarioPublico'
+ *       400:
+ *         description: ID de experto no válido
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Experto no encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *
+ * @function setActivoPorId
+ * @param {import('express').Request} req - Objeto de solicitud HTTP
+ * @param {import('express').Response} res - Objeto de respuesta HTTP
+ * @returns {Promise<void>}
+ * @throws {Error} Error interno del servidor o conflicto de datos
+ * @example
+ *   // PUT /api/expertos/652e1b2f8c1a2b001f8e4a1b/activo
+ *   {
+ *     "activo": true
+ *   }
+ */
+const setActivoPorId = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { activo } = req.body;
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ mensaje: "ID de experto no válido" });
+    }
+    const experto = await Usuario.findById(id);
+    if (!experto || !experto.roles || !experto.roles.includes("experto")) {
+      return res.status(404).json({ mensaje: "Experto no encontrado" });
+    }
+    experto.infoExperto = experto.infoExperto || {};
+    experto.infoExperto.activo = !!activo;
+    experto.estado = activo ? "activo" : "inactivo";
+    await experto.save();
+    try {
+      await generarLogs("experto", {
+        action: activo ? "activar" : "inactivar",
+        expertEmail: experto.email,
+        adminEmail: req.usuario?.email,
+        timestamp: new Date(),
+      });
+    } catch (logErr) {
+      console.warn("Error al generar log (no crítico):", logErr.message);
+    }
+    return res.status(200).json({ mensaje: "Estado actualizado", experto });
+  } catch (err) {
+    console.error("setActivoPorId error:", err);
+    return res
+      .status(500)
+      .json({ error: "Error interno", mensaje: err.message });
   }
 };
 
@@ -609,6 +689,67 @@ const setActivo = async (req, res) => {
   }
 };
 
+/**
+ * Actualiza el perfil de un experto por el administrador.
+ *
+ * @openapi
+ * /api/expertos/admin/{id}:
+ *   put:
+ *     tags: [Expertos]
+ *     summary: Actualizar perfil de experto por admin
+ *     description: Permite a un administrador actualizar el perfil de un experto por su ID.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID del experto
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/PerfilExpertoInput'
+ *     responses:
+ *       200:
+ *         description: Perfil de experto actualizado por el administrador
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mensaje:
+ *                   type: string
+ *                   example: "Perfil de experto actualizado por el administrador."
+ *                 usuario:
+ *                   $ref: '#/components/schemas/UsuarioPublico'
+ *       404:
+ *         description: Usuario no encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *
+ * @function adminActualizarPerfilExperto
+ * @param {import('express').Request} req - Objeto de solicitud HTTP
+ * @param {import('express').Response} res - Objeto de respuesta HTTP
+ * @returns {Promise<void>}
+ * @throws {Error} Error interno del servidor o usuario no encontrado
+ * @example
+ *   // PUT /api/expertos/admin/652e1b2f8c1a2b001f8e4a1b
+ *   {
+ *     "descripcion": "Experto en Node.js",
+ *     "precioPorHora": 50000,
+ *     ...
+ *   }
+ */
 const adminActualizarPerfilExperto = async (req, res) => {
   try {
     const { id } = req.params;
@@ -685,7 +826,66 @@ const adminActualizarPerfilExperto = async (req, res) => {
   }
 };
 
-// Crear perfil de experto para un usuario existente (administrador)
+/**
+ * Crea el perfil de experto para un usuario existente (administrador).
+ *
+ * @openapi
+ * /api/expertos/admin:
+ *   post:
+ *     tags: [Expertos]
+ *     summary: Crear perfil de experto para usuario existente (admin)
+ *     description: Permite a un administrador crear el perfil de experto para un usuario existente.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/PerfilExpertoInput'
+ *     responses:
+ *       201:
+ *         description: Experto creado exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UsuarioPublico'
+ *       400:
+ *         description: Email es requerido
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Usuario no encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       409:
+ *         description: El usuario ya tiene el rol de experto
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Error interno al crear experto
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *
+ * @function adminCrearExperto
+ * @param {import('express').Request} req - Objeto de solicitud HTTP
+ * @param {import('express').Response} res - Objeto de respuesta HTTP
+ * @returns {Promise<void>}
+ * @throws {Error} Error interno del servidor, usuario no encontrado o conflicto de datos
+ * @example
+ *   // POST /api/expertos/admin
+ *   {
+ *     "email": "nuevo@experto.com",
+ *     "descripcion": "Experto en React",
+ *     ...
+ *   }
+ */
 const adminCrearExperto = async (req, res) => {
   try {
     const {

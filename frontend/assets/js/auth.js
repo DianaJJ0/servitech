@@ -1,4 +1,10 @@
 /**
+ * Archivo: assets/js/auth.js
+ * Propósito: Manejo de UI para autenticación (login modal, validaciones y redirecciones).
+ * Notas: No incluir lógicas sensibles del servidor aquí; todo token se debe solicitar al backend.
+ */
+
+/**
  * Funciones de autenticación para el frontend de Servitech.
  * Maneja login/logout, token y usuario en localStorage.
  */

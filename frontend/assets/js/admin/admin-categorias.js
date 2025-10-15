@@ -8,6 +8,13 @@
  */
 
 /**
+ * Deepwiki: metadata
+ * - propósito: gestión CRUD de categorías en Admin
+ * - variables DOM esperadas: .categorias-grid__tabla, #categoryModal, #modalEliminarCategoria
+ * - dependencias: admin-common.js
+ */
+
+/**
  * Funcionalidad específica para la página de gestión de categorías
  */
 

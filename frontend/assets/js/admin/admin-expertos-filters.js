@@ -1,3 +1,9 @@
+/**
+ * @file admin-expertos-filters.js
+ * @description Filtros y lógica de filtrado para la lista de expertos en Admin.
+ * Deepwiki: variables DOM: #expertFilterState, #expertFilterCategory, #headerSearch
+ */
+
 // Alternar filtros para la página de Expertos (adaptado de admin-categorias-filters.js)
 (function () {
   "use strict";

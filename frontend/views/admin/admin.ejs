@@ -1,3 +1,17 @@
+<!--
+  Archivo: admin/admin.ejs
+  Propósito: Dashboard principal del panel de administración. Muestra estadísticas y accesos rápidos.
+  Variables EJS esperadas:
+    - user: objeto de usuario admin (opcional) para mostrar datos del perfil en el header
+    - cualquier otra variable requerida por partials incluidos (ver componentes/navbarAdmin.ejs)
+  Dependencias CSS/JS:
+    - /assets/css/administrador.css, /assets/css/admin.css, /assets/css/admin-components.css
+    - Chart.js (CDN) para gráficas y /assets/js/admin-common.js
+  Notas técnicas:
+    - Esta plantilla es una página completa (no layout parcial). Incluye partials del sidebar y scripts de admin.
+    - Evitar inyectar secretos o API keys directamente en este archivo.
+-->
+
 <!DOCTYPE html>
 <html lang="es">
 
