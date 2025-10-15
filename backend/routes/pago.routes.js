@@ -126,11 +126,68 @@ const apiKeyMiddleware = require("../middleware/apiKey.middleware.js");
  *       404:
  *         description: Experto no encontrado
  */
+/**
+ * @swagger
+ * /api/pagos/crear-preferencia-mp:
+ *   post:
+ *     summary: Crear preferencia de Mercado Pago (Checkout Pro)
+ *     description: Crea un registro de Pago y Asesoria y genera una preferencia de Mercado Pago. Devuelve init_point para redirección al Checkout Pro.
+ *     tags: [Pagos]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - titulo
+ *               - descripcion
+ *               - expertoEmail
+ *               - fechaHoraInicio
+ *               - duracionMinutos
+ *               - monto
+ *             properties:
+ *               titulo:
+ *                 type: string
+ *               descripcion:
+ *                 type: string
+ *               expertoEmail:
+ *                 type: string
+ *                 format: email
+ *               fechaHoraInicio:
+ *                 type: string
+ *                 format: date-time
+ *               duracionMinutos:
+ *                 type: integer
+ *               monto:
+ *                 type: number
+ *     responses:
+ *       201:
+ *         description: Preferencia creada
+ *       400:
+ *         description: Datos inválidos
+ */
 router.post(
-  "/crear-pago-simulado",
+  "/crear-preferencia-mp",
   authMiddleware.autenticar,
-  pagoController.crearPagoSimulado
+  pagoController.crearPagoConMercadoPago
 );
+
+/**
+ * @swagger
+ * /api/pagos/webhook/mp:
+ *   post:
+ *     summary: Webhook público para notificaciones de Mercado Pago
+ *     description: Endpoint público que recibe notificaciones de Mercado Pago. Se recomienda validar y/o consultar la API de Mercado Pago para confirmar el evento.
+ *     tags: [Pagos]
+ *     responses:
+ *       200:
+ *         description: Notificación recibida
+ */
+// Webhook público de Mercado Pago (no autenticar)
+router.post("/webhook/mp", pagoController.mpWebhook);
 
 /**
  * @swagger
@@ -271,5 +328,19 @@ router.get(
  */
 // Permitir que el usuario autenticado (cliente o admin) consulte su propio pago
 router.get("/:id", authMiddleware.autenticar, pagoController.obtenerPagoPorId);
+
+// Obtener estado de notificaciones asociadas a un pago
+router.get(
+  "/:id/notificaciones",
+  authMiddleware.autenticar,
+  pagoController.obtenerEstadoNotificaciones
+);
+
+// Reenviar notificaciones (intento manual)
+router.post(
+  "/:id/reenviar-notificaciones",
+  authMiddleware.autenticar,
+  pagoController.reenviarNotificaciones
+);
 
 module.exports = router;

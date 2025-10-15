@@ -34,7 +34,7 @@
         </nav>
 
         <!-- Alerta de notificaciones -->
-        <div id="alertContainer" class="alert-container" style="display: none;">
+        <div id="alertContainer" class="alert-container hidden">
           <div class="alert">
             <i class="fas fa-exclamation-triangle"></i>
             <span id="alertText">Mensaje de alerta</span>
@@ -95,89 +95,29 @@
               </div>
             </div>
 
-            <!-- FORMULARIO DE PAGO -->
-            <form id="formPago" class="form-pago" autocomplete="off">
-
-              <h3 class="form-title"><i class="fas fa-credit-card"></i> Información para el pago</h3>
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="nombrePago">Nombre completo</label>
-                  <input type="text" id="nombrePago" name="nombrePago" maxlength="80" required
-                    pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ ]{5,80}$" placeholder="Como aparece en la tarjeta"
-                    autocomplete="cc-name">
-                  <small class="input-help">Solo letras y espacios. Ej: Juan Pérez</small>
-                </div>
-                <div class="form-group">
-                  <label for="emailPago">Correo electrónico</label>
-                  <input type="email" id="emailPago" name="emailPago" maxlength="80" required
-                    placeholder="tucorreo@email.com" autocomplete="email">
-                  <small class="input-help">Ejemplo: usuario@email.com</small>
-                </div>
-              </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="cedulaPago">Cédula/NIT</label>
-                  <input type="text" id="cedulaPago" name="cedulaPago" maxlength="15" required pattern="^[0-9]{5,15}$"
-                    placeholder="Ej: 1234567890" inputmode="numeric" autocomplete="off">
-                  <small class="input-help">Solo números, entre 5 y 15 dígitos.</small>
-                </div>
-                <div class="form-group">
-                  <label for="telefonoPago">Teléfono (opcional)</label>
-                  <input type="text" id="telefonoPago" name="telefonoPago" maxlength="10" pattern="^[0-9]{0,10}$"
-                    placeholder="Ej: 3001234567" inputmode="numeric" autocomplete="tel">
-                  <small class="input-help">Solo números, máximo 10 dígitos.</small>
-                </div>
-              </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="metodoPago">Método de pago</label>
-                  <select id="metodoPago" name="metodoPago" required>
-                    <option value="">Selecciona un método</option>
-                    <option value="tarjeta">Tarjeta de crédito/débito</option>
-                    <option value="pse">PSE (simulado)</option>
-                  </select>
-                  <small class="input-help">Elige cómo deseas pagar</small>
-                </div>
-                <div class="form-group">
-                  <label for="numeroTarjeta">Número de tarjeta</label>
-                  <input type="text" id="numeroTarjeta" name="numeroTarjeta" maxlength="19"
-                    pattern="^(?:[0-9]{4} ?){4,5}$" placeholder="0000 0000 0000 0000" inputmode="numeric"
-                    autocomplete="cc-number">
-                  <small class="input-help">16 a 19 dígitos, solo números. Ej: 1234 5678 9012 3456</small>
-                </div>
-              </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="expiracionTarjeta">Fecha de expiración</label>
-                  <input type="text" id="expiracionTarjeta" name="expiracionTarjeta" maxlength="5"
-                    pattern="^(0[1-9]|1[0-2])\/([0-9]{2})$" placeholder="MM/AA" autocomplete="cc-exp"
-                    inputmode="numeric">
-                  <small class="input-help">Formato MM/AA. Ej: 08/27</small>
-                </div>
-                <div class="form-group">
-                  <label for="cvvTarjeta">CVV</label>
-                  <input type="password" id="cvvTarjeta" name="cvvTarjeta" maxlength="4" pattern="^[0-9]{3,4}$"
-                    placeholder="123" inputmode="numeric" autocomplete="cc-csc">
-                  <small class="input-help">3 o 4 dígitos, solo números.</small>
-                </div>
-              </div>
+            <!-- BOTÓN MERCADO PAGO -->
+            <div class="mp-checkout-container">
+              <h3 class="form-title"><i class="fab fa-cc-visa"></i> Pagar con Mercado Pago</h3>
+              <p class="mp-info">Serás redirigido a la plataforma de Mercado Pago para completar el pago. Servitech no
+                almacena datos de tarjeta.</p>
               <div class="form-row form-row-center">
-                <button id="btnPagar" class="btn-pay" type="submit">
-                  <i class="fas fa-play"></i>
-                  Pagar Ahora
+                <!-- Botón brandado (visualmente Mercado Pago). Si la SDK inyecta otro botón, .mp-duplicate lo ocultará -->
+                <button id="btnIrAMercadoPago" class="btn-pay mercadopago-button" type="button"
+                  aria-label="Ir a Mercado Pago">
+                  <span>Ir a Mercado Pago</span>
                 </button>
               </div>
-            </form>
+            </div>
 
             <!-- Área de procesamiento de pago -->
             <div class="payment-process">
-              <div id="loadingState" class="loading-state" style="display: none;">
+              <div id="loadingState" class="loading-state hidden">
                 <div class="loading-spinner">
                   <i class="fas fa-spinner fa-spin"></i>
                 </div>
                 <p class="loading-text">Procesando tu solicitud...</p>
               </div>
-              <div id="successState" class="success-state" style="display: none;">
+              <div id="successState" class="success-state hidden">
                 <div class="success-icon">
                   <i class="fas fa-check-circle"></i>
                 </div>
@@ -197,7 +137,7 @@
                   </a>
                 </div>
               </div>
-              <div id="errorState" class="error-state" style="display: none;">
+              <div id="errorState" class="error-state hidden">
                 <div class="error-icon">
                   <i class="fas fa-exclamation-triangle"></i>
                 </div>
@@ -271,7 +211,8 @@
     expertoSeleccionado: expertoSeleccionado || {},
     monto: typeof monto !== 'undefined' ? monto : 20000,
     duracion: typeof duracion !== 'undefined' ? duracion : 1,
-    user: user || null
+    user: user || null,
+    mpPublicKey: process.env.MP_PUBLIC_KEY || ''
   }) %></script>
 
       <!-- Scripts JavaScript -->
