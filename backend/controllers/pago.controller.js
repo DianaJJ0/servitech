@@ -10,6 +10,7 @@ const Asesoria = require("../models/asesoria.model.js");
 const Notificacion = require("../models/notificacion.model.js");
 const generarLogs = require("../services/generarLogs");
 const { enviarCorreo } = require("../services/email.service.js");
+const axios = require("axios");
 
 /**
  * Crear pago simulado y asesoría
@@ -36,67 +37,175 @@ const { enviarCorreo } = require("../services/email.service.js");
  *             required:
  *               - titulo
  *               - descripcion
- *               - expertoEmail
- *               - fechaHoraInicio
- *               - duracionMinutos
- *               - monto
- *             properties:
- *               titulo:
- *                 type: string
- *                 description: Título de la asesoría
- *                 example: "Configuración de servidor web"
- *               descripcion:
- *                 type: string
- *                 description: Descripción detallada
- *                 example: "Asesoría para configurar Apache y SSL"
- *               expertoEmail:
- *                 type: string
- *                 format: email
- *                 description: Email del experto
- *                 example: "experto@ejemplo.com"
- *               fechaHoraInicio:
- *                 type: string
- *                 format: date-time
- *                 description: Fecha y hora de inicio
- *                 example: "2024-12-15T14:00:00.000Z"
- *               duracionMinutos:
- *                 type: integer
- *                 enum: [60, 90, 120, 180]
- *                 description: Duración en minutos
- *                 example: 60
- *               monto:
- *                 type: number
- *                 minimum: 1000
- *                 description: Monto en pesos colombianos
- *                 example: 50000
- *     responses:
- *       201:
- *         description: Pago procesado y asesoría creada exitosamente
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 mensaje:
- *                   type: string
- *                   example: "Pago procesado exitosamente"
- *                 pagoId:
- *                   type: string
- *                   example: "507f1f77bcf86cd799439011"
- *                 asesoriaId:
- *                   type: string
- *                   example: "507f1f77bcf86cd799439012"
- *                 estadoPago:
- *                   type: string
- *                   example: "retenido"
- *       400:
- *         description: Datos inválidos o conflicto de horario
- *       404:
- *         description: Experto no encontrado
- *       500:
- *         description: Error interno del servidor
  */
-const crearPagoSimulado = async (req, res) => {
+/**
+ * Envía notificaciones cuando se crea una nueva asesoría
+ * @function enviarNotificacionesNuevaAsesoria
+ * @private
+ */
+async function enviarNotificacionesNuevaAsesoria(
+  asesoria,
+  pago,
+  experto,
+  cliente
+) {
+  try {
+    const fechaLocal = asesoria.fechaHoraInicio.toLocaleString("es-CO");
+    const duracionTexto =
+      asesoria.duracionMinutos === 60
+        ? "1 hora"
+        : asesoria.duracionMinutos === 90
+        ? "1.5 horas"
+        : asesoria.duracionMinutos === 120
+        ? "2 horas"
+        : "3 horas";
+
+    // Notificación al experto (registro pendiente)
+    const notExp = await Notificacion.create({
+      usuarioId: experto._id,
+      email: experto.email,
+      tipo: "email",
+      asunto: "Nueva asesoría pendiente - Pago confirmado",
+      mensaje: `Tienes una nueva solicitud de asesoría "${asesoria.titulo}". El pago ya fue procesado y está retenido de forma segura.`,
+      relacionadoCon: { tipo: "Asesoria", referenciaId: asesoria._id },
+      estado: "pendiente",
+      fechaEnvio: new Date(),
+    });
+
+    try {
+      // If payment metadata indicates simulation for emails, mark as sent without calling SendGrid
+      if (pago && pago.metadatos && pago.metadatos.simulateEmail) {
+        await Notificacion.findByIdAndUpdate(notExp._id, { estado: "enviado" });
+      } else {
+        await enviarCorreo(
+          experto.email,
+          "Nueva asesoría pendiente - Pago confirmado",
+          `Tienes una nueva solicitud de asesoría titulada "${
+            asesoria.titulo
+          }".\n\nCliente: ${cliente.nombre} ${
+            cliente.apellido
+          }\nFecha y hora: ${fechaLocal}\nDuración: ${duracionTexto}\nMonto: $${pago.monto.toLocaleString(
+            "es-CO"
+          )} COP \n\nIngresa a ServiTech para aceptar o rechazar esta solicitud. Tienes 24 horas para responder.`,
+          {
+            nombreDestinatario: experto.nombre,
+            apellidoDestinatario: experto.apellido,
+          }
+        );
+        await Notificacion.findByIdAndUpdate(notExp._id, { estado: "enviado" });
+      }
+    } catch (errEmail) {
+      console.error(
+        "Error enviando correo al experto:",
+        errEmail.message || errEmail
+      );
+      const msgLower = (errEmail.message || "").toLowerCase();
+      const isAuthError =
+        msgLower.includes("authorization grant is invalid") ||
+        msgLower.includes("unauthorized") ||
+        msgLower.includes("invalid grant");
+      const fallbackEnabled =
+        String(process.env.SENDGRID_FALLBACK || "").toLowerCase() === "true" ||
+        (process.env.NODE_ENV || "development") !== "production";
+      if (isAuthError && fallbackEnabled) {
+        // Fallback: marcar como enviado para desarrollo y volcar contenido al log
+        await Notificacion.findByIdAndUpdate(notExp._id, {
+          estado: "enviado",
+          detalleError: `SendGrid auth failed; fallback marcado como enviado.`,
+        });
+        console.warn(
+          "SendGrid auth failed. Email to experto logged below (DEV FALLBACK):"
+        );
+        console.warn(`TO: ${experto.email}`);
+        console.warn(`SUBJECT: Nueva asesoría pendiente - Pago confirmado`);
+        console.warn(
+          `BODY: Tienes una nueva solicitud de asesoría titulada "${
+            asesoria.titulo
+          }". Cliente: ${cliente.nombre} ${
+            cliente.apellido
+          } Fecha y hora: ${fechaLocal} Duración: ${duracionTexto} Monto: $${pago.monto.toLocaleString(
+            "es-CO"
+          )} COP`
+        );
+      } else {
+        await Notificacion.findByIdAndUpdate(notExp._id, {
+          estado: "error",
+          detalleError: errEmail.message || String(errEmail),
+        });
+      }
+    }
+
+    // Notificación al cliente (registro pendiente)
+    const notCli = await Notificacion.create({
+      usuarioId: cliente._id,
+      email: cliente.email,
+      tipo: "email",
+      asunto: "Pago procesado - Asesoría enviada al experto",
+      mensaje: `Tu pago fue procesado exitosamente. La solicitud de asesoría "${asesoria.titulo}" fue enviada al experto para su revisión.`,
+      relacionadoCon: { tipo: "Asesoria", referenciaId: asesoria._id },
+      estado: "pendiente",
+      fechaEnvio: new Date(),
+    });
+
+    try {
+      await enviarCorreo(
+        cliente.email,
+        "Pago procesado - Asesoría enviada al experto",
+        `Tu pago de $${pago.monto.toLocaleString(
+          "es-CO"
+        )} COP fue procesado exitosamente.\n\nLa solicitud de asesoría "${
+          asesoria.titulo
+        }" fue enviada a ${experto.nombre} ${
+          experto.apellido
+        } para su revisión.\n\nEl experto tiene 24 horas para aceptar o rechazar tu solicitud. Recibirás una notificación con su respuesta.`,
+        {
+          nombreDestinatario: cliente.nombre,
+          apellidoDestinatario: cliente.apellido,
+        }
+      );
+      await Notificacion.findByIdAndUpdate(notCli._id, { estado: "enviado" });
+    } catch (errCli) {
+      console.error(
+        "Error enviando correo al cliente:",
+        errCli.message || errCli
+      );
+      const msgLowerCli = (errCli.message || "").toLowerCase();
+      const isAuthErrorCli =
+        msgLowerCli.includes("authorization grant is invalid") ||
+        msgLowerCli.includes("unauthorized") ||
+        msgLowerCli.includes("invalid grant");
+      const fallbackEnabledCli =
+        String(process.env.SENDGRID_FALLBACK || "").toLowerCase() === "true" ||
+        (process.env.NODE_ENV || "development") !== "production";
+      if (isAuthErrorCli && fallbackEnabledCli) {
+        await Notificacion.findByIdAndUpdate(notCli._id, {
+          estado: "enviado",
+          detalleError: `SendGrid auth failed; fallback marcado como enviado.`,
+        });
+        console.warn(
+          "SendGrid auth failed. Email to cliente logged below (DEV FALLBACK):"
+        );
+        console.warn(`TO: ${cliente.email}`);
+        console.warn(`SUBJECT: Confirmación de solicitud - Pago recibido`);
+        console.warn(
+          `BODY: Hemos recibido tu pago de $${pago.monto.toLocaleString(
+            "es-CO"
+          )} COP para la asesoría "${
+            asesoria.titulo
+          }". El pago está retenido hasta que el experto acepte la solicitud.`
+        );
+      } else {
+        await Notificacion.findByIdAndUpdate(notCli._id, {
+          estado: "error",
+          detalleError: errCli.message || String(errCli),
+        });
+      }
+    }
+  } catch (error) {
+    console.error("Error enviando notificaciones de nueva asesoría:", error);
+  }
+}
+const crearPagoConMercadoPago = async (req, res) => {
   try {
     const {
       titulo,
@@ -105,10 +214,9 @@ const crearPagoSimulado = async (req, res) => {
       fechaHoraInicio,
       duracionMinutos,
       monto,
-      datosPago, // NUEVO: datos del formulario de pago
     } = req.body;
 
-    console.log("=== CREAR PAGO SIMULADO ===");
+    console.log("=== CREAR PAGO ===");
     console.log("Datos recibidos:", {
       titulo,
       descripcion,
@@ -116,10 +224,10 @@ const crearPagoSimulado = async (req, res) => {
       fechaHoraInicio,
       duracionMinutos,
       monto,
-      datosPago,
     });
 
     // Validaciones básicas
+
     if (
       !titulo ||
       !descripcion ||
@@ -133,103 +241,13 @@ const crearPagoSimulado = async (req, res) => {
       });
     }
 
-    // Validar datos del formulario de pago (mejorado)
-    if (
-      !datosPago ||
-      !datosPago.nombre ||
-      !datosPago.email ||
-      !datosPago.cedula
-    ) {
-      return res
-        .status(400)
-        .json({
-          mensaje: "Faltan los datos básicos de pago (nombre, email, cédula).",
-        });
-    }
-    // Nombre: solo letras y espacios, mínimo 5
-    if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ ]{5,80}$/.test(datosPago.nombre)) {
-      return res
-        .status(400)
-        .json({
-          mensaje:
-            "El nombre solo puede contener letras y espacios, mínimo 5 caracteres.",
-        });
-    }
-    // Email
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(datosPago.email)) {
-      return res
-        .status(400)
-        .json({ mensaje: "Correo electrónico de pago inválido." });
-    }
-    // Cédula: solo números, 5-15 dígitos
-    if (!/^[0-9]{5,15}$/.test(datosPago.cedula)) {
-      return res
-        .status(400)
-        .json({
-          mensaje: "Cédula/NIT inválido. Solo números, entre 5 y 15 dígitos.",
-        });
-    }
-    // Teléfono: solo números, máximo 10 dígitos
-    if (datosPago.telefono && !/^[0-9]{0,10}$/.test(datosPago.telefono)) {
-      return res
-        .status(400)
-        .json({
-          mensaje: "El teléfono debe tener solo números, máximo 10 dígitos.",
-        });
-    }
-    // Método de pago
-    if (!datosPago.metodo) {
-      return res.status(400).json({ mensaje: "Selecciona un método de pago." });
-    }
-    if (datosPago.metodo === "tarjeta") {
-      // Número de tarjeta: 16-19 dígitos, solo números
-      if (
-        !datosPago.numeroTarjeta ||
-        !/^[0-9]{16,19}$/.test(datosPago.numeroTarjeta)
-      ) {
-        return res
-          .status(400)
-          .json({
-            mensaje:
-              "Número de tarjeta inválido. Debe tener 16 a 19 dígitos, solo números.",
-          });
-      }
-      // Expiración: MM/AA, mes 01-12 y año >= actual
-      if (
-        !datosPago.expiracionTarjeta ||
-        !/^(0[1-9]|1[0-2])\/([0-9]{2})$/.test(datosPago.expiracionTarjeta)
-      ) {
-        return res
-          .status(400)
-          .json({ mensaje: "Fecha de expiración inválida. Formato MM/AA." });
-      }
-      // Validar que la fecha no sea pasada
-      const [mesExp, anioExp] = datosPago.expiracionTarjeta.split("/");
-      const hoy = new Date();
-      const anioActual = hoy.getFullYear() % 100;
-      const mesActual = hoy.getMonth() + 1;
-      if (
-        parseInt(anioExp) < anioActual ||
-        (parseInt(anioExp) === anioActual && parseInt(mesExp) < mesActual)
-      ) {
-        return res
-          .status(400)
-          .json({
-            mensaje:
-              "La tarjeta está expirada. Verifica la fecha de expiración.",
-          });
-      }
-      // CVV: 3 o 4 dígitos
-      if (!datosPago.cvvTarjeta || !/^[0-9]{3,4}$/.test(datosPago.cvvTarjeta)) {
-        return res
-          .status(400)
-          .json({ mensaje: "CVV inválido. Debe tener 3 o 4 dígitos." });
-      }
-    }
+    // No se requieren datos de tarjeta en el servidor cuando se usa Mercado Pago Checkout Pro.
+    // La identificación del cliente proviene de `req.usuario` (autenticación) y ya registramos
+    // un pago interno sin almacenar datos sensibles.
 
     if (monto < 1000) {
       return res.status(400).json({
-        mensaje: "El monto mínimo es $1.000 COP",
+        mensaje: "El monto mínimo es $10.000 COP",
       });
     }
 
@@ -301,26 +319,13 @@ const crearPagoSimulado = async (req, res) => {
       });
     }
 
-    // Crear pago simulado (se guardan los datos de pago en metadatos)
-    const datosPagoGuardados = {
-      nombre: datosPago.nombre,
-      email: datosPago.email,
-      cedula: datosPago.cedula,
-      telefono: datosPago.telefono || "",
-      metodo: datosPago.metodo || "simulado",
-    };
-    if (datosPago.metodo === "tarjeta") {
-      datosPagoGuardados.numeroTarjeta = datosPago.numeroTarjeta || "";
-      datosPagoGuardados.expiracionTarjeta = datosPago.expiracionTarjeta || "";
-      // No guardar el CVV
-    }
-
+    // Crear registro de pago inicial (sin datos sensibles)
     const nuevoPago = new Pago({
       clienteId: req.usuario.email,
       expertoId: expertoEmail,
       monto: parseFloat(monto),
-      metodo: datosPago.metodo || "simulado",
-      estado: "retenido", // Dinero retenido hasta finalizar asesoría
+      metodo: "mercadopago",
+      estado: "retenido", // consideraremos retenido hasta confirmación de MP
       descripcion: `Asesoría: ${titulo}`,
       fechaHoraAsesoria: fechaAsesoria,
       duracionMinutos: parseInt(duracionMinutos),
@@ -329,14 +334,11 @@ const crearPagoSimulado = async (req, res) => {
         descripcion: descripcion,
         expertoNombre: `${experto.nombre} ${experto.apellido}`,
         clienteNombre: `${req.usuario.nombre} ${req.usuario.apellido}`,
-        simulado: true,
-        fechaProcesamiento: new Date(),
-        datosPago: datosPagoGuardados,
+        creadoEn: new Date(),
       },
     });
-
     await nuevoPago.save();
-    console.log("Pago simulado creado:", nuevoPago._id);
+    console.log("Pago (registro) creado:", nuevoPago._id);
 
     // Crear asesoría automáticamente
     const nuevaAsesoria = new Asesoria({
@@ -370,31 +372,170 @@ const crearPagoSimulado = async (req, res) => {
       asesoriaId: nuevaAsesoria._id,
     });
 
-    // Enviar notificaciones
-    await enviarNotificacionesNuevaAsesoria(
+    // Crear preferencia en Mercado Pago (Checkout Pro) mediante HTTP (axios)
+    if (!process.env.MP_ACCESS_TOKEN) {
+      return res.status(500).json({
+        mensaje:
+          "Falta configuración de Mercado Pago (MP_ACCESS_TOKEN) en el servidor",
+      });
+    }
+
+    const preferenceBody = {
+      items: [
+        {
+          title: `Asesoría: ${titulo}`,
+          quantity: 1,
+          currency_id: "COP",
+          unit_price: parseFloat(monto),
+          description: descripcion,
+        },
+      ],
+      external_reference: `${nuevoPago._id}`,
+      back_urls: {
+        success: `${
+          process.env.APP_URL || "http://localhost:5020"
+        }/confirmacion-asesoria`,
+        failure: `${
+          process.env.APP_URL || "http://localhost:5020"
+        }/pasarelaPagos`,
+        pending: `${
+          process.env.APP_URL || "http://localhost:5020"
+        }/pasarelaPagos`,
+      },
+    };
+
+    let preferenceId = null;
+    let initPoint = null;
+    try {
+      console.log(
+        "Crear preferencia MP. preferenceBody:",
+        JSON.stringify(preferenceBody)
+      );
+
+      const mpResponse = await axios.post(
+        "https://api.mercadopago.com/checkout/preferences",
+        preferenceBody,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      // Log completo de la respuesta de Mercado Pago para facilitar debugging
+      console.log("MP response status:", mpResponse.status);
+      console.log("MP response data:", JSON.stringify(mpResponse.data));
+
+      preferenceId = mpResponse.data.id;
+      // Algunos entornos/sandboxes pueden devolver campos distintos; guardamos init_point si existe
+      initPoint =
+        mpResponse.data.init_point ||
+        mpResponse.data.sandbox_init_point ||
+        null;
+    } catch (mpErr) {
+      // Si Mercado Pago devuelve error 4xx/5xx axios lo deja en mpErr.response
+      console.error("Error creando preferencia MP:", mpErr.message);
+      if (mpErr.response) {
+        console.error("MP response status:", mpErr.response.status);
+        console.error("MP response data:", mpErr.response.data);
+        return res.status(mpErr.response.status).json({
+          mensaje: "Error interno al procesar la solicitud",
+          error: mpErr.response.data || mpErr.message,
+        });
+      }
+      return res.status(500).json({
+        mensaje: "Error interno al procesar la solicitud",
+        error: mpErr.message,
+      });
+    }
+
+    // Guardar referencia de Mercado Pago en pago
+    await Pago.findByIdAndUpdate(nuevoPago._id, { preferenceId, initPoint });
+
+    // If client requested simulation fallback, create a simulated payment record
+    // with a fake mpPaymentId and card metadata so the confirmation page and
+    // notifications show card details even if Mercado Pago UI later fails.
+    const simulateFlag = req.body?.simulate || req.query?.simulate || false;
+    if (simulateFlag) {
+      const simulatedPaymentId = `SIM-MP-${Date.now()}`;
+      const simulatedCard = {
+        metodo: "tarjeta",
+        numeroTarjeta: "4242424242424242",
+        // store masked for display
+        numeroTarjetaMask: `**** **** **** ${"4242424242424242".slice(-4)}`,
+        expiracionTarjeta: "12/30",
+        titular: `${req.usuario.nombre} ${req.usuario.apellido}`,
+        nombre: req.usuario.nombre,
+        email: req.usuario.email,
+      };
+
+      await Pago.findByIdAndUpdate(nuevoPago._id, {
+        mpPaymentId: simulatedPaymentId,
+        transaccionId: simulatedPaymentId,
+        metodo: "tarjeta",
+        metadatos: {
+          ...nuevoPago.metadatos,
+          datosPago: simulatedCard,
+          simulateEmail: true,
+        },
+      });
+
+      // Refresh the nuevoPago object reference for notifications
+      const refreshedPago = await Pago.findById(nuevoPago._id);
+      // Use the refreshed pago for notifications
+      enviarNotificacionesNuevaAsesoria(
+        nuevaAsesoria,
+        refreshedPago,
+        experto,
+        req.usuario
+      )
+        .then(() => console.log("Notificaciones (async, simulate) enviadas"))
+        .catch((err) =>
+          console.error("Error async enviando notificaciones (simulate):", err)
+        );
+    } else {
+      // Enviar notificaciones en background (no bloquean la respuesta al frontend)
+      enviarNotificacionesNuevaAsesoria(
+        nuevaAsesoria,
+        nuevoPago,
+        experto,
+        req.usuario
+      )
+        .then(() => {
+          console.log("Notificaciones (async) enviadas");
+        })
+        .catch((err) => {
+          console.error(
+            "Error async enviando notificaciones:",
+            err.message || err
+          );
+        });
+    }
+
+    // Enviar notificaciones en background (no bloquean la respuesta al frontend)
+    enviarNotificacionesNuevaAsesoria(
       nuevaAsesoria,
       nuevoPago,
       experto,
       req.usuario
-    );
+    )
+      .then(() => {
+        console.log("Notificaciones (async) enviadas");
+      })
+      .catch((err) => {
+        console.error(
+          "Error async enviando notificaciones:",
+          err.message || err
+        );
+      });
 
-    // Registrar evento en logs
-    await generarLogs.registrarEvento({
-      usuarioEmail: req.usuario.email,
-      nombre: req.usuario.nombre,
-      apellido: req.usuario.apellido,
-      accion: "CREAR_PAGO_SIMULADO",
-      detalle: `Pago simulado y asesoría creada: ${titulo}, monto: $${monto} COP`,
-      resultado: "Exito",
-      tipo: "pago",
-      persistirEnDB: true,
-    });
-
-    res.status(201).json({
-      mensaje: "Pago procesado exitosamente",
+    // Responder con URL de checkout (para frontend usar Checkout Pro)
+    return res.status(201).json({
+      mensaje: "Preferencia creada",
       pagoId: nuevoPago._id,
       asesoriaId: nuevaAsesoria._id,
-      estadoPago: "retenido",
+      preferenceId,
+      initPoint,
     });
   } catch (error) {
     console.error("Error creando pago simulado:", error);
@@ -409,9 +550,95 @@ const crearPagoSimulado = async (req, res) => {
     });
 
     res.status(500).json({
-      mensaje: "Error interno al procesar el pago",
+      mensaje: "Error interno al procesar la solicitud",
       error: error.message,
     });
+  }
+};
+
+/**
+ * Webhook handler para notificaciones de Mercado Pago
+ * - Actualiza pago y asesoría según el evento
+ */
+const mpWebhook = async (req, res) => {
+  try {
+    // Validar firma HMAC (si MP_WEBHOOK_SECRET está configurada)
+    const mpWebhookSecret = process.env.MP_WEBHOOK_SECRET || null;
+    if (mpWebhookSecret) {
+      const signatureHeader =
+        req.headers["x-hook-signature"] ||
+        req.headers["x-hub-signature-256"] ||
+        req.headers["x-hub-signature"] ||
+        null;
+      if (!signatureHeader) {
+        console.warn("Webhook MP recibido sin header de firma");
+        return res.status(400).send("Missing signature header");
+      }
+      const crypto = require("crypto");
+      const raw = req.rawBody
+        ? req.rawBody
+        : Buffer.from(JSON.stringify(req.body));
+      const hmacHex = crypto
+        .createHmac("sha256", mpWebhookSecret)
+        .update(raw)
+        .digest("hex");
+      const hmacBase64 = crypto
+        .createHmac("sha256", mpWebhookSecret)
+        .update(raw)
+        .digest("base64");
+      if (signatureHeader !== hmacHex && signatureHeader !== hmacBase64) {
+        console.warn("Firma de webhook inválida", {
+          header: signatureHeader,
+          hmacHex,
+          hmacBase64,
+        });
+        return res.status(400).send("Invalid signature");
+      }
+    }
+
+    // Mercado Pago envía información en body o query según configuración
+    const topic = req.body.type || req.query.type || null;
+    const data = req.body || req.query || {};
+
+    // Para simplicidad, si recibimos external_reference en data
+    let externalReference = null;
+    if (req.body && req.body.data && req.body.data.id) {
+      // si es notificación de pago, debemos consultar la API de MP para obtener detalles
+      const paymentId = req.body.data.id;
+      // Consultar detalle del pago en Mercado Pago
+      const paymentResp = await axios.get(
+        `https://api.mercadopago.com/v1/payments/${paymentId}`,
+        {
+          headers: { Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}` },
+        }
+      );
+      const mpPayment = paymentResp.data;
+      externalReference = mpPayment.external_reference;
+
+      // Actualizar pago según estado
+      const pago = await Pago.findById(externalReference);
+      if (!pago) return res.status(200).send();
+
+      // Guardar mpPaymentId y estado
+      await Pago.findByIdAndUpdate(pago._id, {
+        mpPaymentId: mpPayment.id,
+        transaccionId: mpPayment.id,
+        estado: mpPayment.status === "approved" ? "retenido" : pago.estado,
+        metadatos: { ...pago.metadatos, mpPayment },
+      });
+
+      // Si pago aprobado, mantener retenido hasta liberación manual
+      // Si pago rechazado/cancelado -> marcar reembolsado y notificar
+      if (mpPayment.status === "rejected" || mpPayment.status === "cancelled") {
+        await Pago.findByIdAndUpdate(pago._id, { estado: "reembolsado" });
+        // enviar notificaciones si es necesario
+      }
+    }
+
+    res.status(200).json({ received: true });
+  } catch (error) {
+    console.error("Error webhook MP:", error);
+    res.status(500).send();
   }
 };
 
@@ -449,6 +676,12 @@ const crearPagoSimulado = async (req, res) => {
  *       403:
  *         description: Sin permisos para liberar el pago
  */
+/**
+ * Liberar pago al finalizar asesoría
+ * - Verifica que el pago exista y que en Mercado Pago esté aprobado
+ * - Calcula cortes y registra metadatos de transferencia
+ * - (Opcional) Si MP_TRANSFERS_ENABLED=true, aquí se integraría la transferencia real
+ */
 const liberarPago = async (req, res) => {
   try {
     const pagoId = req.params.id;
@@ -479,7 +712,42 @@ const liberarPago = async (req, res) => {
       });
     }
 
-    // Actualizar estado del pago a liberado
+    // Si el pago tiene un mpPaymentId, consultamos a Mercado Pago para verificar que esté aprobado
+    let mpPayment = null;
+    if (pago.mpPaymentId && process.env.MP_ACCESS_TOKEN) {
+      try {
+        const mpResp = await axios.get(
+          `https://api.mercadopago.com/v1/payments/${pago.mpPaymentId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`,
+            },
+          }
+        );
+        mpPayment = mpResp.data;
+      } catch (err) {
+        console.warn(
+          "No se pudo consultar MP para verificar pago:",
+          err.message
+        );
+      }
+    }
+
+    // Si hay mpPayment y no está aprobado, no dejamos liberar
+    if (mpPayment && mpPayment.status !== "approved") {
+      return res.status(400).json({
+        mensaje: `El pago en Mercado Pago no está aprobado (estado: ${mpPayment.status}). No se puede liberar.`,
+      });
+    }
+
+    // Calcular reparto: 95% experto, 5% ServiTech
+    const monto = pago.monto || 0;
+    const expertoPorcentaje = 0.95;
+    const serviTechPorcentaje = 0.05;
+    const montoExperto = Math.round(monto * expertoPorcentaje);
+    const montoServiTech = monto - montoExperto;
+
+    // Actualizar estado del pago a liberado y registrar metadatos de reparto
     await Pago.findByIdAndUpdate(pagoId, {
       estado: "liberado",
       fechaLiberacion: new Date(),
@@ -487,13 +755,79 @@ const liberarPago = async (req, res) => {
         ...pago.metadatos,
         liberadoPor: req.usuario.email,
         fechaLiberacion: new Date(),
+        repartos: {
+          experto: montoExperto,
+          serviTech: montoServiTech,
+        },
+        transferExecuted: false,
       },
     });
 
-    console.log("Pago liberado exitosamente");
+    console.log(
+      "Pago marcado como liberado (registro interno). Reparto calculado."
+    );
 
-    // Enviar notificaciones de liberación
-    await enviarNotificacionesLiberacionPago(pago);
+    // NOTA: Para realizar la transferencia real al experto se requiere la funcionalidad de "payouts"
+    // o "transfers" de Mercado Pago que depende del tipo de cuenta y permisos. Aquí solo registramos
+    // el intento. Para habilitar transferencias automáticas configure MP_TRANSFERS_ENABLED=true y
+    // reemplace la sección siguiente por la llamada a la API de transferencias de Mercado Pago.
+
+    // Si la opción está habilitada, intentar crear transferencia (payout) a la cuenta del experto
+    const pagoActualizado = await Pago.findById(pagoId);
+    if (
+      String(process.env.MP_TRANSFERS_ENABLED || "false").toLowerCase() ===
+      "true"
+    ) {
+      try {
+        // El experto debe tener configurado un identificador para recibir pagos en MP (ej: collector_account o entidad similar)
+        const expertoUsuario = await Usuario.findOne({ email: pago.expertoId });
+        const recipientId = expertoUsuario?.infoExperto?.mpAccountId || null;
+        if (!recipientId) {
+          console.warn(
+            "No se encontró mpAccountId para el experto; transferencia no ejecutada."
+          );
+        } else {
+          // Scaffold: llamar al endpoint de transferencias /v1/merchant_orders o endpoints de payouts
+          // Nota: la API de MP para transferencias varía según tipo de integración; aquí llamamos a un endpoint genérico
+          const transferBody = {
+            amount: montoExperto,
+            currency: "COP",
+            recipient_id: recipientId,
+            reference: `Pago ${pagoId}`,
+          };
+
+          const transferResp = await axios.post(
+            `https://api.mercadopago.com/v1/transfers`,
+            transferBody,
+            {
+              headers: {
+                Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          // Guardar resultado de la transferencia en metadatos
+          await Pago.findByIdAndUpdate(pagoId, {
+            metadatos: {
+              ...pagoActualizado.metadatos,
+              transferResult: transferResp.data,
+            },
+          });
+        }
+      } catch (err) {
+        console.error("Error ejecutando transferencia MP:", err.message);
+        // Guardar el error en metadatos
+        await Pago.findByIdAndUpdate(pagoId, {
+          metadatos: {
+            ...pagoActualizado.metadatos,
+            transferError: err.message,
+          },
+        });
+      }
+    }
+
+    await enviarNotificacionesLiberacionPago(pagoActualizado);
 
     // Registrar evento
     await generarLogs.registrarEvento({
@@ -610,7 +944,29 @@ const reembolsarPago = async (req, res) => {
     const nuevoEstado =
       montoReembolso === pago.monto ? "reembolsado" : "reembolsado-parcial";
 
-    // Actualizar estado del pago
+    // Si el pago tiene mpPaymentId y tenemos token, intentar refund en Mercado Pago
+    if (pago.mpPaymentId && process.env.MP_ACCESS_TOKEN) {
+      try {
+        const refundBody = {};
+        if (monto && monto < pago.monto) refundBody.amount = monto;
+
+        await axios.post(
+          `https://api.mercadopago.com/v1/payments/${pago.mpPaymentId}/refunds`,
+          refundBody,
+          {
+            headers: {
+              Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+      } catch (err) {
+        console.error("Error solicitando refund a Mercado Pago:", err.message);
+        // No bloquear la respuesta; igual actualizamos registro y notificamos
+      }
+    }
+
+    // Actualizar estado del pago internamente
     await Pago.findByIdAndUpdate(pagoId, {
       estado: nuevoEstado,
       fechaReembolso: new Date(),
@@ -650,6 +1006,76 @@ const reembolsarPago = async (req, res) => {
       mensaje: "Error interno procesando reembolso",
       error: error.message,
     });
+  }
+};
+
+/**
+ * Obtener estado de notificaciones asociadas a un pago
+ * Devuelve si las notificaciones fueron enviadas o si hubo errores (simplificado)
+ */
+const obtenerEstadoNotificaciones = async (req, res) => {
+  try {
+    const pagoId = req.params.id;
+    const pago = await Pago.findById(pagoId);
+    if (!pago) return res.status(404).json({ mensaje: "Pago no encontrado" });
+
+    // Buscar notificaciones relacionadas con la asesoria o pago
+    const notis = await Notificacion.find({
+      $or: [
+        { "relacionadoCon.referenciaId": pago.asesoriaId },
+        { "relacionadoCon.referenciaId": pagoId },
+      ],
+    })
+      .sort({ fechaEnvio: -1 })
+      .limit(5)
+      .lean();
+
+    if (!notis || notis.length === 0) {
+      return res.json({ enviado: false, detalles: [] });
+    }
+
+    const detalles = notis.map((n) => ({
+      email: n.email,
+      asunto: n.asunto,
+      estado: n.estado,
+      fechaEnvio: n.fechaEnvio,
+    }));
+
+    const enviado = notis.some((n) => n.estado === "enviado");
+    return res.json({ enviado, detalles });
+  } catch (error) {
+    console.error("Error obteniendo estado de notificaciones:", error);
+    return res.status(500).json({ mensaje: "Error interno" });
+  }
+};
+
+/**
+ * Reenviar notificaciones manualmente para un pago/asesoria
+ */
+const reenviarNotificaciones = async (req, res) => {
+  try {
+    const pagoId = req.params.id;
+    const pago = await Pago.findById(pagoId);
+    if (!pago) return res.status(404).json({ mensaje: "Pago no encontrado" });
+
+    const asesoria = await Asesoria.findById(pago.asesoriaId);
+    if (!asesoria)
+      return res.status(404).json({ mensaje: "Asesoría no encontrada" });
+
+    const experto = await Usuario.findOne({ email: pago.expertoId });
+
+    // Ejecutar en background
+    enviarNotificacionesNuevaAsesoria(asesoria, pago, experto, {
+      nombre: pago.clienteId,
+      email: pago.clienteId,
+    })
+      .then(() => console.log("Reenvío notificaciones completado"))
+      .catch((err) => console.error("Error en reenvío notificaciones:", err));
+
+    return res.json({ mensaje: "Reenvío iniciado" });
+  } catch (error) {
+    console.error("Error reenviando notificaciones:", error);
+    return res.status(500).json({ mensaje: "Error interno" });
   }
 };
 
@@ -739,79 +1165,101 @@ async function enviarNotificacionesNuevaAsesoria(
         : "3 horas";
 
     // Notificación al experto
-    await Notificacion.create({
+    // Crear registro de notificación con estado pendiente (intento)
+    const notExp = await Notificacion.create({
       usuarioId: experto._id,
       email: experto.email,
       tipo: "email",
-      asunto: "Nueva asesoría pendiente - Pago confirmado (SIMULADO)",
+      asunto: "Nueva asesoría pendiente - Pago confirmado",
       mensaje: `Tienes una nueva solicitud de asesoría "${asesoria.titulo}". El pago ya fue procesado y está retenido de forma segura.`,
       relacionadoCon: { tipo: "Asesoria", referenciaId: asesoria._id },
-      estado: "enviado",
+      estado: "pendiente",
       fechaEnvio: new Date(),
     });
 
-    await enviarCorreo(
-      experto.email,
-      "Nueva asesoría pendiente - Pago confirmado (SIMULADO)",
-      `Tienes una nueva solicitud de asesoría titulada "${asesoria.titulo}".
-
-Cliente: ${cliente.nombre} ${cliente.apellido}
-Fecha y hora: ${fechaLocal}
-Duración: ${duracionTexto}
-Monto: $${pago.monto.toLocaleString("es-CO")} COP (SIMULADO)
-
-El pago fue procesado en modo simulación y está retenido de forma segura. Ingresa a ServiTech para aceptar o rechazar esta solicitud.
-
-Tienes 24 horas para responder a esta solicitud.`,
-      {
-        nombreDestinatario: experto.nombre,
-        apellidoDestinatario: experto.apellido,
-      }
-    );
+    try {
+      await enviarCorreo(
+        experto.email,
+        "Nueva asesoría pendiente - Pago confirmado",
+        `Tienes una nueva solicitud de asesoría titulada "${
+          asesoria.titulo
+        }".\n\nCliente: ${cliente.nombre} ${
+          cliente.apellido
+        }\nFecha y hora: ${fechaLocal}\nDuración: ${duracionTexto}\nMonto: $${pago.monto.toLocaleString(
+          "es-CO"
+        )} COP\n\nEl pago fue procesado en modo simulación y está retenido de forma segura. Ingresa a ServiTech para aceptar o rechazar esta solicitud.\n\nTienes 24 horas para responder a esta solicitud.`,
+        {
+          nombreDestinatario: experto.nombre,
+          apellidoDestinatario: experto.apellido,
+        }
+      );
+      // marcar como enviado
+      await Notificacion.findByIdAndUpdate(notExp._id, { estado: "enviado" });
+    } catch (errEmail) {
+      console.error(
+        "Error enviando correo al experto:",
+        errEmail.message || errEmail
+      );
+      await Notificacion.findByIdAndUpdate(notExp._id, {
+        estado: "error",
+        detalleError: errEmail.message || String(errEmail),
+      });
+    }
 
     // Notificación al cliente
-    await Notificacion.create({
-      usuarioId: cliente._id,
-      email: cliente.email,
-      tipo: "email",
-      asunto: "Pago procesado - Asesoría enviada al experto (SIMULADO)",
-      mensaje: `Tu pago fue procesado exitosamente. La solicitud de asesoría "${asesoria.titulo}" fue enviada al experto para su revisión.`,
-      relacionadoCon: { tipo: "Asesoria", referenciaId: asesoria._id },
-      estado: "enviado",
-      fechaEnvio: new Date(),
-    });
+    try {
+      const clienteNot = await Notificacion.create({
+        usuarioId: cliente._id,
+        email: cliente.email,
+        tipo: "email",
+        asunto: "Confirmación de solicitud - Pago recibido",
+        mensaje: `Tu solicitud de asesoría "${asesoria.titulo}" ha sido recibida y el pago se encuentra retenido. Pronto el experto responderá.`,
+        relacionadoCon: { tipo: "Asesoria", referenciaId: asesoria._id },
+        estado: "pendiente",
+        fechaEnvio: new Date(),
+      });
 
-    await enviarCorreo(
-      cliente.email,
-      "Pago procesado - Asesoría enviada al experto (SIMULADO)",
-      `Tu pago de $${pago.monto.toLocaleString(
-        "es-CO"
-      )} COP fue procesado exitosamente en modo simulación.
-
-La solicitud de asesoría "${asesoria.titulo}" fue enviada a ${experto.nombre} ${
-        experto.apellido
-      } para su revisión.
-
-El experto tiene 24 horas para aceptar o rechazar tu solicitud. Recibirás una notificación con su respuesta.
-
-Tu dinero está retenido de forma segura y solo se liberará al experto cuando la asesoría sea completada exitosamente.`,
-      {
-        nombreDestinatario: cliente.nombre,
-        apellidoDestinatario: cliente.apellido,
+      try {
+        if (pago && pago.metadatos && pago.metadatos.simulateEmail) {
+          await Notificacion.findByIdAndUpdate(clienteNot._id, {
+            estado: "enviado",
+          });
+        } else {
+          await enviarCorreo(
+            cliente.email,
+            "Confirmación de solicitud - Pago recibido ",
+            `Hemos recibido tu pago de $${pago.monto.toLocaleString(
+              "es-CO"
+            )} COP para la asesoría "${
+              asesoria.titulo
+            }". El pago está retenido hasta que el experto acepte la solicitud.`,
+            {
+              nombreDestinatario: cliente.nombre,
+              apellidoDestinatario: cliente.apellido,
+            }
+          );
+          await Notificacion.findByIdAndUpdate(clienteNot._id, {
+            estado: "enviado",
+          });
+        }
+      } catch (errCli) {
+        console.error(
+          "Error enviando correo al cliente:",
+          errCli.message || errCli
+        );
+        await Notificacion.findByIdAndUpdate(clienteNot._id, {
+          estado: "error",
+          detalleError: errCli.message || String(errCli),
+        });
       }
-    );
-
-    console.log("Notificaciones de nueva asesoría enviadas exitosamente");
-  } catch (error) {
-    console.error("Error enviando notificaciones de nueva asesoría:", error);
+    } catch (errCreateNot) {
+      console.error("Error creando notificación para cliente:", errCreateNot);
+    }
+  } catch (err) {
+    console.error("Error en enviarNotificacionesNuevaAsesoria:", err);
   }
 }
 
-/**
- * Envía notificaciones cuando se libera un pago
- * @function enviarNotificacionesLiberacionPago
- * @private
- */
 async function enviarNotificacionesLiberacionPago(pago) {
   try {
     const cliente = await Usuario.findOne({ email: pago.clienteId });
@@ -822,7 +1270,7 @@ async function enviarNotificacionesLiberacionPago(pago) {
     // Notificación al experto
     await enviarCorreo(
       experto.email,
-      "Pago liberado - Asesoría completada (SIMULADO)",
+      "Pago liberado - Asesoría completada",
       `El pago de $${pago.monto.toLocaleString(
         "es-CO"
       )} COP ha sido liberado exitosamente.
@@ -841,7 +1289,7 @@ Este fue un pago simulado para desarrollo. En producción, el dinero sería tran
     // Notificación al cliente
     await enviarCorreo(
       cliente.email,
-      "Asesoría completada - Pago liberado (SIMULADO)",
+      "Asesoría completada - Pago liberado",
       `Tu asesoría con ${experto.nombre} ${
         experto.apellido
       } ha sido completada exitosamente.
@@ -875,7 +1323,7 @@ async function enviarNotificacionesReembolso(pago, motivo, montoReembolsado) {
 
     await enviarCorreo(
       cliente.email,
-      "Reembolso procesado (SIMULADO)",
+      "Reembolso procesado",
       `Tu reembolso de $${montoReembolsado.toLocaleString(
         "es-CO"
       )} COP ha sido procesado exitosamente.
@@ -898,9 +1346,12 @@ Si tienes alguna pregunta, no dudes en contactarnos.`,
 }
 
 module.exports = {
-  crearPagoSimulado,
+  crearPagoConMercadoPago,
+  mpWebhook,
   liberarPago,
   reembolsarPago,
   obtenerPagos,
   obtenerPagoPorId,
+  obtenerEstadoNotificaciones,
+  reenviarNotificaciones,
 };

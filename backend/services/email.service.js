@@ -4,12 +4,23 @@
  */
 
 const sgMail = require("@sendgrid/mail");
-if (!process.env.SENDGRID_API_KEY || !process.env.EMAIL_USER) {
-  throw new Error(
-    "Faltan SENDGRID_API_KEY o EMAIL_USER en las variables de entorno."
+// Dejar que la app arranque aunque no haya credenciales de SendGrid
+// Validaremos al intentar enviar cada correo y reportaremos errores sin bloquear el servidor.
+if (process.env.SENDGRID_API_KEY) {
+  try {
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+  } catch (e) {
+    // No detener el proceso aquí; el error real saldrá cuando se intente enviar
+    console.warn(
+      "Advertencia: no se pudo configurar SendGrid en startup:",
+      e.message
+    );
+  }
+} else {
+  console.warn(
+    "SENDGRID_API_KEY no definido: los correos no se enviarán hasta configurar la variable."
   );
 }
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 /**
  * Envía un correo electrónico personalizado. Si no se da nombre/apellido, usa un saludo genérico.
@@ -52,10 +63,20 @@ const enviarCorreo = async (destinatario, asunto, mensaje, opciones = {}) => {
   };
 
   try {
+    if (!process.env.SENDGRID_API_KEY || !process.env.EMAIL_USER) {
+      throw new Error(
+        "SendGrid no configurado (falta SENDGRID_API_KEY o EMAIL_USER)"
+      );
+    }
     const info = await sgMail.send(msg);
     return info;
   } catch (error) {
-    throw new Error(`Error de email: ${error.message}`);
+    // Intentar devolver un mensaje de error útil
+    const errMsg =
+      error && error.response && error.response.body
+        ? JSON.stringify(error.response.body)
+        : error.message || String(error);
+    throw new Error(`Error de email: ${errMsg}`);
   }
 };
 
@@ -109,8 +130,3 @@ module.exports = {
   enviarCorreo,
   generarCuerpoRecuperacion,
 };
-
-
-
-
-

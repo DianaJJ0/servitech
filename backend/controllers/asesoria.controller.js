@@ -964,7 +964,7 @@ async function enviarNotificacionesAceptacion(asesoria) {
     // Notificación al cliente
     await enviarCorreo(
       asesoria.cliente.email,
-      "Asesoría aceptada - Confirmación (SIMULADO)",
+      "Asesoría aceptada - Confirmación",
       `¡Excelente noticia! ${asesoria.experto.nombre} ${asesoria.experto.apellido} ha aceptado tu solicitud de asesoría "${asesoria.titulo}".
 
 Detalles de la asesoría:
@@ -997,7 +997,7 @@ async function enviarNotificacionesRechazo(asesoria, motivo) {
     // Notificación al cliente
     await enviarCorreo(
       asesoria.cliente.email,
-      "Asesoría rechazada - Reembolso procesado (SIMULADO)",
+      "Asesoría rechazada - Reembolso procesado",
       `Lamentamos informarte que ${asesoria.experto.nombre} ${asesoria.experto.apellido} no puede atender tu solicitud de asesoría "${asesoria.titulo}".
 
 Motivo: ${motivo}
@@ -1029,7 +1029,7 @@ async function enviarNotificacionesFinalizacion(asesoria, pagoLiberado) {
       usuarioId: asesoria.cliente._id,
       email: asesoria.cliente.email,
       tipo: "email",
-      asunto: "Asesoría completada - ¡Gracias! (SIMULADO)",
+      asunto: "Asesoría completada - ¡Gracias! ",
       mensaje: `Tu asesoría "${asesoria.titulo}" ha sido completada exitosamente.`,
       relacionadoCon: { tipo: "Asesoria", referenciaId: asesoria._id },
       estado: "enviado",
@@ -1038,16 +1038,14 @@ async function enviarNotificacionesFinalizacion(asesoria, pagoLiberado) {
 
     await enviarCorreo(
       asesoria.cliente.email,
-      "Asesoría completada - ¡Gracias! (SIMULADO)",
+      "Asesoría completada - ¡Gracias! ",
       `Tu asesoría "${asesoria.titulo}" con ${asesoria.experto.nombre} ${asesoria.experto.apellido} ha sido completada exitosamente.
 
 ${pagoLiberado ? 'El pago ha sido liberado al experto.' : ''}
 
 Esperamos que hayas tenido una excelente experiencia. ¡Gracias por usar ServiTech!
 
-¿Te gustaría calificar tu experiencia o programar otra asesoría?
-
-Este fue un proceso simulado para desarrollo.`,
+¿Te gustaría calificar tu experiencia o programar otra asesoría?`,
       {
         nombreDestinatario: asesoria.cliente.nombre,
         apellidoDestinatario: asesoria.cliente.apellido,
@@ -1059,7 +1057,7 @@ Este fue un proceso simulado para desarrollo.`,
       usuarioId: asesoria.experto._id,
       email: asesoria.experto.email,
       tipo: "email",
-      asunto: "Asesoría completada - Pago liberado (SIMULADO)",
+      asunto: "Asesoría completada - Pago liberado",
       mensaje: `Tu asesoría "${asesoria.titulo}" ha sido completada y el pago liberado.`,
       relacionadoCon: { tipo: "Asesoria", referenciaId: asesoria._id },
       estado: "enviado",
@@ -1074,16 +1072,14 @@ Este fue un proceso simulado para desarrollo.`,
 
     await enviarCorreo(
       asesoria.experto.email,
-      "Asesoría completada - Pago liberado (SIMULADO)",
+      "Asesoría completada - Pago liberado",
       `Tu asesoría "${asesoria.titulo}" con ${asesoria.cliente.nombre} ${asesoria.cliente.apellido} ha sido completada exitosamente.
 
 ${pagoLiberado ? `El pago de ${montoTexto} ha sido liberado exitosamente.` : ''}
 
 ¡Felicitaciones por completar otra asesoría exitosa!
 
-En un ambiente real, el dinero sería transferido a tu cuenta registrada.
-
-Este fue un proceso simulado para desarrollo.`,
+En un ambiente real, el dinero sería transferido a tu cuenta registrada.`,
       {
         nombreDestinatario: asesoria.experto.nombre,
         apellidoDestinatario: asesoria.experto.apellido,
@@ -1125,7 +1121,7 @@ async function enviarNotificacionesCancelacion(asesoria, motivo, canceladaPor, r
       usuarioId: otroUsuario._id,
       email: otroUsuario.email,
       tipo: "email",
-      asunto: "Asesoría cancelada (SIMULADO)",
+      asunto: "Asesoría cancelada",
       mensaje: `La asesoría "${asesoria.titulo}" ha sido cancelada por ${canceladoPorTexto}.`,
       relacionadoCon: { tipo: "Asesoria", referenciaId: asesoria._id },
       estado: "enviado",
@@ -1134,7 +1130,7 @@ async function enviarNotificacionesCancelacion(asesoria, motivo, canceladaPor, r
 
     await enviarCorreo(
       otroUsuario.email,
-      "Asesoría cancelada (SIMULADO)",
+      "Asesoría cancelada",
       `La asesoría "${asesoria.titulo}" ha sido cancelada por ${canceladoPorTexto}.
 
 Motivo: ${motivo}
@@ -1155,7 +1151,7 @@ Lamentamos cualquier inconveniente. Te invitamos a buscar otras oportunidades en
       usuarioId: usuarioActual._id,
       email: usuarioActual.email,
       tipo: "email",
-      asunto: "Confirmación de cancelación (SIMULADO)",
+      asunto: "Confirmación de cancelación",
       mensaje: `Tu asesoría "${asesoria.titulo}" ha sido cancelada exitosamente.`,
       relacionadoCon: { tipo: "Asesoria", referenciaId: asesoria._id },
       estado: "enviado",
@@ -1164,7 +1160,7 @@ Lamentamos cualquier inconveniente. Te invitamos a buscar otras oportunidades en
 
     await enviarCorreo(
       usuarioActual.email,
-      "Confirmación de cancelación (SIMULADO)",
+      "Confirmación de cancelación ",
       `Tu asesoría "${asesoria.titulo}" ha sido cancelada exitosamente.
 
 Motivo: ${motivo}

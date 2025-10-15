@@ -79,14 +79,53 @@
     min-width: 0;
   }
   .payment-body {
+    .mp-checkout-container {
+      text-align: center;
+      margin-top: 1rem;
+    }
+    .mp-checkout-container .form-title {
+      margin-bottom: 0.5rem;
+      color: var(--text-color);
+      font-weight: 700;
+    }
+    .mp-info {
+      color: var(--text-secondary);
+      margin-bottom: 0.9rem;
+      max-width: 680px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
     padding: 1rem 0.2rem;
+    .btn-pay,
+    .mp-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.8rem;
+      background: #ffcc00; /* MP yellow */
+      color: #12263a; /* dark text used by MP */
+      border-radius: 0.6rem;
+      padding: 0.7rem 1.2rem;
+      font-weight: 700;
+      font-family: inherit; /* respetar base.css */
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+      border: none;
+    }
   }
   .payment-card {
     padding: 0.2rem;
   }
 }
 @media (max-width: 480px) {
+  .mp-duplicate {
+    display: none !important;
+  }
+
   .payment-header {
+    .mp-checkout-container .form-row {
+      margin-top: 0.8rem;
+    }
+
     padding: 1rem 0.2rem;
   }
   .payment-amount {
@@ -279,32 +318,81 @@
   min-height: 200px;
 }
 
-/* Grid del resumen */
-.summary-grid {
+/* Ensure the title item matches other summary items */
+.summary-box {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 1rem;
 }
-
-.summary-item {
+.summary-item.full-width {
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  align-items: center;
   padding: 1rem;
   background: var(--card-bg);
   border-radius: var(--border-radius);
   border: 1px solid var(--border-color);
+}
+.item-label strong {
+  color: var(--accent-color);
+  font-weight: 700;
+  min-width: 130px;
+  display: inline-block;
+}
+.item-value.descripcion {
+  color: #fff;
+  font-weight: 700;
+}
+
+/* If SDK renders a button, hide the original btn to avoid double UI */
+#mp-button-container + .mp-duplicate,
+#mp-button-container + .btn-pay {
+  display: none !important;
+}
+
+/* Grid del resumen */
+
+/* Grid de dos columnas para resumen: etiqueta a la izquierda, valor a la derecha */
+.summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.summary-item {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  align-items: center;
+  padding: 0.9rem 1rem;
+  background: rgba(0, 0, 0, 0.45); /* caja oscura como en captura */
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  min-height: 48px;
+}
+.summary-item .item-label {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+.summary-item .item-value {
+  color: #fff;
+  font-weight: 700;
+  text-align: right;
 }
 
 .summary-item.full-width {
   grid-column: 1 / -1;
 }
 
-/* Total del resumen - SIN degradado, solo primary-color */
+/* Total destacado */
 .summary-item.total {
-  background: var(--primary-color);
+  background: linear-gradient(90deg, var(--primary-color), #2a9df4 80%);
   color: white;
-  border-color: var(--primary-color);
+  border-color: transparent;
+}
+
+/* Ajuste para que el label use icono y texto alineados */
+.item-label i {
+  margin-right: 8px;
+  color: var(--accent-color);
 }
 
 .item-label {
@@ -377,6 +465,18 @@
   border: 1px solid var(--border-color);
 }
 
+/* Utility hidden class */
+.hidden {
+  display: none !important;
+}
+
+/* Mercado Pago logo in button */
+.mp-logo {
+  height: 20px;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
 .payment-info h3 {
   display: flex;
   align-items: center;
@@ -436,6 +536,27 @@
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
+}
+
+/* Mercado Pago brand tweaks */
+/* Mercadopago visual button (black style) */
+.mercadopago-button {
+  background: #000000fa;
+  color: #ffffff;
+  font-weight: 700;
+  gap: 0.9rem;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+  padding: 0.75rem 1.4rem;
+  border-radius: 0.6rem;
+}
+/* Typography: ensure sans-serif for MP button to match design */
+.mercadopago-button {
+  font-family: sans-serif;
+  font-size: 1rem;
+}
+
+.mp-checkout-container .form-row {
+  margin-top: 1rem;
 }
 
 /* Estado de carga */

@@ -93,7 +93,19 @@ if (!PROXY_MODE && process.env.NODE_ENV !== "production") {
 }
 
 // Parsers
-app.use(express.json({ limit: "5mb" }));
+// Guardar rawBody para permitir validación de firmas (webhooks)
+app.use(
+  express.json({
+    limit: "5mb",
+    verify: function (req, res, buf, encoding) {
+      try {
+        req.rawBody = buf;
+      } catch (e) {
+        req.rawBody = null;
+      }
+    },
+  })
+);
 app.use(express.urlencoded({ extended: true }));
 
 // Sesión simple

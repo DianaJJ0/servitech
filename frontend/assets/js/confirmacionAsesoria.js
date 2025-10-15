@@ -23,9 +23,65 @@ function inicializarConfirmacion() {
       limpiarDatosTemporales();
       mostrarFactura();
     }
+    // configurar reenvío de notificaciones (botón y estado)
+    configurarReenvioNotificaciones();
   } catch (error) {
     console.error("Error inicializando confirmación:", error);
     mostrarNotificacion("Error al cargar la confirmación", "error");
+  }
+}
+
+/**
+ * Consulta el estado de notificaciones y habilita el botón de reenvío si procede
+ */
+function configurarReenvioNotificaciones() {
+  try {
+    if (!pageData || !pageData.pagoId) return;
+    const token = localStorage.getItem("token");
+    fetch(`/api/pagos/${pageData.pagoId}/notificaciones`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        const btn = document.getElementById("btnReenviarNoti");
+        if (!btn) return;
+        // Si ya fue enviado, ocultar botón
+        if (data && data.enviado) {
+          btn.classList.add("hidden");
+          return;
+        }
+        // Mostrar botón para reintentar
+        btn.classList.remove("hidden");
+        btn.addEventListener("click", function handleReenvio() {
+          btn.disabled = true;
+          const originalText = btn.textContent;
+          btn.textContent = "Enviando...";
+          const tokenInner = localStorage.getItem("token");
+          fetch(`/api/pagos/${pageData.pagoId}/reenviar-notificaciones`, {
+            method: "POST",
+            headers: tokenInner
+              ? {
+                  Authorization: `Bearer ${tokenInner}`,
+                  "Content-Type": "application/json",
+                }
+              : { "Content-Type": "application/json" },
+          })
+            .then((r) => r.json())
+            .then((res) => {
+              btn.textContent = "Reenviado";
+              btn.classList.add("hidden");
+              btn.disabled = false;
+            })
+            .catch((e) => {
+              console.warn("Error reenviando notificaciones", e);
+              btn.disabled = false;
+              btn.textContent = originalText;
+            });
+        });
+      })
+      .catch((err) => console.warn("Error consultando notificaciones:", err));
+  } catch (e) {
+    console.warn(e);
   }
 }
 
