@@ -209,8 +209,21 @@ const crearCategoria = async (req, res) => {
  */
 const obtenerCategorias = async (req, res) => {
   try {
-    const { nombre } = req.query;
+    const { nombre, all } = req.query;
+    // Por defecto, devolver sólo categorías activas para consumo público.
+    // Si se pasa ?all=true o si la petición incluye indicación de admin, devolver todas.
     let filtro = { estado: { $in: ["active", "activo"] } };
+    // Si se solicita explícitamente todas las categorías (por ejemplo desde el panel admin)
+    if (String(all || "").toLowerCase() === "true") {
+      filtro = {}; // sin filtro por estado
+    } else if (
+      req.usuario &&
+      Array.isArray(req.usuario.roles) &&
+      req.usuario.roles.includes("admin")
+    ) {
+      // Petición autenticada como admin: devolver todas
+      filtro = {};
+    }
     if (nombre && typeof nombre === "string" && nombre.trim() !== "") {
       // Busca por nombre parcial, insensible a mayúsculas y minúsculas
       filtro.nombre = { $regex: nombre.trim(), $options: "i" };
