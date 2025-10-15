@@ -52,28 +52,46 @@
 
 /* Botones de activar/inactivar */
 .btn-activate {
-  background-color: var(--admin-accent-color);
+  /* Use same visual language as other admin action buttons */
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--admin-border-color);
+  background: var(--admin-card-bg);
   color: var(--admin-text-primary);
-  padding: 0.25rem 0.5rem;
-  border: none;
-  border-radius: 4px;
-  font-size: 0.75rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
   font-weight: 500;
   cursor: pointer;
   box-shadow: var(--admin-shadow);
 }
 
 .btn-activate:hover {
-  background-color: var(--admin-accent-secondary);
+  background: var(--admin-hover-bg);
+  border-color: var(--admin-accent-color);
+  color: var(--admin-accent-color);
 }
 
 .btn-warning {
-  background-color: var(--admin-warning);
+  /* Mirror admin action button base, keep intention-neutral appearance */
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--admin-border-color);
+  background: var(--admin-card-bg);
   color: var(--admin-text-primary);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
 }
 
 .btn-warning:hover {
-  background-color: var(--admin-warning-hover);
+  background: var(--admin-hover-bg);
+  border-color: var(--admin-accent-color);
+  color: var(--admin-accent-color);
 }
 
 /* Badges de estado */

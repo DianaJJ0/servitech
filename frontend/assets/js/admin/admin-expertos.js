@@ -429,6 +429,8 @@
       .map((expert) => createExpertRow(expert, categoriesMap))
       .join("");
     bindRowActions(tbody.closest("table"));
+    // bind keyboard handlers for badges (accesibilidad)
+    bindBadgeKeyboard(tbody.closest("table"));
     updatePagination(list.length, page, pageSize);
   }
 
@@ -518,7 +520,9 @@
         <td>${cats}</td>
         <td>${registro}</td>
         <td>${sesiones}</td>
-        <td><span class="badge ${badgeClass}">${escapeHtml(status)}</span></td>
+  <td><span class="badge ${badgeClass} badge-as-btn" role="button" tabindex="0">${escapeHtml(
+      status
+    )}</span></td>
         <td class="expertos-actions-cell">
           ${actionButtons}
         </td>
@@ -668,6 +672,47 @@
     });
   }
 
+  // Añade soporte de teclado y click accesible a badges con clase badge-as-btn
+  function bindBadgeKeyboard(root) {
+    const mount = root || document;
+    if (!mount) return;
+    const badges = Array.from(mount.querySelectorAll(".badge-as-btn"));
+    badges.forEach((badge) => {
+      // evitar ligar múltiples veces
+      if (badge.dataset.keybound === "1") return;
+      try {
+        if (!badge.hasAttribute("role")) badge.setAttribute("role", "button");
+        if (!badge.hasAttribute("tabindex"))
+          badge.setAttribute("tabindex", "0");
+      } catch (e) {}
+      const handler = function (e) {
+        const key = e.key || "";
+        if (
+          key === "Enter" ||
+          key === " " ||
+          e.keyCode === 13 ||
+          e.keyCode === 32
+        ) {
+          e.preventDefault();
+          e.stopPropagation();
+          const row = badge.closest("tr");
+          if (!row) return;
+          const viewBtn = row.querySelector(".btn-view");
+          if (viewBtn) viewBtn.click();
+        }
+      };
+      const clickHandler = function (e) {
+        const row = badge.closest("tr");
+        if (!row) return;
+        const viewBtn = row.querySelector(".btn-view");
+        if (viewBtn) viewBtn.click();
+      };
+      badge.addEventListener("keydown", handler);
+      badge.addEventListener("click", clickHandler);
+      badge.dataset.keybound = "1";
+    });
+  }
+
   async function toggleExpertStatus(id, newStatus, clickedButton) {
     // Preferir el botón que se ha pulsado para leer data-email; si no, consultar el DOM
     let btn = clickedButton;
@@ -769,8 +814,15 @@
           const expert = result.experto;
 
           if (badge) {
-            badge.className = `badge ${getStatusBadgeClass(expert.estado)}`;
+            badge.className = `badge ${getStatusBadgeClass(
+              expert.estado
+            )} badge-as-btn`;
             badge.textContent = expert.estado;
+            // asegurar atributos accesibles
+            if (!badge.hasAttribute("role"))
+              badge.setAttribute("role", "button");
+            if (!badge.hasAttribute("tabindex"))
+              badge.setAttribute("tabindex", "0");
           }
 
           if (actionsCell) {
@@ -787,6 +839,8 @@
             `;
             actionsCell.innerHTML = newButtons;
             bindRowActions(row.closest("table"));
+            // asegurar que badges recién insertados tienen bindings de teclado
+            bindBadgeKeyboard(row.closest("table"));
           }
 
           row.setAttribute("data-status", expert.estado);
@@ -903,8 +957,12 @@
         if (row) {
           const badge = row.querySelector(".badge");
           if (badge) {
-            badge.className = "badge badge--active";
+            badge.className = "badge badge--active badge-as-btn";
             badge.textContent = "activo";
+            if (!badge.hasAttribute("role"))
+              badge.setAttribute("role", "button");
+            if (!badge.hasAttribute("tabindex"))
+              badge.setAttribute("tabindex", "0");
           }
 
           // Actualizar botones de acción
@@ -918,6 +976,8 @@
               </div>
             `;
             bindRowActions(row.closest("table"));
+            // asegurar bindings de teclado para badges en la fila
+            bindBadgeKeyboard(row.closest("table"));
           }
 
           row.setAttribute("data-status", "activo");
