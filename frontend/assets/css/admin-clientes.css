@@ -1,0 +1,22 @@
+/* Criterios de contraseña: colores y tamaño */
+#agregarPasswordCriteria,
+#agregarPasswordCriteria li {
+  font-size: 0.85em !important;
+  margin: 2px 0 !important;
+  line-height: 1.2;
+}
+#agregarPasswordCriteria li.valid {
+  color: #1db954 !important;
+  font-weight: 500;
+}
+#agregarPasswordCriteria li.invalid {
+  color: #e53935 !important;
+  font-weight: 500;
+}
+/* Criterios de contraseña en modal agregar cliente */
+#agregarPasswordCriteria,
+#agregarPasswordCriteria li {
+  font-size: 0.85em !important;
+  margin: 2px 0 !important;
+  line-height: 1.2;
+}

@@ -106,7 +106,7 @@
 
 
   <!-- Modal Nuevo Cliente -->
-  <div id="modalCreateUser" class="admin-modal" style="display:none;">
+  <div id="modalCreateUser" class="admin-modal">
     <div class="admin-modal__backdrop"></div>
     <div class="admin-modal__dialog">
       <header class="admin-modal__header">
@@ -117,23 +117,72 @@
         <form id="formCreateUser">
           <div class="form-group">
             <label for="create-nombre">Nombre</label>
-            <input type="text" id="create-nombre" name="nombre" required />
+            <input type="text" id="create-nombre" name="nombre" required pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ ]+"
+              inputmode="text" maxlength="80" />
+            <ul id="createNombreCriteria" class="nombre-criteria-list"
+              style="display:none; margin:6px 0 0 0; padding-left:18px;">
+              <li id="createNombreLettersCriteria"><span class="nombre-criteria-icon"></span> Solo letras y espacios
+              </li>
+              <li id="createNombreMinCriteria"><span class="nombre-criteria-icon"></span> Mínimo 2 caracteres</li>
+              <li id="createNombreTrimCriteria"><span class="nombre-criteria-icon"></span> Sin espacios al inicio o
+                final</li>
+            </ul>
+            <p class="error-message" id="create-nombre-error"></p>
           </div>
           <div class="form-group">
             <label for="create-apellido">Apellido</label>
-            <input type="text" id="create-apellido" name="apellido" />
+            <input type="text" id="create-apellido" name="apellido" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ ]+" inputmode="text"
+              maxlength="80" />
+            <ul id="createApellidoCriteria" class="apellido-criteria-list"
+              style="display:none; margin:6px 0 0 0; padding-left:18px;">
+              <li id="createApellidoLettersCriteria"><span class="apellido-criteria-icon"></span> Solo letras y espacios
+              </li>
+              <li id="createApellidoMinCriteria"><span class="apellido-criteria-icon"></span> Mínimo 2 caracteres</li>
+              <li id="createApellidoTrimCriteria"><span class="apellido-criteria-icon"></span> Sin espacios al inicio o
+                final</li>
+            </ul>
+            <p class="error-message" id="create-apellido-error"></p>
           </div>
           <div class="form-group">
             <label for="create-email">Email</label>
             <input type="email" id="create-email" name="email" required />
+            <ul id="createEmailCriteria" class="email-criteria-list"
+              style="display:none; margin:6px 0 0 0; padding-left:18px;">
+              <li id="createEmailValidCriteria"><span class="email-criteria-icon"></span> Formato de email válido</li>
+              <li id="createEmailDomainCriteria"><span class="email-criteria-icon"></span> Dominio permitido (no
+                temporal)</li>
+            </ul>
           </div>
           <div class="form-group">
             <label for="create-password">Contraseña</label>
-            <input type="password" id="create-password" name="password" required />
+            <div class="password-input-wrap" style="display:flex; align-items:center; gap:8px;">
+              <input type="password" id="create-password" name="password" required minlength="8" />
+              <button type="button" id="create-password-toggle" class="password-toggle"
+                aria-label="Mostrar contraseña"><i class="fas fa-eye"></i></button>
+            </div>
+            <p class="error-message" id="create-password-error"></p>
+            <ul class="password-requirements" id="createPasswordCriteria" style="margin-top:8px;">
+              <li id="createMinLengthCriteria" class="invalid"><span class="pw-criteria-icon"></span>Mínimo 8 caracteres
+              </li>
+              <li id="createUppercaseCriteria" class="invalid"><span class="pw-criteria-icon"></span>Al menos una
+                mayúscula</li>
+              <li id="createLowercaseCriteria" class="invalid"><span class="pw-criteria-icon"></span>Al menos una
+                minúscula</li>
+              <li id="createNumberCriteria" class="invalid"><span class="pw-criteria-icon"></span>Al menos un número
+              </li>
+            </ul>
           </div>
           <div class="form-group">
             <label for="create-roles">Roles (coma separado)</label>
             <input type="text" id="create-roles" name="roles" placeholder="cliente,experto,admin" />
+            <ul id="createRolesCriteria" class="roles-criteria-list"
+              style="display:none; margin:6px 0 0 0; padding-left:18px;">
+              <li id="createRolesValidCriteria"><span class="roles-criteria-icon"></span> Al menos un rol válido</li>
+              <li id="createRolesAllowedCriteria"><span class="roles-criteria-icon"></span> Solo roles permitidos:
+                cliente, experto, admin</li>
+              <li id="createRolesNoSpacesCriteria"><span class="roles-criteria-icon"></span> Sin espacios extra ni comas
+                al inicio/final</li>
+            </ul>
           </div>
           <div class="form-group">
             <label for="create-estado">Estado</label>
@@ -153,7 +202,7 @@
   </div>
 
   <!--Ver perfil-->
-  <div id="modalViewUser" class="admin-modal" style="display:none;">
+  <div id="modalViewUser" class="admin-modal">
     <div class="admin-modal__backdrop"></div>
     <div class="admin-modal__dialog">
       <header class="admin-modal__header">
@@ -193,7 +242,7 @@
   </div>
 
   <!-- Editar perfil -->
-  <div id="modalEditUser" class="admin-modal" style="display:none;">
+  <div id="modalEditUser" class="admin-modal">
     <div class="admin-modal__backdrop"></div>
     <div class="admin-modal__dialog">
       <header class="admin-modal__header">
@@ -206,18 +255,47 @@
           <div class="form-group">
             <label>Nombre</label>
             <input type="text" id="edit-nombre" />
+            <ul id="editNombreCriteria" class="nombre-criteria-list"
+              style="display:none; margin:6px 0 0 0; padding-left:18px;">
+              <li id="editNombreLettersCriteria"><span class="nombre-criteria-icon"></span> Solo letras y espacios</li>
+              <li id="editNombreMinCriteria"><span class="nombre-criteria-icon"></span> Mínimo 2 caracteres</li>
+              <li id="editNombreTrimCriteria"><span class="nombre-criteria-icon"></span> Sin espacios al inicio o final
+              </li>
+            </ul>
           </div>
           <div class="form-group">
             <label>Apellido</label>
             <input type="text" id="edit-apellido" />
+            <ul id="editApellidoCriteria" class="apellido-criteria-list"
+              style="display:none; margin:6px 0 0 0; padding-left:18px;">
+              <li id="editApellidoLettersCriteria"><span class="apellido-criteria-icon"></span> Solo letras y espacios
+              </li>
+              <li id="editApellidoMinCriteria"><span class="apellido-criteria-icon"></span> Mínimo 2 caracteres</li>
+              <li id="editApellidoTrimCriteria"><span class="apellido-criteria-icon"></span> Sin espacios al inicio o
+                final</li>
+            </ul>
           </div>
           <div class="form-group">
             <label>Email</label>
             <input type="email" id="edit-email" disabled />
+            <ul id="editEmailCriteria" class="email-criteria-list"
+              style="display:none; margin:6px 0 0 0; padding-left:18px;">
+              <li id="editEmailValidCriteria"><span class="email-criteria-icon"></span> Formato de email válido</li>
+              <li id="editEmailDomainCriteria"><span class="email-criteria-icon"></span> Dominio permitido (no temporal)
+              </li>
+            </ul>
           </div>
           <div class="form-group">
             <label>Roles (coma separado)</label>
             <input type="text" id="edit-roles" placeholder="cliente,experto,admin" />
+            <ul id="editRolesCriteria" class="roles-criteria-list"
+              style="display:none; margin:6px 0 0 0; padding-left:18px;">
+              <li id="editRolesValidCriteria"><span class="roles-criteria-icon"></span> Al menos un rol válido</li>
+              <li id="editRolesAllowedCriteria"><span class="roles-criteria-icon"></span> Solo roles permitidos:
+                cliente, experto, admin</li>
+              <li id="editRolesNoSpacesCriteria"><span class="roles-criteria-icon"></span> Sin espacios extra ni comas
+                al inicio/final</li>
+            </ul>
           </div>
           <div class="form-group">
             <label>Estado</label>
@@ -238,6 +316,7 @@
 
   <!-- Scripts para la funcionalidad de la página -->
   <script src="/assets/js/admin/admin-common.js"></script>
+  <script src="/assets/js/password-utils.js"></script>
   <script src="/assets/js/admin/admin-usuarios.js"></script>
 
 </body>

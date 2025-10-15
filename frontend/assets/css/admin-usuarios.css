@@ -1,3 +1,117 @@
+/* Criterios de roles: tamaño pequeño y colores */
+.roles-criteria-list li {
+  font-size: 0.82em !important;
+  line-height: 1.2;
+  margin: 2px 0 !important;
+}
+.roles-criteria-list li.valid {
+  color: #21c36a !important;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.roles-criteria-list li.invalid {
+  color: #ff3b3b !important;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.roles-criteria-icon {
+  display: inline-block;
+  width: 1.2em;
+  text-align: center;
+  font-weight: bold;
+}
+/* Advertencia de campo obligatorio */
+.required-criteria {
+  color: #e53935;
+  font-size: 0.95em;
+  margin: 4px 0 0 0;
+  display: block;
+}
+/* Criterios de nombre y apellido: colores y tamaño para modal usuarios */
+#createNombreCriteria,
+#createNombreCriteria li,
+#createApellidoCriteria,
+#createApellidoCriteria li {
+  font-size: 0.85em !important;
+  margin: 2px 0 !important;
+  line-height: 1.2;
+}
+/* Criterios visuales: tamaño más pequeño y colores */
+.nombre-criteria-list li,
+.apellido-criteria-list li,
+.email-criteria-list li {
+  font-size: 0.82em !important;
+  line-height: 1.2;
+  margin: 2px 0 !important;
+}
+.nombre-criteria-list li.valid,
+.apellido-criteria-list li.valid,
+.email-criteria-list li.valid {
+  color: #21c36a !important;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.nombre-criteria-list li.invalid,
+.apellido-criteria-list li.invalid,
+.email-criteria-list li.invalid {
+  color: #ff3b3b !important;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.nombre-criteria-icon,
+.apellido-criteria-icon {
+  display: inline-block;
+  width: 1.2em;
+  text-align: center;
+  font-weight: bold;
+}
+/* Criterios de email: colores y tamaño para modal usuarios */
+#createEmailCriteria,
+#createEmailCriteria li {
+  font-size: 0.85em !important;
+  margin: 2px 0 !important;
+  line-height: 1.2;
+}
+#createEmailCriteria li.valid {
+  color: #1db954 !important;
+  font-weight: 500;
+}
+#createEmailCriteria li.invalid {
+  color: #e53935 !important;
+  font-weight: 500;
+}
+.email-criteria-icon {
+  display: inline-block;
+  width: 1.2em;
+  text-align: center;
+  font-weight: bold;
+}
+/* Botón ver/ocultar contraseña */
+.password-toggle {
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-border-color);
+  color: var(--admin-text-secondary);
+  border-radius: 6px;
+  padding: 6px 8px;
+  cursor: pointer;
+  transition: var(--admin-transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  width: 32px;
+}
+.password-toggle:hover,
+.password-toggle:focus {
+  background: var(--admin-hover-bg);
+  color: var(--admin-accent-color);
+  border-color: var(--admin-accent-color);
+  outline: none;
+}
+.password-toggle i {
+  font-size: 1.2em;
+  pointer-events: none;
+}
 :root {
   --admin-bg: #0e1525;
   --admin-card-bg: #1c2333;
@@ -249,19 +363,15 @@
 }
 
 .admin-modal .btn-primary {
-  background: linear-gradient(
-    90deg,
-    var(--admin-accent-color),
-    var(--admin-accent-secondary)
-  );
-  color: #072034;
+  background: var(--admin-accent-color);
+  color: #ffffff;
   border: none;
   padding: 10px 20px;
   border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
   font-weight: 600;
-  box-shadow: 0 6px 18px rgba(58, 142, 255, 0.15);
+  box-shadow: 0 6px 18px rgba(58, 142, 255, 0.12);
   transition: var(--admin-transition);
 }
 
@@ -577,7 +687,9 @@
 }
 
 .admin-pagination__pages {
-  /* espacio para paginación dinámica */
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 
 .usuarios-page-size-wrap {
@@ -597,4 +709,47 @@
   background: var(--admin-card-bg);
   color: var(--admin-text-primary);
   border: 1px solid var(--admin-border-color);
+}
+
+/* Reglas específicas para modal-cliente inputs y errores */
+.modal-cliente__input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--admin-border-color);
+  background: transparent;
+  color: var(--admin-text-primary);
+  font-size: 14px;
+  box-sizing: border-box;
+}
+.modal-cliente__input:focus {
+  outline: none;
+  border-color: var(--admin-accent-color);
+  box-shadow: 0 6px 18px rgba(58, 142, 255, 0.06);
+}
+.modal-cliente__error {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #ff6b6b;
+  display: none;
+}
+.modal-cliente__input.invalid {
+  border-color: #ff6b6b;
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.06);
+}
+
+/* Criterios de contraseña: colores y tamaño para modal usuarios */
+#createPasswordCriteria,
+#createPasswordCriteria li {
+  font-size: 0.85em !important;
+  margin: 2px 0 !important;
+  line-height: 1.2;
+}
+#createPasswordCriteria li.valid {
+  color: #1db954 !important;
+  font-weight: 500;
+}
+#createPasswordCriteria li.invalid {
+  color: #e53935 !important;
+  font-weight: 500;
 }
