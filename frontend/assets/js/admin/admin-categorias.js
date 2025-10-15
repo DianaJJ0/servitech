@@ -58,7 +58,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const cat = categoriasCache.find((x) => String(x.id) === String(catId));
 
         if (!cat) {
-            // Alternativa: leer desde la tabla si no se encuentra en caché
+          // Alternativa: leer desde la tabla si no se encuentra en caché
           console.warn(
             `Categoría con ID ${catId} no encontrada en caché. Leyendo de la tabla.`
           );
@@ -77,7 +77,7 @@ document.addEventListener("DOMContentLoaded", function () {
           modalVer.querySelector("#verDescripcionCategoria").value =
             "Descripción no disponible en caché.";
         } else {
-            // Poblar desde el objeto en caché
+          // Poblar desde el objeto en caché
           modalVer.querySelector("#verNombreCategoria").value = cat.name || "";
           modalVer.querySelector("#verSlugCategoria").value = cat.slug || "";
           modalVer.querySelector("#verPadreCategoria").value =
@@ -550,14 +550,11 @@ function setupFilters() {
 function displayCategorias(page = 1, pageSize = 7) {
   const allCategorias = window._adminCategorias || [];
 
+  // Mostrar todas las categorías sin filtrar por estado
   const selects = document.querySelectorAll(".categorias-filtros__select");
-  const estadoVal = selects.length > 0 ? selects[0].value : "";
   const padreVal = selects.length > 1 ? selects[1].value : "";
 
   const filtered = allCategorias.filter((cat) => {
-    // Con datos estandarizados, la comparación es simple y directa.
-    const estadoMatch = !estadoVal || cat.estado === estadoVal;
-
     let padreMatch = true;
     if (padreVal) {
       if (padreVal === "none") {
@@ -566,8 +563,7 @@ function displayCategorias(page = 1, pageSize = 7) {
         padreMatch = String(cat.parent_id || "") === String(padreVal);
       }
     }
-
-    return estadoMatch && padreMatch;
+    return padreMatch;
   });
 
   const tbody = document.querySelector(
@@ -754,7 +750,10 @@ function populateAllParentDropdowns() {
  */
 async function loadCategorias() {
   try {
-    const res = await fetch("/api/categorias", { headers: getHeaders() });
+    // Pedimos explícitamente todas las categorías para el panel admin
+    const res = await fetch("/api/categorias?all=true", {
+      headers: getHeaders(),
+    });
     if (!res.ok) {
       console.error("Error al obtener categorías", res.status);
       return;
