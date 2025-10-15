@@ -1454,6 +1454,9 @@ if (require.main === module) {
   app.set("view engine", "ejs");
   app.set("views", path.join(__dirname, "views"));
 
+  // Servir archivos estáticos (CSS, JS, imágenes)
+  app.use("/assets", express.static(path.join(__dirname, "assets")));
+
   // Ruta de prueba para el modal
   app.get("/modal-test", (req, res) => {
     res.sendFile(path.join(__dirname, "views", "modal-test-consolidado.html"));
