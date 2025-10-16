@@ -352,15 +352,15 @@ function addCategoryToTable(formData, responseData) {
 
   const tr = document.createElement("tr");
   tr.dataset.id = responseData.id || Date.now();
-  // almacenar estado en dataset para lecturas rápidas
+  // normalizar estado (defensivo) y almacenarlo en dataset para lecturas rápidas
+  const estadoNormalizado = String(formData.estado || "inactivo").toLowerCase();
   tr.dataset.estado = estadoNormalizado;
 
   const parentSelect = document.getElementById("parentCategory");
   const parentOption = parentSelect.options[parentSelect.selectedIndex];
   const parentName = parentOption.value ? parentOption.text : "-";
 
-  // Estandarizar a minúsculas para el caché
-  const estadoNormalizado = formData.estado.toLowerCase();
+  // (estadoNormalizado ya fue calculado arriba)
 
   // 1. Checkbox
   const tdCheckbox = document.createElement("td");
