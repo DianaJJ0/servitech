@@ -81,13 +81,30 @@ const enviarCorreo = async (destinatario, asunto, mensaje, opciones = {}) => {
       );
     }
     const info = await sgMail.send(msg);
+    // Log de la respuesta de SendGrid para debug (puede ser array)
+    try {
+      console.log("[email.service] SendGrid response:", JSON.stringify(info));
+    } catch (e) {}
     return info;
   } catch (error) {
     // Intentar devolver un mensaje de error útil
-    const errMsg =
+    const errBody =
       error && error.response && error.response.body
-        ? JSON.stringify(error.response.body)
-        : error.message || String(error);
+        ? error.response.body
+        : null;
+    const errMsg = errBody
+      ? JSON.stringify(errBody)
+      : error.message || String(error);
+    console.error("[email.service] Error enviando email:", errMsg);
+    // Si existe body de respuesta, intentar loggear sus detalles
+    if (errBody) {
+      try {
+        console.error(
+          "[email.service] SendGrid error body:",
+          JSON.stringify(errBody)
+        );
+      } catch (e) {}
+    }
     throw new Error(`Error de email: ${errMsg}`);
   }
 };

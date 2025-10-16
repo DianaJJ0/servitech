@@ -19,3 +19,4 @@ coverage/
 # Backend logs
 backend/logs/
 
+.env
