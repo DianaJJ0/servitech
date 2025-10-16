@@ -807,7 +807,7 @@ function createUserRow(user) {
           <button class="btn-icon" data-action="edit" title="Editar"><i class="fas fa-edit"></i></button>
           ${
             estado === "activo"
-              ? `<button class="btn-icon" data-action="delete" title="Inactivar"><i class="fas fa-toggle-off"></i></button>`
+              ? `<button class="btn-icon" data-action="delete" title="Inactivar"><i class="fas fa-toggle-on"></i></button>`
               : `<button class="btn-icon" data-action="delete" title="Activar"><i class="fas fa-toggle-off"></i></button>`
           }
         </div>
