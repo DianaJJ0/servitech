@@ -383,7 +383,10 @@ if (require.main === module) {
       await conectarDB();
       console.log(`Conexión a MongoDB establecida.`);
     } catch (err) {
-      console.error("No se pudo conectar a MongoDB antes de iniciar el servidor:", err && err.message ? err.message : err);
+      console.error(
+        "No se pudo conectar a MongoDB antes de iniciar el servidor:",
+        err && err.message ? err.message : err
+      );
       // Continuar arrancando el servidor para entornos de desarrollo, pero advertir
     }
 
