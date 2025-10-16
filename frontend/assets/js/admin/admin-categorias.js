@@ -132,9 +132,31 @@ document.addEventListener("DOMContentLoaded", function () {
         const verb = desiredEstado === "active" ? "activar" : "inactivar";
         const confirmMsg = `¿Deseas ${verb} la categoría "${name}"?`;
         if (!confirm(confirmMsg)) return;
+
+        // UX: animación temporal en el icono (spinner) y bloqueo del botón
+        const iconEl = btn.querySelector("i");
+        const originalIconClass = iconEl ? iconEl.className : null;
         try {
+          if (iconEl) {
+            iconEl.className = "fas fa-spinner fa-spin";
+            btn.setAttribute("disabled", "");
+          }
+
           await updateCategoriaEstado(id, desiredEstado);
+
+          // Si la tabla fue recargada por updateCategoriaEstado, no es necesario
+          // actualizar el icono; pero intentamos animar el icono localmente antes de la recarga.
+          if (iconEl) {
+            iconEl.className = "fas " + (desiredEstado === "active" ? "fa-toggle-on" : "fa-toggle-off");
+            // añadir clase de animación temporal
+            iconEl.classList.add("icon-flip");
+            setTimeout(() => iconEl.classList.remove("icon-flip"), 360);
+            btn.removeAttribute("disabled");
+          }
         } catch (err) {
+          // restaurar icono original
+          if (iconEl && originalIconClass) iconEl.className = originalIconClass;
+          btn.removeAttribute("disabled");
           console.error("Error toggle estado categoría:", err);
         }
         return;
