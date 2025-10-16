@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Delegación para los botones de acción dentro de la tabla (Editar / Ver / Eliminar)
   if (tbody) {
-    tbody.addEventListener("click", function (e) {
+    tbody.addEventListener("click", async function (e) {
       const btn = e.target.closest(".btn-icon");
       if (!btn) return;
       const row = btn.closest("tr");
@@ -100,7 +100,69 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
       }
 
-      // ELIMINAR
+      // INACTIVAR / ACTIVAR (toggle)
+      if (title.includes("inactivar")) {
+        if (!row) return;
+        const id = btn.getAttribute("data-id") || (row && row.dataset.id) || "";
+        if (!id) return;
+        const name = row.querySelector(".categorias-table__icon-row span")
+          ? row
+              .querySelector(".categorias-table__icon-row span")
+              .textContent.trim()
+          : "";
+        // Determinar estado actual: preferir dataset.estado si está presente
+        let currentEstado = (row.dataset.estado || "").toLowerCase();
+        if (!currentEstado) {
+          const statusEl = row.querySelector(".status");
+          if (statusEl) {
+            const cls = (statusEl.className || "").toLowerCase();
+            const txt = (statusEl.textContent || "").toLowerCase();
+            if (cls.includes("inactive") || txt.includes("inact"))
+              currentEstado = "inactive";
+            else if (
+              cls.includes("active") ||
+              txt.includes("activa") ||
+              txt === "activa"
+            )
+              currentEstado = "active";
+          }
+        }
+        const desiredEstado =
+          currentEstado === "active" ? "inactive" : "active";
+        const verb = desiredEstado === "active" ? "activar" : "inactivar";
+        const confirmMsg = `¿Deseas ${verb} la categoría "${name}"?`;
+        if (!confirm(confirmMsg)) return;
+
+        // UX: animación temporal en el icono (spinner) y bloqueo del botón
+        const iconEl = btn.querySelector("i");
+        const originalIconClass = iconEl ? iconEl.className : null;
+        try {
+          if (iconEl) {
+            iconEl.className = "fas fa-spinner fa-spin";
+            btn.setAttribute("disabled", "");
+          }
+
+          await updateCategoriaEstado(id, desiredEstado);
+
+          // Si la tabla fue recargada por updateCategoriaEstado, no es necesario
+          // actualizar el icono; pero intentamos animar el icono localmente antes de la recarga.
+          if (iconEl) {
+            iconEl.className = "fas " + (desiredEstado === "active" ? "fa-toggle-on" : "fa-toggle-off");
+            // añadir clase de animación temporal
+            iconEl.classList.add("icon-flip");
+            setTimeout(() => iconEl.classList.remove("icon-flip"), 360);
+            btn.removeAttribute("disabled");
+          }
+        } catch (err) {
+          // restaurar icono original
+          if (iconEl && originalIconClass) iconEl.className = originalIconClass;
+          btn.removeAttribute("disabled");
+          console.error("Error toggle estado categoría:", err);
+        }
+        return;
+      }
+
+      // ELIMINAR (abrir modal)
       if (title.includes("eliminar")) {
         if (!row) return;
         const modalEliminar = document.getElementById("modalEliminarCategoria");
@@ -312,13 +374,15 @@ function addCategoryToTable(formData, responseData) {
 
   const tr = document.createElement("tr");
   tr.dataset.id = responseData.id || Date.now();
+  // normalizar estado (defensivo) y almacenarlo en dataset para lecturas rápidas
+  const estadoNormalizado = String(formData.estado || "inactivo").toLowerCase();
+  tr.dataset.estado = estadoNormalizado;
 
   const parentSelect = document.getElementById("parentCategory");
   const parentOption = parentSelect.options[parentSelect.selectedIndex];
   const parentName = parentOption.value ? parentOption.text : "-";
 
-  // Estandarizar a minúsculas para el caché
-  const estadoNormalizado = formData.estado.toLowerCase();
+  // (estadoNormalizado ya fue calculado arriba)
 
   // 1. Checkbox
   const tdCheckbox = document.createElement("td");
@@ -374,7 +438,7 @@ function addCategoryToTable(formData, responseData) {
   tdActions.innerHTML = `<div class="action-buttons">
       <button class="btn-icon" title="Editar" data-id="${tr.dataset.id}"><i class="fas fa-edit"></i></button>
       <button class="btn-icon" title="Ver detalles" data-id="${tr.dataset.id}"><i class="fas fa-eye"></i></button>
-      <button class="btn-icon" title="Eliminar" data-id="${tr.dataset.id}"><i class="fas fa-trash"></i></button>
+  <button class="btn-icon" title="Inactivar" data-id="${tr.dataset.id}"><i class="fas fa-toggle-off"></i></button>
     </div>`;
   tr.appendChild(tdActions);
 
@@ -501,23 +565,53 @@ function abrirModalEditarCategoria(categoriaId) {
  * Elimina una categoría de la base de datos.
  */
 async function eliminarCategoria(categoriaId) {
+  // Nota: conserva compatibilidad, delega en updateCategoriaEstado
   try {
+    await updateCategoriaEstado(categoriaId, "inactive");
+  } catch (err) {
+    // ya manejado en updateCategoriaEstado
+  }
+}
+
+/**
+ * Actualiza el estado (active/inactive) de una categoría por id.
+ */
+async function updateCategoriaEstado(categoriaId, nuevoEstado) {
+  try {
+    const payload = { estado: nuevoEstado };
     const response = await fetch(`/api/categorias/${categoriaId}`, {
-      method: "DELETE",
-      headers: getHeaders(),
+      method: "PUT",
+      headers: Object.assign(
+        { "Content-Type": "application/json" },
+        getHeaders()
+      ),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
-      throw new Error("Error al eliminar categoría");
+      const json = await response.json().catch(() => ({}));
+      const msg =
+        (json && (json.message || json.mensaje)) ||
+        "Error al actualizar estado";
+      throw new Error(msg);
     }
 
-    console.log(`Categoría eliminada: ID ${categoriaId}`);
-    // Refrescar tabla
+    console.log(`Categoría ${categoriaId} actualizada a estado ${nuevoEstado}`);
     await loadCategorias();
-    showMessage("Categoría eliminada correctamente.", "success");
+    showMessage(
+      nuevoEstado === "active"
+        ? "Categoría activada."
+        : "Categoría inactivada.",
+      "success"
+    );
+    return true;
   } catch (error) {
-    console.error("Error:", error);
-    showMessage("Error al eliminar categoría.", "error");
+    console.error("Error updateCategoriaEstado:", error);
+    showMessage(
+      error.message || "Error al actualizar estado de categoría.",
+      "error"
+    );
+    throw error;
   }
 }
 
@@ -597,6 +691,7 @@ function displayCategorias(page = 1, pageSize = 7) {
     paginas.forEach((c) => {
       const tr = document.createElement("tr");
       tr.dataset.id = c.id;
+      tr.dataset.estado = c.estado; // estado normalizado en cache
       // El estado en el caché ya está normalizado a minúsculas.
       const statusClass = c.estado;
       const statusText = c.estado === "active" ? "Activa" : "Inactiva";
@@ -627,9 +722,9 @@ function displayCategorias(page = 1, pageSize = 7) {
                     <button class="btn-icon" title="Ver detalles" data-id="${
                       c.id
                     }"><i class="fas fa-eye"></i></button>
-                    <button class="btn-icon" title="Eliminar" data-id="${
+                    <button class="btn-icon" title="Inactivar" data-id="${
                       c.id
-                    }"><i class="fas fa-trash"></i></button>
+                    }"><i class="fas fa-toggle-off"></i></button>
                   </div>
                 </td>
             `;

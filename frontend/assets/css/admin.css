@@ -974,6 +974,16 @@
   color: var(--admin-text-primary);
 }
 
+/* Animación para iconos toggle cuando se cambia estado (pequeño giro) */
+.btn-icon i.icon-flip {
+  display: inline-block;
+  transition: transform 0.36s ease;
+  transform-origin: 50% 50%;
+}
+.btn-icon i.icon-flip {
+  transform: rotateY(180deg);
+}
+
 .btn-close {
   background: none;
   border: none;

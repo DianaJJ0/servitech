@@ -23,6 +23,23 @@
  * router.get('/admin/users', apiKeyMiddleware, protect, esAdmin, obtenerUsuarios);
  */
 module.exports = function (req, res, next) {
+  // Si hay una sesión de usuario admin, permitimos bypass del header x-api-key
+  try {
+    if (
+      req.session &&
+      req.session.user &&
+      Array.isArray(req.session.user.roles) &&
+      req.session.user.roles.includes("admin")
+    ) {
+      console.log(
+        `apiKeyMiddleware: session admin present (${req.session.user.email}), bypassing x-api-key check`
+      );
+      return next();
+    }
+  } catch (e) {
+    // continuar a la validación por header si hay algún error al leer la sesión
+  }
+
   // Obtiene la API Key del encabezado 'x-api-key' de la solicitud
   const apiKey = req.headers["x-api-key"];
 

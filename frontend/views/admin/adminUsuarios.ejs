@@ -327,9 +327,16 @@
   </div>
 
   <!-- Scripts para la funcionalidad de la página -->
-  <script src="/assets/js/admin/admin-common.js"></script>
-  <script src="/assets/js/password-utils.js"></script>
-  <script src="/assets/js/admin/admin-usuarios.js"></script>
+  <% if (typeof API_KEY !=='undefined' && API_KEY) { %>
+    <script>
+      // Exponer API key para llamadas admin desde cliente (solo para sesiones admin)
+      window.API_KEY = '<%= API_KEY %>';
+    </script>
+    <% } %>
+
+      <script src="/assets/js/admin/admin-common.js"></script>
+      <script src="/assets/js/password-utils.js"></script>
+      <script src="/assets/js/admin/admin-usuarios.js"></script>
 
 </body>
 

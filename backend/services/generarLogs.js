@@ -66,6 +66,8 @@ function obtenerArchivo(tipo) {
  * @param {boolean} [params.persistirEnDB] - Si se debe guardar en la base de datos
  * @returns {Promise<void>}
  */
+const mongoose = require("mongoose");
+
 async function registrarEvento({
   usuarioEmail = null,
   nombre = "",
@@ -91,20 +93,27 @@ async function registrarEvento({
   }
   if (persistirEnDB) {
     try {
-      const Log = require("../models/log.model");
-      const doc = new Log({
-        usuarioEmail,
-        nombre,
-        apellido,
-        accion,
-        detalle,
-        resultado,
-        tipo,
-        fecha: new Date(),
-      });
-      if (recursoId) doc.recursoId = recursoId;
-      if (meta) doc.meta = meta;
-      await doc.save();
+      // Evitar intentar persistir si la conexión a MongoDB no está lista
+      if (mongoose.connection.readyState !== 1) {
+        console.warn(
+          "generarLogs: DB no conectada, se omite persistencia en BD"
+        );
+      } else {
+        const Log = require("../models/log.model");
+        const doc = new Log({
+          usuarioEmail,
+          nombre,
+          apellido,
+          accion,
+          detalle,
+          resultado,
+          tipo,
+          fecha: new Date(),
+        });
+        if (recursoId) doc.recursoId = recursoId;
+        if (meta) doc.meta = meta;
+        await doc.save();
+      }
     } catch (e) {
       console.warn("Error guardando log en BD:", e && e.message);
     }

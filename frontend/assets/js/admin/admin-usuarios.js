@@ -778,7 +778,9 @@ function createUserRow(user) {
   const estado = user.estado || "inactivo";
 
   return `
-    <tr data-user-id="${user._id}" ${
+    <tr data-user-id="${user._id}" data-nombre="${escapeHtml(
+    user.nombre || ""
+  )}" data-apellido="${escapeHtml(user.apellido || "")}" ${
     user.infoExperto
       ? `data-info-experto='${escapeHtml(JSON.stringify(user.infoExperto))}'`
       : ""
@@ -803,7 +805,11 @@ function createUserRow(user) {
         <div class="action-buttons">
           <button class="btn-icon" data-action="view" title="Ver perfil"><i class="fas fa-eye"></i></button>
           <button class="btn-icon" data-action="edit" title="Editar"><i class="fas fa-edit"></i></button>
-          <button class="btn-icon" data-action="delete" title="Eliminar"><i class="fas fa-trash"></i></button>
+          ${
+            estado === "activo"
+              ? `<button class="btn-icon" data-action="delete" title="Inactivar"><i class="fas fa-toggle-on"></i></button>`
+              : `<button class="btn-icon" data-action="delete" title="Activar"><i class="fas fa-toggle-off"></i></button>`
+          }
         </div>
       </td>
     </tr>
@@ -968,41 +974,76 @@ function initUserModals() {
         const editRoles = document.getElementById("edit-roles");
         const editEstado = document.getElementById("edit-estado");
         if (editId) editId.value = row.getAttribute("data-user-id") || "";
-        const parts = (nombre || "").split("\n")[0] || nombre;
-        if (editNombre) editNombre.value = parts || "";
-        const nameParts = parts.split(" ");
-        if (editApellido)
-          editApellido.value =
-            nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
+        // Preferir dataset con nombre y apellido (más fiable que parsear el h4)
+        const dataNombre = row.getAttribute("data-nombre");
+        const dataApellido = row.getAttribute("data-apellido");
+        if (editNombre) {
+          if (dataNombre || dataNombre === "") {
+            editNombre.value = dataNombre || "";
+          } else {
+            const fallback = (nombre || "").split("\n")[0] || "";
+            const first = fallback.split(" ").filter(Boolean)[0] || "";
+            editNombre.value = first;
+          }
+        }
+        if (editApellido) {
+          if (dataApellido || dataApellido === "") {
+            editApellido.value = dataApellido || "";
+          } else {
+            const parts = (nombre || "").split("\n")[0] || "";
+            const nameParts = parts.split(" ").filter(Boolean);
+            editApellido.value =
+              nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
+          }
+        }
         if (editEmail) editEmail.value = email || "";
         if (editRoles) editRoles.value = roles || "";
         if (editEstado) editEstado.value = estado || "activo";
+        // Marcar en el modal si existía infoExperto (para uso posterior al guardar)
+        const infoExp = row.getAttribute("data-info-experto");
+        const modal = document.getElementById("modalEditUser");
+        if (modal) modal.dataset.hadInfoExperto = infoExp ? "1" : "0";
         openModalById("modalEditUser");
       }
 
       if (action === "delete") {
-        if (!confirm("¿Desactivar usuario?")) return;
+        // Toggle estado instead of deleting user
+        const current = (estado || "").toLowerCase();
+        const nuevoEstado = current === "activo" ? "inactivo" : "activo";
+        const promptMsg =
+          nuevoEstado === "inactivo"
+            ? "¿Desactivar usuario?"
+            : "¿Activar usuario?";
+        if (!confirm(promptMsg)) return;
         const emailEnc = encodeURIComponent(email);
         const headers = getAuthHeaders();
+        const payload = { estado: nuevoEstado };
         fetch("/api/usuarios/" + emailEnc, {
-          method: "DELETE",
+          method: "PUT",
           credentials: "same-origin",
           headers,
+          body: JSON.stringify(payload),
         })
           .then(async (r) => {
             const body = await r.json().catch(() => null);
             if (r.ok) {
-              row.remove();
+              // recargar lista para mostrar estado actualizado
+              try {
+                loadUsuarios(
+                  usuariosPaginationState.page,
+                  usuariosPaginationState.limit
+                );
+              } catch (e) {}
             } else {
               alert(
-                "Error al desactivar: " +
+                "Error al actualizar estado: " +
                   (body && body.mensaje ? body.mensaje : JSON.stringify(body))
               );
             }
           })
           .catch((err) => {
             console.error(err);
-            alert("Error al desactivar usuario");
+            alert("Error actualizando estado del usuario");
           });
       }
     });
@@ -1056,8 +1097,9 @@ function initUserModals() {
         const editEstado = document.getElementById("edit-estado");
         if (editId) editId.value = row.getAttribute("data-user-id") || "";
         const parts = (nombre || "").split("\n")[0] || nombre;
-        if (editNombre) editNombre.value = parts || "";
-        const nameParts = parts.split(" ");
+        const nameParts = parts.split(" ").filter(Boolean);
+        if (editNombre)
+          editNombre.value = nameParts.length > 0 ? nameParts[0] : "";
         if (editApellido)
           editApellido.value =
             nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
@@ -1068,28 +1110,42 @@ function initUserModals() {
         return;
       }
       if (action === "delete") {
-        if (!confirm("¿Desactivar usuario?")) return;
+        // Toggle estado instead of deleting user (document-level handler)
+        const current = (estado || "").toLowerCase();
+        const nuevoEstado = current === "activo" ? "inactivo" : "activo";
+        const promptMsg =
+          nuevoEstado === "inactivo"
+            ? "¿Desactivar usuario?"
+            : "¿Activar usuario?";
+        if (!confirm(promptMsg)) return;
         const emailEnc = encodeURIComponent(email);
         const headers = getAuthHeaders();
+        const payload = { estado: nuevoEstado };
         fetch("/api/usuarios/" + emailEnc, {
-          method: "DELETE",
+          method: "PUT",
           credentials: "same-origin",
           headers,
+          body: JSON.stringify(payload),
         })
           .then(async (r) => {
             const body = await r.json().catch(() => null);
             if (r.ok) {
-              row.remove();
+              try {
+                loadUsuarios(
+                  usuariosPaginationState.page,
+                  usuariosPaginationState.limit
+                );
+              } catch (e) {}
             } else {
               alert(
-                "Error al desactivar: " +
+                "Error al actualizar estado: " +
                   (body && body.mensaje ? body.mensaje : JSON.stringify(body))
               );
             }
           })
           .catch((err) => {
             console.error(err);
-            alert("Error al desactivar usuario");
+            alert("Error actualizando estado del usuario");
           });
       }
     });
@@ -1451,16 +1507,59 @@ function initUserModals() {
     saveBtn.addEventListener("click", function () {
       const id = document.getElementById("edit-user-id").value;
       const email = document.getElementById("edit-email").value;
-      const nombre = document.getElementById("edit-nombre").value;
-      const apellido = document.getElementById("edit-apellido").value;
+      // normalize name fields: trim and collapse multiple spaces
+      const rawNombre = document.getElementById("edit-nombre").value || "";
+      const rawApellido = document.getElementById("edit-apellido").value || "";
+      const nombre = rawNombre.replace(/\s+/g, " ").trim();
+      const apellido = rawApellido.replace(/\s+/g, " ").trim();
       const roles = document
         .getElementById("edit-roles")
         .value.split(",")
         .map((s) => s.trim())
         .filter(Boolean);
       const estado = document.getElementById("edit-estado").value;
+
       const payload = { nombre, apellido, roles, estado };
+
+      // If the row previously had infoExperto but now the roles don't include 'experto',
+      // explicitly send infoExperto with empty arrays so the backend can clear it.
+      const modal = document.getElementById("modalEditUser");
+      const hadInfoExperto =
+        modal && modal.dataset && modal.dataset.hadInfoExperto === "1";
+      const isNowExperto = roles.includes("experto");
+      if (hadInfoExperto && !isNowExperto) {
+        payload.infoExperto = { categorias: [], skills: [] };
+      }
+
+      // Also ensure that if the modal previously had no infoExperto but the roles include experto,
+      // we don't accidentally send undefined fields; however if admin wants to clear categorias/skills
+      // they should send explicit empties — provide a simple UI behaviour: if infoExperto existed, always
+      // include categorias/skills keys (even as empty arrays) to reflect intent.
+      if (hadInfoExperto && isNowExperto) {
+        // if admin removed categorias/skills from UI (not present inputs), send empty arrays to clear
+        if (!payload.infoExperto) payload.infoExperto = {};
+        if (
+          !Object.prototype.hasOwnProperty.call(
+            payload.infoExperto,
+            "categorias"
+          )
+        )
+          payload.infoExperto.categorias = [];
+        if (
+          !Object.prototype.hasOwnProperty.call(payload.infoExperto, "skills")
+        )
+          payload.infoExperto.skills = [];
+      }
+
       const headers = getAuthHeaders();
+      // DEBUG: mostrar headers y payload para diagnosticar 403
+      try {
+        console.debug("PUT /api/usuarios/", encodeURIComponent(email), {
+          headers,
+          payload,
+        });
+      } catch (e) {}
+
       fetch("/api/usuarios/" + encodeURIComponent(email), {
         method: "PUT",
         credentials: "same-origin",
@@ -1469,24 +1568,28 @@ function initUserModals() {
       })
         .then(async (r) => {
           const body = await r.json().catch(() => null);
-          if (!r.ok) throw new Error((body && body.mensaje) || r.status);
-          // actualizar fila
-          const rows = Array.from(
-            document.querySelectorAll("#usuarios-tbody tr")
-          );
-          const row = rows.find(
-            (tr) =>
-              (tr.getAttribute("data-user-id") || "") === id ||
-              (tr.children[1] && tr.children[1].innerText.trim() === email)
-          );
-          if (row) {
-            row.children[0].querySelector(".user-details h4").innerText =
-              nombre + " " + apellido;
-            row.children[2].innerText = roles.join(", ");
-            row.children[3].innerHTML = `<span class="status ${
-              estado === "activo" ? "active" : "inactive"
-            }">${estado}</span>`;
+          if (!r.ok) {
+            try {
+              console.warn(
+                "PUT /api/usuarios/ response not ok",
+                r.status,
+                body
+              );
+            } catch (e) {}
+            throw new Error((body && body.mensaje) || r.status);
           }
+          // Recargar la lista desde el servidor para garantizar que la UI refleje exactamente
+          // lo que quedó guardado en la base de datos (incluyendo borrado de infoExperto).
+          try {
+            usuariosPaginationState.page = usuariosPaginationState.page || 1;
+            loadUsuarios(
+              usuariosPaginationState.page,
+              usuariosPaginationState.limit
+            );
+          } catch (e) {
+            console.warn("Error al recargar usuarios tras guardar:", e);
+          }
+
           // cerrar modal
           const closeEl = saveBtn.closest(".admin-modal");
           if (closeEl)

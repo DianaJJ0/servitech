@@ -35,6 +35,7 @@ const {
 const mongoose = require("mongoose");
 const { generateLog } = require("../services/logService.js");
 const generarLogs = require("../services/generarLogs");
+const Notificacion = require("../models/notificacion.model.js");
 
 /**
  * @openapi
@@ -473,6 +474,53 @@ const registrarUsuario = async (req, res) => {
       mensaje =
         "Solicitud de perfil de experto enviada. Revisaremos tu perfil y activaremos tu cuenta de experto.";
     }
+    // Crear registro de notificacion y enviar email de bienvenida/confirmacion
+    try {
+      const asunto = infoExpToSave
+        ? "Solicitud de experto recibida - Servitech"
+        : "Bienvenido a Servitech";
+      const cuerpo = infoExpToSave
+        ? `Hemos recibido tu solicitud para convertirte en Experto. Nuestro equipo revisará tu perfil y te notificaremos cuando esté aprobado.`
+        : `¡Gracias por registrarte en Servitech. Ya puedes solicitar y contratar asesorías!.`;
+
+      // Registrar notificacion en BD
+      await Notificacion.create({
+        usuarioId: nuevoUsuario._id,
+        email: nuevoUsuario.email,
+        tipo: "email",
+        asunto,
+        mensaje: cuerpo,
+        estado: "pendiente",
+        fechaEnvio: new Date(),
+      });
+
+      // Intentar enviar email real
+      await enviarCorreo(nuevoUsuario.email, asunto, cuerpo, {
+        nombreDestinatario: nuevoUsuario.nombre,
+        apellidoDestinatario: nuevoUsuario.apellido,
+      });
+      // Marcar como enviado
+      await Notificacion.updateOne(
+        { usuarioId: nuevoUsuario._id, email: nuevoUsuario.email, asunto },
+        { $set: { estado: "enviado" } }
+      );
+    } catch (emailErr) {
+      console.error(
+        "Error enviando email de registro:",
+        emailErr.message || emailErr
+      );
+      // Dejar el registro de notificacion en 'pendiente' o marcar error
+      await Notificacion.updateOne(
+        { usuarioId: nuevoUsuario._id, email: nuevoUsuario.email },
+        {
+          $set: {
+            estado: "error",
+            detalleError: emailErr.message || String(emailErr),
+          },
+        }
+      ).catch(() => {});
+    }
+
     res.status(201).json({
       mensaje,
       token: generarToken(nuevoUsuario._id),
@@ -1598,41 +1646,61 @@ const actualizarUsuarioPorEmailAdmin = async (req, res) => {
     if (!usuario) {
       return res.status(404).json({ mensaje: "Usuario no encontrado." });
     }
+    // Guardar estado previo para detectar transiciones (p. ej. activación de experto)
+    const prevEstado = usuario.estado;
+    const prevInfoActivo =
+      usuario.infoExperto && usuario.infoExperto.activo ? true : false;
 
-    if (datos.roles && datos.roles.includes("experto")) {
-      if (!datos.infoExperto) {
-        if (!usuario.infoExperto) usuario.infoExperto = undefined;
+    // Roles / infoExperto logic:
+    // - If roles provided and does NOT include 'experto', remove infoExperto
+    // - If roles provided and includes 'experto', keep existing infoExperto unless datos.infoExperto explicitly provided
+    if (Object.prototype.hasOwnProperty.call(datos, "roles")) {
+      if (!Array.isArray(datos.roles) || !datos.roles.includes("experto")) {
+        // admin removed experto role -> clear infoExperto
+        usuario.infoExperto = undefined;
       }
-    } else {
-      usuario.infoExperto = undefined;
+      // else: roles includes experto -> leave usuario.infoExperto as-is unless datos.infoExperto provided below
     }
 
-    if (datos.nombre) usuario.nombre = datos.nombre;
-    if (datos.apellido) usuario.apellido = datos.apellido;
-    if (datos.estado) usuario.estado = datos.estado;
-    if (datos.roles) usuario.roles = datos.roles;
-    if (datos.avatarUrl) usuario.avatarUrl = datos.avatarUrl;
-    if (datos.email) usuario.email = datos.email;
+    // Set top-level fields if explicitly provided in payload (allow empty strings/values to clear)
+    if (Object.prototype.hasOwnProperty.call(datos, "nombre"))
+      usuario.nombre = datos.nombre;
+    if (Object.prototype.hasOwnProperty.call(datos, "apellido"))
+      usuario.apellido = datos.apellido;
+    if (Object.prototype.hasOwnProperty.call(datos, "estado"))
+      usuario.estado = datos.estado;
+    if (Object.prototype.hasOwnProperty.call(datos, "roles"))
+      usuario.roles = datos.roles;
+    if (Object.prototype.hasOwnProperty.call(datos, "avatarUrl"))
+      usuario.avatarUrl = datos.avatarUrl;
+    if (Object.prototype.hasOwnProperty.call(datos, "email"))
+      usuario.email = datos.email;
 
     if (datos.infoExperto && typeof datos.infoExperto === "object") {
       let categoriasArray = [];
-      if (datos.infoExperto.categorias) {
+      if (typeof datos.infoExperto.categorias !== "undefined") {
         if (Array.isArray(datos.infoExperto.categorias)) {
           categoriasArray = datos.infoExperto.categorias.map((c) => String(c));
         } else if (typeof datos.infoExperto.categorias === "string") {
-          categoriasArray = datos.infoExperto.categorias
-            .split(",")
-            .map((c) => c.trim());
+          // if empty string -> empty array
+          const raw = datos.infoExperto.categorias.trim();
+          categoriasArray =
+            raw.length === 0 ? [] : raw.split(",").map((c) => c.trim());
+        } else {
+          // other types -> coerce to string array
+          categoriasArray = [String(datos.infoExperto.categorias)];
         }
       }
       let skillsArray = [];
-      if (datos.infoExperto.skills) {
+      if (typeof datos.infoExperto.skills !== "undefined") {
         if (Array.isArray(datos.infoExperto.skills)) {
           skillsArray = datos.infoExperto.skills.map((s) => String(s));
         } else if (typeof datos.infoExperto.skills === "string") {
-          skillsArray = datos.infoExperto.skills
-            .split(",")
-            .map((s) => s.trim());
+          const rawS = datos.infoExperto.skills.trim();
+          skillsArray =
+            rawS.length === 0 ? [] : rawS.split(",").map((s) => s.trim());
+        } else {
+          skillsArray = [String(datos.infoExperto.skills)];
         }
       }
 
@@ -1648,8 +1716,16 @@ const actualizarUsuarioPorEmailAdmin = async (req, res) => {
       }
 
       const mergedInfo = Object.assign({}, existingInfo, datos.infoExperto);
-      if (categoriasArray.length > 0) mergedInfo.categorias = categoriasArray;
-      if (skillsArray.length > 0) mergedInfo.skills = skillsArray;
+      // If the request explicitly provided the property (even empty), overwrite.
+      if (
+        Object.prototype.hasOwnProperty.call(datos.infoExperto, "categorias")
+      ) {
+        // dedupe and allow empty array to clear existing categories
+        mergedInfo.categorias = Array.from(new Set(categoriasArray));
+      }
+      if (Object.prototype.hasOwnProperty.call(datos.infoExperto, "skills")) {
+        mergedInfo.skills = Array.from(new Set(skillsArray));
+      }
 
       try {
         if (mergedInfo && Array.isArray(mergedInfo.categorias)) {
@@ -1714,6 +1790,57 @@ const actualizarUsuarioPorEmailAdmin = async (req, res) => {
           persistirEnDB: true,
         });
 
+        // Si el admin activó al experto aquí (transición de inactivo/pending -> activo)
+        try {
+          const newEstado = refreshed.estado;
+          const newInfoActivo =
+            refreshed.infoExperto && refreshed.infoExperto.activo
+              ? true
+              : false;
+          const isExpertoRole = Array.isArray(refreshed.roles)
+            ? refreshed.roles.includes("experto")
+            : false;
+          if (
+            (newInfoActivo && !prevInfoActivo) ||
+            (isExpertoRole && newEstado === "activo" && prevEstado !== "activo")
+          ) {
+            const asunto = "¡Eres un experto verificado en ServiTech!";
+            const mensaje = `Felicitaciones ${refreshed.nombre} ${refreshed.apellido}. Tu perfil de experto ha sido aprobado y ahora puedes ofrecer asesorías a clientes. Recibirás notificaciones por correo cuando tengas nuevas solicitudes.`;
+            const not = await Notificacion.create({
+              usuarioId: refreshed._id,
+              email: refreshed.email,
+              tipo: "email",
+              asunto,
+              mensaje,
+              estado: "pendiente",
+              fechaEnvio: new Date(),
+            });
+            try {
+              await enviarCorreo(refreshed.email, asunto, mensaje, {
+                nombreDestinatario: refreshed.nombre,
+                apellidoDestinatario: refreshed.apellido,
+              });
+              await Notificacion.findByIdAndUpdate(not._id, {
+                estado: "enviado",
+              });
+            } catch (errEmail) {
+              console.error(
+                "Error enviando email activacion admin-update:",
+                errEmail.message || errEmail
+              );
+              await Notificacion.findByIdAndUpdate(not._id, {
+                estado: "error",
+                detalleError: errEmail.message || String(errEmail),
+              }).catch(() => {});
+            }
+          }
+        } catch (eNotif) {
+          console.error(
+            "Error procesando notificacion activacion (updateOne):",
+            eNotif
+          );
+        }
+
         return res.json({
           mensaje: "Usuario actualizado correctamente.",
           usuario: refreshed,
@@ -1739,6 +1866,55 @@ const actualizarUsuarioPorEmailAdmin = async (req, res) => {
         tipo: "usuarios",
         persistirEnDB: true,
       });
+
+      // Después de guardar, detectar si hubo transición a experto activo y notificar
+      try {
+        const newEstado = usuario.estado;
+        const newInfoActivo =
+          usuario.infoExperto && usuario.infoExperto.activo ? true : false;
+        const isExpertoRole = Array.isArray(usuario.roles)
+          ? usuario.roles.includes("experto")
+          : false;
+        if (
+          (newInfoActivo && !prevInfoActivo) ||
+          (isExpertoRole && newEstado === "activo" && prevEstado !== "activo")
+        ) {
+          const asunto = "¡Eres un experto verificado en ServiTech!";
+          const mensaje = `Felicitaciones ${usuario.nombre} ${usuario.apellido}. Tu perfil de experto ha sido aprobado y ahora puedes ofrecer asesorías a clientes. Recibirás notificaciones por correo cuando tengas nuevas solicitudes.`;
+          const not = await Notificacion.create({
+            usuarioId: usuario._id,
+            email: usuario.email,
+            tipo: "email",
+            asunto,
+            mensaje,
+            estado: "pendiente",
+            fechaEnvio: new Date(),
+          });
+          try {
+            await enviarCorreo(usuario.email, asunto, mensaje, {
+              nombreDestinatario: usuario.nombre,
+              apellidoDestinatario: usuario.apellido,
+            });
+            await Notificacion.findByIdAndUpdate(not._id, {
+              estado: "enviado",
+            });
+          } catch (errEmail) {
+            console.error(
+              "Error enviando email activacion admin-save:",
+              errEmail.message || errEmail
+            );
+            await Notificacion.findByIdAndUpdate(not._id, {
+              estado: "error",
+              detalleError: errEmail.message || String(errEmail),
+            }).catch(() => {});
+          }
+        }
+      } catch (eNotif) {
+        console.error(
+          "Error procesando notificacion activacion (save):",
+          eNotif
+        );
+      }
 
       return res.json({
         mensaje: "Usuario actualizado correctamente.",

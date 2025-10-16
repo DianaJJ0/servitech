@@ -27,7 +27,8 @@ const { Schema } = mongoose;
  */
 const notificacionSchema = new Schema(
   {
-    usuarioId: { type: Schema.Types.ObjectId, ref: "Usuario", required: true },
+    // usuarioId puede ser opcional en casos donde solo tenemos el email (ej. subdocumentos en Asesoria)
+    usuarioId: { type: Schema.Types.ObjectId, ref: "Usuario" },
     email: { type: String, required: true },
     tipo: { type: String, required: true },
     asunto: String,
@@ -36,9 +37,10 @@ const notificacionSchema = new Schema(
       tipo: String,
       referenciaId: Schema.Types.ObjectId,
     },
+    // Aceptar tanto 'error' como 'fallido' por compatibilidad con controladores existentes
     estado: {
       type: String,
-      enum: ["pendiente", "enviado", "fallido"],
+      enum: ["pendiente", "enviado", "fallido", "error"],
       default: "pendiente",
     },
     fechaEnvio: Date,

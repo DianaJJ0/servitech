@@ -687,8 +687,21 @@ const finalizarAsesoria = async (req, res) => {
 
     console.log("Asesoría finalizada exitosamente");
 
-    // Enviar notificaciones
-    await enviarNotificacionesFinalizacion(asesoria, pagoLiberado);
+    // Enviar notificaciones (log debug antes)
+    try {
+      console.log(
+        "[finalizarAsesoria] pagoLiberado:",
+        pagoLiberado,
+        "pagoId:",
+        asesoria.pagoId
+      );
+      await enviarNotificacionesFinalizacion(asesoria, pagoLiberado);
+    } catch (notifErr) {
+      console.error(
+        "Error llamando enviarNotificacionesFinalizacion:",
+        notifErr
+      );
+    }
 
     // Registrar evento
     await generarLogs.registrarEvento({
@@ -1046,45 +1059,53 @@ Te invitamos a buscar otro experto disponible para tu asesoría.`,
  */
 async function enviarNotificacionesFinalizacion(asesoria, pagoLiberado) {
   try {
-    // Notificación al cliente
-    await Notificacion.create({
+    // Notificación al cliente (crear en estado pendiente y luego enviar)
+    const notCli = await Notificacion.create({
       usuarioId: asesoria.cliente._id,
       email: asesoria.cliente.email,
       tipo: "email",
       asunto: "Asesoría completada - ¡Gracias! ",
       mensaje: `Tu asesoría "${asesoria.titulo}" ha sido completada exitosamente.`,
       relacionadoCon: { tipo: "Asesoria", referenciaId: asesoria._id },
-      estado: "enviado",
+      estado: "pendiente",
       fechaEnvio: new Date(),
     });
 
-    await enviarCorreo(
-      asesoria.cliente.email,
-      "Asesoría completada - ¡Gracias! ",
-      `Tu asesoría "${asesoria.titulo}" con ${asesoria.experto.nombre} ${
-        asesoria.experto.apellido
-      } ha sido completada exitosamente.
+    try {
+      await enviarCorreo(
+        asesoria.cliente.email,
+        "Asesoría completada - ¡Gracias! ",
+        `Tu asesoría "${asesoria.titulo}" con ${asesoria.experto.nombre} ${
+          asesoria.experto.apellido
+        } ha sido completada exitosamente.\n\n${
+          pagoLiberado ? "El pago ha sido liberado al experto." : ""
+        }\n\nEsperamos que hayas tenido una excelente experiencia. ¡Gracias por usar ServiTech!\n\n¿Te gustaría calificar tu experiencia o programar otra asesoría?`,
+        {
+          nombreDestinatario: asesoria.cliente.nombre,
+          apellidoDestinatario: asesoria.cliente.apellido,
+        }
+      );
+      await Notificacion.findByIdAndUpdate(notCli._id, { estado: "enviado" });
+    } catch (errCli) {
+      console.error(
+        "Error enviando correo al cliente en finalizacion:",
+        errCli.message || errCli
+      );
+      await Notificacion.findByIdAndUpdate(notCli._id, {
+        estado: "error",
+        detalleError: errCli.message || String(errCli),
+      }).catch(() => {});
+    }
 
-${pagoLiberado ? "El pago ha sido liberado al experto." : ""}
-
-Esperamos que hayas tenido una excelente experiencia. ¡Gracias por usar ServiTech!
-
-¿Te gustaría calificar tu experiencia o programar otra asesoría?`,
-      {
-        nombreDestinatario: asesoria.cliente.nombre,
-        apellidoDestinatario: asesoria.cliente.apellido,
-      }
-    );
-
-    // Notificación al experto
-    await Notificacion.create({
+    // Notificación al experto (crear en estado pendiente y luego enviar)
+    const notExp = await Notificacion.create({
       usuarioId: asesoria.experto._id,
       email: asesoria.experto.email,
       tipo: "email",
       asunto: "Asesoría completada - Pago liberado",
       mensaje: `Tu asesoría "${asesoria.titulo}" ha sido completada y el pago liberado.`,
       relacionadoCon: { tipo: "Asesoria", referenciaId: asesoria._id },
-      estado: "enviado",
+      estado: "pendiente",
       fechaEnvio: new Date(),
     });
 
@@ -1096,25 +1117,34 @@ Esperamos que hayas tenido una excelente experiencia. ¡Gracias por usar ServiTe
       ? `$${pagoInfo.monto.toLocaleString("es-CO")} COP`
       : "el monto correspondiente";
 
-    await enviarCorreo(
-      asesoria.experto.email,
-      "Asesoría completada - Pago liberado",
-      `Tu asesoría "${asesoria.titulo}" con ${asesoria.cliente.nombre} ${
-        asesoria.cliente.apellido
-      } ha sido completada exitosamente.
-
-${pagoLiberado ? `El pago de ${montoTexto} ha sido liberado exitosamente.` : ""}
-
-¡Felicitaciones por completar otra asesoría exitosa!
-
-En un ambiente real, el dinero sería transferido a tu cuenta registrada.`,
-      {
-        nombreDestinatario: asesoria.experto.nombre,
-        apellidoDestinatario: asesoria.experto.apellido,
-      }
-    );
-
-    console.log("Notificaciones de finalización enviadas exitosamente");
+    try {
+      await enviarCorreo(
+        asesoria.experto.email,
+        "Asesoría completada - Pago liberado",
+        `Tu asesoría "${asesoria.titulo}" con ${asesoria.cliente.nombre} ${
+          asesoria.cliente.apellido
+        } ha sido completada exitosamente.\n\n${
+          pagoLiberado
+            ? `El pago de ${montoTexto} ha sido liberado exitosamente.`
+            : ""
+        }\n\n¡Felicitaciones por completar otra asesoría exitosa!\n\nEn un ambiente real, el dinero sería transferido a tu cuenta registrada.`,
+        {
+          nombreDestinatario: asesoria.experto.nombre,
+          apellidoDestinatario: asesoria.experto.apellido,
+        }
+      );
+      await Notificacion.findByIdAndUpdate(notExp._id, { estado: "enviado" });
+      console.log("Notificaciones de finalización enviadas exitosamente");
+    } catch (errExp) {
+      console.error(
+        "Error enviando correo al experto en finalizacion:",
+        errExp.message || errExp
+      );
+      await Notificacion.findByIdAndUpdate(notExp._id, {
+        estado: "error",
+        detalleError: errExp.message || String(errExp),
+      }).catch(() => {});
+    }
   } catch (error) {
     console.error("Error enviando notificaciones de finalización:", error);
   }

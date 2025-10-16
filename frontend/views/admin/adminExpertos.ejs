@@ -226,6 +226,8 @@
                 Nombre completo
               </label>
               <input type="text" id="name" class="modal-expert__input" placeholder="Nombre y apellidos registrados" />
+              <div id="name-error" class="field-error"
+                style="display:none;color:#e53e3e;margin-top:6px;font-size:.9rem;"></div>
             </div>
 
             <!-- Email -->
@@ -235,6 +237,8 @@
                 Email registrado
               </label>
               <input type="email" id="email" class="modal-expert__input" placeholder="Email de la cuenta" />
+              <div id="email-error" class="field-error"
+                style="display:none;color:#e53e3e;margin-top:6px;font-size:.9rem;"></div>
             </div>
 
             <!-- Precio por hora -->
@@ -249,6 +253,8 @@
               <div class="price-input-wrapper">
                 <input type="number" id="precio" class="modal-expert__input price-input" min="10000" step="100" required
                   placeholder="Ej: 50000" />
+                <div id="precio-error" class="field-error"
+                  style="display:none;color:#e53e3e;margin-top:6px;font-size:.9rem;"></div>
               </div>
               <p class="modal-expert__hint">Tarifa por hora de asesoría (Recomendado: $30.000 - $200.000 COP)</p>
             </div>
@@ -318,6 +324,8 @@
               <div class="categorias-chips" id="categorias-chips">
                 <span class="categorias-empty">No hay categorías seleccionadas</span>
               </div>
+              <div id="categorias-error" class="field-error"
+                style="display:none;color:#e53e3e;margin-top:6px;font-size:.9rem;"></div>
 
               <!-- Lista de opciones -->
               <div class="categorias-options" id="categorias-options">
@@ -338,6 +346,8 @@
               </label>
               <textarea id="bio" class="modal-expert__input modal-expert__textarea" rows="4"
                 placeholder="Descripción breve de experiencia y especialización"></textarea>
+              <div id="bio-error" class="field-error"
+                style="display:none;color:#e53e3e;margin-top:6px;font-size:.9rem;"></div>
             </div>
 
             <!-- Datos bancarios -->
@@ -361,6 +371,8 @@
                       <option value="Nequi">Nequi</option>
 
                     </select>
+                    <div id="banco-error" class="field-error"
+                      style="display:none;color:#e53e3e;margin-top:6px;font-size:.9rem;"></div>
                   </div>
 
                   <div class="form-group">
@@ -375,6 +387,8 @@
                       <option value="corriente">Corriente</option>
                       <option value="Nequi">Nequi</option>
                     </select>
+                    <div id="tipoCuenta-error" class="field-error"
+                      style="display:none;color:#e53e3e;margin-top:6px;font-size:.9rem;"></div>
                   </div>
 
                   <div class="form-group">
@@ -390,6 +404,8 @@
                       </button>
                     </div>
                     <small class="modal-expert__hint">Número completo de tu cuenta</small>
+                    <div id="numeroCuenta-error" class="field-error"
+                      style="display:none;color:#e53e3e;margin-top:6px;font-size:.9rem;"></div>
                   </div>
 
                   <div class="form-group">
@@ -399,6 +415,8 @@
                     </label>
                     <input type="text" id="titular" class="modal-expert__input" required
                       placeholder="Nombre completo del titular" />
+                    <div id="titular-error" class="field-error"
+                      style="display:none;color:#e53e3e;margin-top:6px;font-size:.9rem;"></div>
                     <small class="modal-expert__hint">Debe coincidir con el nombre en la cuenta</small>
                   </div>
 
@@ -412,6 +430,8 @@
                       <option value="cedula">Cédula de Ciudadanía</option>
                       <option value="extranjeria">Cédula de Extranjería</option>
                     </select>
+                    <div id="tipoDocumento-error" class="field-error"
+                      style="display:none;color:#e53e3e;margin-top:6px;font-size:.9rem;"></div>
                     <!-- Tipo de documento: readonly display is created/managed by JS when needed -->
                   </div>
 
@@ -423,6 +443,8 @@
                     <input type="text" id="numeroDocumento" class="modal-expert__input" required
                       placeholder="Número de identificación" />
                     <small class="modal-expert__hint">Documento del titular</small>
+                    <div id="numeroDocumento-error" class="field-error"
+                      style="display:none;color:#e53e3e;margin-top:6px;font-size:.9rem;"></div>
                   </div>
 
                   <div class="form-group full-width">
