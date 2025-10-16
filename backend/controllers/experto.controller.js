@@ -18,6 +18,8 @@
 const mongoose = require("mongoose");
 const Usuario = require("../models/usuario.model.js");
 const generarLogs = require("../services/generarLogs");
+const Notificacion = require("../models/notificacion.model.js");
+const { enviarCorreo } = require("../services/email.service.js");
 
 /**
  * @openapi
@@ -265,6 +267,45 @@ const setActivoPorId = async (req, res) => {
     experto.infoExperto.activo = !!activo;
     experto.estado = activo ? "activo" : "inactivo";
     await experto.save();
+    // Si se activa ahora, notificar al usuario que su perfil de experto fue aprobado
+    if (activo) {
+      try {
+        const asunto = "¡Eres un experto verificado en Servitech!";
+        const mensaje = `Felicitaciones ${experto.nombre} ${experto.apellido}. Tu perfil de experto ha sido aprobado y ahora puedes ofrecer asesorías a clientes. Recibirás notificaciones por correo cuando tengas nuevas solicitudes, ¡Revisa seguido tus correos para aceptarlas o rechazarlas!, Puede que a veces salgan en Spam, revisa ahí también.
+        ¡Gracias por ser parte de Servitech!`;
+        await Notificacion.create({
+          usuarioId: experto._id,
+          email: experto.email,
+          tipo: "email",
+          asunto,
+          mensaje,
+          estado: "pendiente",
+          fechaEnvio: new Date(),
+        });
+        await enviarCorreo(experto.email, asunto, mensaje, {
+          nombreDestinatario: experto.nombre,
+          apellidoDestinatario: experto.apellido,
+        });
+        await Notificacion.updateOne(
+          { usuarioId: experto._id, email: experto.email, asunto },
+          { $set: { estado: "enviado" } }
+        );
+      } catch (errEmail) {
+        console.error(
+          "Error notificando activacion de experto:",
+          errEmail.message || errEmail
+        );
+        await Notificacion.updateOne(
+          { usuarioId: experto._id, email: experto.email },
+          {
+            $set: {
+              estado: "error",
+              detalleError: errEmail.message || String(errEmail),
+            },
+          }
+        ).catch(() => {});
+      }
+    }
     try {
       await generarLogs("experto", {
         action: activo ? "activar" : "inactivar",
@@ -464,6 +505,48 @@ const aprobarExperto = async (req, res) => {
       estado: "activo",
     });
 
+    // Enviar notificación y correo al experto aprobado
+    try {
+      const refreshed = await Usuario.findById(experto._id).select(
+        "-passwordHash"
+      );
+      if (refreshed) {
+        const asunto = "¡Eres un experto verificado en ServiTech!";
+        const mensaje = `Felicitaciones ${refreshed.nombre} ${refreshed.apellido}. Tu perfil de experto ha sido aprobado y ahora puedes ofrecer asesorías a clientes. Recibirás notificaciones por correo cuando tengas nuevas solicitudes, ¡Revisa seguido tus correos para aceptarlas o rechazarlas!, Puede que a veces salgan en Spam, revisa ahí también.
+        ¡Gracias por ser parte de Servitech!`;
+        const not = await Notificacion.create({
+          usuarioId: refreshed._id,
+          email: refreshed.email,
+          tipo: "email",
+          asunto,
+          mensaje,
+          estado: "pendiente",
+          fechaEnvio: new Date(),
+        });
+        try {
+          await enviarCorreo(refreshed.email, asunto, mensaje, {
+            nombreDestinatario: refreshed.nombre,
+            apellidoDestinatario: refreshed.apellido,
+          });
+          await Notificacion.findByIdAndUpdate(not._id, { estado: "enviado" });
+        } catch (errEmail) {
+          console.error(
+            "Error enviando email en aprobarExperto:",
+            errEmail.message || errEmail
+          );
+          await Notificacion.findByIdAndUpdate(not._id, {
+            estado: "error",
+            detalleError: errEmail.message || String(errEmail),
+          }).catch(() => {});
+        }
+      }
+    } catch (notifErr) {
+      console.error(
+        "Error creando/enviando notificacion en aprobarExperto:",
+        notifErr
+      );
+    }
+
     // Log de la acción (no bloqueante, si falla no debe afectar la respuesta)
     try {
       await generarLogs("experto", {
@@ -630,6 +713,9 @@ const setActivo = async (req, res) => {
       return res.status(404).json({ mensaje: "Experto no encontrado" });
     }
 
+    // Detectar estado previo para evitar notificaciones duplicadas
+    const previoInfoActivo =
+      experto.infoExperto && experto.infoExperto.activo ? true : false;
     // Actualizar el campo infoExperto.activo si existe, y el campo estado general
     experto.infoExperto = experto.infoExperto || {};
     experto.infoExperto.activo = !!activo;
@@ -676,6 +762,44 @@ const setActivo = async (req, res) => {
       });
     } catch (logErr) {
       console.warn("Error al generar log (no crítico):", logErr.message);
+    }
+
+    // Si se acaba de activar (activo=true) y antes no estaba activo, notificar
+    try {
+      const ahoraActivo =
+        saved.infoExperto && saved.infoExperto.activo ? true : false;
+      if (activo && !previoInfoActivo && ahoraActivo) {
+        const asunto = "¡Eres un experto verificado en ServiTech!";
+        const mensaje = `Felicitaciones ${saved.nombre} ${saved.apellido}. Tu perfil de experto ha sido aprobado y ahora puedes ofrecer asesorías a clientes. Recibirás notificaciones por correo cuando tengas nuevas solicitudes, ¡Revisa seguido tus correos para aceptarlas o rechazarlas!, Puede que a veces salgan en Spam, revisa ahí también.
+        ¡Gracias por ser parte de Servitech!`;
+        const not = await Notificacion.create({
+          usuarioId: saved._id,
+          email: saved.email,
+          tipo: "email",
+          asunto,
+          mensaje,
+          estado: "pendiente",
+          fechaEnvio: new Date(),
+        });
+        try {
+          await enviarCorreo(saved.email, asunto, mensaje, {
+            nombreDestinatario: saved.nombre,
+            apellidoDestinatario: saved.apellido,
+          });
+          await Notificacion.findByIdAndUpdate(not._id, { estado: "enviado" });
+        } catch (errEmail) {
+          console.error(
+            "Error enviando email en setActivo:",
+            errEmail.message || errEmail
+          );
+          await Notificacion.findByIdAndUpdate(not._id, {
+            estado: "error",
+            detalleError: errEmail.message || String(errEmail),
+          }).catch(() => {});
+        }
+      }
+    } catch (errNotif) {
+      console.error("Error procesando notificacion en setActivo:", errNotif);
     }
 
     return res

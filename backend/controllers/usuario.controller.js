@@ -35,6 +35,7 @@ const {
 const mongoose = require("mongoose");
 const { generateLog } = require("../services/logService.js");
 const generarLogs = require("../services/generarLogs");
+const Notificacion = require("../models/notificacion.model.js");
 
 /**
  * @openapi
@@ -473,6 +474,53 @@ const registrarUsuario = async (req, res) => {
       mensaje =
         "Solicitud de perfil de experto enviada. Revisaremos tu perfil y activaremos tu cuenta de experto.";
     }
+    // Crear registro de notificacion y enviar email de bienvenida/confirmacion
+    try {
+      const asunto = infoExpToSave
+        ? "Solicitud de experto recibida - Servitech"
+        : "Bienvenido a Servitech";
+      const cuerpo = infoExpToSave
+        ? `Hemos recibido tu solicitud para convertirte en Experto. Nuestro equipo revisará tu perfil y te notificaremos cuando esté aprobado.`
+        : `¡Gracias por registrarte en Servitech. Ya puedes solicitar y contratar asesorías!.`;
+
+      // Registrar notificacion en BD
+      await Notificacion.create({
+        usuarioId: nuevoUsuario._id,
+        email: nuevoUsuario.email,
+        tipo: "email",
+        asunto,
+        mensaje: cuerpo,
+        estado: "pendiente",
+        fechaEnvio: new Date(),
+      });
+
+      // Intentar enviar email real
+      await enviarCorreo(nuevoUsuario.email, asunto, cuerpo, {
+        nombreDestinatario: nuevoUsuario.nombre,
+        apellidoDestinatario: nuevoUsuario.apellido,
+      });
+      // Marcar como enviado
+      await Notificacion.updateOne(
+        { usuarioId: nuevoUsuario._id, email: nuevoUsuario.email, asunto },
+        { $set: { estado: "enviado" } }
+      );
+    } catch (emailErr) {
+      console.error(
+        "Error enviando email de registro:",
+        emailErr.message || emailErr
+      );
+      // Dejar el registro de notificacion en 'pendiente' o marcar error
+      await Notificacion.updateOne(
+        { usuarioId: nuevoUsuario._id, email: nuevoUsuario.email },
+        {
+          $set: {
+            estado: "error",
+            detalleError: emailErr.message || String(emailErr),
+          },
+        }
+      ).catch(() => {});
+    }
+
     res.status(201).json({
       mensaje,
       token: generarToken(nuevoUsuario._id),
@@ -1598,6 +1646,10 @@ const actualizarUsuarioPorEmailAdmin = async (req, res) => {
     if (!usuario) {
       return res.status(404).json({ mensaje: "Usuario no encontrado." });
     }
+    // Guardar estado previo para detectar transiciones (p. ej. activación de experto)
+    const prevEstado = usuario.estado;
+    const prevInfoActivo =
+      usuario.infoExperto && usuario.infoExperto.activo ? true : false;
 
     // Roles / infoExperto logic:
     // - If roles provided and does NOT include 'experto', remove infoExperto
@@ -1738,6 +1790,57 @@ const actualizarUsuarioPorEmailAdmin = async (req, res) => {
           persistirEnDB: true,
         });
 
+        // Si el admin activó al experto aquí (transición de inactivo/pending -> activo)
+        try {
+          const newEstado = refreshed.estado;
+          const newInfoActivo =
+            refreshed.infoExperto && refreshed.infoExperto.activo
+              ? true
+              : false;
+          const isExpertoRole = Array.isArray(refreshed.roles)
+            ? refreshed.roles.includes("experto")
+            : false;
+          if (
+            (newInfoActivo && !prevInfoActivo) ||
+            (isExpertoRole && newEstado === "activo" && prevEstado !== "activo")
+          ) {
+            const asunto = "¡Eres un experto verificado en ServiTech!";
+            const mensaje = `Felicitaciones ${refreshed.nombre} ${refreshed.apellido}. Tu perfil de experto ha sido aprobado y ahora puedes ofrecer asesorías a clientes. Recibirás notificaciones por correo cuando tengas nuevas solicitudes.`;
+            const not = await Notificacion.create({
+              usuarioId: refreshed._id,
+              email: refreshed.email,
+              tipo: "email",
+              asunto,
+              mensaje,
+              estado: "pendiente",
+              fechaEnvio: new Date(),
+            });
+            try {
+              await enviarCorreo(refreshed.email, asunto, mensaje, {
+                nombreDestinatario: refreshed.nombre,
+                apellidoDestinatario: refreshed.apellido,
+              });
+              await Notificacion.findByIdAndUpdate(not._id, {
+                estado: "enviado",
+              });
+            } catch (errEmail) {
+              console.error(
+                "Error enviando email activacion admin-update:",
+                errEmail.message || errEmail
+              );
+              await Notificacion.findByIdAndUpdate(not._id, {
+                estado: "error",
+                detalleError: errEmail.message || String(errEmail),
+              }).catch(() => {});
+            }
+          }
+        } catch (eNotif) {
+          console.error(
+            "Error procesando notificacion activacion (updateOne):",
+            eNotif
+          );
+        }
+
         return res.json({
           mensaje: "Usuario actualizado correctamente.",
           usuario: refreshed,
@@ -1763,6 +1866,55 @@ const actualizarUsuarioPorEmailAdmin = async (req, res) => {
         tipo: "usuarios",
         persistirEnDB: true,
       });
+
+      // Después de guardar, detectar si hubo transición a experto activo y notificar
+      try {
+        const newEstado = usuario.estado;
+        const newInfoActivo =
+          usuario.infoExperto && usuario.infoExperto.activo ? true : false;
+        const isExpertoRole = Array.isArray(usuario.roles)
+          ? usuario.roles.includes("experto")
+          : false;
+        if (
+          (newInfoActivo && !prevInfoActivo) ||
+          (isExpertoRole && newEstado === "activo" && prevEstado !== "activo")
+        ) {
+          const asunto = "¡Eres un experto verificado en ServiTech!";
+          const mensaje = `Felicitaciones ${usuario.nombre} ${usuario.apellido}. Tu perfil de experto ha sido aprobado y ahora puedes ofrecer asesorías a clientes. Recibirás notificaciones por correo cuando tengas nuevas solicitudes.`;
+          const not = await Notificacion.create({
+            usuarioId: usuario._id,
+            email: usuario.email,
+            tipo: "email",
+            asunto,
+            mensaje,
+            estado: "pendiente",
+            fechaEnvio: new Date(),
+          });
+          try {
+            await enviarCorreo(usuario.email, asunto, mensaje, {
+              nombreDestinatario: usuario.nombre,
+              apellidoDestinatario: usuario.apellido,
+            });
+            await Notificacion.findByIdAndUpdate(not._id, {
+              estado: "enviado",
+            });
+          } catch (errEmail) {
+            console.error(
+              "Error enviando email activacion admin-save:",
+              errEmail.message || errEmail
+            );
+            await Notificacion.findByIdAndUpdate(not._id, {
+              estado: "error",
+              detalleError: errEmail.message || String(errEmail),
+            }).catch(() => {});
+          }
+        }
+      } catch (eNotif) {
+        console.error(
+          "Error procesando notificacion activacion (save):",
+          eNotif
+        );
+      }
 
       return res.json({
         mensaje: "Usuario actualizado correctamente.",
