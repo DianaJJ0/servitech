@@ -4024,6 +4024,60 @@
                     submitBtn.textContent =
                       submitBtn.dataset.origText || "Guardar experto";
                   }
+                  try {
+                    // Enfocar el primer campo con error para mejorar UX/accesibilidad
+                    var focusEl = null;
+                    if (modal) {
+                      focusEl = modal.querySelector(".input-error");
+                      if (!focusEl) {
+                        // buscar el primer .field-error visible y enfocar el input/select/textarea dentro de su .form-group
+                        var fieldErrors = Array.from(
+                          modal.querySelectorAll(".field-error")
+                        ).filter(function (fe) {
+                          try {
+                            return fe.offsetParent !== null;
+                          } catch (e) {
+                            return true;
+                          }
+                        });
+                        if (fieldErrors && fieldErrors.length) {
+                          for (var i = 0; i < fieldErrors.length; i++) {
+                            var fe = fieldErrors[i];
+                            try {
+                              var grp = fe.closest(".form-group");
+                              if (grp) {
+                                var cand = grp.querySelector(
+                                  'input:not([type="hidden"]), textarea, select'
+                                );
+                                if (cand) {
+                                  focusEl = cand;
+                                  break;
+                                }
+                              }
+                            } catch (e) {}
+                          }
+                        }
+                      }
+                    }
+                    if (!focusEl) {
+                      focusEl =
+                        document.querySelector(".input-error") ||
+                        document.querySelector(
+                          '.field-error:not([style*="display:none"])'
+                        );
+                    }
+                    if (focusEl && typeof focusEl.focus === "function") {
+                      try {
+                        focusEl.focus();
+                      } catch (e) {}
+                      try {
+                        focusEl.scrollIntoView({
+                          behavior: "smooth",
+                          block: "center",
+                        });
+                      } catch (e) {}
+                    }
+                  } catch (e) {}
                   return;
                 }
 

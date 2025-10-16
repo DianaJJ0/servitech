@@ -375,8 +375,20 @@ module.exports = app;
 // Arrancar el servidor solo si este archivo es el principal
 if (require.main === module) {
   const PORT = parseInt(process.env.PORT, 10) || 5020;
-  app.listen(PORT, () => {
-    console.log(`MongoDB conectado: servitech`);
-    console.log(`Servidor backend escuchando en http://localhost:${PORT}`);
-  });
+  // Conectar a la base de datos antes de arrancar el servidor
+  const conectarDB = require("./config/database");
+
+  (async () => {
+    try {
+      await conectarDB();
+      console.log(`Conexión a MongoDB establecida.`);
+    } catch (err) {
+      console.error("No se pudo conectar a MongoDB antes de iniciar el servidor:", err && err.message ? err.message : err);
+      // Continuar arrancando el servidor para entornos de desarrollo, pero advertir
+    }
+
+    app.listen(PORT, () => {
+      console.log(`Servidor backend escuchando en http://localhost:${PORT}`);
+    });
+  })();
 }
