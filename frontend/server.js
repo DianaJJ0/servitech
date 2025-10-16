@@ -1169,7 +1169,31 @@ router.get("/admin/adminLogs", requireAdmin, (req, res) => {
   res.render("admin/adminLogs", { user: req.session.user || {} });
 });
 router.get("/admin/adminUsuarios", requireAdmin, (req, res) => {
-  res.render("admin/adminUsuarios", { user: req.session.user || {} });
+  let apiKey = "";
+  try {
+    const isAdmin =
+      req.session && req.session.user && Array.isArray(req.session.user.roles)
+        ? req.session.user.roles.includes("admin")
+        : false;
+    if (process.env.API_KEY) {
+      if (String(process.env.NODE_ENV || "").toLowerCase() !== "production") {
+        apiKey = process.env.API_KEY;
+      } else if (isAdmin) {
+        apiKey = process.env.API_KEY;
+      }
+    }
+  } catch (e) {
+    apiKey = "";
+  }
+  console.log(
+    `Rendering /admin/adminUsuarios - expose API_KEY to client: ${
+      apiKey ? "yes" : "no"
+    }`
+  );
+  res.render("admin/adminUsuarios", {
+    user: req.session.user || {},
+    API_KEY: typeof apiKey !== "undefined" ? apiKey : "",
+  });
 });
 router.get("/admin/adminExpertos", requireAdmin, async (req, res) => {
   let categorias = [];

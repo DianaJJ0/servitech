@@ -1599,40 +1599,56 @@ const actualizarUsuarioPorEmailAdmin = async (req, res) => {
       return res.status(404).json({ mensaje: "Usuario no encontrado." });
     }
 
-    if (datos.roles && datos.roles.includes("experto")) {
-      if (!datos.infoExperto) {
-        if (!usuario.infoExperto) usuario.infoExperto = undefined;
+    // Roles / infoExperto logic:
+    // - If roles provided and does NOT include 'experto', remove infoExperto
+    // - If roles provided and includes 'experto', keep existing infoExperto unless datos.infoExperto explicitly provided
+    if (Object.prototype.hasOwnProperty.call(datos, "roles")) {
+      if (!Array.isArray(datos.roles) || !datos.roles.includes("experto")) {
+        // admin removed experto role -> clear infoExperto
+        usuario.infoExperto = undefined;
       }
-    } else {
-      usuario.infoExperto = undefined;
+      // else: roles includes experto -> leave usuario.infoExperto as-is unless datos.infoExperto provided below
     }
 
-    if (datos.nombre) usuario.nombre = datos.nombre;
-    if (datos.apellido) usuario.apellido = datos.apellido;
-    if (datos.estado) usuario.estado = datos.estado;
-    if (datos.roles) usuario.roles = datos.roles;
-    if (datos.avatarUrl) usuario.avatarUrl = datos.avatarUrl;
-    if (datos.email) usuario.email = datos.email;
+    // Set top-level fields if explicitly provided in payload (allow empty strings/values to clear)
+    if (Object.prototype.hasOwnProperty.call(datos, "nombre"))
+      usuario.nombre = datos.nombre;
+    if (Object.prototype.hasOwnProperty.call(datos, "apellido"))
+      usuario.apellido = datos.apellido;
+    if (Object.prototype.hasOwnProperty.call(datos, "estado"))
+      usuario.estado = datos.estado;
+    if (Object.prototype.hasOwnProperty.call(datos, "roles"))
+      usuario.roles = datos.roles;
+    if (Object.prototype.hasOwnProperty.call(datos, "avatarUrl"))
+      usuario.avatarUrl = datos.avatarUrl;
+    if (Object.prototype.hasOwnProperty.call(datos, "email"))
+      usuario.email = datos.email;
 
     if (datos.infoExperto && typeof datos.infoExperto === "object") {
       let categoriasArray = [];
-      if (datos.infoExperto.categorias) {
+      if (typeof datos.infoExperto.categorias !== "undefined") {
         if (Array.isArray(datos.infoExperto.categorias)) {
           categoriasArray = datos.infoExperto.categorias.map((c) => String(c));
         } else if (typeof datos.infoExperto.categorias === "string") {
-          categoriasArray = datos.infoExperto.categorias
-            .split(",")
-            .map((c) => c.trim());
+          // if empty string -> empty array
+          const raw = datos.infoExperto.categorias.trim();
+          categoriasArray =
+            raw.length === 0 ? [] : raw.split(",").map((c) => c.trim());
+        } else {
+          // other types -> coerce to string array
+          categoriasArray = [String(datos.infoExperto.categorias)];
         }
       }
       let skillsArray = [];
-      if (datos.infoExperto.skills) {
+      if (typeof datos.infoExperto.skills !== "undefined") {
         if (Array.isArray(datos.infoExperto.skills)) {
           skillsArray = datos.infoExperto.skills.map((s) => String(s));
         } else if (typeof datos.infoExperto.skills === "string") {
-          skillsArray = datos.infoExperto.skills
-            .split(",")
-            .map((s) => s.trim());
+          const rawS = datos.infoExperto.skills.trim();
+          skillsArray =
+            rawS.length === 0 ? [] : rawS.split(",").map((s) => s.trim());
+        } else {
+          skillsArray = [String(datos.infoExperto.skills)];
         }
       }
 
@@ -1648,8 +1664,16 @@ const actualizarUsuarioPorEmailAdmin = async (req, res) => {
       }
 
       const mergedInfo = Object.assign({}, existingInfo, datos.infoExperto);
-      if (categoriasArray.length > 0) mergedInfo.categorias = categoriasArray;
-      if (skillsArray.length > 0) mergedInfo.skills = skillsArray;
+      // If the request explicitly provided the property (even empty), overwrite.
+      if (
+        Object.prototype.hasOwnProperty.call(datos.infoExperto, "categorias")
+      ) {
+        // dedupe and allow empty array to clear existing categories
+        mergedInfo.categorias = Array.from(new Set(categoriasArray));
+      }
+      if (Object.prototype.hasOwnProperty.call(datos.infoExperto, "skills")) {
+        mergedInfo.skills = Array.from(new Set(skillsArray));
+      }
 
       try {
         if (mergedInfo && Array.isArray(mergedInfo.categorias)) {

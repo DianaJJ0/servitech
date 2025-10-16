@@ -4531,33 +4531,6 @@
                   window.allExperts.unshift(created);
                 }
               } catch (e) {}
-              // Mostrar notificación de éxito para el usuario (toast)
-              try {
-                let container = document.getElementById("toast-container");
-                if (!container) {
-                  container = document.createElement("div");
-                  container.id = "toast-container";
-                  container.style.position = "fixed";
-                  container.style.right = "20px";
-                  container.style.top = "20px";
-                  container.style.zIndex = "9999";
-                  document.body.appendChild(container);
-                }
-                const toastEl = document.createElement("div");
-                toastEl.textContent = "Experto creado correctamente";
-                toastEl.style.background = "#2f855a";
-                toastEl.style.color = "white";
-                toastEl.style.padding = "10px 14px";
-                toastEl.style.borderRadius = "6px";
-                toastEl.style.marginTop = "8px";
-                toastEl.style.boxShadow = "0 4px 12px rgba(0,0,0,0.08)";
-                container.appendChild(toastEl);
-                setTimeout(function () {
-                  try {
-                    toastEl.remove();
-                  } catch (ee) {}
-                }, 3500);
-              } catch (ee) {}
             } catch (e) {
               const err = document.createElement("div");
               err.className = "field-error";
